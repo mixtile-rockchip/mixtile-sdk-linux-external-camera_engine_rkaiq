@@ -1,0 +1,2 @@
+**/libgenMeshLib.a filter=lfs diff=lfs merge=lfs -text
+**/libippicv.a filter=lfs diff=lfs merge=lfs -text
