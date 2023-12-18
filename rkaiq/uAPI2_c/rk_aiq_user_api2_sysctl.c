@@ -2664,6 +2664,60 @@ XCamReturn rk_aiq_uapi2_setAiBnrBufCnt(const rk_aiq_sys_ctx_t* ctx,
     return AiqCamHw_setAiBnrBufCnt(ctx->_camHw, aibnr_buf_cnt);
 }
 
+XCamReturn rk_aiq_uapi2_sysctl_setOnetoMultiMode(rk_aiq_sys_ctx_t* ctx, int isp_num,
+                                                 __u32 frame_pattern[4])
+{
+    ENTER_XCORE_FUNCTION();
+    RKAIQ_API_SMART_LOCK(ctx);
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    int mode       = RKMODULE_ONE_CH_TO_MULTI_ISP;
+    int video0_fd;
+    struct rkmodule_capture_info capture_info;
+
+    rk_sensor_full_info_t* s_info = AiqCamHw_getFullSnsInfo(ctx->_sensor_entity_name);
+
+    if (s_info && (!s_info->split)) {
+        LOGE_CAMHW_SUBM(ISP20HW_SUBM, "don't support one cam split to multi mode!");
+        return XCAM_RETURN_ERROR_PARAM;
+    }
+
+    if (strlen(s_info->cif_info->mipi_id0) == 0) {
+        LOGE_CAMHW_SUBM(ISP20HW_SUBM, "%d: can't find mipi_id0 dev path !", __LINE__);
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+
+    AiqV4l2Device_t* video0Dev = (AiqV4l2Device_t*)aiq_mallocz(sizeof(AiqV4l2Device_t));
+    if (video0Dev == NULL) {
+        LOGE_CAMHW_SUBM(ISP20HW_SUBM, "%s:%d: alloc fail !", __FUNCTION__, __LINE__);
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+    AiqV4l2Device_init(video0Dev, s_info->cif_info->mipi_id0);
+    video0Dev->open(video0Dev, false);
+    video0_fd = AiqV4l2Device_getFd(video0Dev);
+    if (video0_fd < 0) {
+        aiq_free(video0Dev);
+        LOGW_CAMHW_SUBM(ISP20HW_SUBM, "get video0 device fd failed! Video0_fd = %d", video0_fd);
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+
+    capture_info.mode                 = RKMODULE_ONE_CH_TO_MULTI_ISP;
+    capture_info.one_to_multi.isp_num = isp_num;
+    memcpy(capture_info.one_to_multi.frame_pattern, frame_pattern, sizeof(__u32) * 4);
+
+    if (xcam_device_ioctl(video0_fd, RKMODULE_SET_CAPTURE_MODE, &capture_info) < 0) {
+        LOGE_CAMHW_SUBM(SENSOR_SUBM, "failed to set rkmodule_capture_info!\n");
+        video0Dev->close(video0Dev);
+        return XCAM_RETURN_ERROR_IOCTL;
+    }
+
+    video0Dev->close(video0Dev);
+    aiq_free(video0Dev);
+
+    EXIT_XCORE_FUNCTION();
+
+    return ret;
+}
+
 #include "rk_aiq_user_api2_common.c"
 #if defined(ISP_HW_V39)
 #include "rk_aiq_user_api2_3dlut.c"

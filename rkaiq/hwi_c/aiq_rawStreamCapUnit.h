@@ -52,6 +52,7 @@ typedef struct AiqRawStreamCapUnit_s {
     AiqMutex_t _mipi_mutex;
     enum RawCapState _state;
     AiqPollCallback_t* _pcb[3];
+    bool _is_split;
 
     // AiqV4l2Buffer_t*
     AiqList_t* buf_list[3];

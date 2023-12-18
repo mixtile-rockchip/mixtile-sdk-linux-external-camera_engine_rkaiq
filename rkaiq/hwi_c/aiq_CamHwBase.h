@@ -188,6 +188,7 @@ typedef struct AiqCamHwBase_s {
     bool _linked_to_isp;
     bool _linked_to_1608;
     bool _linked_to_serdes;
+    bool _linked_to_multi_isp;
     bool _airms_en;
     bool _aiynr_en;
     char sns_name[32];

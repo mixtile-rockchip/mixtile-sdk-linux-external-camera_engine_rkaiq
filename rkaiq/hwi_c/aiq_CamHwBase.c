@@ -1066,7 +1066,7 @@ XCamReturn AiqCamHw_initCamHwInfos() {
     char sys_path[64], devpath[32];
     FILE* fp                    = NULL;
     struct media_device* device = NULL;
-    int nents, j = 0, i = 0, node_index = 0;
+    int nents, j = 0, i = 0, node_index = 0, max_phyId = -1;
     const struct media_entity_desc* entity_info = NULL;
     struct media_entity* entity                 = NULL;
 
@@ -1251,6 +1251,9 @@ XCamReturn AiqCamHw_initCamHwInfos() {
                     }
                     pItem->next = info_wrap;
                 }
+                if (info->sensor_info.phyId > max_phyId) {
+                    max_phyId = info->sensor_info.phyId;
+                }
             }
         }
 
@@ -1277,8 +1280,40 @@ media_unref:
 #endif
 
     {
+        SnsFullInfoWraps_t* tempSensorHwInfos = NULL;
         SnsFullInfoWraps_t* iter = g_mSensorHwInfos;
-        for (; iter != NULL; iter = iter->next) {
+
+        {
+            // check no repeated sensor phyId, m00 -> phyId = 0, m01 -> phyId = 1
+            char sns_idx_str[4];
+            char sns_name_info[MAX_CAM_NUM][64];
+            int  sns_offset = 0;
+            int  sns_num    = 0;
+            for (int sns_idx = 0; sns_idx < MAX_CAM_NUM; sns_idx++) {
+                sprintf(sns_idx_str, "m0%d", sns_idx);
+                sns_num    = 0;
+                sns_offset = 0;
+                for (iter = g_mSensorHwInfos; iter != NULL; iter = iter->next) {
+                    rk_sensor_full_info_t* s_full_info = &iter->data;
+                    CamHwInfoWraps_t* pItem = g_mCamHwInfos;
+                    while (pItem) {
+                        if (strcmp(s_full_info->sensor_name, pItem->key) == 0) break;
+                        pItem = pItem->next;
+                    }
+                    if (strcmp(s_full_info->module_index_str, sns_idx_str) == 0) {
+                        snprintf(sns_name_info[sns_num], 64, "%s(%s phyId: %d)", sns_idx_str, s_full_info->sensor_name, pItem->data.sensor_info.phyId);
+                        sns_num++;
+                    }
+                }
+                if (sns_num > 1) {
+                    LOGE_CAMHW("sensor index %s is more than one, maybe cause some unkown error, modify dts to fix", sns_idx);
+                    for (int sns_num_idx = 0; sns_num_idx < sns_num; sns_num_idx++)
+                        LOGE_CAMHW("%s", sns_name_info[sns_num_idx]);
+                }
+            }
+        }
+
+        for (iter = g_mSensorHwInfos; iter != NULL; iter = iter->next) {
             rk_sensor_full_info_t* s_full_info = &iter->data;
             LOGI_CAMHW_SUBM(ISP20HW_SUBM, "match the sensor_name(%s) media link\n",
                             iter->key);
@@ -1321,6 +1356,7 @@ media_unref:
                 /*
                  * Determine which isp that vipCap is linked
                  */
+                int vicap_linked_to_isp_nums = 0;
                 for (i = 0; i < MAX_CAM_NUM; i++) {
                     if (s_full_info->linked_to_serdes)
                         break;
@@ -1332,38 +1368,113 @@ media_unref:
                                         isp_info->linked_vicap[vicap_idx]);
                         if (strcmp(s_full_info->cif_info->model_str,
                                    isp_info->linked_vicap[vicap_idx]) == 0) {
-                            s_full_info->isp_info   = &g_mIspHwInfos.isp_info[i];
-                            CamHwInfoWraps_t* pItem = g_mCamHwInfos;
+                            if (vicap_linked_to_isp_nums == 0) {
+                                s_full_info->isp_info   = &g_mIspHwInfos.isp_info[i];
+                                CamHwInfoWraps_t* pItem = g_mCamHwInfos;
 
-                            while (pItem) {
-                                if (strcmp(s_full_info->sensor_name, pItem->key) == 0) break;
-                                pItem = pItem->next;
-                            }
+                                while (pItem) {
+                                    if (strcmp(s_full_info->sensor_name, pItem->key) == 0) break;
+                                    pItem = pItem->next;
+                                }
 
-                            if (pItem) {
-                                pItem->data.is_multi_isp_mode =
-                                    s_full_info->isp_info->is_multi_isp_mode;
-                                pItem->data.multi_isp_extended_pixel = g_mMultiIspExtendedPixel;
-                                if (g_mIspHwInfos.ispp_info[i].valid)
-                                    s_full_info->ispp_info = &g_mIspHwInfos.ispp_info[i];
-                                LOGI_CAMHW_SUBM(ISP20HW_SUBM, "vicap link to isp(%d) to ispp(%d)\n",
-                                                s_full_info->isp_info->model_idx,
-                                                s_full_info->ispp_info
-                                                ? s_full_info->ispp_info->model_idx
-                                                : -1);
-                                pItem->data.sensor_info.binded_strm_media_idx =
-                                    s_full_info->ispp_info
-                                    ? atoi(s_full_info->ispp_info->media_dev_path +
-                                           strlen("/dev/media"))
-                                    : -1;
-                                LOGI_CAMHW_SUBM(
-                                    ISP20HW_SUBM, "sensor %s adapted to pp media %d:%s\n",
-                                    s_full_info->sensor_name,
-                                    pItem->data.sensor_info.binded_strm_media_idx,
-                                    s_full_info->ispp_info ? s_full_info->ispp_info->media_dev_path
-                                    : "null");
-                                g_mIspHwInfos.isp_info[i].linked_sensor = true;
+                                if (pItem) {
+                                    pItem->data.is_multi_isp_mode =
+                                        s_full_info->isp_info->is_multi_isp_mode;
+                                    pItem->data.multi_isp_extended_pixel = g_mMultiIspExtendedPixel;
+                                    if (g_mIspHwInfos.ispp_info[i].valid)
+                                        s_full_info->ispp_info = &g_mIspHwInfos.ispp_info[i];
+                                    LOGI_CAMHW_SUBM(ISP20HW_SUBM, "vicap link to isp(%d) to ispp(%d)\n",
+                                                    s_full_info->isp_info->model_idx,
+                                                    s_full_info->ispp_info
+                                                        ? s_full_info->ispp_info->model_idx
+                                                        : -1);
+                                    pItem->data.sensor_info.binded_strm_media_idx =
+                                        s_full_info->ispp_info
+                                            ? atoi(s_full_info->ispp_info->media_dev_path +
+                                                strlen("/dev/media"))
+                                            : -1;
+                                    LOGI_CAMHW_SUBM(
+                                        ISP20HW_SUBM, "sensor %s adapted to pp media %d:%s\n",
+                                        s_full_info->sensor_name,
+                                        pItem->data.sensor_info.binded_strm_media_idx,
+                                        s_full_info->ispp_info ? s_full_info->ispp_info->media_dev_path
+                                                            : "null");
+                                    g_mIspHwInfos.isp_info[i].linked_sensor = true;
+                                }
+                            } else {
+                                int first_num = 0, second_num = 0;
+                                CamHwInfoWraps_t* pItem = g_mCamHwInfos;
+                                CamHwInfoWraps_t* pItem_new = (CamHwInfoWraps_t*)aiq_mallocz(sizeof(CamHwInfoWraps_t));
+                                SnsFullInfoWraps_t* s_full_info_new = (SnsFullInfoWraps_t*)aiq_mallocz(sizeof(SnsFullInfoWraps_t));
+
+                                while (pItem) {
+                                    if (strcmp(s_full_info->sensor_name, pItem->key) == 0) break;
+                                    pItem = pItem->next;
+                                }
+
+                                if (pItem && pItem_new && s_full_info_new) {
+                                    max_phyId++;
+                                    if (max_phyId > 9) {
+                                        first_num  = max_phyId / 10;
+                                    }
+                                    second_num = max_phyId % 10;
+
+                                    s_full_info->split = true;
+                                    strcpy(s_full_info_new->key, s_full_info->sensor_name);
+                                    memcpy(&s_full_info_new->data, s_full_info, sizeof(rk_sensor_full_info_t));
+                                    strcpy(s_full_info_new->data.sensor_name_before_split, s_full_info->sensor_name);
+
+                                    s_full_info_new->key[1]                   = '0' + first_num;
+                                    s_full_info_new->key[2]                   = '0' + second_num;
+                                    s_full_info_new->data.sensor_name[1]      = '0' + first_num;
+                                    s_full_info_new->data.sensor_name[2]      = '0' + second_num;
+                                    s_full_info_new->data.module_index_str[1] = '0' + first_num;
+                                    s_full_info_new->data.module_index_str[2] = '0' + second_num;
+
+                                    strcpy(pItem_new->key, s_full_info_new->key);
+                                    memcpy(&pItem_new->data, &pItem->data, sizeof(rk_aiq_static_info_t));
+                                    strcpy(pItem_new->data.sensor_info.sensor_name, s_full_info_new->key);
+                                    pItem_new->data.sensor_info.phyId = max_phyId;
+
+                                    s_full_info_new->data.isp_info    = &g_mIspHwInfos.isp_info[i];
+                                    pItem_new->data.is_multi_isp_mode =
+                                        s_full_info_new->data.isp_info->is_multi_isp_mode;
+                                    pItem_new->data.multi_isp_extended_pixel = g_mMultiIspExtendedPixel;
+                                    if (g_mIspHwInfos.ispp_info[i].valid)
+                                        s_full_info_new->data.ispp_info = &g_mIspHwInfos.ispp_info[i];
+                                    LOGI_CAMHW_SUBM(ISP20HW_SUBM, "vicap link to isp(%d) to ispp(%d)\n",
+                                                        s_full_info->isp_info->model_idx,
+                                                        s_full_info->ispp_info
+                                                            ? s_full_info->ispp_info->model_idx
+                                                            : -1);
+                                    pItem_new->data.sensor_info.binded_strm_media_idx =
+                                        s_full_info->ispp_info
+                                            ? atoi(s_full_info->ispp_info->media_dev_path +
+                                                strlen("/dev/media"))
+                                            : -1;
+                                    LOGI_CAMHW_SUBM(
+                                        ISP20HW_SUBM, "sensor %s adapted to pp media %d:%s\n",
+                                        s_full_info->sensor_name,
+                                        pItem_new->data.sensor_info.binded_strm_media_idx,
+                                        s_full_info->ispp_info ? s_full_info->ispp_info->media_dev_path
+                                                            : "null");
+                                    g_mIspHwInfos.isp_info[i].linked_sensor = true;
+                                    if (!tempSensorHwInfos) {
+                                        tempSensorHwInfos = s_full_info_new;
+                                    } else {
+                                        SnsFullInfoWraps_t *sns_pItem = tempSensorHwInfos;
+                                        while (sns_pItem->next) {
+                                            sns_pItem = sns_pItem->next;
+                                        }
+                                        sns_pItem->next = s_full_info_new;
+                                    }
+                                    while (pItem->next) {
+                                        pItem = pItem->next;
+                                    }
+                                    pItem->next = pItem_new;
+                                }
                             }
+                            vicap_linked_to_isp_nums++;
                         }
                     }
                 }
@@ -1425,6 +1536,35 @@ media_unref:
                 // *s_full_info->isp_info;
                 // CamHwIsp20::mCamHwInfos[s_full_info->sensor_name]->linked_ispp_info =
                 // *s_full_info->ispp_info;
+            }
+        }
+
+        // store new sensor into sensor map
+        iter = g_mSensorHwInfos;
+        while (iter->next) {
+            iter = iter->next;
+        }
+        iter->next = tempSensorHwInfos;
+        LOGI_CAMHW_SUBM(ISP20HW_SUBM, "dump sensor link info:");
+        for (iter = g_mSensorHwInfos; iter != NULL; iter = iter->next) {
+            for (i = 0; i < MAX_ISP_LINKED_VICAP_CNT; i++) {
+                if (iter->data.isp_info && strlen(iter->data.isp_info->linked_vicap[i]) > 0) {
+                    LOGI_CAMHW_SUBM(ISP20HW_SUBM, "sns_name:%s %d %s", iter->key,
+                                    iter->data.isp_info->model_idx,
+                                    iter->data.isp_info->linked_vicap[i]);
+                    if (iter->data.cif_info) {
+                        LOGI_CAMHW_SUBM(ISP20HW_SUBM, "  --> linked vicap info:");
+                        LOGI_CAMHW_SUBM(ISP20HW_SUBM, "      model_str: %s",
+                                        iter->data.cif_info->model_str);
+                        LOGI_CAMHW_SUBM(ISP20HW_SUBM, "      media_dev: %s",
+                                        iter->data.cif_info->media_dev_path);
+                    }
+                    LOGI_CAMHW_SUBM(ISP20HW_SUBM, "  --> linked isp info:");
+                    LOGI_CAMHW_SUBM(ISP20HW_SUBM, "      media_dev: %s",
+                                    iter->data.isp_info->media_dev_path);
+                    LOGI_CAMHW_SUBM(ISP20HW_SUBM, "      linked_vicap: %s",
+                                    iter->data.isp_info->linked_vicap[i]);
+                }
             }
         }
 
@@ -1581,7 +1721,8 @@ const char* AiqCamHw_getBindedSnsEntNmByVd(const char* vd) {
         if (stream_vd) {
             // check linked
             if ((strstr(s_full_info->sensor_name, "FakeCamera") == NULL) &&
-                    (strstr(s_full_info->sensor_name, "_s_") == NULL)) {
+                (strstr(s_full_info->sensor_name, "_s_") == NULL) &&
+                !s_full_info->split) {
                 FILE* fp                    = NULL;
                 struct media_device* device = NULL;
                 uint32_t j = 0, i = 0;
@@ -2472,8 +2613,8 @@ XCamReturn AiqCamHwBase_init(AiqCamHwBase_t* pCamHw, const char* sns_ent_name) {
 
     // serdes sensor
     if (s_info->linked_to_serdes) {
-        pCamHw->_linked_to_isp = false;
-        pCamHw->_linked_to_1608 = false;
+        pCamHw->_linked_to_isp    = false;
+        pCamHw->_linked_to_1608   = false;
         pCamHw->_linked_to_serdes = true;
 #if 0
         if (!pCamHw->use_rkrawstream)
@@ -2483,6 +2624,18 @@ XCamReturn AiqCamHwBase_init(AiqCamHwBase_t* pCamHw, const char* sns_ent_name) {
         if (pCamHw->mIsListenStrmEvt)
             LOGK_CAMHW("linked to serdes, set mIsListenStrmEvt to false");
         pCamHw->mIsListenStrmEvt = false;
+    } else {
+        pCamHw->_linked_to_serdes = false;
+    }
+
+    // one sensor linked to multi isp
+    if (s_info->split) {
+        pCamHw->_linked_to_isp       = false;
+        pCamHw->_linked_to_1608      = false;
+        pCamHw->_linked_to_serdes    = false;
+        pCamHw->_linked_to_multi_isp = true;
+    } else {
+        pCamHw->_linked_to_multi_isp = false;
     }
     // airms
     pCamHw->_airms_en = false;
@@ -2546,7 +2699,16 @@ XCamReturn AiqCamHwBase_init(AiqCamHwBase_t* pCamHw, const char* sns_ent_name) {
         pCamHw->mIrcutDev->_v4l_base.open(&pCamHw->mIrcutDev->_v4l_base, false);
     }
 
-    if (!pCamHw->_linked_to_isp && !pCamHw->_linked_to_serdes) {
+    if (pCamHw->_linked_to_serdes || pCamHw->_linked_to_multi_isp) {
+        if (strlen(s_info->isp_info->linked_vicap_sd_path) > 0) {
+            pCamHw->mVicapItfDev = (AiqV4l2SubDevice_t*)aiq_mallocz(sizeof(AiqV4l2SubDevice_t));
+            AiqV4l2SubDevice_init((AiqV4l2SubDevice_t*)(pCamHw->mVicapItfDev),
+                                  s_info->isp_info->linked_vicap_sd_path);
+        } else {
+            LOGW_CAMHW_SUBM(ISP20HW_SUBM, "mVicapItfDev is null! \n");
+        }
+        pCamHw->mVicapItfDev->_v4l_base.open(&pCamHw->mVicapItfDev->_v4l_base, false);
+    } else if (!pCamHw->_linked_to_isp) {
         if (strlen(s_info->cif_info->mipi_csi2_sd_path) > 0) {
             pCamHw->_cif_csi2_sd = (AiqV4l2SubDevice_t*)aiq_mallocz(sizeof(AiqV4l2SubDevice_t));
             AiqV4l2SubDevice_init((AiqV4l2SubDevice_t*)(pCamHw->_cif_csi2_sd),
@@ -2563,15 +2725,6 @@ XCamReturn AiqCamHwBase_init(AiqCamHwBase_t* pCamHw, const char* sns_ent_name) {
             LOGW_CAMHW_SUBM(ISP20HW_SUBM, "_cif_csi2_sd is null! \n");
         }
         pCamHw->_cif_csi2_sd->_v4l_base.open(&pCamHw->_cif_csi2_sd->_v4l_base, false);
-    } else if (pCamHw->_linked_to_serdes) {
-        if (strlen(s_info->isp_info->linked_vicap_sd_path) > 0) {
-            pCamHw->mVicapItfDev = (AiqV4l2SubDevice_t*)aiq_mallocz(sizeof(AiqV4l2SubDevice_t));
-            AiqV4l2SubDevice_init((AiqV4l2SubDevice_t*)(pCamHw->mVicapItfDev),
-                                  s_info->isp_info->linked_vicap_sd_path);
-        } else {
-            LOGW_CAMHW_SUBM(ISP20HW_SUBM, "mVicapItfDev is null! \n");
-        }
-        pCamHw->mVicapItfDev->_v4l_base.open(&pCamHw->mVicapItfDev->_v4l_base, false);
     }
 
 #if defined(RKAIQ_ENABLE_SPSTREAM)
@@ -4229,10 +4382,10 @@ XCamReturn AiqCamHw_prepare(AiqCamHwBase_t* pCamHw, uint32_t width, uint32_t hei
             pCamHw->mIspSofStream = (AiqSofEvtStream_t*)aiq_mallocz(sizeof(AiqSofEvtStream_t));
             AiqSofEvtStream_init(pCamHw->mIspSofStream, &pCamHw->mIspCoreDev->_v4l_base,
                                  ISP_POLL_SOF, pCamHw->_linked_to_1608);
-        } else if (pCamHw->_linked_to_serdes) {
+        } else if (pCamHw->_linked_to_serdes || s_info->split) {
             pCamHw->mIspSofStream = (AiqSofEvtStream_t*)aiq_mallocz(sizeof(AiqSofEvtStream_t));
             AiqSofEvtStream_init(pCamHw->mIspSofStream, &pCamHw->mVicapItfDev->_v4l_base,
-                                 ISP_POLL_SOF, pCamHw->_linked_to_serdes);
+                                 ISP_POLL_SOF, pCamHw->_linked_to_1608);
         } else {
             pCamHw->mIspSofStream = (AiqSofEvtStream_t*)aiq_mallocz(sizeof(AiqSofEvtStream_t));
             AiqSofEvtStream_init(pCamHw->mIspSofStream, &pCamHw->_cif_csi2_sd->_v4l_base,

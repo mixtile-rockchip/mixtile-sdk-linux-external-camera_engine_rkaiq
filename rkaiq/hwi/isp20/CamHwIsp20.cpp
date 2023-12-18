@@ -129,6 +129,8 @@ CamHwIsp20::CamHwIsp20()
     mEffectIspParamsPool = new RkAiqIspEffParamsPool("ISP_EFF", CAMHWISP_EFFECT_ISP_POOL_NUM);
     _curIspParamsSeq = 0;
 
+    _linked_to_multi_isp = false;
+
     use_rkrawstream = false;
     xcam_mem_clear(mAiqPreCtrlInfo);
     mAiqPreCtrlInfo.mode = RK_AIQ_CONTROL_DEFAULT;
@@ -707,7 +709,8 @@ get_isp_subdevs(struct media_device *device, const char *devpath, rk_aiq_isp_t* 
     for (int i = 0; linked_entity_name_strs[i] != NULL; i++) {
         entity = media_get_entity_by_name(device, linked_entity_name_strs[i], strlen(linked_entity_name_strs[i]));
         if (entity) {
-            strncpy(isp_info[index].linked_vicap[vicap_idx], entity->info.name, sizeof(isp_info[index].linked_vicap[vicap_idx]));
+            strncpy(isp_info[index].linked_vicap[vicap_idx], entity->info.name,
+                        sizeof(isp_info[index].linked_vicap[vicap_idx]));
 
             entity_name = media_entity_get_devname (entity);
             if(entity_name) {
@@ -1113,10 +1116,11 @@ CamHwIsp20::findAttachedSubdevs(struct media_device *device, uint32_t count, rk_
 XCamReturn
 CamHwIsp20::initCamHwInfos()
 {
+    ENTER_CAMHW_FUNCTION();
     char sys_path[64], devpath[32];
     FILE *fp = NULL;
     struct media_device *device = NULL;
-    int nents, j = 0, i = 0, node_index = 0;
+    int nents, j = 0, i = 0, node_index = 0, max_phyId = -1;
     const struct media_entity_desc *entity_info = NULL;
     struct media_entity *entity = NULL;
 
@@ -1261,8 +1265,12 @@ CamHwIsp20::initCamHwInfos()
                 LOGD_CAMHW_SUBM(ISP20HW_SUBM, "Init sensor %s with Multi-ISP Mode:%d Extended Pixels:%d ",
                                 s_full_info->sensor_name.c_str(), info->is_multi_isp_mode,
                                 info->multi_isp_extended_pixel);
+                s_full_info->split = false;
                 CamHwIsp20::mSensorHwInfos[s_full_info->sensor_name] = s_full_info;
                 CamHwIsp20::mCamHwInfos[s_full_info->sensor_name] = info;
+                if (info->sensor_info.phyId > max_phyId) {
+                    max_phyId = info->sensor_info.phyId;
+                }
             }
         }
 
@@ -1286,12 +1294,40 @@ media_unref:
     }
 #endif
 
+    std::unordered_map<std::string, SmartPtr<rk_sensor_full_info_t>> tempSensorHwInfos;
     std::unordered_map<std::string, SmartPtr<rk_sensor_full_info_t>>::iterator iter;
-    for(iter = CamHwIsp20::mSensorHwInfos.begin(); \
-            iter != CamHwIsp20::mSensorHwInfos.end(); iter++) {
+
+    {
+        // check no repeated sensor phyId, m00 -> phyId = 0, m01 -> phyId = 1
+        char sns_idx_str[4];
+        char sns_name[MAX_CAM_NUM][64];
+        int  sns_offset = 0;
+        int  sns_num    = 0;
+        for (int sns_idx = 0; sns_idx < MAX_CAM_NUM; sns_idx++) {
+            sprintf(sns_idx_str, "m0%d", sns_idx);
+            sns_num    = 0;
+            sns_offset = 0;
+            for (iter = CamHwIsp20::mSensorHwInfos.begin(); \
+                 iter != CamHwIsp20::mSensorHwInfos.end(); iter++) {
+                SmartPtr<rk_sensor_full_info_t> s_full_info  = iter->second;
+                SmartPtr<rk_aiq_static_info_t> s_static_info = CamHwIsp20::mCamHwInfos[s_full_info->sensor_name];
+                if (strcmp(s_full_info->module_index_str.c_str(), sns_idx_str) == 0) {
+                    snprintf(sns_name[sns_num], 64, "%s(%s phyId: %d)", sns_idx_str, s_full_info->sensor_name.c_str(), s_static_info->sensor_info.phyId);
+                    sns_num++;
+                }
+            }
+            if (sns_num > 1) {
+                LOGE_CAMHW("sensor index %s is more than one, maybe cause some unkown error, modify dts to fix", sns_idx);
+                for (int j = 0; j < sns_num; j++)
+                    LOGE_CAMHW("%s", sns_name[j]);
+            }
+        }
+    }
+
+    for (iter = CamHwIsp20::mSensorHwInfos.begin(); \
+         iter != CamHwIsp20::mSensorHwInfos.end(); iter++) {
         LOGI_CAMHW_SUBM(ISP20HW_SUBM, "match the sensor_name(%s) media link\n", (iter->first).c_str());
         SmartPtr<rk_sensor_full_info_t> s_full_info = iter->second;
-
         /*
          * The ISP and ISPP match links through the media device model
          */
@@ -1321,6 +1357,7 @@ media_unref:
             /*
              * Determine which isp that vipCap is linked
              */
+            int sensor_linked_to_isp_nums = 0;
             for (i = 0; i < MAX_CAM_NUM; i++) {
                 if (s_full_info->linked_to_serdes)
                     break;
@@ -1331,24 +1368,75 @@ media_unref:
                     LOGI_CAMHW_SUBM(ISP20HW_SUBM, "vicap %s, linked_vicap %s",
                                     s_full_info->cif_info->model_str, isp_info->linked_vicap[vicap_idx]);
                     if (strcmp(s_full_info->cif_info->model_str, isp_info->linked_vicap[vicap_idx]) == 0) {
-                        s_full_info->isp_info = &CamHwIsp20::mIspHwInfos.isp_info[i];
-                        CamHwIsp20::mCamHwInfos[s_full_info->sensor_name]->is_multi_isp_mode =
-                            s_full_info->isp_info->is_multi_isp_mode;
-                        CamHwIsp20::mCamHwInfos[s_full_info->sensor_name]
-                        ->multi_isp_extended_pixel = mMultiIspExtendedPixel;
-                        if (CamHwIsp20::mIspHwInfos.ispp_info[i].valid)
-                            s_full_info->ispp_info = &CamHwIsp20::mIspHwInfos.ispp_info[i];
-                        LOGI_CAMHW_SUBM(ISP20HW_SUBM, "vicap link to isp(%d) to ispp(%d)\n",
-                                        s_full_info->isp_info->model_idx,
-                                        s_full_info->ispp_info ? s_full_info->ispp_info->model_idx : -1);
-                        CamHwIsp20::mCamHwInfos[s_full_info->sensor_name]->sensor_info.binded_strm_media_idx =
-                            s_full_info->ispp_info ? atoi(s_full_info->ispp_info->media_dev_path + strlen("/dev/media")) :
-                            -1;
-                        LOGI_CAMHW_SUBM(ISP20HW_SUBM, "sensor %s adapted to pp media %d:%s\n",
-                                        s_full_info->sensor_name.c_str(),
-                                        CamHwIsp20::mCamHwInfos[s_full_info->sensor_name]->sensor_info.binded_strm_media_idx,
-                                        s_full_info->ispp_info ? s_full_info->ispp_info->media_dev_path : "null");
-                        CamHwIsp20::mIspHwInfos.isp_info[i].linked_sensor = true;
+                        if (sensor_linked_to_isp_nums++ > 0) {
+                            // multi isp link to one vicap, so dump m00 to m01, m02 and store in a
+                            // new map
+                            LOGI_CAMHW_SUBM(ISP20HW_SUBM, "sensor_linked_to_isp_nums = %d", sensor_linked_to_isp_nums);
+                            iter->second->split = true;
+                            int first_num = 0, second_num = 0;
+                            rk_sensor_full_info_t* s_full_info_new = new rk_sensor_full_info_t();
+                            rk_aiq_static_info_t* info_new = new rk_aiq_static_info_t();
+                            *s_full_info_new = *s_full_info.ptr();
+                            *info_new = *(CamHwIsp20::mCamHwInfos[s_full_info->sensor_name].ptr());
+                            max_phyId++;
+                            if (max_phyId > 9) {
+                                first_num = max_phyId / 10;
+                            }
+                            second_num = max_phyId % 10;
+                            s_full_info_new->sensor_name[1] = '0' + first_num;
+                            s_full_info_new->sensor_name[2] = '0' + second_num;
+                            s_full_info_new->sensor_name_before_split = s_full_info->sensor_name;
+                            info_new->sensor_info.sensor_name[1] = '0' + first_num;
+                            info_new->sensor_info.sensor_name[2] = '0' + second_num;
+                            info_new->sensor_info.phyId = max_phyId;
+
+                            // match new sensor and isp. m01 link to isp1, m02 link to isp2
+                            s_full_info_new->isp_info = &CamHwIsp20::mIspHwInfos.isp_info[i];
+                            info_new->is_multi_isp_mode =
+                                s_full_info_new->isp_info->is_multi_isp_mode;
+                            info_new->multi_isp_extended_pixel = mMultiIspExtendedPixel;
+                            if (CamHwIsp20::mIspHwInfos.ispp_info[i].valid)
+                                s_full_info_new->ispp_info = &CamHwIsp20::mIspHwInfos.ispp_info[i];
+                            LOGI_CAMHW_SUBM(ISP20HW_SUBM, "vicap link to isp(%d) to ispp(%d)\n",
+                                            s_full_info_new->isp_info->model_idx,
+                                            s_full_info_new->ispp_info
+                                                ? s_full_info->ispp_info->model_idx
+                                                : -1);
+                            info_new->sensor_info.binded_strm_media_idx =
+                                s_full_info_new->ispp_info
+                                    ? atoi(s_full_info_new->ispp_info->media_dev_path +
+                                           strlen("/dev/media"))
+                                    : -1;
+                            LOGI_CAMHW_SUBM(ISP20HW_SUBM, "sensor %s adapted to pp media %d:%s\n",
+                                            s_full_info_new->sensor_name.c_str(),
+                                            info_new->sensor_info.binded_strm_media_idx,
+                                            s_full_info_new->ispp_info
+                                                ? s_full_info_new->ispp_info->media_dev_path
+                                                : "null");
+                            CamHwIsp20::mIspHwInfos.isp_info[i].linked_sensor     = true;
+                            tempSensorHwInfos[s_full_info_new->sensor_name]       = s_full_info_new;
+                            CamHwIsp20::mCamHwInfos[s_full_info_new->sensor_name] = info_new;
+                        } else {
+                            s_full_info->isp_info = &CamHwIsp20::mIspHwInfos.isp_info[i];
+                            s_full_info->sensor_name_before_split = s_full_info->sensor_name;
+                            CamHwIsp20::mCamHwInfos[s_full_info->sensor_name]->is_multi_isp_mode =
+                                s_full_info->isp_info->is_multi_isp_mode;
+                            CamHwIsp20::mCamHwInfos[s_full_info->sensor_name]
+                                ->multi_isp_extended_pixel = mMultiIspExtendedPixel;
+                            if (CamHwIsp20::mIspHwInfos.ispp_info[i].valid)
+                                s_full_info->ispp_info = &CamHwIsp20::mIspHwInfos.ispp_info[i];
+                            LOGI_CAMHW_SUBM(ISP20HW_SUBM, "vicap link to isp(%d) to ispp(%d)\n",
+                                            s_full_info->isp_info->model_idx,
+                                            s_full_info->ispp_info ? s_full_info->ispp_info->model_idx : -1);
+                            CamHwIsp20::mCamHwInfos[s_full_info->sensor_name]->sensor_info.binded_strm_media_idx =
+                                s_full_info->ispp_info ? atoi(s_full_info->ispp_info->media_dev_path + strlen("/dev/media"))
+                                : -1;
+                            LOGI_CAMHW_SUBM(ISP20HW_SUBM, "sensor %s adapted to pp media %d:%s\n",
+                                            s_full_info->sensor_name.c_str(),
+                                            CamHwIsp20::mCamHwInfos[s_full_info->sensor_name]->sensor_info.binded_strm_media_idx,
+                                            s_full_info->ispp_info ? s_full_info->ispp_info->media_dev_path : "null");
+                            CamHwIsp20::mIspHwInfos.isp_info[i].linked_sensor = true;
+                        }
                     }
                 }
             }
@@ -1376,42 +1464,66 @@ media_unref:
                 }
             }
         }
-
         if (!s_full_info->isp_info/* || !s_full_info->ispp_info*/) {
             LOGE_CAMHW_SUBM(ISP20HW_SUBM, "get isp or ispp info fail, something gos wrong!");
         } else {
             //CamHwIsp20::mCamHwInfos[s_full_info->sensor_name]->linked_isp_info = *s_full_info->isp_info;
             //CamHwIsp20::mCamHwInfos[s_full_info->sensor_name]->linked_ispp_info = *s_full_info->ispp_info;
         }
+    }
 
-        int connect_id;
-        char lvdsPath[DEV_PATH_LEN];
-        std::unordered_map<std::string, SmartPtr<rk_sensor_full_info_t>>::iterator isp_iter;
-
-        for(isp_iter = CamHwIsp20::mSensorHwInfos.begin(); \
-            isp_iter != CamHwIsp20::mSensorHwInfos.end(); isp_iter++) {
-            SmartPtr<rk_sensor_full_info_t> tmp_sinfo = isp_iter->second;
-
-            if (!tmp_sinfo->isp_info)
-                continue;
-            strncpy(lvdsPath, tmp_sinfo->isp_info->linked_vicap_sd_path, sizeof(lvdsPath));
-            if (strlen(lvdsPath) > 0) {
-                V4l2SubDevice vdev(lvdsPath);
-                XCamReturn ret = vdev.open();
-                if (ret != XCAM_RETURN_NO_ERROR) {
-                    LOGE_CAMHW_SUBM(ISP20HW_SUBM, "failed to open dev (%s)", lvdsPath);
-                    continue;
+    // store new sensor into sensor map
+    CamHwIsp20::mSensorHwInfos.insert(tempSensorHwInfos.begin(), tempSensorHwInfos.end());
+    LOGI_CAMHW_SUBM(ISP20HW_SUBM, "dump sensor link info:");
+    for (iter = CamHwIsp20::mSensorHwInfos.begin(); \
+         iter != CamHwIsp20::mSensorHwInfos.end(); iter++) {
+        for (i = 0; i < MAX_ISP_LINKED_VICAP_CNT; i++) {
+            if (iter->second->isp_info && strlen((iter->second)->isp_info->linked_vicap[i]) > 0) {
+                LOGI_CAMHW_SUBM(ISP20HW_SUBM, "sns_name:%s", iter->first.c_str(),
+                                (iter->second)->isp_info->model_idx,
+                                (iter->second)->isp_info->linked_vicap[i]);
+                if (iter->second->cif_info) {
+                    LOGI_CAMHW_SUBM(ISP20HW_SUBM, "  --> linked vicap info:");
+                    LOGI_CAMHW_SUBM(ISP20HW_SUBM, "      model_str: %s",
+                                    (iter->second)->cif_info->model_str);
+                    LOGI_CAMHW_SUBM(ISP20HW_SUBM, "      media_dev: %s",
+                                    (iter->second)->cif_info->media_dev_path);
                 }
-
-                if(vdev.io_control(RKCIF_CMD_GET_CONNECT_ID, &connect_id) < 0) {
-                    LOGE_CAMHW_SUBM(SENSOR_SUBM, "failed to get stream connect id from %s\n",
-                                    lvdsPath);
-                    vdev.close();
-                    continue;
-                }
-                tmp_sinfo->connect_id = connect_id;
-                vdev.close();
+                LOGI_CAMHW_SUBM(ISP20HW_SUBM, "  --> linked isp info:");
+                LOGI_CAMHW_SUBM(ISP20HW_SUBM, "      media_dev: %s",
+                                (iter->second)->isp_info->media_dev_path);
+                LOGI_CAMHW_SUBM(ISP20HW_SUBM, "      linked_vicap: %s",
+                                (iter->second)->isp_info->linked_vicap[i]);
             }
+        }
+    }
+
+    int lvds_fd = -1;
+    int connect_id;
+    char lvdsPath[DEV_PATH_LEN];
+    for (iter = CamHwIsp20::mSensorHwInfos.begin(); \
+         iter != CamHwIsp20::mSensorHwInfos.end(); iter++) {
+        //set connect id
+        if (!iter->second->isp_info)
+            continue;
+        strncpy(lvdsPath, iter->second->isp_info->linked_vicap_sd_path, sizeof(lvdsPath));
+        if (strlen(lvdsPath) > 0) {
+            SmartPtr<V4l2SubDevice> lvdsDev = new V4l2SubDevice(lvdsPath);
+            lvdsDev->open();
+            lvds_fd = lvdsDev->get_fd();
+            if (lvds_fd < 0) {
+                LOGE_CAMHW_SUBM(SENSOR_SUBM, "failed to get lvds_fd, value is %d\n", lvds_fd);
+                continue;
+            }
+
+            if (xcam_device_ioctl(lvds_fd, RKCIF_CMD_GET_CONNECT_ID, &connect_id) < 0) {
+                LOGE_CAMHW_SUBM(SENSOR_SUBM, "failed to get stream connect id! lvds_fd is %d\n",
+                                lvds_fd);
+                continue;
+            }
+            iter->second->connect_id = connect_id;
+
+            lvdsDev->close();
         }
     }
 
@@ -1466,6 +1578,8 @@ media_unref:
     get_isp_ver(&CamHwIsp20::mIspHwInfos);
     for (auto &item : mCamHwInfos)
         item.second->isp_hw_ver = mIspHwInfos.hw_ver_info.isp_ver;
+
+    EXIT_CAMHW_FUNCTION();
     return XCAM_RETURN_NO_ERROR;
 }
 
@@ -1522,9 +1636,17 @@ CamHwIsp20::getBindedSnsEntNmByVd(const char* vd)
 
                 /* Enumerate entities, pads and links. */
                 media_device_enumerate (device);
-                entity = media_get_entity_by_name(device,
-                                                  s_full_info->sensor_name.c_str(),
-                                                  s_full_info->sensor_name.size());
+
+                if (s_full_info->split) {
+                    entity = media_get_entity_by_name(device,
+                                                      s_full_info->sensor_name_before_split.c_str(),
+                                                      s_full_info->sensor_name_before_split.size());
+                } else {
+                    entity = media_get_entity_by_name(device,
+                                                      s_full_info->sensor_name.c_str(),
+                                                      s_full_info->sensor_name.size());
+                }
+
                 entity_info = media_entity_get_info(entity);
                 if (entity && entity->num_links > 0) {
                     if (entity->links[0].flags == MEDIA_LNK_FL_ENABLED) {
@@ -1654,6 +1776,15 @@ CamHwIsp20::init(const char* sns_ent_name)
         mIsListenStrmEvt = false;
     }
 
+    if (s_info->split) {
+        _linked_to_isp       = false;
+        _linked_to_1608      = false;
+        _linked_to_serdes    = false;
+        _linked_to_multi_isp = true;
+    } else {
+        _linked_to_multi_isp = false;
+    }
+
     mIspCoreDev = new V4l2SubDevice(s_info->isp_info->isp_dev_path);
     mIspCoreDev->open();
 
@@ -1688,7 +1819,14 @@ CamHwIsp20::init(const char* sns_ent_name)
         mIrcutDev->open();
     }
 
-    if (!_linked_to_isp && !_linked_to_serdes) {
+    if (_linked_to_serdes || _linked_to_multi_isp) {
+        if (strlen(s_info->isp_info->linked_vicap_sd_path) > 0) {
+            mVicapItfDev = new V4l2SubDevice (s_info->isp_info->linked_vicap_sd_path);
+        } else {
+            LOGW_CAMHW_SUBM(ISP20HW_SUBM, "mVicapItfDev is null! \n");
+        }
+        mVicapItfDev->open();
+    } else if (!_linked_to_isp) {
         if (strlen(s_info->cif_info->mipi_csi2_sd_path) > 0) {
             _cif_csi2_sd = new V4l2SubDevice (s_info->cif_info->mipi_csi2_sd_path);
         } else if (strlen(s_info->cif_info->lvds_sd_path) > 0) {
@@ -1699,13 +1837,6 @@ CamHwIsp20::init(const char* sns_ent_name)
             LOGW_CAMHW_SUBM(ISP20HW_SUBM, "_cif_csi2_sd is null! \n");
         }
         _cif_csi2_sd->open();
-    } else if (_linked_to_serdes) {
-        if (strlen(s_info->isp_info->linked_vicap_sd_path) > 0) {
-            mVicapItfDev = new V4l2SubDevice (s_info->isp_info->linked_vicap_sd_path);
-        } else {
-            LOGW_CAMHW_SUBM(ISP20HW_SUBM, "mVicapItfDev is null! \n");
-        }
-        mVicapItfDev->open();
     }
 
 #if defined(ISP_HW_V20)
@@ -1955,7 +2086,7 @@ CamHwIsp20::setupPipelineFmtCif(struct v4l2_subdev_selection& sns_sd_sel,
     int8_t bpp = 0;
     pixFmt2Bpp(sns_v4l_pix_fmt, bpp);
 
-    if (mIsMultiIspMode && !mNoReadBack) {
+    if ((mIsMultiIspMode && !mNoReadBack) || _linked_to_multi_isp) {
         ret = mRawCapUnit->set_csi_mem_word_big_align(sns_sd_sel.r.width, sns_sd_sel.r.height,
                 sns_v4l_pix_fmt, bpp);
         if (ret < 0) {
@@ -2976,7 +3107,7 @@ CamHwIsp20::prepare(uint32_t width, uint32_t height, int mode, int t_delay, int 
     if (!mIspSofStream.ptr()) {
         if (_linked_to_isp) {
             mIspSofStream = new RKSofEventStream(mIspCoreDev, ISP_POLL_SOF);
-        } else if (_linked_to_serdes) {
+        } else if (_linked_to_serdes || s_info->split) {
             mIspSofStream = new RKSofEventStream(mVicapItfDev, ISP_POLL_SOF);
         } else
             mIspSofStream = new RKSofEventStream(_cif_csi2_sd, ISP_POLL_SOF, _linked_to_1608);

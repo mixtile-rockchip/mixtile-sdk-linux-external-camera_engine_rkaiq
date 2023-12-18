@@ -42,7 +42,8 @@ RawStreamCapUnit::RawStreamCapUnit (const rk_sensor_full_info_t *s_info, bool li
             CamHwIsp20::rk1608_share_inf.us_open_cnt = 10;
     }
 
-    if (s_info->linked_to_serdes) {
+    _is_split = s_info->split;
+    if (s_info->linked_to_serdes || s_info->split) {
         int lvds_fd = -1;
         const char* dev_str = NULL;
         if (strlen(s_info->isp_info->linked_vicap_sd_path) || strlen(s_info->cif_info->mipi_id0) ||
@@ -139,6 +140,7 @@ RawStreamCapUnit::RawStreamCapUnit (const rk_sensor_full_info_t *s_info, bool li
                 _dev[2]->open();
         }
     }
+
     int buf_cnt = tx_buf_cnt;
     if (tx_buf_cnt == 0) {
         if (linked_to_isp) {
@@ -153,7 +155,7 @@ RawStreamCapUnit::RawStreamCapUnit (const rk_sensor_full_info_t *s_info, bool li
     for (int i = 0; i < 3; i++) {
         if (_dev[i].ptr()) {
             _dev[i]->set_buffer_count(buf_cnt);
-            _dev[i]->set_buf_sync (true); 
+            _dev[i]->set_buf_sync(true);
             _dev_bakup[i] = _dev[i];
             _dev_index[i] = i;
             _stream[i] =  new RKRawStream(_dev[i], i, ISP_POLL_TX);
@@ -575,7 +577,7 @@ RawStreamCapUnit::set_csi_mem_word_big_align(uint32_t width, uint32_t height,
             break;
         }
 
-        if (((width / 2 - RKMOUDLE_UNITE_EXTEND_PIXEL) *  sns_bpp / 8) & 0xf) {
+        if ( (((width / 2 - RKMOUDLE_UNITE_EXTEND_PIXEL) *  sns_bpp / 8) & 0xf) || _is_split) {
             int mem_mode = CSI_LVDS_MEM_WORD_HIGH_ALIGN;
             int ret1 = _dev[i]->io_control (RKCIF_CMD_SET_CSI_MEMORY_MODE, &mem_mode);
             if (ret1) {

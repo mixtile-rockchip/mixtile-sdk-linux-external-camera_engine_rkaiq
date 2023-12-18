@@ -239,7 +239,8 @@ XCamReturn AiqRawStreamCapUnit_init(AiqRawStreamCapUnit_t* pRawStrCapUnit,
 
     const char* dev_str = NULL;
     int lvds_fd = -1;
-    if (s_info->linked_to_serdes) {
+    pRawStrCapUnit->_is_split = s_info->split;
+    if (s_info->linked_to_serdes || s_info->split) {
         if (strlen(s_info->isp_info->linked_vicap_sd_path) || strlen(s_info->cif_info->mipi_id0) ||
             strlen(s_info->cif_info->mipi_id1) || strlen(s_info->cif_info->mipi_id2) ||
             strlen(s_info->cif_info->mipi_id3)) {
@@ -361,6 +362,7 @@ XCamReturn AiqRawStreamCapUnit_init(AiqRawStreamCapUnit_t* pRawStrCapUnit,
             }
         }
     }
+
     int buf_cnt = tx_buf_cnt;
     if (tx_buf_cnt == 0) {
         if (linked_to_isp) {

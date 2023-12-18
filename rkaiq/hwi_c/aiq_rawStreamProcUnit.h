@@ -62,6 +62,7 @@ typedef struct AiqRawStreamProcUnit_s {
     // aiq_VideoBuffer_t*
     AiqList_t* cache_list[3];  // before trigger
     AiqPollCallback_t* _pcb[3];
+    bool _is_split;
 
     AiqThread_t* _raw_proc_thread;
     bool _isRawProcThQuit;

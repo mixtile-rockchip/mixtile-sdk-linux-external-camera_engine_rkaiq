@@ -154,6 +154,7 @@ struct AiqSensorHw_s {
     calibdb_cis_blc_t cis_blc;
     int32_t mCisHdrMode;
 
+    int mVicapExpFd;
     // export api
     XCamReturn (*setExposureParams)(AiqSensorHw_t* pBaseSns, AiqAecExpInfoWrapper_t* expPar);
     XCamReturn (*getSensorModeData)(AiqSensorHw_t* pBaseSns, const char* sns_ent_name,
@@ -191,6 +192,8 @@ struct AiqSensorHw_s {
     XCamReturn (*set_hdr)(AiqSensorHw_t* pBaseSns, calibdb_cis_hdr_t* hdr);
     XCamReturn (*set_qbcRmsc)(AiqSensorHw_t* pBaseSns, calibdb_cis_qbc_rmsc_t* qbcRmsc);
     XCamReturn (*set_cmpsOut)(AiqSensorHw_t* pBaseSns, calibdb_cis_cmps_out_t* cmpsOut);
+
+    void (*setVicapExpFd)(AiqSensorHw_t* pSnsHw, int fd);
 };
 
 #define AiqSensorHw_setCamHw(pSnsHw, pCamHw) \

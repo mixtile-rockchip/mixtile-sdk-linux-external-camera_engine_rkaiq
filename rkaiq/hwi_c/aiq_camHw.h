@@ -250,6 +250,8 @@ typedef struct rk_sensor_full_info_s {
     bool linked_to_1608;
     bool linked_to_serdes;
     bool dvp_itf;
+    bool split;
+    char sensor_name_before_split[DEV_PATH_LEN];
     struct rkmodule_inf mod_info;
     int connect_id;
 } rk_sensor_full_info_t;

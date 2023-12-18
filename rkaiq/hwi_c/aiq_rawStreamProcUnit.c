@@ -388,6 +388,8 @@ XCamReturn AiqRawStreamProcUnit_init(AiqRawStreamProcUnit_t* pRawStrProcUnit,
         }
     }
 
+    pRawStrProcUnit->_is_split = s_info->split;
+
     return XCAM_RETURN_NO_ERROR;
 fail:
     AiqRawStreamProcUnit_deinit(pRawStrProcUnit);

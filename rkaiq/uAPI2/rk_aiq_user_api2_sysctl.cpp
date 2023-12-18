@@ -85,6 +85,54 @@ rk_aiq_uapi2_sysctl_init(const char* sns_ent_name,
     return rk_aiq_uapi_sysctl_init(sns_ent_name, config_file_dir, err_cb, metas_cb);
 }
 
+XCamReturn rk_aiq_uapi2_sysctl_setOnetoMultiMode(rk_aiq_sys_ctx_t* ctx, int isp_num,
+                                                 __u32 frame_pattern[4])
+{
+    ENTER_XCORE_FUNCTION();
+    RKAIQ_API_SMART_LOCK(ctx);
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    int mode       = RKMODULE_ONE_CH_TO_MULTI_ISP;
+    int video0_fd;
+    struct rkmodule_capture_info capture_info;
+
+    std::unordered_map<std::string, SmartPtr<rk_sensor_full_info_t>>::iterator it;
+    if ((it = CamHwIsp20::mSensorHwInfos.find(ctx->_sensor_entity_name)) ==
+        CamHwIsp20::mSensorHwInfos.end()) {
+        LOGE_CAMHW_SUBM(ISP20HW_SUBM, "can't find sensor %s", ctx->_sensor_entity_name);
+        return XCAM_RETURN_ERROR_SENSOR;
+    }
+    rk_sensor_full_info_t* s_info = it->second.ptr();
+
+    if ((!s_info->split)) {
+        LOGE_CAMHW_SUBM(ISP20HW_SUBM, "don't support one cam split to multi mode!");
+        return XCAM_RETURN_ERROR_PARAM;
+    }
+
+    SmartPtr<V4l2Device> video0Dev = new V4l2Device(s_info->cif_info->mipi_id0);
+    video0Dev->open();
+    video0_fd = video0Dev->get_fd();
+    if (video0_fd < 0) {
+        LOGW_CAMHW_SUBM(ISP20HW_SUBM, "get video0 device fd failed! Video0_fd = %d", video0_fd);
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+
+    capture_info.mode                 = RKMODULE_ONE_CH_TO_MULTI_ISP;
+    capture_info.one_to_multi.isp_num = isp_num;
+    memcpy(capture_info.one_to_multi.frame_pattern, frame_pattern, sizeof(__u32) * 4);
+
+    if (xcam_device_ioctl(video0_fd, RKMODULE_SET_CAPTURE_MODE, &capture_info) < 0) {
+        LOGE_CAMHW_SUBM(SENSOR_SUBM, "failed to set rkmodule_capture_info!\n");
+        video0Dev->close();
+        return XCAM_RETURN_ERROR_IOCTL;
+    }
+
+    video0Dev->close();
+
+    EXIT_XCORE_FUNCTION();
+
+    return ret;
+}
+
 void rk_aiq_uapi2_sysctl_deinit(rk_aiq_sys_ctx_t* ctx)
 {
     rk_aiq_uapi_sysctl_deinit(ctx);
