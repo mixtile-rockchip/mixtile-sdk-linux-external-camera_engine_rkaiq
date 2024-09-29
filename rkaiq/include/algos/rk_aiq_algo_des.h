@@ -63,6 +63,7 @@ typedef void CamCalibDbContext_t;
 #endif
 typedef struct CamCalibDbV2Context_s CamCalibDbV2Context_t;
 typedef struct _RkAiqResComb RkAiqResComb;
+typedef struct st_string_s st_string;
 
 typedef enum RkAiqAlgoType_e {
     RK_AIQ_ALGO_TYPE_NONE = -1,
@@ -195,6 +196,7 @@ typedef struct _RkAiqAlgoDescription {
     XCamReturn (*pre_process)(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outparams);
     XCamReturn (*processing)(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outparams);
     XCamReturn (*post_process)(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outparams);
+    int (*dump)(const RkAiqAlgoCom* config, st_string* result);
 } RkAiqAlgoDescription;
 
 RKAIQ_END_DECLARE

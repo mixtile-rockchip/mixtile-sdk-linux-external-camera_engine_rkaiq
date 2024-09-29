@@ -17,17 +17,13 @@
 #include "aiq_algogroups_manager.h"
 #include "aiq_core_c/aiq_core.h"
 #include "aiq_core_c/aiq_algo_handler.h"
+#if RKAIQ_HAVE_DUMPSYS
+#include "info/aiq_groupAnalyzerInfo.h"
+#endif
 
 #define GROUP_MSG_CNT_MAX     5
-#define GROUP_MSG_OVERFLOW_TH 2
 #define MSGHDL_MSGQ_MAX       100
 #define ANALYZER_SUBM (0x1)
-
-typedef struct GroupMessage_s {
-    AiqCoreMsg_t msgList[MAX_MESSAGES];
-    uint64_t msg_flags;
-    int msg_cnts;
-} GroupMessage_t;
 
 static void clearAiqCoreMsg(AiqCoreMsg_t* vdBufMsg, RkAiqAlgosGroupShared_t* shared) {
     switch (vdBufMsg->msg_id) {
@@ -240,6 +236,9 @@ static void msgReduction(AiqAnalyzerGroup_t* pGroup, AiqMap_t* msgMap) {
                 rm             = true;
                 if (--numToErase <= 0) break;
             }
+#if RKAIQ_HAVE_DUMPSYS
+            pGroup->mMsgReduceCnt++;
+#endif
         }
     }
 }
@@ -302,6 +301,9 @@ XCamReturn AiqAnalyzerGroup_init(AiqAnalyzerGroup_t* pGroup, AiqCore_t* aiqCore,
     pGroup->mDepsFlag         = flag;
     pGroup->mUserSetDelayCnts = INT8_MAX;
     pGroup->mAwakenId         = (uint32_t)-1;
+#if RKAIQ_HAVE_DUMPSYS
+    pGroup->mMsgReduceCnt = 0;
+#endif
     if (grpConds) pGroup->mGrpConds = *grpConds;
     if (!singleThrd) {
         char name[64];
@@ -349,6 +351,10 @@ XCamReturn AiqAnalyzerGroup_start(AiqAnalyzerGroup_t* pGroup) {
 XCamReturn AiqAnalyzerGroup_stop(AiqAnalyzerGroup_t* pGroup) {
     ENTER_ANALYZER_FUNCTION();
     if (pGroup->mRkAiqGroupMsgHdlTh) AiqAnalyzeGroupMsgHdlThread_stop(pGroup->mRkAiqGroupMsgHdlTh);
+
+#if RKAIQ_HAVE_DUMPSYS
+    pGroup->mMsgReduceCnt = 0;
+#endif
 
     EXIT_ANALYZER_FUNCTION();
 
@@ -923,3 +929,15 @@ void AiqAnalyzeGroupManager_awakenClean(AiqAnalyzeGroupManager_t* pGroupMan, uin
     }
 	AiqAnalyzeGroupManager_start(pGroupMan);
 }
+
+#if RKAIQ_HAVE_DUMPSYS
+int AiqAnalyzerGroup_dump(void* self, st_string* result, int argc, void* argv[]) {
+    group_analyzer_dump_mod_param((AiqAnalyzeGroupManager_t*)self, result);
+    group_analyzer_dump_attr((AiqAnalyzeGroupManager_t*)self, result);
+    group_analyzer_dump_msg_hdl_status((AiqAnalyzeGroupManager_t*)self, result);
+    group_analyzer_dump_msg_map_status1((AiqAnalyzeGroupManager_t*)self, result);
+    group_analyzer_dump_msg_map_status2((AiqAnalyzeGroupManager_t*)self, result);
+
+    return 0;
+}
+#endif

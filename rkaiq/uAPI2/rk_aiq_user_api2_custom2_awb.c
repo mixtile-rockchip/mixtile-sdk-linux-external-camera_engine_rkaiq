@@ -85,6 +85,7 @@ static XCamReturn AwbDemoPrepare(RkAiqAlgoCom* params)
     LOGD_AWB_SUBM(0xff, "%s ENTER", __func__);
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
     RkAiqAwbAlgoContext2* algo_ctx = (RkAiqAwbAlgoContext2*)params->ctx;
+    algo_ctx->camId = params->cid;
     ret = awb_prepare(params);
     RETURN_RESULT_IF_DIFFERENT(ret, XCAM_RETURN_NO_ERROR);
     if ((!algo_ctx->isRkCb)&&(!algo_ctx->cutomAwbInit)){
@@ -153,7 +154,8 @@ static XCamReturn AwbDemoProcessing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCo
     RkAiqAlgoProcAwb* AwbProcParams = (RkAiqAlgoProcAwb*)inparams;
     RkAiqAlgoProcResAwb* AwbProcResParams = (RkAiqAlgoProcResAwb*)outparams;
     RkAiqAwbAlgoContext2* algo_ctx = (RkAiqAwbAlgoContext2*)inparams->ctx;
-    LOGI_AWB("----------------------------------------------frame_id (%d)----------------------------------------------\n", inparams->frame_id);
+    LOGI_AWB("cid(%d)----------------------------------------------frame_id (%d)----------------------------------------------\n",
+     inparams->cid, inparams->frame_id);
     if(algo_ctx->isRkCb){
         ret= awb_processing2(inparams, outparams);
         return ret;

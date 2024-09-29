@@ -56,6 +56,9 @@
 #include "include/iq_parser_v2/RkAiqCalibDbV2Helper.h"
 #include "xcore/base/xcam_defs.h"
 #include "xcore_c/aiq_v4l2_device.h"
+#include <dlfcn.h>
+#include <linux/dma-buf.h>
+#include <sys/ioctl.h>
 
 #if RKAIQ_HAVE_DUMPSYS
 #include "aiq_CamHwBaseInfo.h"
@@ -1467,7 +1470,7 @@ const char* AiqCamHw_getBindedSnsEntNmByVd(const char* vd) {
 
 static XCamReturn _poll_buffer_ready(void* ctx, AiqHwEvt_t* evt, int dev_index) {
     if (evt->type == ISP_POLL_3A_STATS) {
-		AiqCamHwBase_t* pCamHw = (AiqCamHwBase_t*)ctx;
+        AiqCamHwBase_t* pCamHw = (AiqCamHwBase_t*)ctx;
         void* stats = (void*)AiqV4l2Buffer_getExpbufUsrptr((AiqV4l2Buffer_t*)evt->vb);
 
 #if RKAIQ_HAVE_DUMPSYS
@@ -1487,6 +1490,45 @@ static XCamReturn _poll_buffer_ready(void* ctx, AiqHwEvt_t* evt, int dev_index) 
         btnr_cvt_info_t *btnr_info = &pCamHw->_mIspParamsCvt->mBtnrInfo;
         bayertnr_save_stats(stats, btnr_info);
 
+#if ISP_HW_V33
+    blc_cvt_info_t* blc_info = &pCamHw->_mIspParamsCvt->mBlcInfo;
+    if (!blc_info->ds_address) {
+        rkisp_bay3dbuf_info_t bay3dbuf;
+        memset(&bay3dbuf, 0, sizeof(bay3dbuf));
+        int res =
+            AiqV4l2SubDevice_ioctl((AiqV4l2Device_t*)pCamHw->mIspCoreDev, RKISP_CMD_GET_BAY3D_BUFFD, &bay3dbuf);
+        if (res) {
+            LOGE_CAMHW_SUBM(ISP20HW_SUBM, "get bay3dbuf failed! %d", res);
+            return XCAM_RETURN_ERROR_IOCTL;
+        }
+
+        void* ds_address =
+            (char*)mmap(NULL, bay3dbuf.u.v33.ds_size, PROT_READ | PROT_WRITE, MAP_SHARED, bay3dbuf.u.v33.ds_fd, 0);
+        if (MAP_FAILED == ds_address) {
+            LOGE_CAMHW_SUBM(ISP20HW_SUBM, "ds_fd mmap failed ds_fd is %d ds_size is %d", bay3dbuf.u.v33.ds_fd, bay3dbuf.u.v33.ds_size);
+            return XCAM_RETURN_ERROR_FAILED;
+        }
+        LOGK_CAMHW_SUBM(ISP20HW_SUBM, "blc get bay3dbuf: ds_fd is %d ds_size is %d ds_address is 0x%x",
+            bay3dbuf.u.v33.ds_fd, bay3dbuf.u.v33.ds_size, ds_address);
+        blc_info->ds_fd = bay3dbuf.u.v33.ds_fd;
+        blc_info->gain_fd = bay3dbuf.u.v33.gain_fd;
+        blc_info->iir_fd = bay3dbuf.iir_fd;
+        blc_info->ds_size = bay3dbuf.u.v33.ds_size;
+        blc_info->ds_address = ds_address;
+    }
+    if(blc_info->autoblc_count > 0 && (blc_info->autoblc_count - 1) % 8 == 0){
+        if (!blc_info->tnr_ds_buf)
+            blc_info->tnr_ds_buf = aiq_mallocz(blc_info->ds_size);
+        struct dma_buf_sync sync = { 0 };
+        sync.flags = DMA_BUF_SYNC_READ | DMA_BUF_SYNC_START;
+        ioctl(blc_info->ds_fd, DMA_BUF_IOCTL_SYNC, &sync);
+
+        memcpy(blc_info->tnr_ds_buf, blc_info->ds_address, blc_info->ds_size);
+
+        sync.flags = DMA_BUF_SYNC_READ | DMA_BUF_SYNC_END;
+        ioctl(blc_info->ds_fd, DMA_BUF_IOCTL_SYNC, &sync);
+    }
+#endif
     } else if (evt->type == ISP_POLL_PARAMS) {
         return XCAM_RETURN_NO_ERROR;
     } else if (evt->type == ISP_POLL_SOF) {
@@ -3350,6 +3392,10 @@ XCamReturn AiqCamHw_stop(AiqCamHwBase_t* pCamHw) {
             // ensure all valid 1608-sensor stoped.
             g_rk1608_share_inf.us_stop_cnt = 0;
         }
+    }
+
+    if (pCamHw->_mIspParamsCvt) {
+        AiqAutoblc_deinit(pCamHw->_mIspParamsCvt);
     }
 
     pCamHw->_state = CAM_HW_STATE_STOPPED;
@@ -6053,7 +6099,7 @@ static int __dump(void* dumper, st_string* result, int argc, void* argv[]) {
 
 #if RKAIQ_HAVE_DUMPSYS
 static const char* const usages[] = {
-    "./dumpsys hwi cmd [args]",
+    "./dumpcam hwi cmd [args]",
     NULL,
 };
 

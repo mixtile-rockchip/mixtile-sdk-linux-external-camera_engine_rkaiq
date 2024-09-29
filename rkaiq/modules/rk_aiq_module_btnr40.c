@@ -221,11 +221,6 @@ void bayertnr_luma2sigmax_config_v30(btnr_trans_params_t *pTransParams)
 
 }
 
-#define trans_mode2str(mode) \
-    (mode) == 0 ? "btnr_pixInBw15b_mode" : \
-    (mode) == 1 ? "btnr_pixInBw20b_mode" : \
-    "INVALID MODE"
-
 void rk_aiq_btnr40_params_logtrans(struct isp39_bay3d_cfg *pCfg)
 {
     uint8_t is15bit = pCfg->transf_mode_scale;
@@ -292,7 +287,9 @@ void rk_aiq_btnr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
             psta->hw_btnrCfg_pixDomain_mode = btnr_pixLog2Domain_mode;
         }
         if (psta->transCfg.hw_btnr_trans_mode != btnr_pixInBw20b_mode) {
-            LOGE_ANR("hw_btnr_trans_mode == %s(0x%x) is error, It is be set to btnr_pixInBw20b_mode in HWI", trans_mode2str(psta->transCfg.hw_btnr_trans_mode), psta->transCfg.hw_btnr_trans_mode);
+            LOGE_ANR("hw_btnrCfg_trans_mode == %s(0x%x) is error. When isp is in HDR mode, btnr must run in 'btnr_pixInBw20b_mode'. "
+                "The trans_mode will be forcibly set to 'btnr_pixInBw20b_mode' in HWI.",
+                trans_mode2str(psta->transCfg.hw_btnr_trans_mode), psta->transCfg.hw_btnr_trans_mode);
             psta->transCfg.hw_btnr_trans_mode = btnr_pixInBw20b_mode;
         }
     }

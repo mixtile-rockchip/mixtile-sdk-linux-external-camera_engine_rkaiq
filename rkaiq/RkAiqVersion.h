@@ -839,10 +839,15 @@
  * - new fastboot procedure for rv1103b
  * - fix ldc memleak
  * - isp33 support post aiisp
+ * v6.0x8.1
+ * - classify and rename isp33 iq files 
+ * - isp33 support auto blc 
+ * - fix memleak for isp33/isp39 camgroup mode 
+ * - support dumpsys 
  */
 
-#define RK_AIQ_VERSION_REAL_V "v6.0x8.0"
-#define RK_AIQ_RELEASE_DATE "2024-09-13"
+#define RK_AIQ_VERSION_REAL_V "v6.0x8.1"
+#define RK_AIQ_RELEASE_DATE "2024-09-26"
 
 #define RK_AIQ_IQ_HEAD_VERSION_REAL_V "v1.0.2"
 

@@ -13,6 +13,10 @@ if (RKAIQ_HAVE_LDCV_V22)
         )
 endif()
 
+if(RKAIQ_HAVE_DUMPSYS)
+    set(LDC_SRC ${LDC_SRC} algo_ldc_info.c)
+endif()
+
 dec_algo(aldc algo_ldc.c ${LDC_SRC})
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Android")

@@ -698,6 +698,12 @@ typedef struct rkisp_bay3dbuf_info_s {
             int ds_size;
         } v32;
         struct {
+			int ds_fd;
+			int ds_size;
+			int gain_fd;
+			int gain_size;
+		} v33;
+        struct {
             int gain_fd;
             int gain_size;
             int aiisp_fd;

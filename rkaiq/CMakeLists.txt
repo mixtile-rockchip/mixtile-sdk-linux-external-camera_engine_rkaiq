@@ -104,6 +104,7 @@ endif()
 if (RKAIQ_HAVE_DUMPSYS)
     set (AIQ_DUMPSYS_INCLUEDE
         hwi_c/info
+        aiq_core_c/info
         )
 endif()
 
@@ -1212,6 +1213,10 @@ if (RKAIQ_HAVE_DUMPSYS)
         hwi_c/info/aiq_streamCapInfo.c
         hwi_c/info/aiq_streamProcInfo.c
         hwi_c/info/aiq_ispParamsCvtInfo.c
+        aiq_core_c/info/aiq_coreInfo.c
+        aiq_core_c/info/aiq_coreBufMgrInfo.c
+        aiq_core_c/info/aiq_groupAnalyzerInfo.c
+        aiq_core_c/info/aiq_coreIspParamsInfo.c
         )
 endif()
 
@@ -2274,8 +2279,9 @@ endif()
 if(RKAIQ_HAVE_DUMPSYS)
     add_subdirectory(tools/dumpcam)
 
-    include_directories(dumpcam_server/ipcs/include)
     include_directories(dumpcam_server/include)
+    include_directories(dumpcam_server/info/include)
+    include_directories(dumpcam_server/ipcs/include)
 
     set(AIQ_DUMPCAM_SERVER_STATIC   "rkaiq_dumpcam_server")
     set(AIQ_IPCS_STATIC             "rkaiq_ipcs")
@@ -2352,3 +2358,7 @@ endif()
 install(TARGETS rkaiq
     LIBRARY DESTINATION lib)
 install(FILES ${CMAKE_LIBRARY_PATH}/librkaiq.a DESTINATION lib)
+
+if (RKAIQ_ISP_VERSION STREQUAL "33")
+    install(FILES modules/blc_algo/libautoblc.so DESTINATION lib)
+endif()

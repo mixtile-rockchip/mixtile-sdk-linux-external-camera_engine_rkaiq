@@ -83,6 +83,7 @@ typedef struct {
     int drc_warning_count;
     int blc_warning_count;
     int btnr_warning_count;
+    void* pBlcInfo;
 } common_cvt_info_t;
 
 typedef struct {

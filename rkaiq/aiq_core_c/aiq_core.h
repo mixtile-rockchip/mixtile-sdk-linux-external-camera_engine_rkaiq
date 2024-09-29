@@ -20,6 +20,9 @@
 #include "common/rk_aiq_comm.h"
 #include "common/panorama_stitchingApp.h"
 #include "common/rk_aiq_types_priv_c.h"
+#if RKAIQ_HAVE_DUMPSYS
+#include "common/aiq_notifier.h"
+#endif
 #include "algos/rk_aiq_algo_des.h"
 #include "c_base/aiq_list.h"
 #include "c_base/aiq_pool.h"
@@ -28,12 +31,15 @@
 #include "RkAiqGlobalParamsManager_c.h"
 #include "hwi_c/aiq_camHw.h"
 #include "aiq_core_c/AiqCoreConfig.h"
+#include "aiq_core_c/aiq_coreMsg.h"
 #include "algos/algo_types_priv.h"
 #include "iq_parser_v2/RkAiqCalibDbV2.h"
 #include "RkAiqCamGroupManager_c.h"
 #include "uAPI2/rk_aiq_user_api2_stats.h"
 
 RKAIQ_BEGIN_DECLARE
+
+static uint16_t FULLPARMAS_MAX_PENDING_SIZE = 2;
 
 #define RKAIQCORE_CHECK_RET(ret, format, ...)     \
     do {                                          \
@@ -65,12 +71,6 @@ RKAIQ_BEGIN_DECLARE
             LOGW_ANALYZER("bypass !", __FUNCTION__, __LINE__); \
         }                                                      \
     } while (0)
-
-typedef struct AiqCoreMsg_s {
-    enum XCamMessageType msg_id;
-    unsigned frame_id;
-    char buf[64];
-} AiqCoreMsg_t;
 
 typedef struct AiqAnalyzerCb_s {
     void* pCtx;
@@ -172,6 +172,36 @@ typedef struct RkAiqVicapRawBufInfo_s {
     aiq_VideoBuffer_t* raw_m;
     aiq_VideoBuffer_t* raw_l;
 } RkAiqVicapRawBufInfo_t;
+
+#if RKAIQ_HAVE_DUMPSYS
+typedef struct AiqCorePoolNofreeBufCnt_s {
+    uint32_t fullParams;
+    uint32_t algosParams[RESULT_TYPE_MAX_PARAM];
+
+    uint32_t sofInfo;
+
+    uint32_t aeStats;
+    uint32_t awbStats;
+    uint32_t btnrStats;
+    uint32_t dhazStats;
+    uint32_t gainStats;
+
+    uint32_t aePreRes;
+    uint32_t aeProcRes;
+    uint32_t awbProcRes;
+    uint32_t blcProcRes;
+    uint32_t ynrProcRes;
+} AiqCorePoolNofreeBufCnt_t;
+
+typedef struct AiqCoreIsStatsAvail_s {
+    bool ae;
+    bool awb;
+    bool af;
+    bool btnr;
+    bool dhaze;
+    bool gain;
+} AiqCoreIsStatsAvail_t;
+#endif
 
 typedef struct AiqCore_s {
     RkAiqAlgosComShared_t mAlogsComSharedParams;
@@ -282,6 +312,25 @@ typedef struct AiqCore_s {
     uint32_t mLatestStatsId;
     rk_aiq_user_otp_info_t mUserOtpInfo;
     GlobalParamsManager_t* mGlobalParamsManger;
+
+#if RKAIQ_HAVE_DUMPSYS
+    int (*dump_algos)(void* self, st_string* result, int argc, void* argv[]);
+    int (*dump_core)(void* self, st_string* result, int argc, void* argv[]);
+
+    struct aiq_notifier notifier;
+    struct aiq_notifier_subscriber sub_core;
+    struct aiq_notifier_subscriber sub_buf_mgr;
+    struct aiq_notifier_subscriber sub_grp_analyzer;
+    struct aiq_notifier_subscriber sub_isp_params;
+
+    AiqCorePoolNofreeBufCnt_t mNoFreeBufCnt;
+    AiqCoreIsStatsAvail_t mIsStatsAvail;
+
+    uint32_t mForceDoneCnt;
+    uint32_t mForceDoneId;
+    uint32_t mSofLoss;
+    uint32_t mStatsLoss;
+#endif
 } AiqCore_t;
 
 XCamReturn AiqCore_init(AiqCore_t* pAiqCore, const char* sns_ent_name,

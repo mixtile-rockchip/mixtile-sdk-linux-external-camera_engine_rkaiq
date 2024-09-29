@@ -86,7 +86,10 @@ static XCamReturn _handlerYnr_processing(AiqAlgoHandler_t* pAlgoHandler) {
 		AIQ_REF_BASE_UNREF(&pShared->_ref_base);
 	} else {
 		LOGW_ANR("no ynr_proc_res buf !");
-	}
+#if RKAIQ_HAVE_DUMPSYS
+                pAlgoHandler->mAiqCore->mNoFreeBufCnt.ynrProcRes++;
+#endif
+        }
     RKAIQCORE_CHECK_RET(ret, "ynr algo processing failed");
 
     EXIT_ANALYZER_FUNCTION();

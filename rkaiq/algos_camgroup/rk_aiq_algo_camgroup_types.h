@@ -136,7 +136,7 @@ typedef struct rk_aiq_singlecam_3a_result_s {
             rk_aiq_isp_blc_v21_t * _blcConfig;
             rk_aiq_isp_blc_v32_t * _blcConfig_v32;
 #if USE_NEWSTRUCT
-            blc_param_t* blc;
+            rk_aiq_isp_blc_v33_t* blc;
 #endif
         };
     } ablc;

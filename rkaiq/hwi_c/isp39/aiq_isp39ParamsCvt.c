@@ -2375,7 +2375,7 @@ void convertAiqBlcToIsp39Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_t* pBas
     pCvt->isp_params.isp_cfg->module_en_update |= ISP2X_MODULE_BLS;
     pCvt->isp_params.isp_cfg->module_cfg_update |= ISP2X_MODULE_BLS;
 
-    rk_aiq_blc30_params_cvt(pBase->_data, &pCvt->isp_params, &pCvt->mCommonCvtInfo);
+    rk_aiq_blc30_params_cvt(pBase->_data, &pCvt->isp_params, &pCvt->mCommonCvtInfo, &pCvt->mBlcInfo, &pCvt->awb_gain_final);
 
     LOGD_ABLC("frame_id:%d, blc_module_en:%d,fixed_val.rggb(%d,%d,%d,%d),bls1_en:(%d),isp_ob_offset:%d,bls1_val.rggb(%d,%d,%d,%d),isp_ob_predgain(%d),isp_ob_max(%d)",
               pCvt->isp_params.isp_cfg->frame_id, pBase->en,

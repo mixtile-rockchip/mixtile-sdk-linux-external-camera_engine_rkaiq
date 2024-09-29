@@ -53,7 +53,7 @@ typedef texEst_param_t                   rk_aiq_isp_texEst_params_t;
 typedef cnr_param_t                     rk_aiq_isp_cnr_params_t;
 typedef rk_aiq_isp_drc_v39_t            rk_aiq_isp_drc_params_t;
 typedef dpc_param_t                     rk_aiq_isp_dpcc_params_t;
-typedef blc_param_t                     rk_aiq_isp_blc_params_t;
+typedef rk_aiq_isp_blc_v33_t            rk_aiq_isp_blc_params_t;
 #if RKAIQ_HAVE_3DLUT
 typedef lut3d_param_t                   rk_aiq_isp_lut3d_params_t;
 #endif
@@ -487,6 +487,8 @@ static const char* Cam3aResultType2Str[RESULT_TYPE_MAX_PARAM] = {
     [RESULT_TYPE_TRANS_PARAM]    = "TRANS",
     [RESULT_TYPE_LDC_PARAM]      = "LDC",
     [RESULT_TYPE_AESTATS_PARAM]  = "AEC",
+    [RESULT_TYPE_TEXEST_PARAM]   = "TEXEST",
+    [RESULT_TYPE_POSTISP_PARAM]  = "POSTISP",
 };
 
 static const char* AnalyzerGroupType2Str[RK_AIQ_CORE_ANALYZE_MAX] = {

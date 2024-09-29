@@ -1495,13 +1495,13 @@ typedef enum btnr_pixDomain_mode_e {
 
 typedef enum btnr_trans_mode_e {
     /*
-    reg: hw_btnr_transfMode_scale == 1
-    */
-    btnr_pixInBw15b_mode = 0,
-    /*
     reg: hw_btnr_transfMode_scale == 0
     */
-    btnr_pixInBw20b_mode = 1
+    btnr_pixInBw20b_mode = 0,
+    /*
+    reg: hw_btnr_transfMode_scale == 1
+    */
+    btnr_pixInBw15b_mode = 1
 } btnr_trans_mode_t;
 
 typedef struct btnr_transCfg_s {

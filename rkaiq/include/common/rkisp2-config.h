@@ -11,7 +11,7 @@
 #include <linux/v4l2-controls.h>
 #include "rk-camera-module.h"
 
-#define RKISP_API_VERSION		KERNEL_VERSION(2, 5, 0)
+#define RKISP_API_VERSION       KERNEL_VERSION(2, 5, 0)
 #include "rk_isp20_hw.h"
 
 #ifndef BIT
@@ -64,16 +64,16 @@
     _IO('V', BASE_VIDIOC_PRIVATE + 13)
 
 #define RKISP_CMD_GET_BAY3D_BUFFD \
-	_IOR('V', BASE_VIDIOC_PRIVATE + 15, struct rkisp_bay3dbuf_info)
+    _IOR('V', BASE_VIDIOC_PRIVATE + 15, struct rkisp_bay3dbuf_info)
 
 #define RKISP_CMD_SET_AIISP_LINECNT \
-	_IOW('V', BASE_VIDIOC_PRIVATE + 16, struct rkisp_aiisp_cfg)
+    _IOW('V', BASE_VIDIOC_PRIVATE + 16, struct rkisp_aiisp_cfg)
 
 #define RKISP_CMD_GET_AIISP_LINECNT \
-	_IOR('V', BASE_VIDIOC_PRIVATE + 17, struct rkisp_aiisp_cfg)
+    _IOR('V', BASE_VIDIOC_PRIVATE + 17, struct rkisp_aiisp_cfg)
 
 #define RKISP_CMD_AIISP_RD_START \
-	_IO('V', BASE_VIDIOC_PRIVATE + 18)
+    _IO('V', BASE_VIDIOC_PRIVATE + 18)
 
 /* BASE_VIDIOC_PRIVATE + 19 for RKISP_CMD_GET_TB_HEAD_V33 */
 /* BASE_VIDIOC_PRIVATE + 20 for RKISP_CMD_SET_TB_HEAD_V33 */
@@ -127,10 +127,10 @@
     (V4L2_EVENT_PRIVATE_START + 2)
 
 #define RKISP_CMD_SET_IQTOOL_CONN_ID \
-	_IOW('V', BASE_VIDIOC_PRIVATE + 113, int)
+    _IOW('V', BASE_VIDIOC_PRIVATE + 113, int)
 
 #define RKISP_CMD_SET_EXPANDER \
-	_IOW('V', BASE_VIDIOC_PRIVATE + 114, struct rkmodule_hdr_cfg)
+    _IOW('V', BASE_VIDIOC_PRIVATE + 114, struct rkmodule_hdr_cfg)
 
 /**********************EVENT_PRIVATE***************************/
 #define RKISP_V4L2_EVENT_AIISP_LINECNT (V4L2_EVENT_PRIVATE_START + 1)
@@ -352,11 +352,11 @@ struct isp2x_mesh_head {
     u32 data_oft;
 } __attribute__ ((packed));
 
-#define RKISP_AIISP_WR_LINECNT_ID	0
-#define RKISP_AIISP_RD_LINECNT_ID	1
+#define RKISP_AIISP_WR_LINECNT_ID   0
+#define RKISP_AIISP_RD_LINECNT_ID   1
 struct rkisp_aiisp_ev_info {
-	int sequence;
-	int height;
+    int sequence;
+    int height;
 } __attribute__ ((packed));
 
 /* struct rkisp_aiisp_cfg
@@ -366,34 +366,40 @@ struct rkisp_aiisp_ev_info {
  * rd_linecnt: aiisp read irq line, 0 isn't RKISP_AIISP_RD_LINECNT_ID event
  */
 struct rkisp_aiisp_cfg {
-	char wr_mode;
-	char rd_mode;
+    char wr_mode;
+    char rd_mode;
 
-	int wr_linecnt;
-	int rd_linecnt;
+    int wr_linecnt;
+    int rd_linecnt;
 } __attribute__ ((packed));
 
 struct rkisp_bay3dbuf_info {
-	int iir_fd;
-	int iir_size;
-	union {
-		struct {
-			int cur_fd;
-			int cur_size;
-			int ds_fd;
-			int ds_size;
-		} v30;
-		struct {
-			int ds_fd;
-			int ds_size;
-		} v32;
-		struct {
-			int gain_fd;
+    int iir_fd;
+    int iir_size;
+    union {
+        struct {
+            int cur_fd;
+            int cur_size;
+            int ds_fd;
+            int ds_size;
+        } v30;
+        struct {
+            int ds_fd;
+            int ds_size;
+        } v32;
+        struct {
+            int ds_fd;
+            int ds_size;
+            int gain_fd;
+            int gain_size;
+        } v33;
+        struct {
+            int gain_fd;
             int gain_size;
             int aiisp_fd;
-			int aiisp_size;
+            int aiisp_size;
         } v39;
-	} u;
+    } u;
 } __attribute__ ((packed));
 
 #define RKISP_CMSK_WIN_MAX 12
@@ -2080,6 +2086,7 @@ struct rkisp_thunderboot_resmem_head {
     u32 share_mem_size;
     u32 pre_buf_num;
     u32 pre_buf_addr[MAX_PRE_BUF_NUM];
+    u32 pre_buf_timestamp[MAX_PRE_BUF_NUM];
 } __attribute__ ((packed));
 
 /**

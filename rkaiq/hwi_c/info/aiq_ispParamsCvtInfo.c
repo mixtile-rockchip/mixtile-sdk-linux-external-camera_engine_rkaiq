@@ -628,6 +628,18 @@ void cvt_isp_params_dump_ldch_attr(AiqIspParamsCvt_t* self, st_string* result) {
 
     string_printf(result, buffer);
     string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-8s%-8s", "mesh_x", "mesh_y", "buf_fd");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-8d%-8d%-8d", ldch_cfg->hsize, ldch_cfg->vsize,
+             ldch_cfg->buf_fd);
+
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_ldcv_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -650,6 +662,27 @@ void cvt_isp_params_dump_ldcv_attr(AiqIspParamsCvt_t* self, st_string* result) {
 
     string_printf(result, buffer);
     string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-6s%-8s%-8s%-8s", "out_v", "mesh_x", "mesh_y", "buf_fd");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-6d%-8d%-8d%-8d", ldcv_cfg->out_vsize, ldcv_cfg->hsize,
+             ldcv_cfg->vsize, ldcv_cfg->buf_fd);
+
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+}
+
+void cvt_isp_params_dump_ldc_attr(AiqIspParamsCvt_t* self, st_string* result) {
+#if defined(ISP_HW_V39)
+    cvt_isp_params_dump_ldch_attr(self, result);
+    cvt_isp_params_dump_ldcv_attr(self, result);
+#elif defined(ISP_HW_V33)
+    cvt_isp_params_dump_ldch_attr(self, result);
+#endif
 }
 
 void cvt_isp_params_dump_bay3d_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -995,6 +1028,7 @@ static const struct params_cvt_dump_info params_dump_cvts[] = {
     CVT_DUMP_INFO(RESULT_TYPE_CP_PARAM, cvt_isp_params_dump_cp_attr),
     CVT_DUMP_INFO(RESULT_TYPE_LUT3D_PARAM, cvt_isp_params_dump_3dlut_attr),
 #endif
+    CVT_DUMP_INFO(RESULT_TYPE_LDC_PARAM, cvt_isp_params_dump_ldc_attr),
 };
 
 #ifndef ARRAY_SIZE

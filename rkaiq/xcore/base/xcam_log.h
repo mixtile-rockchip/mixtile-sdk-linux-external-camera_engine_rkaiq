@@ -30,6 +30,10 @@
 #include <string.h>
 #include "base/xcam_common.h"
 
+#if RKAIQ_HAVE_DUMPSYS
+#include "dumpcam_server/info/include/st_string.h"
+#endif
+
 typedef enum {
     XCORE_LOG_LEVEL_NONE = 0,
     XCORE_LOG_LEVEL_ERR  = 1,
@@ -82,6 +86,9 @@ typedef enum {
     XCORE_LOG_MODULE_ALDC,
     XCORE_LOG_MODULE_AHIST,
     XCORE_LOG_MODULE_AHSV,
+#if RKAIQ_HAVE_DUMPSYS
+    XCORE_LOG_MODULE_ALL,
+#endif
     XCORE_LOG_MODULE_MAX,
 } xcore_log_modules_t;
 
@@ -95,6 +102,9 @@ void xcam_get_runtime_log_level();
 bool xcam_get_enviroment_value(const char* variable, unsigned long long* value);
 void xcam_get_awb_log_level(unsigned char *log_level, unsigned char *sub_modules);
 char* timeString();
+#if RKAIQ_HAVE_DUMPSYS
+int xcam_dump_log(st_string* result, int argc, void* argv[]);
+#endif
 
 #ifdef  __cplusplus
 }

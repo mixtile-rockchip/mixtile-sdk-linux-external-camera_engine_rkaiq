@@ -16,6 +16,7 @@
  */
 
 #include "hwi_c/aiq_ispParamsCvt.h"
+#include <sys/mman.h>
 
 #include "c_base/aiq_base.h"
 #if defined(ISP_HW_V39)
@@ -204,6 +205,7 @@ void AiqIspParamsCvt_getCommonCvtInfo(AiqIspParamsCvt_t* pCvt, AiqList_t* result
     pCvt->mCommonCvtInfo.frameId = frameId;
     if (frameId == 0 && !pCvt->mCommonCvtInfo.isFirstFrame) {
         pCvt->mCommonCvtInfo.isFirstFrame = true;
+        pCvt->mCommonCvtInfo.pBlcInfo = &pCvt->mBlcInfo;
     }
     else {
         pCvt->mCommonCvtInfo.isFirstFrame = false;
@@ -384,6 +386,30 @@ XCamReturn AiqIspParamsCvt_init(AiqIspParamsCvt_t* pCvt) {
     aiq_memset(&pCvt->AntiTmoFlicker, 0, sizeof(pCvt->AntiTmoFlicker));
 
     return XCAM_RETURN_NO_ERROR;
+}
+
+void AiqAutoblc_deinit(AiqIspParamsCvt_t* pCvt) {
+    if (pCvt->mBlcInfo.ds_size != 0) {
+        close(pCvt->mBlcInfo.ds_fd);
+        close(pCvt->mBlcInfo.iir_fd);
+        close(pCvt->mBlcInfo.gain_fd);
+        int mun_ret = munmap(pCvt->mBlcInfo.ds_address, pCvt->mBlcInfo.ds_size);
+        if(mun_ret != 0) {
+            LOGE_CAMHW_SUBM(ISP20PARAM_SUBM, "munmap failed");
+        }
+        else {
+            LOGK_CAMHW_SUBM(ISP20PARAM_SUBM, "munmap success");
+        }
+        aiq_free(pCvt->mBlcInfo.tnr_ds_buf);
+        pCvt->mBlcInfo.ds_address = NULL;
+        pCvt->mBlcInfo.tnr_ds_buf = NULL;
+        pCvt->mBlcInfo.ds_size = 0;
+    }
+    if(pCvt->mBlcInfo.init_success){
+        struct blcOps* ops = AiqBlc_GetOps(&pCvt->mBlcInfo.lib_Blc_);
+        ops->blc_deinit(&pCvt->mBlcInfo.blc1_param);
+        pCvt->mBlcInfo.lib_Blc_.Deinit(&pCvt->mBlcInfo.lib_Blc_);
+    }
 }
 
 void AiqIspParamsCvt_deinit(AiqIspParamsCvt_t* pCvt) {

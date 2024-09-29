@@ -17,6 +17,9 @@
 
 #include "aiq_fake_camhw.h"
 
+#if RKAIQ_HAVE_DUMPSYS
+#include "common/aiq_notifier.h"
+#endif
 #include "hwi_c/aiq_CamHwBase.h"
 #include "hwi_c/aiq_camHw.h"
 #include "hwi_c/aiq_fake_camhw.h"
@@ -819,6 +822,21 @@ XCamReturn AiqCamHwFake_init(AiqCamHwFake_t* pFakeCamHw, const char* sns_ent_nam
     if (pCamBase->mIspSofStream)
         ((AiqStream_t*)(pCamBase->mIspSofStream))
             ->setPollCallback((AiqStream_t*)(pCamBase->mIspSofStream), NULL);
+    if (pCamBase->mIspStatsStream)
+        pCamBase->mIspStatsStream->set_event_handle_dev(pCamBase->mIspStatsStream,
+                                                        pCamBase->_mSensorDev);
+#if RKAIQ_HAVE_DUMPSYS
+    aiq_notifier_remove_subscriber(&pCamBase->notifier, AIQ_NOTIFIER_MATCH_HWI_SENSOR);
+
+    {
+        pCamBase->sub_sensor.match_type     = AIQ_NOTIFIER_MATCH_HWI_SENSOR;
+        pCamBase->sub_sensor.name           = "HWI -> sensor";
+        pCamBase->sub_sensor.dump.dump_fn_t = pCamBase->_mSensorDev->dump;
+        pCamBase->sub_sensor.dump.dumper    = pCamBase->_mSensorDev;
+
+        aiq_notifier_add_subscriber(&pCamBase->notifier, &pCamBase->sub_sensor);
+    }
+#endif
 
     SnsFullInfoWraps_t* pSnsInfoWrap = NULL;
 

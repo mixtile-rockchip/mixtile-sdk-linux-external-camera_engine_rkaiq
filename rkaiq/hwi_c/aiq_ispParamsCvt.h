@@ -177,6 +177,7 @@ struct AiqIspParamsCvt_s {
     cac_cvt_info_t mCacInfo;
 #endif
     common_cvt_info_t mCommonCvtInfo;
+    blc_cvt_info_t mBlcInfo;
     isp_params_t isp_params;
     AiqIspDrvParams_info_t mLatestCfgArray[ISP2X_ID_MAX];
 
@@ -190,6 +191,7 @@ struct AiqIspParamsCvt_s {
 
 XCamReturn AiqIspParamsCvt_init(AiqIspParamsCvt_t* pCvt);
 void AiqIspParamsCvt_deinit(AiqIspParamsCvt_t* pCvt);
+void AiqAutoblc_deinit(AiqIspParamsCvt_t* pCvt);
 XCamReturn AiqIspParamsCvt_merge_isp_results(AiqIspParamsCvt_t* pCvt, AiqList_t* results,
                                              void* isp_cfg, bool is_multi_isp, bool use_aiisp);
 void AiqIspParamsCvt_setCamPhyId(AiqIspParamsCvt_t* pCvt, int phyId);

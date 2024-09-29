@@ -94,8 +94,8 @@ typedef struct frameRateInfo_s {
 typedef struct rk_aiq_version_info_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(aiq_ver),
-        M4_TYPE(char),
-        M4_SIZE_EX(1,32),
+        M4_TYPE(string),
+        M4_SIZE_EX(1,1),
         M4_DEFAULT(""),
         M4_HIDE_EX(0),
         M4_RO(0),

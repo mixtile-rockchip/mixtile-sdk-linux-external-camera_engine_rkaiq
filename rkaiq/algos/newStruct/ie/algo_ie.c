@@ -115,6 +115,10 @@ processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outparams)
     int gray_mode = inparams->u.proc.gray_mode;
 
     if (inparams->u.proc.is_attrib_update || init) {
+        if (pIeCtx->mode && !pIeCtx->ie_attrib->en) {
+            pIeCtx->skip_frame = pIeCtx->pre_params.skip_frame;
+        }
+        
         if (!gray_mode && !pIeCtx->mode) {
             pIeCtx->mode = pIeCtx->ie_attrib->en;
         }
@@ -122,7 +126,7 @@ processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outparams)
     }
 
     if (gray_mode && !pIeCtx->mode) {
-        pIeCtx->pre_params.mode = gray_mode;
+        pIeCtx->pre_params.mode = pIeCtx->mode;
         pIeCtx->mode = gray_mode;
         pIeCtx->skip_frame = pIeCtx->pre_params.skip_frame;
         pIeCtx->isReCal_ = true;

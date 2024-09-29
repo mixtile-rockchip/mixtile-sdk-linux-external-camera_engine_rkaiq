@@ -410,6 +410,7 @@ XCamReturn BtnrSelectParam
         out->spNrDyn.sigmaEnv.hw_btnrC_preSpNrSgm_curve.val[i] = interpolation_f32(
                     paut->spNrDyn[ilow].sigmaEnv.hw_btnrC_preSpNrSgm_curve.val[i], paut->spNrDyn[ihigh].sigmaEnv.hw_btnrC_preSpNrSgm_curve.val[i], ratio);
     }
+
     return XCAM_RETURN_NO_ERROR;
 }
 
@@ -521,12 +522,24 @@ XCamReturn Abtnr_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpa
         need_recal = true;
     }
 
-    int delta_iso = abs(iso - pBtnrCtx->pre_iso);
-    if(delta_iso > 0.01 || init) {
+    if(init) {
         pBtnrCtx->pre_iso = iso;
-        need_recal = true;
     }
 
+    int delta_iso = abs(iso - pBtnrCtx->pre_iso);
+    if(delta_iso > 0 || init) {
+        need_recal = true;
+        pBtnrCtx->sameISO_cnt = 0;
+    }
+
+    if(delta_iso == 0) {
+        pBtnrCtx->sameISO_cnt++;
+    }
+
+    if(pBtnrCtx->sameISO_cnt == 1) {
+        need_recal = true;
+    }
+    //printf("delta_iso:%d sameISO_cnt:%d need_recal:%d\n", delta_iso, pBtnrCtx->sameISO_cnt, need_recal);
     outparams->cfg_update = false;
     if (need_recal) {
         btnr_res->sta = pBtnrCtx->btnr_attrib->stAuto.sta;
@@ -549,6 +562,9 @@ XCamReturn Abtnr_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpa
         outparams->bypass = btnr_attrib->bypass;
     }
 
+    if(delta_iso > 0) {
+        pBtnrCtx->pre_iso = iso;
+    }
     return XCAM_RETURN_NO_ERROR;
 }
 

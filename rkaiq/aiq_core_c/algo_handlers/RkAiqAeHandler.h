@@ -36,6 +36,7 @@ typedef struct AiqAlgoHandlerAe_s {
 #endif
     AiqAlgoHandler_t* mAmerge_handle;
     AiqAlgoHandler_t* mAdrc_handle;
+    AiqAlgoHandler_t* mAblc_handle;
     uint32_t mMeasSyncFlag;
     uint32_t mHistSyncFlag;
     bool useStatsApiCfg;

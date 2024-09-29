@@ -20,6 +20,7 @@
 #include "RkAiqGlobalParamsManager_c.h"
 #include "RkAiqMergeHandler.h"
 #include "RkAiqDrcHandler.h"
+#include "RkAiqBlcHandler.h"
 #include "RkAiqAfdHandler.h"
 #include "RkAiqAfHandler.h"
 #include "rk_aiq_uapi_ae_int.h"
@@ -60,6 +61,7 @@ static void _handlerAe_init(AiqAlgoHandler_t* pHdl) {
 
     pAeHdl->mAmerge_handle = pHdl->mAiqCore->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AMERGE];
     pAeHdl->mAdrc_handle = pHdl->mAiqCore->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_ADRC];
+    pAeHdl->mAblc_handle = pHdl->mAiqCore->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_ABLC];
 
     EXIT_ANALYZER_FUNCTION();
 }
@@ -133,8 +135,13 @@ static XCamReturn _handlerAe_preProcess(AiqAlgoHandler_t* pAlgoHandler) {
     if (algoId == 0) {
         AiqPoolItem_t* pItem =
             aiqPool_getFree(pAlgoHandler->mAiqCore->mPreResAeSharedPool);
-        if (pItem)
+        if (pItem) {
             pAeHdl->mPreResShared = (AlgoRstShared_t*)pItem->_pData;
+        } else {
+#if RKAIQ_HAVE_DUMPSYS
+            pAlgoHandler->mAiqCore->mNoFreeBufCnt.aePreRes++;
+#endif
+        }
     }
 
     if (!pAeHdl->mPreResShared) {
@@ -375,6 +382,11 @@ static XCamReturn _handlerAe_processing(AiqAlgoHandler_t* pAlgoHandler) {
     if (pAeHdl->mAdrc_handle) {
         AiqDrcHandler_t* Drc_algo = (AiqDrcHandler_t*)(pAeHdl->mAdrc_handle);
         AiqDrcHandler_setAeProcRes(Drc_algo, &aeProcResShared);
+    }
+
+    if (pAeHdl->mAblc_handle) {
+        AiqAlgoHandlerBlc_t* Blc_algo = (AiqAlgoHandlerBlc_t*)(pAeHdl->mAblc_handle);
+        AiqBlcHandler_setAeProcRes(Blc_algo, &aeProcResShared);
     }
 
     AiqStatsTranslator_t* translator = pAlgoHandler->mAiqCore->mTranslator;

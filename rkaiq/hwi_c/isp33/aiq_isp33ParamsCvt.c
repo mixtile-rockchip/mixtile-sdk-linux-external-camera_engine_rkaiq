@@ -1685,8 +1685,8 @@ static void convertAiqYnrToIsp33Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_
     if(pBase->bypass){
         ynr_param_t *ynr_param = (ynr_param_t *) pBase->_data;
         ynr_param->dyn.hiNr.hw_ynrT_hiNr_en = 0;
-        ynr_param->dyn.midNr.hw_ynrT_midNr_en = 0;
-        ynr_param->dyn.loNr.hw_ynrT_loNr_en = 0;
+        ynr_param->dyn.midLoNr.mf.hw_ynrT_midNr_en = 0;
+        ynr_param->dyn.midLoNr.lf.hw_ynrT_loNr_en = 0;
         LOGW_ANR("ynr en disable is changed to bypass on, "
                     "Equivalent effect, but not equivalent power consumption.");
     }

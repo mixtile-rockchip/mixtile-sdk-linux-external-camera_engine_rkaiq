@@ -588,10 +588,17 @@ typedef struct __aiq_measure_info {
     uapi_wbV30_log_t wb_log;
 } aiq_measure_info_t;
 
-#elif defined(ISP_HW_V39) || defined(ISP_HW_V32) || defined(ISP_HW_V30) || defined(ISP_HW_V32_LITE) || defined(ISP_HW_V33)
+#elif  defined(ISP_HW_V32) || defined(ISP_HW_V30) || defined(ISP_HW_V32_LITE)
 typedef struct __aiq_measure_info {
     // M4_STRUCT_DESC("ae_hwstats", "normal_ui_style")
     uapi_ae_hwstats_t ae_hwstats;
+    // M4_STRUCT_DESC("wb_log", "normal_ui_style")
+    uapi_wbV32_log_t wb_log;
+} aiq_measure_info_t;
+#elif defined(ISP_HW_V39) || defined(ISP_HW_V33)
+typedef struct __aiq_measure_info {
+    // M4_STRUCT_DESC("ae_hwstats", "normal_ui_style")
+    uapi_ae_v39_hwstats_t ae_hwstats;
     // M4_STRUCT_DESC("wb_log", "normal_ui_style")
     uapi_wbV32_log_t wb_log;
 } aiq_measure_info_t;

@@ -27,6 +27,10 @@ static int aiq_notifier_subscriber_valid(struct aiq_notifier_subscriber* sub) {
         case AIQ_NOTIFIER_MATCH_HWI_STREAM_PROC:
         case AIQ_NOTIFIER_MATCH_HWI_SENSOR:
         case AIQ_NOTIFIER_MATCH_HWI_ISP_PARAMS:
+        case AIQ_NOTIFIER_MATCH_CORE:
+        case AIQ_NOTIFIER_MATCH_CORE_BUF_MGR:
+        case AIQ_NOTIFIER_MATCH_CORE_GRP_ANALYZER:
+        case AIQ_NOTIFIER_MATCH_CORE_ISP_PARAMS:
             break;
         default:
             printf("Invalid match type %u on %s\n", sub->match_type, sub->name);
@@ -54,6 +58,19 @@ unlock:
     return ret;
 }
 
+int aiq_notifier_remove_subscriber(struct aiq_notifier* notifier, int type) {
+    if (!notifier) return -1;
+
+    struct aiq_notifier_subscriber *sub = NULL, *tmp = NULL;
+    list_for_each_entry_safe(sub, tmp, &notifier->sub_list, list) {
+        if (!sub->dump.dumper || !sub->dump.dump_fn_t) continue;
+
+        if (sub->match_type == (enum aiq_notifier_match_type)type) list_del(&sub->list);
+    }
+
+    return 0;
+}
+
 int aiq_notifier_notify_dumpinfo(struct aiq_notifier* notifier, int type, st_string* dump_info,
                                  int argc, void* argv[]) {
     struct aiq_notifier_subscriber *sub, *tmp;
@@ -62,6 +79,8 @@ int aiq_notifier_notify_dumpinfo(struct aiq_notifier* notifier, int type, st_str
     list_for_each_entry_safe(sub, tmp, &notifier->sub_list, list) {
         if (type != AIQ_NOTIFIER_MATCH_ALL && (enum aiq_notifier_match_type)type != sub->match_type)
             continue;
+
+        if (!sub->dump.dumper || !sub->dump.dump_fn_t) continue;
 
         if (sub->match_type != AIQ_NOTIFIER_MATCH_HWI_STREAM_CAP &&
             sub->match_type != AIQ_NOTIFIER_MATCH_HWI_STREAM_PROC) {

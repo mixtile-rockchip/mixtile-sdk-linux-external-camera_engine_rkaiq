@@ -279,50 +279,50 @@ rk_aiq_user_api2_lsc_setCalib_forTool(const rk_aiq_sys_ctx_t* sys_ctx, alsc_lscC
 
 static int
 __rkaiq_uapi_common_call(void *desc, void *sys_ctx, cJSON *cmd_js, cJSON **ret_js, int mode) {
-	RkAiqUapiDesc_t *uapi_desc = (RkAiqUapiDesc_t *)desc;
-	rk_aiq_sys_ctx_t *aiq_ctx = (rk_aiq_sys_ctx_t *)sys_ctx;
-	const char* type_name = uapi_desc->arg_type;
-	char real_obj[uapi_desc->arg_size];
-	char* js_str = NULL;
-	j2s_ctx ctx;
-	int ret = -1;
-	j2s_init(&ctx);
-	ctx.format_json = false;
-	ctx.manage_data = false;
+    RkAiqUapiDesc_t *uapi_desc = (RkAiqUapiDesc_t *)desc;
+    rk_aiq_sys_ctx_t *aiq_ctx = (rk_aiq_sys_ctx_t *)sys_ctx;
+    const char* type_name = uapi_desc->arg_type;
+    char real_obj[uapi_desc->arg_size];
+    char* js_str = NULL;
+    j2s_ctx ctx;
+    int ret = -1;
+    j2s_init(&ctx);
+    ctx.format_json = false;
+    ctx.manage_data = false;
 
-	if (mode == RKAIQUAPI_OPMODE_SET) {
-		/* Get old json then apply change */
-		cJSON *old_json = NULL;
-		ret = __rkaiq_uapi_common_call(desc, sys_ctx, cmd_js, &old_json,
-											RKAIQUAPI_OPMODE_GET);
-		if (ret || !old_json) {
-			XCAM_LOG_ERROR("sysctl for %s readback failed.", type_name);
-			return -1;
-		}
-		ret = RkCam_cJSONUtils_ApplyPatches(old_json, cmd_js);
+    if (mode == RKAIQUAPI_OPMODE_SET) {
+        /* Get old json then apply change */
+        cJSON *old_json = NULL;
+        ret = __rkaiq_uapi_common_call(desc, sys_ctx, cmd_js, &old_json,
+                                       RKAIQUAPI_OPMODE_GET);
+        if (ret || !old_json) {
+            XCAM_LOG_ERROR("sysctl for %s readback failed.", type_name);
+            return -1;
+        }
+        ret = RkCam_cJSONUtils_ApplyPatches(old_json, cmd_js);
         if (0 != ret) {
             RkCam_cJSON_Delete(old_json);
             XCAM_LOG_ERROR("%s apply patch failed %d!", __func__, ret);
-			return -1;
-		}
-		memset(real_obj, 0, sizeof(real_obj));
+            return -1;
+        }
+        memset(real_obj, 0, sizeof(real_obj));
         ret = j2s_json_to_struct(&ctx, old_json, type_name, real_obj);
         RkCam_cJSON_Delete(old_json);
         j2s_deinit(&ctx);
-		if (ret) return -1;
-		if (!uapi_desc->arg_set) return -1;
-		return uapi_desc->arg_set(aiq_ctx, real_obj);
-	} else if (mode == RKAIQUAPI_OPMODE_GET) {
-		if (!uapi_desc->arg_get) return -1;
-		uapi_desc->arg_get(aiq_ctx, real_obj);
-		*ret_js = j2s_struct_to_json(&ctx, type_name, real_obj);
-		j2s_deinit(&ctx);
-		if (!*ret_js) {
-			XCAM_LOG_ERROR("create %s failed.", type_name);
-			return -1;
-		}
-	}
-	return 0;
+        if (ret) return -1;
+        if (!uapi_desc->arg_set) return -1;
+        return uapi_desc->arg_set(aiq_ctx, real_obj);
+    } else if (mode == RKAIQUAPI_OPMODE_GET) {
+        if (!uapi_desc->arg_get) return -1;
+        uapi_desc->arg_get(aiq_ctx, real_obj);
+        *ret_js = j2s_struct_to_json(&ctx, type_name, real_obj);
+        j2s_deinit(&ctx);
+        if (!*ret_js) {
+            XCAM_LOG_ERROR("create %s failed.", type_name);
+            return -1;
+        }
+    }
+    return 0;
 }
 
 
@@ -427,6 +427,9 @@ RkAiqUapiDesc_t rkaiq_uapidesc_list[] = {
 #ifndef USE_NEWSTRUCT
     __RKAIQUAPI_DESC_DEF("/uapi/0/measure_info/ae_hwstats", uapi_ae_hwstats_t, NULL,
                          rk_aiq_uapi_get_ae_hwstats),
+#else
+    __RKAIQUAPI_DESC_DEF("/uapi/0/measure_info/ae_hwstats", uapi_ae_v39_hwstats_t, NULL,
+                         rk_aiq_uapi_get_aeV39_hwstats),
 #endif
 #if defined(ISP_HW_V21)
     __RKAIQUAPI_DESC_DEF("/uapi/0/measure_info/wb_log/info/awb_stat", rk_aiq_awb_stat_res2_v201_t,
@@ -599,7 +602,7 @@ RkAiqUapiDesc_t rkaiq_uapidesc_list[] = {
 /***********************END OF CUSTOM AREA**************************/
 
 char* rkaiq_uapi_rpc_response(const char* cmd_path, cJSON* root_js,
-    const char* sub_node) {
+                              const char* sub_node) {
     char* ret_str = NULL;
     cJSON* ret_json = NULL;
     cJSON* node_json = NULL;
@@ -663,7 +666,7 @@ int rkaiq_uapi_best_match(const char* cmd_path_str) {
 }
 
 int rkaiq_uapi_unified_ctl(rk_aiq_sys_ctx_t* sys_ctx, const char* js_str,
-    char** ret_str, int op_mode) {
+                           char** ret_str, int op_mode) {
     RkAiqUapiDesc_t* uapi_desc = NULL;
     char* cmd_path_str = NULL;
     char orig_path_str[128] = {0};
@@ -710,7 +713,7 @@ int rkaiq_uapi_unified_ctl(rk_aiq_sys_ctx_t* sys_ctx, const char* js_str,
                         final_path = orig_path_str + strlen(uapi_desc->arg_path);
                     }
                     RkCam_cJSON_ReplaceItemInObject(arr_item, JSON_PATCH_PATH,
-                        RkCam_cJSON_CreateString(final_path));
+                                                    RkCam_cJSON_CreateString(final_path));
                 }
             }
         }
@@ -734,7 +737,7 @@ int rkaiq_uapi_unified_ctl(rk_aiq_sys_ctx_t* sys_ctx, const char* js_str,
     msys_ctx = sys_ctx;
 #endif
     __rkaiq_uapi_common_call(uapi_desc, msys_ctx, cmd_js,
-        &ret_js, op_mode);
+                             &ret_js, op_mode);
 
     if (op_mode == RKAIQUAPI_OPMODE_SET) {
         *ret_str = NULL;
@@ -756,7 +759,7 @@ int rkaiq_uapi_unified_ctl(rk_aiq_sys_ctx_t* sys_ctx, const char* js_str,
     }
 
     return 0;
-    }
+}
 
 RKAIQ_END_DECLARE
 

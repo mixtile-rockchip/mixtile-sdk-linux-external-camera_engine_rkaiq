@@ -6,8 +6,8 @@
 #include "common/rk-isp33-config.h"
 #include "rk_aiq_module_btnr_common.h"
 #include "rk_aiq_module_common.h"
-
-
+#include "blc_algo/aiq_blcLoader.h"
+#include "include/algos/awb/rk_aiq_types_awb_algo.h"
 #if ISP_HW_V39
 typedef enum LutBufferState_e {
     kInitial   = 0,
@@ -58,6 +58,26 @@ typedef struct {
 void LutBufferManagerDeinit(cac_cvt_info_t *cacInfo, LutBufferManager* man);
 #endif
 
+typedef struct {
+    int ds_fd;
+    int iir_fd;
+    int gain_fd;
+    int ds_size;
+    void* ds_address;
+    void* tnr_ds_buf;
+    struct blcLibrary lib_Blc_;
+    bool init_success;
+    rk_autoblc_param_t blc1_param;
+    unsigned int bayertnr_itransf_tbl[4096];
+    int blc_adjust[66];
+    float cur_adjust[2];
+    int autoblc_count;
+    float sigma_ratio;
+    float blc_adjust_tbl[26];
+    int pre_adjust[2];
+    uint16_t pre_ob_offset;
+} blc_cvt_info_t;
+
 RKAIQ_BEGIN_DECLARE
 
 void rk_aiq_btnr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t *cvtinfo, btnr_cvt_info_t *pBtnrInfo);
@@ -65,7 +85,8 @@ void rk_aiq_sharp34_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_
 void rk_aiq_ynr34_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t *cvtinfo);
 void rk_aiq_cnr34_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t *cvtinfo);
 void rk_aiq_drc40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t *cvtinfo, bool drc_en);
-void rk_aiq_blc30_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t *cvtinfo);
+void rk_aiq_blc30_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t* cvtinfo,
+                             blc_cvt_info_t* pBlcInfo, rk_aiq_wb_gain_v32_t* awb_gain_final);
 void rk_aiq_dpcc21_params_cvt(void* attr, isp_params_t* isp_params);
 void rk_aiq_gamma21_params_cvt(void* attr, isp_params_t* isp_params);
 void rk_aiq_gic21_params_cvt(void* attr, struct isp39_gic_cfg* gic_cfg);

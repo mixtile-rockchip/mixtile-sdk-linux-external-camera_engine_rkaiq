@@ -316,6 +316,12 @@ typedef struct rk_aiq_isp_drc_v39_s {
     float L2S_Ratio;
     unsigned char compr_bit;
 } rk_aiq_isp_drc_v39_t;
+
+typedef struct rk_aiq_isp_blc_v33_s {
+    blc_param_t blc_param;
+    bool *damping;
+    bool *aeIsConverged;
+} rk_aiq_isp_blc_v33_t;
 #endif
 
 typedef struct {
@@ -394,6 +400,11 @@ typedef struct {
     RkAiqAlgoCom com;
     float blc_ob_predgain;
 } RkAiqAlgoProcCnr;
+
+typedef struct {
+    RkAiqAlgoCom com;
+    bool aeIsConverged;
+} RkAiqAlgoProcBlc;
 
 typedef struct {
     RkAiqAlgoResCom res_com;

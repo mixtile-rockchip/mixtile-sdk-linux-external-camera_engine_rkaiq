@@ -18,11 +18,6 @@
 #define FIXBITWFWGT     8
 #define FIXBITDGAIN     8
 
-#define trans_mode2str(mode) \
-    (mode) == 0 ? "btnr_pixInBw15b_mode" : \
-    (mode) == 1 ? "btnr_pixInBw20b_mode" : \
-    "INVALID MODE"
-
 void bay_gauss5x5_spnr_coeff(float sigma, int halftaby, int halftabx, int strdtabx, int* gstab)
 {
     int halfx = halftabx;
@@ -319,6 +314,7 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
 
     btnr_api_attrib_t *btnr_attrib = pBtnrInfo->btnr_attrib;
     btnr_param_auto_t *paut = &btnr_attrib->stAuto;
+    rk_aiq_op_mode_t opMode = btnr_attrib->opMode;
 #if 0
     printf("hw_btnrT_sigma_scale %f %f\n",
            paut->mdMeDyn[0].mdSigma.hw_btnrT_sigma_scale, paut->mdMeDyn[1].mdSigma.hw_btnrT_sigma_scale);
@@ -339,6 +335,9 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
             pBtnrInfo->btnr_stats_miss_cnt = 0;
         }
     }
+    blc_cvt_info_t* pBlcInfo = (blc_cvt_info_t*)cvtinfo->pBlcInfo;
+    float sigma_ratio = ((float)btnr_stats->sigma_num) / (cvtinfo->rawWidth * cvtinfo->rawHeight);
+    pBlcInfo->sigma_ratio = sigma_ratio;
 
     float tmpf;
     int i, j, tmp, tmp0, tmp1, sigbins, halfx;
@@ -356,6 +355,16 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     pTransParams->isFirstFrame = cvtinfo->isFirstFrame;
     pTransParams->isHdrMode = cvtinfo->frameNum == 2;
 
+    if(psta->hw_btnrCfg_pixDomain_mode != pdyn->sigmaEnv.hw_btnrC_sigmaAttrib.hw_btnrCfg_pixDomain_mode
+            || psta->transCfg.hw_btnrCfg_trans_mode != pdyn->sigmaEnv.hw_btnrC_sigmaAttrib.hw_btnrCfg_trans_mode
+            || psta->transCfg.hw_btnrCfg_trans_offset != pdyn->sigmaEnv.hw_btnrC_sigmaAttrib.hw_btnrCfg_trans_offset) {
+        LOGW_ANR("Btnr run in pixLog2Domain is %d, trans_mode is %d, trans_offset is %d.\n"
+                 "But calib pixLog2Domain_mode is %d, trans_mode is %d, trans_offset is %d.\n",
+                 psta->hw_btnrCfg_pixDomain_mode, pdyn->sigmaEnv.hw_btnrC_sigmaAttrib.hw_btnrCfg_pixDomain_mode,
+                 psta->transCfg.hw_btnrCfg_trans_mode, pdyn->sigmaEnv.hw_btnrC_sigmaAttrib.hw_btnrCfg_trans_mode,
+                 psta->transCfg.hw_btnrCfg_trans_offset, pdyn->sigmaEnv.hw_btnrC_sigmaAttrib.hw_btnrCfg_trans_offset);
+    }
+
     if (cvtinfo->frameNum > 1) {
         if (psta->hw_btnrCfg_pixDomain_mode != btnr_pixLog2Domain_mode) {
             LOGW_ANR("Btnr must run in pixLog2Domain(ori mode is %d) when isp is HDR mode(framenum=%d), btnr_pixLog2Domain_mode is be forcibly set to hw_btnrCfg_pixDomain_mode in HWI\n"
@@ -364,8 +373,18 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
             psta->hw_btnrCfg_pixDomain_mode = btnr_pixLog2Domain_mode;
         }
         if (psta->transCfg.hw_btnrCfg_trans_mode != btnr_pixInBw20b_mode) {
-            LOGE_ANR("hw_btnrCfg_trans_mode == %s(0x%x) is error, It is be set to btnr_pixInBw20b_mode in HWI", trans_mode2str(psta->transCfg.hw_btnrCfg_trans_mode), psta->transCfg.hw_btnrCfg_trans_mode);
+            LOGE_ANR("hw_btnrCfg_trans_mode == %s(0x%x) is error. When isp is in HDR mode, btnr must run in 'btnr_pixInBw20b_mode'. "
+                     "The trans_mode will be forcibly set to 'btnr_pixInBw20b_mode' in HWI.",
+                     trans_mode2str(psta->transCfg.hw_btnrCfg_trans_mode), psta->transCfg.hw_btnrCfg_trans_mode);
             psta->transCfg.hw_btnrCfg_trans_mode = btnr_pixInBw20b_mode;
+        }
+    }
+
+    if(cvtinfo->frameNum == 1 && cvtinfo->preDGain > 1.0) {
+        if (psta->hw_btnrCfg_pixDomain_mode != btnr_pixLog2Domain_mode) {
+            LOGW_ANR("Btnr must run in pixLog2Domain(ori mode is %d) when predgain > 1.0, btnr_pixLog2Domain_mode is be forcibly set to hw_btnrCfg_pixDomain_mode in HWI\n",
+                     psta->hw_btnrCfg_pixDomain_mode);
+            psta->hw_btnrCfg_pixDomain_mode = btnr_pixLog2Domain_mode;
         }
     }
     /*
@@ -819,6 +838,23 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     pCfg->lo_wgt_clip_hdr_sht_min_limit = CLIP(tmp, 0, 0x3fff);
     // REG: BAY3D_WGTLO_H
     tmpf = pmdDyn->frmFusion.hw_btnrT_loFusion_maxLimit;
+#if 1
+    // if iso change, then ob_offset change, the tnr is disable to void the redish image
+    static int pre_ob = 0;
+    if(cvtinfo->isFirstFrame) {
+        pre_ob = cvtinfo->blc_res.obcPostTnr.sw_blcT_autoOB_offset;
+    }
+    if(psta->sw_fusionIso.sw_btnrT_fusionIso_mode == btnr_limitAdj_mode) {
+        int delta_ob = ABS(cvtinfo->blc_res.obcPostTnr.sw_blcT_autoOB_offset - pre_ob);
+        if(delta_ob >= psta->sw_fusionIso.sw_btnrT_limitAdj_deltaOB) {
+            tmpf = 1;
+        }
+        if(delta_ob > 0) {
+            LOGD_ANR("iso:%d pre_ob:%d cur_ob:%d delta_ob:%d\n", cvtinfo->frameIso[0], pre_ob, cvtinfo->blc_res.obcPostTnr.sw_blcT_autoOB_offset, delta_ob);
+        }
+    }
+    pre_ob = cvtinfo->blc_res.obcPostTnr.sw_blcT_autoOB_offset;
+#endif
     tmp = tmpf > 4095 ? 4095 : (tmpf == 0 ? 0 : (int)((1.0 - 1.0 / tmpf) * (1 << FIXTNRWWW)));
     pCfg->lo_wgt_clip_max_limit = CLIP(tmp, 0, 0x3fff);
     tmpf = pmdDyn->frmFusion.hw_btnrT_loFusionHdrS_maxLimit;
@@ -966,6 +1002,10 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
             pCfg->pix_max_limit  = bayertnr_logtrans(((1 << 20) - 1), pTransParams);;
         }
     }
+    if (cvtinfo->isFirstFrame || (pTransParams->transf_mode != pCfg->transf_mode)
+            || (pTransParams->transf_mode_scale != pCfg->transf_mode_scale)) {
+        rk_autoblc_gen_tbl(pBlcInfo->bayertnr_itransf_tbl, pCfg->pix_max_limit, pTransParams);
+    }
 
     pTransParams->isTransfBypass = pCfg->transf_bypass_en;
     bayertnr_luma2sigmax_config_v41(pTransParams, &cvtinfo->blc_res, cvtinfo->preDGain);
@@ -996,7 +1036,7 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
 
     if(psta->sigmaEnv.sw_btnrCfg_sigma_mode == btnr_manualSigma_mode || cvtinfo->isFirstFrame || bayertnr_default_noise_curve_use) {
         pTransParams->bayertnr_auto_sig_count_en = 0;
-        if(pTransParams->isHdrMode || pTransParams->isTransfBypass) {
+        if(pTransParams->isHdrMode || pTransParams->isTransfBypass || opMode == RK_AIQ_OP_MODE_MANUAL) {
             for(i = 0; i < sigbins; i++) {
                 pTransParams->tnr_luma_sigma_y[i] = pdyn->sigmaEnv.hw_btnrC_mdSigma_curve.val[i];
             }
@@ -1200,7 +1240,7 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
 
     if(!auto_sig_curve_spnruse || cvtinfo->isFirstFrame) {
 
-        if(pTransParams->isHdrMode || pTransParams->isTransfBypass) {
+        if(pTransParams->isHdrMode || pTransParams->isTransfBypass || opMode == RK_AIQ_OP_MODE_MANUAL) {
             for(i = 0; i < spnrsigbins; i++) {
                 pCfg->pre_spnr_luma2sigma_y[i] = CLIP((int)(pdyn->sigmaEnv.hw_btnrC_preSpNrSgm_curve.val[i]), 0, max_sig);
             }
@@ -1286,6 +1326,8 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     if (!pCfg->transf_bypass_en) {
         rk_aiq_btnr41_params_logtrans(pCfg);
     }
+
+
 
     return;
 }

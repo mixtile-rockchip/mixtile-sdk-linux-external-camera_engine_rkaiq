@@ -414,12 +414,63 @@ static void sample_smartIr_calib(const void* arg)
     printf("smartIr calib done ...... \n");
 }
 
+void smartIr_cb(rk_smart_ir_result_t result)
+{
+    if (result.status == RK_SMART_IR_STATUS_NIGHT) {
+        printf("SAMPLE_SMART_IR: switch to Night\n");
+
+        // 1) switch isp night params
+        rk_aiq_uapi2_sysctl_switch_scene(g_sample_smartIr_ctx.aiq_ctx, "normal", "night");
+        // 2) ir-cutter off
+        ir_cutter_ctrl(false);
+        // 3) manual/auto ir-led, set result.fill_value
+        // TODO: user should define led control func here
+
+    } else if (result.status == RK_SMART_IR_STATUS_DAY) {
+        printf("SAMPLE_SMART_IR: switch to Day\n");
+
+        // 1) ir-cutter on
+        ir_cutter_ctrl(true);
+        // 2) ir-led off
+        // TODO: user should define led control func here
+        // 3) switch isp day params
+        rk_aiq_uapi2_sysctl_switch_scene(g_sample_smartIr_ctx.aiq_ctx, "normal", "day");
+    }
+}
+
+static void sample_smartIr_start(const void* arg)
+{
+    // 1) init
+    g_sample_smartIr_ctx.ir_ctx = rk_smart_ir_init((rk_aiq_sys_ctx_t*)arg);
+
+    // 2) load configs: auto switch, manual ir led
+    rk_smart_ir_attr_t attr;
+    //memset(&attr, 0, sizeof(attr));
+    rk_smart_ir_getAttr(g_sample_smartIr_ctx.ir_ctx, &attr);
+    attr.init_status = RK_SMART_IR_STATUS_DAY;
+    attr.switch_mode = RK_SMART_IR_SWITCH_MODE_AUTO;
+    attr.light_mode = RK_SMART_IR_LIGHT_MODE_MANUAL;
+    attr.light_type = RK_SMART_IR_LIGHT_TYPE_IR;
+    attr.light_value = 100;
+    attr.params.d2n_envL_th = 0.04f;
+    attr.params.n2d_envL_th = 0.20f;
+    attr.params.rggain_base = 1.00f;
+    attr.params.bggain_base = 1.00f;
+    attr.params.awbgain_rad = 0.10f;
+    attr.params.awbgain_dis = 0.20f;
+    attr.params.switch_cnts_th = 50;
+    rk_smart_ir_setAttr(g_sample_smartIr_ctx.ir_ctx, &attr);
+
+    rk_smart_ir_runCb(g_sample_smartIr_ctx.ir_ctx, g_sample_smartIr_ctx.camGroup, smartIr_cb);
+}
+
 static void sample_smartIr_usage()
 {
     printf("Usage : \n");
     printf("  SmartIr API: \n");
     printf("\t i) SmartIr:         Start smartIr irled test.\n");
     printf("\t v) SmartIr:         Start smartIr visled test.\n");
+    printf("\t s) SmartIr:         Start smartIr (callback).\n");
     printf("\t e) SmartIr:         Exit smartIr test.\n");
     printf("\t c) SmartIr:         Ir wb calibration.\n");
     printf("\n");
@@ -478,6 +529,9 @@ XCamReturn sample_smartIr_module(const void* arg)
             break;
         case 'v':
             sample_smartIr_start_visled(ctx);
+            break;
+        case 's':
+            sample_smartIr_start(ctx);
             break;
         case 'e':
             sample_smartIr_stop(ctx);

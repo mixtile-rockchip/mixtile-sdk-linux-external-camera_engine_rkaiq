@@ -55,8 +55,9 @@ void AIQInfoServiceControlDestroy(AIQInfoServiceControl *const me) {
 }
 
 enum dump_mod_type {
-    DUMP_AIQ_HWI,
+    DUMP_AIQ_ALGO,
     DUMP_AIQ_CORE,
+    DUMP_AIQ_HWI,
     DUMP_AIQ_CAMGROUP,
     DUMP_AIQ_MAX,
 };
@@ -71,11 +72,15 @@ struct dump_mod_descr {
 };
 
 static struct dump_mod_descr aiq_modules[] = {
-    { DUMP_AIQ_HWI,       "HWI",          { NULL, NULL } },
+    // clang-format off
+    { DUMP_AIQ_ALGO,      "ALGO",         { NULL, NULL } },
     { DUMP_AIQ_CORE,      "CORE",         { NULL, NULL } },
+    { DUMP_AIQ_HWI,       "HWI",          { NULL, NULL } },
     { DUMP_AIQ_CAMGROUP,  "CAM_GROUP",    { NULL, NULL } },
     { DUMP_AIQ_MAX,       "Unknown",      { NULL, NULL } }
+    // clang-format on
 };
+
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #endif
@@ -84,6 +89,8 @@ static struct dump_mod_descr aiq_modules[] = {
 static void __dumpAllModule(rk_aiq_sys_ctx_t* ctx, st_string* dumpInfo, int argc, void* argv[]) {
     if (!ctx) return;
 
+    string_printf(dumpInfo, "\n");
+
     for (int i = 0; i < (int)AIQ_MODS; i ++) {
         if (aiq_modules[i].type == DUMP_AIQ_HWI) {
             AiqCamHwBase_t* camHw           = ctx->_camHw;
@@ -91,11 +98,22 @@ static void __dumpAllModule(rk_aiq_sys_ctx_t* ctx, st_string* dumpInfo, int argc
             aiq_modules[i].dump.dump_fn_t   = camHw->dump;
         }
 
+        if (aiq_modules[i].type == DUMP_AIQ_CORE) {
+            AiqCore_t* analyzer           = ctx->_analyzer;
+            aiq_modules[i].dump.dumper    = analyzer;
+            aiq_modules[i].dump.dump_fn_t = analyzer->dump_core;
+        }
+
+        if (aiq_modules[i].type == DUMP_AIQ_ALGO) {
+            AiqCore_t* analyzer           = ctx->_analyzer;
+            aiq_modules[i].dump.dumper    = analyzer;
+            aiq_modules[i].dump.dump_fn_t = analyzer->dump_algos;
+        }
+
         if (!aiq_modules[i].dump.dumper || !aiq_modules[i].dump.dump_fn_t)
             continue;
 
         aiq_modules[i].dump.dump_fn_t(aiq_modules[i].dump.dumper, dumpInfo, argc, argv);
-        string_printf(dumpInfo, "\n");
     }
 }
 
@@ -125,12 +143,26 @@ static void __dumpMultiModule(rk_aiq_sys_ctx_t* ctx, st_string* dumpInfo, int ar
                               char* str) {
     if (!ctx) return;
 
+    string_printf(dumpInfo, "\n");
+
     for (int i = 0; i < (int)AIQ_MODS; i++) {
         if (!strcasecmp(aiq_modules[i].descr, str)) {
             if (aiq_modules[i].type == DUMP_AIQ_HWI) {
                 AiqCamHwBase_t* camHw         = ctx->_camHw;
                 aiq_modules[i].dump.dumper    = camHw;
                 aiq_modules[i].dump.dump_fn_t = camHw->dump;
+            }
+
+            if (aiq_modules[i].type == DUMP_AIQ_CORE) {
+                AiqCore_t* analyzer           = ctx->_analyzer;
+                aiq_modules[i].dump.dumper    = analyzer;
+                aiq_modules[i].dump.dump_fn_t = analyzer->dump_core;
+            }
+
+            if (aiq_modules[i].type == DUMP_AIQ_ALGO) {
+                AiqCore_t* analyzer           = ctx->_analyzer;
+                aiq_modules[i].dump.dumper    = analyzer;
+                aiq_modules[i].dump.dump_fn_t = analyzer->dump_algos;
             }
 
             if (!aiq_modules[i].dump.dumper || !aiq_modules[i].dump.dump_fn_t) continue;
@@ -141,7 +173,6 @@ static void __dumpMultiModule(rk_aiq_sys_ctx_t* ctx, st_string* dumpInfo, int ar
                 string_printf(dumpInfo, "]\n\n");
             }
             aiq_modules[i].dump.dump_fn_t(aiq_modules[i].dump.dumper, dumpInfo, argc, argv);
-            string_printf(dumpInfo, "\n");
         }
     }
 }
@@ -214,6 +245,9 @@ void AIQInfoServiceControl_onReceived(AIQInfoServiceControl *const me,\
         AIQInfoServiceControl_dumpAllModule(me, stResult, moduleArgsNum, (void **)moduleArgsValue);
         response->setContent(response, string_body(stResult), string_len(stResult));
     } else if (!strcmp(moudleName, "record")) {
+    } else if (!strcmp(moudleName, "log")) {
+        xcam_dump_log(stResult, moduleArgsNum, (void**)moduleArgsValue);
+        response->setContent(response, string_body(stResult), string_len(stResult));
     } else if (!strcmp(moudleName, "cat")) {
         char argvArray[1024];
         memcpy(argvArray, "cat ", 5);
@@ -222,7 +256,7 @@ void AIQInfoServiceControl_onReceived(AIQInfoServiceControl *const me,\
         }
         aiq_cmd_service_process(argvArray, stResult);
         response->setContent(response, string_body(stResult), string_len(stResult));
-    } else{
+    } else {
         AIQInfoServiceControl_dumpMultiModule(me, stResult, moudleName,  moduleArgsNum, (void **)moduleArgsValue);
         response->setContent(response, string_body(stResult), string_len(stResult));
     }

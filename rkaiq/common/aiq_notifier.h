@@ -35,11 +35,19 @@
  * algorithm that will be used to match an asynchronous device.
  */
 enum aiq_notifier_match_type {
+    // HWI
     AIQ_NOTIFIER_MATCH_HWI_BASE = 0,
     AIQ_NOTIFIER_MATCH_HWI_STREAM_CAP,
     AIQ_NOTIFIER_MATCH_HWI_STREAM_PROC,
     AIQ_NOTIFIER_MATCH_HWI_SENSOR,
     AIQ_NOTIFIER_MATCH_HWI_ISP_PARAMS,
+
+    // CORE
+    AIQ_NOTIFIER_MATCH_CORE,
+    AIQ_NOTIFIER_MATCH_CORE_BUF_MGR,
+    AIQ_NOTIFIER_MATCH_CORE_GRP_ANALYZER,
+    AIQ_NOTIFIER_MATCH_CORE_ISP_PARAMS,
+
     AIQ_NOTIFIER_MATCH_ALL,
     AIQ_NOTIFIER_MATCH_MAX,
 };
@@ -96,6 +104,15 @@ void aiq_notifier_init(struct aiq_notifier* notifier);
  * it will be freed by the framework when the notifier is destroyed.
  */
 int aiq_notifier_add_subscriber(struct aiq_notifier* notifier, struct aiq_notifier_subscriber* sub);
+
+/**
+ * aiq_notifier_remove_subscriber - remove subdev from the
+ *              notifier's master asd list.
+ *
+ * @notifier: pointer to &struct v4l2_async_notifier
+ * @type: subscriber type.
+ */
+int aiq_notifier_remove_subscriber(struct aiq_notifier* notifier, int type);
 
 /**
  *  aiq_notifier_notify_dumpinfo - Add an subdev to the

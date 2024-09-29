@@ -789,6 +789,9 @@ void AiqFakeSensorHw_init(AiqFakeSensorHw_t* pFakeSnsHw, const char* name, int c
     pFakeSnsHw->enqueue_rawbuffer         = _enqueue_rawbuffer;
     pFakeSnsHw->on_dqueue                 = _on_dqueue;
     pFakeSnsHw->register_rawdata_callback = _register_rawdata_callback;
+#if RKAIQ_HAVE_DUMPSYS
+    pSnsHw->dump = NULL;
+#endif
     {
         // init list
         AiqListConfig_t vBufListCfg;

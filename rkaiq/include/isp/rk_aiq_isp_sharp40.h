@@ -674,7 +674,7 @@ typedef struct shp_motionStrg2_s {
         M4_ALIAS(detailGain_sigma),
         M4_TYPE(f32),
         M4_SIZE_EX(1,1),
-        M4_RANGE_EX(0,2.0),
+        M4_RANGE_EX(0,1.0),
         M4_DEFAULT(0.25),
         M4_DIGIT_EX(2),
         M4_FP_EX(0,1,7),

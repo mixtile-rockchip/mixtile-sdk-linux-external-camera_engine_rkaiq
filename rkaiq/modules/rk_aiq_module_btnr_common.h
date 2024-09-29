@@ -1,6 +1,11 @@
 #ifndef _RK_AIQ_MODULE_BTNR_COMMON_H_
 #define _RK_AIQ_MODULE_BTNR_COMMON_H_
 
+#define trans_mode2str(mode) \
+    (mode) == 0 ? "btnr_pixInBw20b_mode" : \
+    (mode) == 1 ? "btnr_pixInBw15b_mode" : \
+    "INVALID MODE"
+
 typedef struct {
     uint8_t isFirstFrame;
     uint8_t isHdrMode;
@@ -70,8 +75,10 @@ typedef struct {
 } btnr_cvt_info_t;
 
 void bayertnr_logtrans_init(int bayertnr_trans_mode,  int bayertnr_trans_mode_scale, btnr_trans_params_t *pTransPrarms);
-int bayertnr_logtrans(uint32_t tmpfix, btnr_trans_params_t *pTransPrarms);
-int bayertnr_update_sq(btnr_trans_params_t *pTransPrarms);
+int bayertnr_logtrans(uint32_t tmpfix, btnr_trans_params_t* pTransPrarms);
+int bayertnr_logiitrans(int tmpData, btnr_trans_params_t* pTransPrarms);
+int rk_autoblc_gen_tbl(unsigned int* bayertnr_itransf_tbl, uint16_t bayertnr_pixlog_max, btnr_trans_params_t* pTransPrarms);
+int bayertnr_update_sq(btnr_trans_params_t* pTransPrarms);
 void bayertnr_save_stats(void *stats_buffer, btnr_cvt_info_t *pBtnrInfo);
 int bayertnr_autosigma_config(btnr_stats_t *pStats, btnr_trans_params_t *pTransPrarms, blc_res_cvt_t* pBlc);
 int bayertnr_tnr_noise_curve(int data, int isHdrShort, btnr_trans_params_t *pTransPrarms);

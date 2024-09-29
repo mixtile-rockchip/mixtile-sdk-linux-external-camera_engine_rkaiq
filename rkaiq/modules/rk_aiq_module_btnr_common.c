@@ -175,6 +175,96 @@ int bayertnr_logtrans(uint32_t tmpfix, btnr_trans_params_t *pTransPrarms)
     return (int)fx;
 }
 
+int bayertnr_logiitrans(int tmpData, btnr_trans_params_t *pTransPrarms)
+{
+    long long iii, ss, n, dn, s;
+    long long one = 1;
+	long long ix1, ix2, dp;
+	long long lt1, lt2, fx;
+	long long stepbit, step, yy;
+    long long  tempdat;
+    int bayertnr_logprecision = pTransPrarms->bayertnr_logprecision;
+    int bayertnr_logfixbit = pTransPrarms->bayertnr_logfixbit;
+    int bayertnr_logtblbit = pTransPrarms->bayertnr_logtblbit;
+    int bayertnr_logscalebit = pTransPrarms->bayertnr_logscalebit;
+    int bayertnr_logfixmul = pTransPrarms->bayertnr_logfixmul;
+    int bayertnr_logtblmul = pTransPrarms->bayertnr_logtblmul;
+    uint16_t bayertnr_trans_mode_offset = pTransPrarms->transf_mode_offset;
+    uint16_t bayertnr_itrans_mode_offset = pTransPrarms->itransf_mode_offset;
+    uint8_t bayertnr_trans_mode = pTransPrarms->transf_mode;
+    uint32_t bayertnr_trans_data_max = pTransPrarms->transf_data_max_limit;
+
+	if(bayertnr_trans_mode)
+	{
+		fx = tmpData;
+		fx = fx + bayertnr_itrans_mode_offset;
+
+		n  = (long long)bayertnr_find_top_one_pos((int)fx);
+		dn = n - bayertnr_logscalebit;
+
+		s = fx - (one<<(bayertnr_logscalebit+dn));
+		s = s*bayertnr_logtblmul/(one<<(bayertnr_logscalebit+dn));
+		stepbit = bayertnr_logtblbit - bayertnr_logprecision;
+		step = (one<<stepbit);
+
+		ix1 = s/step;
+		dp = s - ix1*step;
+
+		ix2 = ix1 + 1;
+
+		lt1 = pTransPrarms->bayertnr_logtablei[ix1];
+		lt2 = pTransPrarms->bayertnr_logtablei[ix2];
+
+		ss = lt1*(step - dp) + lt2*dp;
+
+		ss = ss+(one<<(bayertnr_logtblbit+stepbit-dn*2-1));
+		yy = ss>>(bayertnr_logtblbit+stepbit-dn*2);
+		yy = yy - bayertnr_trans_mode_offset;
+		tempdat = MIN(yy, bayertnr_trans_data_max);
+	}
+	else
+	{
+		fx = tmpData;
+		fx = fx + bayertnr_itrans_mode_offset;
+
+		iii = fx / (one<<bayertnr_logscalebit);
+		ss = fx - iii*(one<<bayertnr_logscalebit);
+
+		stepbit = bayertnr_logscalebit - bayertnr_logprecision;
+		step = (one<<stepbit);
+
+		ix1 = ss/step;
+		dp = ss - ix1*step;
+
+		ix2 = ix1 + 1;
+
+		lt1 = pTransPrarms->bayertnr_logtablei[ix1];
+		lt2 = pTransPrarms->bayertnr_logtablei[ix2];
+
+		ss = lt1*(step - dp) + lt2*dp;
+
+		yy = (one<<iii)*ss;
+		yy = yy/(one<<(bayertnr_logtblbit+stepbit));
+		yy = yy - bayertnr_trans_mode_offset;
+        tempdat = MIN(yy, bayertnr_trans_data_max);
+    }
+    return (int)tempdat;
+}
+
+int rk_autoblc_gen_tbl(unsigned int* bayertnr_itransf_tbl, uint16_t bayertnr_pixlog_max, btnr_trans_params_t *pTransPrarms)
+{
+
+	for (int j = 0; j <= bayertnr_pixlog_max; j++)
+	{
+		bayertnr_itransf_tbl[j] = pTransPrarms->isTransfBypass == 0 ? bayertnr_logiitrans(j, pTransPrarms) : j;
+	}
+	for (int j = bayertnr_pixlog_max + 1; j < 4096; j++)
+	{
+		bayertnr_itransf_tbl[j] = pTransPrarms->isTransfBypass == 0 ? bayertnr_logiitrans(bayertnr_pixlog_max, pTransPrarms) : j;
+	}
+	return 0;
+}
+
 void bayertnr_save_stats(void *stats_buffer, btnr_cvt_info_t *pBtnrInfo)
 {
     if (stats_buffer == NULL)

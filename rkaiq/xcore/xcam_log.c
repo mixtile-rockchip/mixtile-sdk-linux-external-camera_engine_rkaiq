@@ -37,6 +37,12 @@
 #endif
 #endif
 
+#if RKAIQ_HAVE_DUMPSYS
+#include "dumpcam_server/third-party/argparse/argparse.h"
+#include "rk_info_utils.h"
+#include "st_string.h"
+#endif
+
 #define LOG_FILE_NAME_MAX_LENGTH 256
 static char log_file_name[LOG_FILE_NAME_MAX_LENGTH] = {0};
 /* use a 64 bits value to represent all modules bug level, and the
@@ -223,6 +229,23 @@ int xcam_get_log_level() {
     return 0;
 }
 
+#if RKAIQ_HAVE_DUMPSYS
+static void xcam_set_log_level(uint64_t log_level) {
+    g_cam_engine_log_level = log_level;
+
+    uint64_t module_mask = g_cam_engine_log_level >> 12;
+    for (int32_t i = 0; i < XCORE_LOG_MODULE_MAX; i++) {
+        if (module_mask & (1ULL << i)) {
+            g_xcore_log_infos[i].log_level   = g_cam_engine_log_level & 0xf;
+            g_xcore_log_infos[i].sub_modules = (g_cam_engine_log_level >> 4) & 0xff;
+        } else {
+            g_xcore_log_infos[i].log_level   = 0;
+            g_xcore_log_infos[i].sub_modules = 0;
+        }
+    }
+}
+#endif
+
 char* timeString() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
@@ -302,3 +325,230 @@ void xcam_get_awb_log_level(unsigned char *log_level, unsigned char *sub_modules
     *log_level = g_xcore_log_infos[XCORE_LOG_MODULE_AWB].log_level;
     *sub_modules = g_xcore_log_infos[XCORE_LOG_MODULE_AWB].sub_modules;
 }
+
+#if RKAIQ_HAVE_DUMPSYS
+
+#ifndef BIT_ULL
+#define BIT_ULL(nr) (1ULL << (nr))
+#endif
+
+static const char* const usages[] = {
+    "dumpcam log [options] [[--] args]",
+    "dumpcam log [options]",
+    NULL,
+};
+
+static int _gHelp = 0;
+static int dbg_help_cb(struct argparse* self, const struct argparse_option* option) {
+    _gHelp = 1;
+
+    return 0;
+}
+
+int xcam_dump_log(st_string* result, int argc, void* argv[]) {
+    char buffer[MAX_LINE_LENGTH * 4] = {0};
+
+#ifdef NDEBUG
+    sprintf(buffer, "\nNot supported, AIQ logs has been removed at compile time\n");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    return true;
+#endif
+
+    if (!argc) {
+        sprintf(buffer, "\nCurrent AIQ log level: 0x%llx\n", g_cam_engine_log_level);
+        string_printf(result, buffer);
+        string_printf(result, "\n");
+        return true;
+    }
+
+    char argvArray[256][256];
+    char* extended_argv[256];
+    int extended_argc = 0;
+
+    snprintf(argvArray[0], sizeof(argvArray[extended_argc]), "%s", "log");
+    extended_argv[0] = argvArray[0];
+    extended_argc++;
+    for (int i = 0; i < argc; i++) {
+        LOG1("argv[%d]: %s", i, *((const char**)argv + i));
+        snprintf(argvArray[extended_argc], sizeof(argvArray[extended_argc]), "%s",
+                 *((const char**)argv + i));
+        extended_argv[extended_argc] = argvArray[extended_argc];
+        extended_argc++;
+    }
+
+    uint64_t log_cfg = 0;
+    uint64_t log_mod = 0;
+    char* endptr;
+    const char *log_sub_mod_str = NULL, *log_level_str = NULL;
+    uint32_t log_sub_mod = 0xff, log_level = 4;
+    struct argparse_option options[] = {
+        OPT_GROUP("Log level:"),
+        OPT_STRING('l', "level", &log_level_str, "log level", NULL, 0, 0),
+        OPT_GROUP("Log sub modules:"),
+        OPT_STRING('s', "sub", &log_sub_mod_str, "the sub modules of each module", NULL, 0, 0),
+        OPT_GROUP("Log modules:"),
+        OPT_BIT('A', "all", &log_mod, "all", NULL, BIT_ULL(XCORE_LOG_MODULE_ALL), OPT_NONEG),
+        OPT_BIT('b', "ae", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_AEC].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_AEC), OPT_NONEG),
+        OPT_BIT('c', "awb", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_AWB].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_AWB), 0),
+        OPT_BIT('d', "af", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_AF].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_AF), 0),
+        OPT_BIT('c', "blc", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ABLC].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_ABLC), 0),
+        OPT_BIT('d', "dpc", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ADPCC].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_ADPCC), 0),
+        OPT_BIT('e', "tmo", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ATMO].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_ATMO), 0),
+        OPT_BIT('f', "anr", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ANR].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_ANR), 0),
+        OPT_BIT('g', "lsc", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ALSC].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_ALSC), 0),
+        OPT_BIT('i', "gic", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_AGIC].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_AGIC), 0),
+        OPT_BIT('j', "dm", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ADEBAYER].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_ADEBAYER), 0),
+        OPT_BIT('m', "ccm", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ACCM].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_ACCM), 0),
+        OPT_BIT('n', "goc", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_AGAMMA].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_AGAMMA), 0),
+        OPT_BIT('k', "wdr", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_AWDR].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_AWDR), 0),
+        OPT_BIT('o', "dhz", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ADEHAZE].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_ADEHAZE), 0),
+        OPT_BIT('p', "lut3d", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_A3DLUT].module_name,
+                NULL, BIT_ULL(XCORE_LOG_MODULE_A3DLUT), 0),
+        OPT_BIT('r', "ldch", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ALDCH].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_ALDCH), 0),
+        OPT_BIT('t', "cp", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ACP].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_ACP), 0),
+        OPT_BIT('u', "ie", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_AIE].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_AIE), 0),
+        OPT_BIT('v', "sharp", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ASHARP].module_name,
+                NULL, BIT_ULL(XCORE_LOG_MODULE_ASHARP), 0),
+        OPT_BIT('w', "cgc", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ACGC].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_ACGC), 0),
+        OPT_BIT('x', "asd", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ASD].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_ASD), 0),
+        OPT_BIT('y', "xcore", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_XCORE].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_XCORE), 0),
+        OPT_BIT('z', "analyzer", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ANALYZER].module_name,
+                NULL, BIT_ULL(XCORE_LOG_MODULE_ANALYZER), 0),
+        OPT_BIT('0', "hw", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_CAMHW].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_CAMHW), 0),
+        OPT_BIT('1', "dgm", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ADEGAMMA].module_name,
+                NULL, BIT_ULL(XCORE_LOG_MODULE_ADEGAMMA), 0),
+        OPT_BIT('2', "mge", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_AMERGE].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_AMERGE), 0),
+        OPT_BIT('3', "md", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_AMD].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_AMD), 0),
+        OPT_BIT('4', "cac", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ACAC].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_ACAC), 0),
+        OPT_BIT('5', "camgrp", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_CAMGROUP].module_name,
+                NULL, BIT_ULL(XCORE_LOG_MODULE_CAMGROUP), 0),
+        OPT_BIT('6', "grpwb", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_AWBGROUP].module_name,
+                NULL, BIT_ULL(XCORE_LOG_MODULE_AWBGROUP), 0),
+        OPT_BIT('7', "grpae", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_GROUPAEC].module_name,
+                NULL, BIT_ULL(XCORE_LOG_MODULE_GROUPAEC), 0),
+        OPT_BIT('8', "rawstrm", &log_mod,
+                g_xcore_log_infos[XCORE_LOG_MODULE_RKRAWSTREAM].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_RKRAWSTREAM), 0),
+        OPT_BIT('9', "ipc", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_IPC].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_IPC), 0),
+        OPT_BIT('q', "afd", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_AFD].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_AFD), 0),
+        OPT_BIT('B', "rgbir", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ARGBIR].module_name,
+                NULL, BIT_ULL(XCORE_LOG_MODULE_ARGBIR), 0),
+        OPT_BIT('C', "ldc", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ALDC].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_ALDC), 0),
+        OPT_BIT('D', "hist", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_AHIST].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_AHIST), 0),
+        OPT_BIT('E', "hsv", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_AHSV].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_AHSV), 0),
+        OPT_BIT('F', "csm", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ACSM].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_ACSM), 0),
+        OPT_BOOLEAN('\0', "help", NULL, "show this help message and exit", dbg_help_cb, 0,
+                    OPT_NONEG),
+        OPT_END(),
+    };
+
+    char additional_desc[1024] = {0};
+    snprintf(additional_desc, sizeof(additional_desc),
+             "\n\nAdditional description of dumpcam log.\n\n"
+             "[Level] : [-l] [--level] use 4 bits to set log levels.\n"
+             "  each module log has following ascending levels:\n"
+             "       0: none\n"
+             "       1: error\n"
+             "       2: warning\n"
+             "       3: info\n"
+             "       4: debug\n"
+             "       5: verbose\n"
+             "       6: low1\n"
+             "       7: unused, now the same as debug\n"
+             "[Sub modules] : [-s] [--sub] use bits 4-11 to switch the sub module's log of each "
+             "module.\n"
+             "[Modules] : [-bc ...] [--ae --awb] switch the module log. eg., ae, awb, af, ...\n"
+             "\n\n"
+             "eg., dumpcam log\n"
+             "  Query the current log level\n\n"
+             "eg., dumpcam log -b\n"
+             "  [Modules]: ae, [Sub modules]: default, [Level]: default\n\n"
+             "eg., dumpcam log -bcd\n"
+             "  [Modules]: ae && awb && af, [Sub modules]: default, [Level]: default\n\n"
+             "eg., dumpcam log -b -l 0x4\n"
+             "  [Modules]: ae, [Sub modules]: default, [Level]: debug\n\n"
+             "eg., dumpcam log -b -l 0x4 -s 0xff\n"
+             "  [Modules]: ae, [Sub modules]: 0xff, [Level]: debug\n");
+
+    struct argparse argparse;
+    argparse_init(&argparse, options, usages, 0);
+    argparse_describe(&argparse, "\nA brief description of how to set aiq log level.",
+                      additional_desc);
+
+    extended_argc = argparse_parse(&argparse, extended_argc, (const char**)extended_argv);
+    if (_gHelp || extended_argc < 0) {
+        _gHelp = 0;
+        goto __FAILED;
+    }
+
+    if (log_sub_mod_str) {
+        log_sub_mod = strtoul(log_sub_mod_str, &endptr, 0);
+        if (*endptr) {
+            goto __FAILED;
+        }
+    } else {
+        log_sub_mod = (g_cam_engine_log_level >> 4) & 0xff;
+    }
+
+    if (log_level_str) {
+        log_level = strtoul(log_level_str, &endptr, 0);
+        if (*endptr) {
+            goto __FAILED;
+        }
+    } else {
+        log_level = g_cam_engine_log_level & 0xf;
+    }
+
+    if (!log_mod)
+        log_mod = g_cam_engine_log_level >> 12;
+    else if (log_mod & BIT_ULL(XCORE_LOG_MODULE_ALL))
+        log_mod = 0xFFFFFFFFFFF;
+
+    log_cfg = log_mod << 12 | log_sub_mod << 4 | log_level;
+
+    xcam_set_log_level(log_cfg);
+
+    sprintf(buffer, "\nSet AIQ log level: 0x%llx\n", g_cam_engine_log_level);
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+
+    return true;
+
+__FAILED:
+    argparse_usage_string(&argparse, buffer);
+    string_printf(result, buffer);
+
+    return true;
+}
+#endif

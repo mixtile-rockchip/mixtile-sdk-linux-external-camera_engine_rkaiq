@@ -208,7 +208,10 @@ static XCamReturn _handlerAwb_processing(AiqAlgoHandler_t* pAlgoHandler) {
 				pAwbHdl->mProcResShared = (AlgoRstShared_t*)pItem->_pData;
 			} else {
 				LOGW_AWB("no awb_proc_res buf !");
-			}
+#if RKAIQ_HAVE_DUMPSYS
+                                pAlgoHandler->mAiqCore->mNoFreeBufCnt.awbProcRes++;
+#endif
+                        }
         }
 		RkAiqAlgoProcResAwbShared_t* pAwbShared = NULL;
 		if (pAwbHdl->mProcResShared) {

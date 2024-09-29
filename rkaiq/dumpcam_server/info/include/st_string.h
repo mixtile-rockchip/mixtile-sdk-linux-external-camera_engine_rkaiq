@@ -25,7 +25,7 @@
 #define st_string_oom() exit(-1)
 #endif
 
-typedef struct {
+typedef struct st_string_s {
     char *d;  /* pointer to allocated buffer */
     size_t n; /* allocated capacity */
     size_t i; /* index of first unused byte */
