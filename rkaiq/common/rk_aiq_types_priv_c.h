@@ -530,6 +530,8 @@ typedef enum _RkAiqIspUnitedMode {
 
 typedef struct rk_aiq_tb_info_s {
     bool is_fastboot;
+    bool is_start_again;
+    float pixel_clock_freq_mhz;
 } rk_aiq_tb_info_t;
 
 typedef struct aiq_shared_base_s AlgoRstShared_t;

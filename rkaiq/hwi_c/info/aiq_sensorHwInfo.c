@@ -40,7 +40,8 @@ void sensor_dump_mod_param(AiqSensorHw_t* self, st_string* result) {
     if (real_name_end) strncpy(name, self->_sns_entity_name + 6, size);
 
     memset(buffer, 0, MAX_LINE_LENGTH);
-    snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-9d%-9d", name, self->mCamPhyId, self->_is_i2c_exp);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-9d%-9s", name, self->mCamPhyId,
+             self->_is_i2c_exp ? "Y" : "N");
     string_printf(result, buffer);
     string_printf(result, "\n\n");
 }
@@ -50,8 +51,8 @@ void sensor_dump_dev_attr1(AiqSensorHw_t* self, st_string* result) {
 
     aiq_info_dump_title(result, "sensor dev attr 1");
 
-    snprintf(buffer, MAX_LINE_LENGTH, "%-9s%-8s%-14s%-7s%-8s%-5s%-8s%-6s%-5s", "phy_chn", "mode",
-             "pixel_format", "width", "height", "fps", "mirror", "flip", "dcg");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-9s%-8s%-14s%-7s%-8s%-8s%-6s%-5s", "phy_chn", "mode",
+             "pixel_format", "width", "height", "mirror", "flip", "dcg");
     string_printf(result, buffer);
     string_printf(result, "\n");
 
@@ -76,45 +77,75 @@ void sensor_dump_dev_attr1(AiqSensorHw_t* self, st_string* result) {
         dcg = "LCG";
 
     memset(buffer, 0, MAX_LINE_LENGTH);
-    snprintf(buffer, MAX_LINE_LENGTH, "%-9d%-8s%-14s%-7d%-8d%-5d%-8s%-6s%-5s", self->mCamPhyId,
-             mode, fmt_str, self->desc.sensor_output_width, self->desc.sensor_output_height,
-             self->fps, self->_mirror ? "Y" : "N", self->_flip ? "Y" : "N", dcg);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-9d%-8s%-14s%-7d%-8d%-8s%-6s%-5s", self->mCamPhyId, mode,
+             fmt_str, self->desc.sensor_output_width, self->desc.sensor_output_height,
+             self->_mirror ? "Y" : "N", self->_flip ? "Y" : "N", dcg);
     string_printf(result, buffer);
     string_printf(result, "\n\n");
 }
 
 void sensor_dump_dev_attr2(AiqSensorHw_t* self, st_string* result) {
+    struct v4l2_control ctrl;
+
+    int hts = 0, h_blank = 0;
+    memset(&ctrl, 0, sizeof(ctrl));
+    ctrl.id = V4L2_CID_HBLANK;
+    if (!AiqV4l2SubDevice_ioctl(self->mSd, VIDIOC_G_CTRL, &ctrl)) {
+        h_blank = ctrl.value;
+        hts     = self->desc.sensor_output_width + h_blank;
+    }
+
+    int vts = 0, v_blank = 0;
+    memset(&ctrl, 0, sizeof(ctrl));
+    ctrl.id = V4L2_CID_VBLANK;
+    if (!AiqV4l2SubDevice_ioctl(self->mSd, VIDIOC_G_CTRL, &ctrl)) {
+        v_blank = ctrl.value;
+        vts     = self->desc.sensor_output_height + v_blank;
+    }
+
+    struct v4l2_subdev_frame_interval finterval;
+
+    memset(&finterval, 0, sizeof(finterval));
+    finterval.pad = 0;
+
+    float fps = 0.0f;
+    if (!AiqV4l2SubDevice_ioctl(self->mSd, VIDIOC_SUBDEV_G_FRAME_INTERVAL, &finterval)) {
+        fps = (float)(finterval.interval.denominator) / finterval.interval.numerator;
+    }
+
+    double pclk = vts * hts * fps;
+
+    double line_time = (double)hts / pclk;
+    double vb_time   = line_time * v_blank;
+
     char buffer[MAX_LINE_LENGTH] = {0};
 
     aiq_info_dump_title(result, "sensor dev attr 2");
 
-    snprintf(buffer, MAX_LINE_LENGTH, "%-9s%-14s%-14s%-11s%-8s%-10s%-10s%-9s", "phy_chn",
-             "pixel_period", "line_period", "pixel_clk", "vBlank", "time_del", "gain_del",
-             "dcg_del");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-9s%-16s%-9s%-6s%-9s%-6s%-9s%-11s%-9s", "phy_chn",
+             "pixel_clk(mHz)", "fps", "hts", "h-blank", "vts", "v-blank", "line_time", "vb_time");
     string_printf(result, buffer);
     string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
-    snprintf(buffer, MAX_LINE_LENGTH, "%-9d%-14d%-14d%-11.3f%-8d%-10d%-10d%-9d", self->mCamPhyId,
-             self->desc.pixel_periods_per_line, self->desc.line_periods_per_field,
-             self->desc.pixel_clock_freq_mhz,
-             self->desc.frame_length_lines - self->desc.sensor_output_height, self->_time_delay,
-             self->_gain_delay, MAX(self->_dcg_gain_mode_delay, 0));
+    snprintf(buffer, MAX_LINE_LENGTH, "%-9d%-16.3f%-9.3f%-6d%-9d%-6d%-9d%-11.3f%-9.0f",
+             self->mCamPhyId, self->desc.pixel_clock_freq_mhz, fps, hts, h_blank, vts, v_blank,
+             line_time * 1000000 * 1000 / 1000, vb_time * 1000000);
     string_printf(result, buffer);
     string_printf(result, "\n\n");
 }
 
-void sensor_dump_reg_upd_delay(AiqSensorHw_t* self, st_string* result) {
+void sensor_dump_reg_effect_delay(AiqSensorHw_t* self, st_string* result) {
     char buffer[MAX_LINE_LENGTH] = {0};
 
-    aiq_info_dump_title(result, "sensor reg delay");
+    aiq_info_dump_title(result, "register effect delay frames");
 
-    snprintf(buffer, MAX_LINE_LENGTH, "%-6s%-6s%-6s", "time", "gain", "dcg");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-12s%-12s%-12s", "time_delay", "gain_delay", "dcg_delay");
     string_printf(result, buffer);
     string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
-    snprintf(buffer, MAX_LINE_LENGTH, "%-6d%-6d%-6d", self->_time_delay, self->_gain_delay,
+    snprintf(buffer, MAX_LINE_LENGTH, "%-12d%-12d%-12d", self->_time_delay, self->_gain_delay,
              MAX(self->_dcg_gain_mode_delay, 0));
     string_printf(result, buffer);
     string_printf(result, "\n\n");

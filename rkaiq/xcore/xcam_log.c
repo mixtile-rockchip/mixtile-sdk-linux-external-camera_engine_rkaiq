@@ -492,7 +492,7 @@ int xcam_dump_log(st_string* result, int argc, void* argv[]) {
              "\n\n"
              "eg., dumpcam log\n"
              "  Query the current log level\n\n"
-             "eg., dumpcam log -b\n"
+             "eg., 'dumpcam log -b' or 'dumpcam log --ae'\n"
              "  [Modules]: ae, [Sub modules]: default, [Level]: default\n\n"
              "eg., dumpcam log -bcd\n"
              "  [Modules]: ae && awb && af, [Sub modules]: default, [Level]: default\n\n"

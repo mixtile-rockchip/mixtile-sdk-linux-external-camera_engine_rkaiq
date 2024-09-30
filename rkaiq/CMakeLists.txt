@@ -1213,6 +1213,7 @@ if (RKAIQ_HAVE_DUMPSYS)
         hwi_c/info/aiq_streamCapInfo.c
         hwi_c/info/aiq_streamProcInfo.c
         hwi_c/info/aiq_ispParamsCvtInfo.c
+        hwi_c/info/aiq_ispActiveParamsInfo.c
         aiq_core_c/info/aiq_coreInfo.c
         aiq_core_c/info/aiq_coreBufMgrInfo.c
         aiq_core_c/info/aiq_groupAnalyzerInfo.c

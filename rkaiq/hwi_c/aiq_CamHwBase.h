@@ -250,6 +250,8 @@ typedef struct AiqCamHwBase_s {
     // internal override
     void (*updateEffParams)(AiqCamHwBase_t* pCamHw, void* params, void* ori_params);
     bool (*processTb)(AiqCamHwBase_t* pCamHw, void* params);
+    XCamReturn (*saveInfotoFileTb)(AiqCamHwBase_t* pCamHw);
+    XCamReturn (*getLastEffectParamTb)(AiqCamHwBase_t* pCamHw);
 
     // AIISP
     bool use_aiisp;
@@ -272,6 +274,7 @@ typedef struct AiqCamHwBase_s {
     struct aiq_notifier_subscriber sub_stream_cap;
     struct aiq_notifier_subscriber sub_stream_proc;
     struct aiq_notifier_subscriber sub_isp_params;
+    struct aiq_notifier_subscriber sub_isp_active_params;
 
     FrameDumpInfo_t fs;
     FrameDumpInfo_t prev_fs;
@@ -367,6 +370,7 @@ AiqSensorExpInfo_t* Aiqisp20Evt_getExpInfoParams(Aiqisp20Evt_t* pEvt, uint32_t f
 XCamReturn AiqCamHw_setVicapStreamMode(AiqCamHwBase_t* pCamHw, int mode, bool is_single_mode);
 rk_sensor_full_info_t* AiqCamHw_getFullSnsInfo(const char* sensor_name);
 aiq_isp_effect_params_t* AiqCamHw_getParamsForEffMap(AiqCamHwBase_t* pCamHw, uint32_t frame_id);
+XCamReturn AiqCam_FastBootSetLastEffectParam(AiqCamHwBase_t* pCamHw);
 
 #define CamHW_setManager(pMan, pRkAiqManager) \
         (pMan)->rkAiqManager = pRkAiqManager

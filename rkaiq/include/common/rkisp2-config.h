@@ -132,6 +132,9 @@
 #define RKISP_CMD_SET_EXPANDER \
     _IOW('V', BASE_VIDIOC_PRIVATE + 114, struct rkmodule_hdr_cfg)
 
+/* BASE_VIDIOC_PRIVATE + 115 for RKISP_CMD_GET_PARAMS_V39 */
+/* BASE_VIDIOC_PRIVATE + 116 for RKISP_CMD_GET_PARAMS_V33 */
+
 /**********************EVENT_PRIVATE***************************/
 #define RKISP_V4L2_EVENT_AIISP_LINECNT (V4L2_EVENT_PRIVATE_START + 1)
 

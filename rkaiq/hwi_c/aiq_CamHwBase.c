@@ -65,6 +65,7 @@
 #include "dumpcam_server/info/include/rk_info_utils.h"
 #include "dumpcam_server/info/include/st_string.h"
 #include "dumpcam_server/third-party/argparse/argparse.h"
+#include "info/aiq_ispActiveParamsInfo.h"
 #endif
 
 XCAM_BEGIN_DECLARE
@@ -3491,6 +3492,14 @@ XCamReturn AiqCamHw_getSensorModeData(AiqCamHwBase_t* pCamHw, const char* sns_en
         return ret;
     }
 
+    if (pCamHw->mTbInfo.is_fastboot) {
+        if (pCamHw->mTbInfo.is_start_again) {
+            sns_des->pixel_clock_freq_mhz = pCamHw->mTbInfo.pixel_clock_freq_mhz;
+        } else {
+            pCamHw->mTbInfo.pixel_clock_freq_mhz = sns_des->pixel_clock_freq_mhz;
+        }
+    }
+
     xcam_mem_clear(select);
     ret = pCamHw->mIspCoreDev->get_selection(pCamHw->mIspCoreDev, 0, V4L2_SEL_TGT_CROP, &select);
     if (ret == XCAM_RETURN_NO_ERROR) {
@@ -5448,7 +5457,12 @@ XCamReturn AiqCamHw_setHwResListener(AiqCamHwBase_t* pCamHw, AiqHwResListener_t*
     return XCAM_RETURN_NO_ERROR;
 }
 
-void AiqCamHw_setTbInfo(AiqCamHwBase_t* pCamHw, rk_aiq_tb_info_t* info) { pCamHw->mTbInfo = *info; }
+void AiqCamHw_setTbInfo(AiqCamHwBase_t* pCamHw, rk_aiq_tb_info_t* info) {
+    pCamHw->mTbInfo = *info;
+    if (pCamHw->mTbInfo.is_fastboot && pCamHw->getLastEffectParamTb) {
+        pCamHw->getLastEffectParamTb(pCamHw);
+    }
+}
 
 XCamReturn AiqCamHw_rawReProc_prepare(AiqCamHwBase_t* pCamHw, uint32_t sequence,
                                       rk_aiq_frame_info_t* offline_finfo) {
@@ -6030,6 +6044,14 @@ static XCamReturn SetLastAeExpToRttShared(AiqCamHwBase_t* pCamHw) {
                    fastAeAwbInfo.head.exp_isp_dgain[0]);
     }
 
+    if (pCamHw->mTbInfo.is_start_again) {
+        return ret;
+    }
+
+    if (pCamHw->saveInfotoFileTb) {
+        pCamHw->saveInfotoFileTb(pCamHw);
+    }
+
     return ret;
 }
 
@@ -6081,6 +6103,15 @@ static void AiqCamHwBase_initNotifier(AiqCamHwBase_t* pCamHw) {
 
         aiq_notifier_add_subscriber(&pCamHw->notifier, &pCamHw->sub_isp_params);
     }
+
+    {
+        pCamHw->sub_isp_active_params.match_type     = AIQ_NOTIFIER_MATCH_HWI_ISP_ACTIVE_PARAMS;
+        pCamHw->sub_isp_active_params.name           = "HWI -> isp_active_params";
+        pCamHw->sub_isp_active_params.dump.dump_fn_t = active_isp_params_dump;
+        pCamHw->sub_isp_active_params.dump.dumper    = pCamHw;
+
+        aiq_notifier_add_subscriber(&pCamHw->notifier, &pCamHw->sub_isp_active_params);
+    }
 #endif
 }
 
@@ -6113,6 +6144,19 @@ static int dbg_help_cb(struct argparse* self, const struct argparse_option* opti
 static const char* _gParams = NULL;
 static int dbg_param_cb(struct argparse* self, const struct argparse_option* option) {
     if (!strcmp(self->argv[0], "-p")) _gParams = "all";
+    if (!strcmp(self->argv[0], "-pe")) _gParams = "all";
+    if (!strcmp(self->argv[0], "-ep")) _gParams = "all";
+    if (!strcmp(self->argv[0], "--param")) _gParams = "all";
+
+    return 0;
+}
+
+static const char* _gActiveParams = NULL;
+static int dbg_active_param_cb(struct argparse* self, const struct argparse_option* option) {
+    if (!strcmp(self->argv[0], "-r")) _gActiveParams = "all";
+    if (!strcmp(self->argv[0], "-pr")) _gActiveParams = "all";
+    if (!strcmp(self->argv[0], "-rp")) _gActiveParams = "all";
+    if (!strcmp(self->argv[0], "--active_param")) _gActiveParams = "all";
 
     return 0;
 }
@@ -6135,28 +6179,50 @@ static int AiqCamHw_dump(void* pCamHw, st_string* result, int argc, void* argv[]
         extended_argc++;
     }
 
-    char buffer[MAX_LINE_LENGTH]          = {0};
+    char buffer[MAX_LINE_LENGTH * 4]      = {0};
     int dump_args[AIQ_NOTIFIER_MATCH_MAX] = {0};
     struct argparse_option options[]      = {
         OPT_GROUP("basic options:"),
-        OPT_BOOLEAN('a', "all", &dump_args[AIQ_NOTIFIER_MATCH_ALL], "dump hwi all", NULL, 0, 0),
-        OPT_BOOLEAN('b', "base", &dump_args[AIQ_NOTIFIER_MATCH_HWI_BASE], "dump hwi base info",
-                    NULL, 0, 0),
-        OPT_BOOLEAN('s', "sensor", &dump_args[AIQ_NOTIFIER_MATCH_HWI_SENSOR], "dump sensor info ",
-                    NULL, 0, 0),
+        OPT_BOOLEAN('A', "all", &dump_args[AIQ_NOTIFIER_MATCH_ALL], "dump all info", NULL, 0, 0),
+        OPT_BOOLEAN('b', "base", &dump_args[AIQ_NOTIFIER_MATCH_HWI_BASE], "dump base info", NULL, 0,
+                    0),
         OPT_BOOLEAN('c', "cap", &dump_args[AIQ_NOTIFIER_MATCH_HWI_STREAM_CAP],
                     "dump stream capture info", NULL, 0, 0),
-        OPT_BOOLEAN('r', "proc", &dump_args[AIQ_NOTIFIER_MATCH_HWI_STREAM_PROC],
+        OPT_BOOLEAN('d', "proc", &dump_args[AIQ_NOTIFIER_MATCH_HWI_STREAM_PROC],
                     "dump stream proc info", NULL, 0, 0),
+        OPT_BOOLEAN('s', "sensor", &dump_args[AIQ_NOTIFIER_MATCH_HWI_SENSOR], "dump sensor info ",
+                    NULL, 0, 0),
+        OPT_GROUP("isp params options:"),
+        OPT_STRING('p', "param", &_gParams, "dump isp params converted by AIQ", dbg_param_cb, 0, 0),
+        OPT_STRING('r', "active_param", &_gActiveParams,
+                   "dump isp params which had become active in hardware", dbg_active_param_cb, 0,
+                   0),
         OPT_BOOLEAN('\0', "help", NULL, "show this help message and exit", dbg_help_cb, 0,
                     OPT_NONEG),
-        OPT_STRING('p', "param", &_gParams, "dump isp params: blc-ccm-dpc-...", dbg_param_cb, 0, 0),
         OPT_END(),
     };
 
+    char additional_desc[1024 * 3] = {0};
+    snprintf(additional_desc, sizeof(additional_desc),
+             "\n\nAdditional description of 'dumpcam hwi'.\n\n"
+             "eg., 'dumpcam hwi -A' or 'dumpcam hwi all'\n"
+             "  Dump all information.\n\n"
+             "eg., 'dumpcam hwi -b' or 'dumpcam hwi --base'\n"
+             "  Dump base information.\n\n"
+             "eg., 'dumpcam hwi -bs' or 'dumpcam hwi --base --sensor'\n"
+             "  Dump base and sensor information.\n\n"
+             "eg., 'dumpcam hwi -p'\n"
+             "  Dump all isp params converted by AIQ.\n\n"
+             "eg., 'dumpcam hwi -p blc-ccm-dpc'\n"
+             "  Dump blc and ccm and dpcc params converted by AIQ.\n\n"
+             "eg., 'dumpcam hwi -r'\n"
+             "  Dump all isp params which had become active in hardwawre.\n\n"
+             "eg., 'dumpcam hwi -r blc-ccm-dpc'\n"
+             "  Dump blc and ccm and dpcc params which had become active in hardware.\n\n");
+
     struct argparse argparse;
     argparse_init(&argparse, options, usages, 0);
-    argparse_describe(&argparse, "\nselect a test case to run.", "\nuse --help for details.");
+    argparse_describe(&argparse, "\nA brief description of how to dump hwi.", additional_desc);
 
     extended_argc = argparse_parse(&argparse, extended_argc, (const char**)extended_argv);
     if (_gHelp || extended_argc < 0) {
@@ -6182,7 +6248,18 @@ static int AiqCamHw_dump(void* pCamHw, st_string* result, int argc, void* argv[]
                                      (void**)(extended_argv));
 
         _gParams = NULL;
-        return true;
+    }
+
+    if (_gActiveParams) {
+        snprintf(argvArray[0], sizeof(argvArray[extended_argc]), "%s", _gActiveParams);
+        extended_argv[0] = argvArray[0];
+        extended_argc    = 1;
+
+        aiq_notifier_notify_dumpinfo(&((AiqCamHwBase_t*)pCamHw)->notifier,
+                                     AIQ_NOTIFIER_MATCH_HWI_ISP_ACTIVE_PARAMS, result,
+                                     extended_argc, (void**)(extended_argv));
+
+        _gActiveParams = NULL;
     }
 
     return true;

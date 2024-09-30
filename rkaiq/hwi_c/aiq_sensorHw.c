@@ -1835,6 +1835,7 @@ static int _SensorHw_dump(void* dumper, st_string* result, int argc, void* argv[
     sensor_dump_mod_param((AiqSensorHw_t*)dumper, result);
     sensor_dump_dev_attr1((AiqSensorHw_t*)dumper, result);
     sensor_dump_dev_attr2((AiqSensorHw_t*)dumper, result);
+    sensor_dump_reg_effect_delay((AiqSensorHw_t*)dumper, result);
     sensor_dump_exp_list_size((AiqSensorHw_t*)dumper, result);
     sensor_dump_configured_exp((AiqSensorHw_t*)dumper, result);
     return 0;

@@ -41548,7 +41548,7 @@
 							"bypass":	0,
 							"stAuto":	{
 								"sta":	{
-									"hw_btnrCfg_pixDomain_mode":	"btnr_pixLinearDomain_mode",
+									"hw_btnrCfg_pixDomain_mode":	"btnr_pixLog2Domain_mode",
 									"transCfg":	{
 										"hw_btnrCfg_trans_mode":	"btnr_pixInBw20b_mode",
 										"hw_btnrCfg_trans_offset":	256

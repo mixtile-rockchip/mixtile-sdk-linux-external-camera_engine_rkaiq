@@ -167,11 +167,6 @@ static void __dumpMultiModule(rk_aiq_sys_ctx_t* ctx, st_string* dumpInfo, int ar
 
             if (!aiq_modules[i].dump.dumper || !aiq_modules[i].dump.dump_fn_t) continue;
 
-            if (i > 1) {
-                string_printf(dumpInfo, "[");
-                string_printf(dumpInfo, aiq_modules[i].descr);
-                string_printf(dumpInfo, "]\n\n");
-            }
             aiq_modules[i].dump.dump_fn_t(aiq_modules[i].dump.dumper, dumpInfo, argc, argv);
         }
     }

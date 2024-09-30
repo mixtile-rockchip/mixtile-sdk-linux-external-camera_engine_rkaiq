@@ -27,6 +27,7 @@ static int aiq_notifier_subscriber_valid(struct aiq_notifier_subscriber* sub) {
         case AIQ_NOTIFIER_MATCH_HWI_STREAM_PROC:
         case AIQ_NOTIFIER_MATCH_HWI_SENSOR:
         case AIQ_NOTIFIER_MATCH_HWI_ISP_PARAMS:
+        case AIQ_NOTIFIER_MATCH_HWI_ISP_ACTIVE_PARAMS:
         case AIQ_NOTIFIER_MATCH_CORE:
         case AIQ_NOTIFIER_MATCH_CORE_BUF_MGR:
         case AIQ_NOTIFIER_MATCH_CORE_GRP_ANALYZER:
