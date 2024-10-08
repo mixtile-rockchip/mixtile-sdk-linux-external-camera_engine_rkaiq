@@ -190,7 +190,7 @@ static void AiqIspParamsCvt_checkModuleEnable(AiqIspParamsCvt_t* pCvt, AiqList_t
 void AiqIspParamsCvt_getCommonCvtInfo(AiqIspParamsCvt_t* pCvt, AiqList_t* results, bool use_aiisp) {
     pCvt->mCommonCvtInfo.isGrayMode   = false;
     pCvt->mCommonCvtInfo.frameNum     = 1;
-    pCvt->mCommonCvtInfo.ae_exp = NULL;
+    //pCvt->mCommonCvtInfo.ae_exp = NULL;
     pCvt->mCommonCvtInfo.use_aiisp    = use_aiisp;
 
     aiq_params_base_t* params = NULL;
@@ -206,6 +206,7 @@ void AiqIspParamsCvt_getCommonCvtInfo(AiqIspParamsCvt_t* pCvt, AiqList_t* result
     if (frameId == 0 && !pCvt->mCommonCvtInfo.isFirstFrame) {
         pCvt->mCommonCvtInfo.isFirstFrame = true;
         pCvt->mCommonCvtInfo.pBlcInfo = &pCvt->mBlcInfo;
+        pCvt->mCommonCvtInfo.ae_exp = NULL;
     }
     else {
         pCvt->mCommonCvtInfo.isFirstFrame = false;
