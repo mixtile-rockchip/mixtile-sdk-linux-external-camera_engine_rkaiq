@@ -2081,6 +2081,19 @@ if (RKAIQ_HAVE_LDC)
     list(APPEND RK_AIQ_STATIC_LIB_ARS ${STATIC_LIB_PREFIX}rkaiq_aldc${STATIC_LIB_SUFFIX})
 endif()
 
+if(RKAIQ_ISP_VERSION STREQUAL "33")
+    set(AUTOBLC_LIBS_DIR ${PROJECT_SOURCE_DIR}/modules/blc_algo)
+    file(COPY ${AUTOBLC_LIBS_DIR}/libautoblc.a	DESTINATION ${LIBRARY_OUTPUT_PATH})
+
+    add_library(autoblc STATIC IMPORTED GLOBAL)
+    set_target_properties(autoblc PROPERTIES IMPORTED_LOCATION 	"${LIBRARY_OUTPUT_PATH}/libautoblc.a")
+    set_target_properties(autoblc PROPERTIES IMPORTED_IMPLIB 	    "${LIBRARY_OUTPUT_PATH}/libautoblc.a")
+    list(APPEND RK_AIQ_STATIC_LIB_ARS ${STATIC_LIB_PREFIX}autoblc${STATIC_LIB_SUFFIX})
+    set (AUTOBLC_LIBS autoblc)
+
+    target_link_libraries(rkaiq PRIVATE ${AUTOBLC_LIBS})
+endif()
+
 if (RKAIQ_HAVE_FEC_V10)
 target_link_libraries(rkaiq
     PRIVATE
@@ -2360,6 +2373,6 @@ install(TARGETS rkaiq
     LIBRARY DESTINATION lib)
 install(FILES ${CMAKE_LIBRARY_PATH}/librkaiq.a DESTINATION lib)
 
-if (RKAIQ_ISP_VERSION STREQUAL "33")
-    install(FILES modules/blc_algo/libautoblc.so DESTINATION lib)
-endif()
+# if (RKAIQ_ISP_VERSION STREQUAL "33")
+#     install(FILES modules/blc_algo/libautoblc.so DESTINATION lib)
+# endif()

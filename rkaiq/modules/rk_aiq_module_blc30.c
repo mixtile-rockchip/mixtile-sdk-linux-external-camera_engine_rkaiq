@@ -29,7 +29,8 @@ void rk_aiq_blc30_params_cvt(void* attr, isp_params_t* isp_params,
     float isp_dgain = 1.0;
 #ifdef ISP_HW_V33
     blc_params_static_t* psta = &((blc_param_t*)attr)->sta;
-    bool autoblc_en = psta->autoBlc.sw_blcT_autoBlc_en & pdyn->obcPostTnr.sw_blcT_obcPostTnr_en & pBlcInfo->init_success;
+    bool autoblc_en = psta->autoBlc.sw_blcT_autoBlc_en & pdyn->obcPostTnr.sw_blcT_obcPostTnr_en &
+                        pBlcInfo->init_success & (cvtinfo->frameNum == 1);
     float damping_val = CLIP(psta->autoBlc.sw_blcT_damping_val, 0, 1);
     float totalGain = cvtinfo->ae_exp->LinearExp.exp_real_params.analog_gain
                              * cvtinfo->ae_exp->LinearExp.exp_real_params.digital_gain
@@ -42,14 +43,14 @@ void rk_aiq_blc30_params_cvt(void* attr, isp_params_t* isp_params,
     struct blcOps* ops;
     if (cvtinfo->isFirstFrame) {
         AiqBlc_Init(&pBlcInfo->lib_Blc_);
-        char lib_info[32];
+        char lib_info[128];
         if (!pBlcInfo->lib_Blc_.Init(&pBlcInfo->lib_Blc_)) {
-            strcpy(lib_info, "blcLibrary init failed!");
+            strcpy(lib_info, "blcLibrary init failed! Please check if 'libautoblc.so' exists in the system");
             pBlcInfo->init_success = false;
             goto lib_init_fail;
         }
         if (!pBlcInfo->lib_Blc_.LoadSymbols(&pBlcInfo->lib_Blc_)) {
-            strcpy(lib_info, "blcLibrary LoadSymbols failed!");
+            strcpy(lib_info, "blcLibrary LoadSymbols failed! Please check the correctness of 'libatuoblc.so'");
             pBlcInfo->init_success = false;
             goto lib_init_fail;
         }
@@ -211,10 +212,12 @@ void rk_aiq_blc30_params_cvt(void* attr, isp_params_t* isp_params,
     if (cvtinfo->frameNum > 1) {
         if (phwcfg->bls1_en == 1 || phwcfg->isp_ob_offset > 0) {
             if (cvtinfo->blc_warning_count < 5) {
-                LOGE_ABLC("When using HDR mode, obcPostTnr and ob_offset should be off");
+                LOGE_ABLC("When using HDR mode, obcPostTnr and ob_offset should be off to avoid data overflow.\n"
+                    "So bls1_en, isp_ob_offset and isp_ob_predgain will be forcibly set to 0 in HWI.");
             }
             else if (cvtinfo->blc_warning_count % 300 == 0) {
-                LOGE_ABLC("When using HDR mode, obcPostTnr and ob_offset should be off");
+                LOGE_ABLC("When using HDR mode, obcPostTnr and ob_offset should be off to avoid data overflow.\n"
+                    "So bls1_en, isp_ob_offset and isp_ob_predgain will be forcibly set to 0 in HWI.");
             }
             cvtinfo->blc_warning_count++;
         }

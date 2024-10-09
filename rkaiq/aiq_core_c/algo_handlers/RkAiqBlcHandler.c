@@ -58,6 +58,11 @@ static XCamReturn _handlerBlc_processing(AiqAlgoHandler_t* pAlgoHandler) {
     RkAiqAlgoProcBlc* blc_proc_param = (RkAiqAlgoProcBlc*)pAlgoHandler->mProcInParam;
     RkAiqAlgosGroupShared_t* shared =
         (RkAiqAlgosGroupShared_t*)(pAlgoHandler->mAlogsGroupSharedParams);
+    RkAiqAlgosComShared_t* sharedCom = &pAlgoHandler->mAiqCore->mAlogsComSharedParams;
+    if (sharedCom->working_mode < RK_AIQ_WORKING_MODE_ISP_HDR2)
+        blc_proc_param->ishdr = 0;
+    else
+        blc_proc_param->ishdr = 1;
 
     ret = AiqAlgoHandler_processing(pAlgoHandler);
     if (ret) {
@@ -90,11 +95,11 @@ static XCamReturn _handlerBlc_processing(AiqAlgoHandler_t* pAlgoHandler) {
     blcRes->aeIsConverged = &pblcHandler->aeIsConverged;
     blcRes->damping = &pblcHandler->damping;
     pblcHandler->aeIsConverged = pblcHandler->mAeProcRes.IsConverged;
-    if (pblcHandler->damping) {
+    if (pblcHandler->damping && !blc_proc_param->ishdr) {
         pAlgoHandler->mProcOutParam->cfg_update = true;
     }
 
-    RKAIQCORE_CHECK_RET(ret, "adebayer algo processing failed");
+    RKAIQCORE_CHECK_RET(ret, "blc algo processing failed");
 
     EXIT_ANALYZER_FUNCTION();
     return ret;

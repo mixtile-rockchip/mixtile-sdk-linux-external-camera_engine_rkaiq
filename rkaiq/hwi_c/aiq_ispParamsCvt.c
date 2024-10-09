@@ -391,9 +391,9 @@ XCamReturn AiqIspParamsCvt_init(AiqIspParamsCvt_t* pCvt) {
 
 void AiqAutoblc_deinit(AiqIspParamsCvt_t* pCvt) {
     if (pCvt->mBlcInfo.ds_size != 0) {
-        close(pCvt->mBlcInfo.ds_fd);
-        close(pCvt->mBlcInfo.iir_fd);
-        close(pCvt->mBlcInfo.gain_fd);
+        if(pCvt->mBlcInfo.ds_fd >= 0) close(pCvt->mBlcInfo.ds_fd);
+        if(pCvt->mBlcInfo.iir_fd >= 0) close(pCvt->mBlcInfo.iir_fd);
+        if(pCvt->mBlcInfo.gain_fd >= 0) close(pCvt->mBlcInfo.gain_fd);
         int mun_ret = munmap(pCvt->mBlcInfo.ds_address, pCvt->mBlcInfo.ds_size);
         if(mun_ret != 0) {
             LOGE_CAMHW_SUBM(ISP20PARAM_SUBM, "munmap failed");

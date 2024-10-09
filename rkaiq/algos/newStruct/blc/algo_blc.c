@@ -122,7 +122,7 @@ processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outparams)
         pBlcCtx->isReCal_ = true;
     }
 #ifdef ISP_HW_V33
-    if (!pBlcCtx->aeIsConverged && blc_proc_param->aeIsConverged)
+    if (!pBlcCtx->aeIsConverged && blc_proc_param->aeIsConverged && !blc_proc_param->ishdr)
         pBlcCtx->isReCal_ = true;
     pBlcCtx->aeIsConverged = blc_proc_param->aeIsConverged;
 #endif

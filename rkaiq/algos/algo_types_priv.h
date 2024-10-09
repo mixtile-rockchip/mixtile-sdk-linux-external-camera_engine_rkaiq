@@ -404,6 +404,7 @@ typedef struct {
 typedef struct {
     RkAiqAlgoCom com;
     bool aeIsConverged;
+    bool ishdr;
 } RkAiqAlgoProcBlc;
 
 typedef struct {

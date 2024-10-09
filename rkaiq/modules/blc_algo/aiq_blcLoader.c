@@ -23,6 +23,7 @@
 static const char* blcLibraryName = "libautoblc.so";
 
 static bool Init(struct blcLibrary* obj) {
+#if 0
     obj->handle_ = dlopen(blcLibraryName, RTLD_LAZY);
     char* error  = dlerror();
     if (obj->handle_ == NULL) {
@@ -30,17 +31,20 @@ static bool Init(struct blcLibrary* obj) {
                         error);
         return false;
     }
-
+#endif
     return true;
 }
 
 static void Deinit(struct blcLibrary* obj) {
+#if 0
     if (obj->handle_ != NULL) {
         dlclose(obj->handle_);
     }
+#endif
 }
 
 static bool LoadSymbols(struct blcLibrary* obj) {
+#if 0
     char* error;
     obj->ops_.blc_init = (rkaiq_autoblc_init)dlsym(obj->handle_, "rk_autoblc_init");
     error = dlerror();
@@ -66,6 +70,11 @@ error_out:
     dlclose(obj->handle_);
     obj->handle_ = NULL;
     return false;
+#endif
+    obj->ops_.blc_init = rk_autoblc_init;
+    obj->ops_.blc_proc = rk_autoblc_proc;
+    obj->ops_.blc_deinit = rk_autoblc_deinit;
+    return true;
 }
 
 bool AiqBlc_Init(struct blcLibrary* obj) {
