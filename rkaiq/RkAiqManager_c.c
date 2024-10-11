@@ -37,27 +37,24 @@ static XCamReturn hwResCb(void* pCtx, AiqHwEvt_t* hwres)
 		AiqHwStatsEvt_t* pStatsEvt = (AiqHwStatsEvt_t*)hwres;
         uint32_t seq = hwres->frame_id;
 #if defined(ISP_HW_V21)
-        struct rkisp_isp21_stat_buffer* stats =
-            (struct rkisp_isp21_stat_buffer*)(AiqV4l2Buffer_getExpbufUsrptr((AiqV4l2Buffer_t*)hwres->vb));
+typedef struct rkisp_isp21_stat_buffer rkisp_isp_stat_buffer;
 #elif defined(ISP_HW_V30)
-        struct rkisp3x_isp_stat_buffer* stats =
-            (struct rkisp3x_isp_stat_buffer*)(AiqV4l2Buffer_getExpbufUsrptr((AiqV4l2Buffer_t*)hwres->vb));
+typedef struct rkisp3x_isp_stat_buffer rkisp_isp_stat_buffer;
 #elif defined(ISP_HW_V32)
-        struct rkisp32_isp_stat_buffer* stats =
-            (struct rkisp32_isp_stat_buffer*)(AiqV4l2Buffer_getExpbufUsrptr((AiqV4l2Buffer_t*)hwres->vb));
+typedef struct rkisp32_isp_stat_buffer rkisp_isp_stat_buffer;
 #elif defined(ISP_HW_V32_LITE)
-        struct rkisp32_lite_stat_buffer* stats =
-            (struct rkisp32_lite_stat_buffer*)(AiqV4l2Buffer_getExpbufUsrptr((AiqV4l2Buffer_t*)hwres->vb));
+typedef struct rkisp32_lite_stat_buffer rkisp_isp_stat_buffer;
 #elif defined(ISP_HW_V39)
-        struct rkisp39_stat_buffer* stats =
-            (struct rkisp39_stat_buffer*)(AiqV4l2Buffer_getExpbufUsrptr((AiqV4l2Buffer_t*)hwres->vb));
+typedef struct rkisp39_stat_buffer rkisp_isp_stat_buffer;
 #elif defined(ISP_HW_V33)
-        struct rkisp33_stat_buffer* stats =
-            (struct rkisp33_stat_buffer*)(AiqV4l2Buffer_getExpbufUsrptr((AiqV4l2Buffer_t*)hwres->vb));
+typedef struct rkisp33_stat_buffer rkisp_isp_stat_buffer;
 #else
 #error "wrong isp hw version !"
-        void * stats = NULL;
+typedef rkisp_isp2x_stat_buffer rkisp_isp_stat_buffer;
 #endif
+
+        rkisp_isp_stat_buffer* stats =
+            (rkisp_isp_stat_buffer*)(AiqV4l2Buffer_getExpbufUsrptr((AiqV4l2Buffer_t*)hwres->vb));
         if (stats == NULL) {
             LOGE("fail to get stats ,ignore\n");
             return XCAM_RETURN_BYPASS;
@@ -68,6 +65,11 @@ static XCamReturn hwResCb(void* pCtx, AiqHwEvt_t* hwres)
                 seq++;
                 hwres->frame_id = seq;
                 stats->frame_id = seq;
+                if (g_mIsMultiIspMode) {
+                    uint32_t bufLen = AiqV4l2Buffer_getV4lBufLength((AiqV4l2Buffer_t*)hwres->vb);
+                    rkisp_isp_stat_buffer* right_stats = (rkisp_isp_stat_buffer*)((char*)stats + bufLen / 2);
+                    right_stats->frame_id = seq;
+                }
                 AiqV4l2Buffer_setSequence((AiqV4l2Buffer_t*)hwres->vb, seq);
             }
             AiqCore_awakenClean(pAiqManager->mRkAiqAnalyzer, seq);

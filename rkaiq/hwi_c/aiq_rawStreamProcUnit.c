@@ -535,22 +535,27 @@ XCamReturn AiqRawStreamProcUnit_stop(AiqRawStreamProcUnit_t* pRawStrProcUnit) {
 
         AiqListItem_t* pItem = NULL;
         bool rm              = false;
-        AIQ_LIST_FOREACH(pRawStrProcUnit->buf_list[i], pItem, rm) {
-            AiqV4l2Buffer_unref(*(AiqV4l2Buffer_t**)(pItem->_pData));
-            pItem = aiqList_erase_item_locked(pRawStrProcUnit->buf_list[i], pItem);
-            rm    = true;
+        if (pRawStrProcUnit->buf_list[i]) {
+            AIQ_LIST_FOREACH(pRawStrProcUnit->buf_list[i], pItem, rm) {
+                AiqV4l2Buffer_unref(*(AiqV4l2Buffer_t**)(pItem->_pData));
+                pItem = aiqList_erase_item_locked(pRawStrProcUnit->buf_list[i], pItem);
+                rm    = true;
+            }
+            aiqList_reset(pRawStrProcUnit->buf_list[i]);
         }
-        aiqList_reset(pRawStrProcUnit->buf_list[i]);
 
-        AIQ_LIST_FOREACH(pRawStrProcUnit->cache_list[i], pItem, rm) {
-            AiqV4l2Buffer_unref(*(AiqV4l2Buffer_t**)(pItem->_pData));
-            pItem = aiqList_erase_item_locked(pRawStrProcUnit->cache_list[i], pItem);
-            rm    = true;
+        if (pRawStrProcUnit->cache_list[i]) {
+            AIQ_LIST_FOREACH(pRawStrProcUnit->cache_list[i], pItem, rm) {
+                AiqV4l2Buffer_unref(*(AiqV4l2Buffer_t**)(pItem->_pData));
+                pItem = aiqList_erase_item_locked(pRawStrProcUnit->cache_list[i], pItem);
+                rm    = true;
+            }
+            aiqList_reset(pRawStrProcUnit->cache_list[i]);
         }
-        aiqList_reset(pRawStrProcUnit->cache_list[i]);
     }
 
-    aiqMap_reset(pRawStrProcUnit->_isp_hdr_fid2ready_map);
+    if (pRawStrProcUnit->_isp_hdr_fid2ready_map)
+        aiqMap_reset(pRawStrProcUnit->_isp_hdr_fid2ready_map);
 
     for (int i = 0; i < pRawStrProcUnit->_mipi_dev_max; i++) {
         pRawStrProcUnit->_stream[i]->_base.stopDeviceOnly(&pRawStrProcUnit->_stream[i]->_base);

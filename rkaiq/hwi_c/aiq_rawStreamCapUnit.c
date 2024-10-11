@@ -421,12 +421,14 @@ XCamReturn AiqRawStreamCapUnit_stop(AiqRawStreamCapUnit_t* pRawStrCapUnit) {
     for (i = 0; i < pRawStrCapUnit->_mipi_dev_max; i++) {
         AiqListItem_t* pItem = NULL;
         bool rm              = false;
-        AIQ_LIST_FOREACH(pRawStrCapUnit->buf_list[i], pItem, rm) {
-            AiqV4l2Buffer_unref(*(AiqV4l2Buffer_t**)(pItem->_pData));
-            pItem = aiqList_erase_item_locked(pRawStrCapUnit->buf_list[i], pItem);
-            rm    = true;
+        if (pRawStrCapUnit->buf_list[i]) {
+            AIQ_LIST_FOREACH(pRawStrCapUnit->buf_list[i], pItem, rm) {
+                AiqV4l2Buffer_unref(*(AiqV4l2Buffer_t**)(pItem->_pData));
+                pItem = aiqList_erase_item_locked(pRawStrCapUnit->buf_list[i], pItem);
+                rm    = true;
+            }
+            aiqList_reset(pRawStrCapUnit->buf_list[i]);
         }
-        aiqList_reset(pRawStrCapUnit->buf_list[i]);
     }
     aiqMutex_unlock(&pRawStrCapUnit->_buf_mutex);
     for (i = 0; i < pRawStrCapUnit->_mipi_dev_max; i++) {
