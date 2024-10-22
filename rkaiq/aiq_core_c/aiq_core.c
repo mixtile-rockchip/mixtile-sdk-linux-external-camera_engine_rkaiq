@@ -24,6 +24,7 @@
 #include "dumpcam_server/third-party/argparse/argparse.h"
 #include "info/aiq_coreBufMgrInfo.h"
 #include "info/aiq_coreInfo.h"
+#include "info/aiq_coreIspModsInfo.h"
 #include "info/aiq_coreIspParamsInfo.h"
 #include "rk_info_utils.h"
 #include "st_string.h"
@@ -2998,6 +2999,7 @@ static void mapModStrListToEnum(AiqCore_t* pAiqCore, TuningCalib* change_name_li
 
 static XCamReturn notifyUpdate(AiqCore_t* pAiqCore, uint64_t mask) {
     aiqMutex_lock(&pAiqCore->_update_mutex);
+    pAiqCore->mAlogsComSharedParams.conf_type = RK_AIQ_ALGO_CONFTYPE_UPDATECALIB;
     pAiqCore->groupUpdateMask |= mask;
     aiqMutex_unlock(&pAiqCore->_update_mutex);
 
@@ -3014,6 +3016,8 @@ static XCamReturn waitUpdateDone(AiqCore_t* pAiqCore) {
 
     if (pAiqCore->groupUpdateMask != 0) {
         LOGW_ANALYZER("calib not updated completely !");
+        aiqMutex_unlock(&pAiqCore->_update_mutex);
+        return XCAM_RETURN_ERROR_TIMEOUT;
     }
 
     aiqMutex_unlock(&pAiqCore->_update_mutex);
@@ -3077,6 +3081,9 @@ XCamReturn AiqCore_updateCalib(AiqCore_t * pAiqCore, enum rk_aiq_core_analyze_ty
     _prepare(pAiqCore, type);
     // clear group bit after update
     pAiqCore->groupUpdateMask &= (~need_update);
+    if (pAiqCore->groupUpdateMask == 0) {
+        pAiqCore->mAlogsComSharedParams.conf_type &= ~RK_AIQ_ALGO_CONFTYPE_UPDATECALIB;
+    }
     // notify update done
     aiqCond_broadcast(&pAiqCore->_update_done_cond);
     aiqMutex_unlock(&pAiqCore->_update_mutex);
@@ -3093,10 +3100,11 @@ XCamReturn AiqCore_calibTuning(AiqCore_t* pAiqCore, const CamCalibDbV2Context_t*
         return XCAM_RETURN_ERROR_PARAM;
     }
 
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
     // Fill new calib to the AlogsSharedParams
     pAiqCore->mAlogsComSharedParams.calibv2 = aiqCalib;
     LOGK_ANALYZER("new calib %p", aiqCalib);
-    pAiqCore->mAlogsComSharedParams.conf_type = RK_AIQ_ALGO_CONFTYPE_UPDATECALIB;
 
 	for (int i = 0; i < change_name_list->moduleNamesSize; i++) {
         char* name = change_name_list->moduleNames[i];
@@ -3128,13 +3136,12 @@ XCamReturn AiqCore_calibTuning(AiqCore_t* pAiqCore, const CamCalibDbV2Context_t*
     if (pAiqCore->mState != RK_AIQ_CORE_STATE_RUNNING)
         AiqCore_updateCalib(pAiqCore, RK_AIQ_CORE_ANALYZE_ALL);
     else {
-        waitUpdateDone(pAiqCore);
+        ret = waitUpdateDone(pAiqCore);
     }
-    pAiqCore->mAlogsComSharedParams.conf_type &= ~RK_AIQ_ALGO_CONFTYPE_UPDATECALIB;
 
     EXIT_ANALYZER_FUNCTION();
 
-    return XCAM_RETURN_NO_ERROR;
+    return ret;
 }
 
 XCamReturn AiqCore_setMemsSensorIntf(AiqCore_t* pAiqCore, const rk_aiq_mems_sensor_intf_t* intf) {
@@ -3519,14 +3526,7 @@ static void AiqCore_initNotifier(AiqCore_t* pAiqCore) {
         aiq_notifier_add_subscriber(&pAiqCore->notifier, &pAiqCore->sub_grp_analyzer);
     }
 
-    {
-        pAiqCore->sub_isp_params.match_type     = AIQ_NOTIFIER_MATCH_CORE_ISP_PARAMS;
-        pAiqCore->sub_isp_params.name           = "CORE -> isp_params";
-        pAiqCore->sub_isp_params.dump.dump_fn_t = core_isp_params_dump;
-        pAiqCore->sub_isp_params.dump.dumper    = pAiqCore;
-
-        aiq_notifier_add_subscriber(&pAiqCore->notifier, &pAiqCore->sub_isp_params);
-    }
+    core_isp_mods_add_subscriber(pAiqCore);
 }
 
 static const char* const usages[] = {
@@ -3541,93 +3541,179 @@ static int dbg_help_cb(struct argparse* self, const struct argparse_option* opti
     return 0;
 }
 
-static const char* _gParams = NULL;
-static int dbg_param_cb(struct argparse* self, const struct argparse_option* option) {
-    if (!strcmp(self->argv[0], "-p")) _gParams = "all";
-
-    return 0;
-}
 static int AiqCore_dump(void* self, st_string* result, int argc, void* argv[]) {
-    char argvArray[256][256];
-    char* extended_argv[256];
-    int extended_argc = 0;
+    char buffer[MAX_LINE_LENGTH]                   = {0};
+    int dump_args[AIQ_NOTIFIER_MATCH_CORE_ALL + 1] = {0};
 
-    snprintf(argvArray[0], sizeof(argvArray[extended_argc]), "%s", "core");
-    extended_argv[0] = argvArray[0];
-    extended_argc++;
-    for (int i = 0; i < argc; i++) {
-        LOG1("argv[%d]: %s", i, *((const char**)argv + i));
-        snprintf(argvArray[extended_argc], sizeof(argvArray[extended_argc]), "%s",
-                 *((const char**)argv + i));
-        extended_argv[extended_argc] = argvArray[extended_argc];
-        extended_argc++;
-    }
+    if (argc < 2) {
+        dump_args[AIQ_NOTIFIER_MATCH_CORE_ALL] = 1;
+    } else {
+        struct argparse_option options[] = {
+            OPT_GROUP("basic options:"),
+            OPT_BOOLEAN('A', "all", &dump_args[AIQ_NOTIFIER_MATCH_CORE_ALL], "dump core all", NULL,
+                        0, 0),
+            OPT_BOOLEAN('b', "buf", &dump_args[AIQ_NOTIFIER_MATCH_CORE_BUF_MGR],
+                        "dump core buffer manager info", NULL, 0, 0),
+            OPT_BOOLEAN('c', "core", &dump_args[AIQ_NOTIFIER_MATCH_CORE], "dump core info", NULL, 0,
+                        0),
+            OPT_BOOLEAN('n', "analyzer", &dump_args[AIQ_NOTIFIER_MATCH_CORE_GRP_ANALYZER],
+                        "dump group analyzer info", NULL, 0, 0),
+            OPT_BOOLEAN('\0', "help", NULL, "show this help message and exit", dbg_help_cb, 0,
+                        OPT_NONEG),
+            OPT_END(),
+        };
 
-    char buffer[MAX_LINE_LENGTH]          = {0};
-    int dump_args[AIQ_NOTIFIER_MATCH_MAX] = {0};
-    struct argparse_option options[]      = {
-        OPT_GROUP("basic options:"),
-        OPT_BOOLEAN('a', "all", &dump_args[AIQ_NOTIFIER_MATCH_ALL], "dump core all", NULL, 0, 0),
-        OPT_BOOLEAN('b', "buf", &dump_args[AIQ_NOTIFIER_MATCH_CORE_BUF_MGR],
-                    "dump core buffer manager info", NULL, 0, 0),
-        OPT_BOOLEAN('c', "core", &dump_args[AIQ_NOTIFIER_MATCH_CORE], "dump core info", NULL, 0, 0),
-        OPT_BOOLEAN('n', "analyzer", &dump_args[AIQ_NOTIFIER_MATCH_CORE_GRP_ANALYZER],
-                    "dump group analyzer info", NULL, 0, 0),
-        OPT_BOOLEAN('p', "params", &dump_args[AIQ_NOTIFIER_MATCH_CORE_ISP_PARAMS],
-                    "dump isp params", NULL, 0, 0),
-        OPT_BOOLEAN('\0', "help", NULL, "show this help message and exit", dbg_help_cb, 0,
-                    OPT_NONEG),
-        OPT_END(),
-    };
+        struct argparse argparse;
+        argparse_init(&argparse, options, usages, 0);
+        argparse_describe(&argparse, "\nselect a test case to run.", "\nuse --help for details.");
 
-    struct argparse argparse;
-    argparse_init(&argparse, options, usages, 0);
-    argparse_describe(&argparse, "\nselect a test case to run.", "\nuse --help for details.");
-
-    extended_argc = argparse_parse(&argparse, extended_argc, (const char**)extended_argv);
-    if (_gHelp || extended_argc < 0) {
-        _gHelp = 0;
-        goto __FAILED;
-    }
-
-    if (!argc) dump_args[AIQ_NOTIFIER_MATCH_ALL] = 1;
-
-    for (int32_t i = AIQ_NOTIFIER_MATCH_CORE; i < AIQ_NOTIFIER_MATCH_MAX; i++) {
-        if (dump_args[i])
-            aiq_notifier_notify_dumpinfo(&((AiqCore_t*)self)->notifier, i, result, extended_argc,
-                                         (void**)argvArray);
-    }
-
-    return true;
-
-__FAILED:
-    argparse_usage_string(&argparse, buffer);
-    string_printf(result, buffer);
-
-    return true;
-}
-
-static int AiqCore_algosDump(void* self, st_string* result, int argc, void* argv[]) {
-    char buffer[MAX_LINE_LENGTH] = {0};
-
-    for (int i = 0; i < RK_AIQ_ALGO_TYPE_MAX; i++) {
-        AiqAlgoHandler_t* pHandler = ((AiqCore_t*)self)->mAlgoHandleMaps[i];
-        while (pHandler) {
-            if (AiqAlgoHandler_getEnable(pHandler)) {
-                RkAiqAlgoDescription* des = (RkAiqAlgoDescription*)pHandler->mDes;
-                if (des->dump) {
-                    snprintf(buffer, MAX_LINE_LENGTH, "[ALGO -> %s]:\n",
-                             AlgoTypeToString(des->common.type));
-                    string_printf(result, buffer);
-
-                    des->dump(pHandler->mProcInParam, result);
-                }
-            }
-            pHandler = AiqAlgoHandler_getNextHdl(pHandler);
+        argc = argparse_parse(&argparse, argc, (const char**)argv);
+        if (_gHelp || argc < 0) {
+            _gHelp = 0;
+            argparse_usage_string(&argparse, buffer);
+            string_printf(result, buffer);
         }
     }
 
-    return 0;
+    if (dump_args[AIQ_NOTIFIER_MATCH_CORE_ALL]) {
+        for (int32_t i = AIQ_NOTIFIER_MATCH_CORE; i <= AIQ_NOTIFIER_MATCH_CORE_ALL; i++)
+            aiq_notifier_notify_dumpinfo(&((AiqCore_t*)self)->notifier, i, result, argc, argv);
+
+        return true;
+    }
+
+    for (int32_t i = AIQ_NOTIFIER_MATCH_CORE; i <= AIQ_NOTIFIER_MATCH_CORE_ALL; i++) {
+        if (dump_args[i])
+            aiq_notifier_notify_dumpinfo(&((AiqCore_t*)self)->notifier, i, result, argc, argv);
+    }
+
+    return true;
 }
 
+static const char* const algos_usages[] = {
+    "./dumpcam algo cmd [args]",
+    NULL,
+};
+
+static int _gAlgosHelp = 0;
+static int algos_dbg_help_cb(struct argparse* self, const struct argparse_option* option) {
+    _gAlgosHelp = 1;
+
+    return 0;
+}
+static int AiqCore_algosDump(void* self, st_string* result, int argc, void* argv[]) {
+    char buffer[MAX_LINE_LENGTH * 4]               = {0};
+    int dump_args[AIQ_NOTIFIER_MATCH_MODS_ALL + 1] = {0};
+
+    if (argc < 2) {
+        dump_args[AIQ_NOTIFIER_MATCH_MODS_ALL] = 1;
+    } else {
+        struct argparse_option options[] = {
+            OPT_GROUP("isp modules options:"),
+            OPT_BOOLEAN('A', "all", &dump_args[AIQ_NOTIFIER_MATCH_MODS_ALL], "dump all info", NULL,
+                        0, 0),
+            OPT_BOOLEAN('e', "ae", &dump_args[AIQ_NOTIFIER_MATCH_AEC], "dump ae module info", NULL,
+                        0, 0),
+            OPT_BOOLEAN('f', "hist", &dump_args[AIQ_NOTIFIER_MATCH_HIST], "dump hist module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('i', "awb", &dump_args[AIQ_NOTIFIER_MATCH_AWB], "dump awb module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('j', "wbgain", &dump_args[AIQ_NOTIFIER_MATCH_AWB],
+                        "dump awb gain module info ", NULL, 0, 0),
+            OPT_BOOLEAN('k', "af", &dump_args[AIQ_NOTIFIER_MATCH_AF], "dump af module info", NULL,
+                        0, 0),
+            OPT_BOOLEAN('m', "dpc", &dump_args[AIQ_NOTIFIER_MATCH_DPCC], "dump dpcc module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('n', "merge", &dump_args[AIQ_NOTIFIER_MATCH_MERGE],
+                        "dump merge module info ", NULL, 0, 0),
+            OPT_BOOLEAN('o', "ccm", &dump_args[AIQ_NOTIFIER_MATCH_CCM], "dump ccm module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('p', "lsc", &dump_args[AIQ_NOTIFIER_MATCH_LSC], "dump lsc module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('r', "blc", &dump_args[AIQ_NOTIFIER_MATCH_BLC], "dump blc module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('V', "rawnr", &dump_args[AIQ_NOTIFIER_MATCH_RAWNR],
+                        "dump rawnr module info ", NULL, 0, 0),
+            OPT_BOOLEAN('t', "gic", &dump_args[AIQ_NOTIFIER_MATCH_GIC], "dump gic module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('u', "debayer", &dump_args[AIQ_NOTIFIER_MATCH_DEBAYER],
+                        "dump debayer module info ", NULL, 0, 0),
+            OPT_BOOLEAN('v', "lut3d", &dump_args[AIQ_NOTIFIER_MATCH_LUT3D],
+                        "dump lut3d module info ", NULL, 0, 0),
+            OPT_BOOLEAN('w', "dehaz", &dump_args[AIQ_NOTIFIER_MATCH_DEHAZE],
+                        "dump dehaze module info ", NULL, 0, 0),
+            OPT_BOOLEAN('x', "gamma", &dump_args[AIQ_NOTIFIER_MATCH_AGAMMA],
+                        "dump gamma module info ", NULL, 0, 0),
+            OPT_BOOLEAN('y', "degamma", &dump_args[AIQ_NOTIFIER_MATCH_ADEGAMMA],
+                        "dump degamma module info ", NULL, 0, 0),
+            OPT_BOOLEAN('z', "csm", &dump_args[AIQ_NOTIFIER_MATCH_CSM], "dump csm module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('B', "cgc", &dump_args[AIQ_NOTIFIER_MATCH_CGC], "dump cgc module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('C', "gain", &dump_args[AIQ_NOTIFIER_MATCH_GAIN], "dump gain module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('D', "cp", &dump_args[AIQ_NOTIFIER_MATCH_CP], "dump cproc module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('E', "ie", &dump_args[AIQ_NOTIFIER_MATCH_IE], "dump ie module info", NULL,
+                        0, 0),
+            OPT_BOOLEAN('F', "tnr", &dump_args[AIQ_NOTIFIER_MATCH_TNR], "dump tnr module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('G', "ynr", &dump_args[AIQ_NOTIFIER_MATCH_YNR], "dump ynr module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('H', "cnr", &dump_args[AIQ_NOTIFIER_MATCH_CNR], "dump uvnr module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('I', "sharp", &dump_args[AIQ_NOTIFIER_MATCH_SHARPEN],
+                        "dump sharp module info ", NULL, 0, 0),
+            OPT_BOOLEAN('J', "drc", &dump_args[AIQ_NOTIFIER_MATCH_DRC], "dump drc module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('K', "cac", &dump_args[AIQ_NOTIFIER_MATCH_CAC], "dump cac module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('M', "afd", &dump_args[AIQ_NOTIFIER_MATCH_AFD], "dump afd module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('N', "rgbir", &dump_args[AIQ_NOTIFIER_MATCH_RGBIR],
+                        "dump rgbir module info ", NULL, 0, 0),
+            OPT_BOOLEAN('O', "ldc", &dump_args[AIQ_NOTIFIER_MATCH_LDC], "dump ldc module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('P', "aestats", &dump_args[AIQ_NOTIFIER_MATCH_AESTATS],
+                        "dump ae stats module info ", NULL, 0, 0),
+            OPT_BOOLEAN('R', "histeq", &dump_args[AIQ_NOTIFIER_MATCH_HISTEQ],
+                        "dump histeq module info ", NULL, 0, 0),
+            OPT_BOOLEAN('S', "enhaz", &dump_args[AIQ_NOTIFIER_MATCH_ENH],
+                        "dump enhance module info", NULL, 0, 0),
+            OPT_BOOLEAN('T', "texest", &dump_args[AIQ_NOTIFIER_MATCH_TEXEST],
+                        "dump texest module info ", NULL, 0, 0),
+            OPT_BOOLEAN('U', "hsv", &dump_args[AIQ_NOTIFIER_MATCH_HSV], "dump hsv module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('\0', "help", NULL, "show this help message and exit", dbg_help_cb, 0,
+                        OPT_NONEG),
+            OPT_END(),
+        };
+
+        struct argparse argparse;
+        argparse_init(&argparse, options, usages, 0);
+        argparse_describe(&argparse, "\nselect a test case to run.", "\nuse --help for details.");
+
+        argc = argparse_parse(&argparse, argc, (const char**)argv);
+        if (_gHelp || argc < 0) {
+            _gHelp = 0;
+
+            argparse_usage_string(&argparse, buffer);
+            string_printf(result, buffer);
+        }
+    }
+
+    if (dump_args[AIQ_NOTIFIER_MATCH_MODS_ALL]) {
+        for (int32_t i = _MODS_NUM_OFFSET; i < AIQ_NOTIFIER_MATCH_MODS_ALL; i++)
+            aiq_notifier_notify_dumpinfo(&((AiqCore_t*)self)->notifier, i, result, argc, argv);
+
+        return true;
+    }
+
+    for (int32_t i = _MODS_NUM_OFFSET; i < AIQ_NOTIFIER_MATCH_MODS_ALL; i++) {
+        if (dump_args[i])
+            aiq_notifier_notify_dumpinfo(&((AiqCore_t*)self)->notifier, i, result, argc, argv);
+    }
+
+    return true;
+}
 #endif

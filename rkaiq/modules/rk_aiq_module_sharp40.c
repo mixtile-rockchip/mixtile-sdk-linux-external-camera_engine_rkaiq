@@ -345,7 +345,7 @@ void rk_aiq_sharp40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_
             }
         } else {
             for (i = 0; i < 6; i++)
-                coeff[i] = pdyn->eHfDetailShp.detailExtra_hpf.hw_shpT_filtSpatial_wgt[i] * (1 << 7);
+                coeff[i] = ROUND_F(pdyn->eHfDetailShp.detailExtra_hpf.hw_shpT_filtSpatial_wgt[i] * (1 << 7));
         }
 
         for (int k = 0; k < 6; k++) {
@@ -458,7 +458,7 @@ void rk_aiq_sharp40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_
             SharpCreateKernelCoeffs(1, 1, rsigma, coeff, 6, 2);
         } else {
             for (i = 0; i < 3; i++)
-                coeff[i] = pdyn->detailShp.detailExtra_preBifilt.hw_shpT_filtSpatial_wgt[i] * (1 << 6);
+                coeff[i] = ROUND_F(pdyn->detailShp.detailExtra_preBifilt.hw_shpT_filtSpatial_wgt[i] * (1 << 6));
         }
 
         SharpKernelCoeffsNormalization(coeff, 1, (1 << 6), 2);
@@ -477,7 +477,7 @@ void rk_aiq_sharp40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_
             SharpCreateKernelCoeffs(radius, 5 / 2, rsigma, coeff, 7, 2);
         } else {
             for (i = 0; i < 6; i++)
-                coeff[i] = pdyn->detailShp.hiDetailExtra_lpf.hw_shpT_filtSpatial_wgt[i] * (1 << 7);
+                coeff[i] = ROUND_F(pdyn->detailShp.hiDetailExtra_lpf.hw_shpT_filtSpatial_wgt[i] * (1 << 7));
         }
 
         for (int k = 0; k < 6; k++) {
@@ -504,7 +504,7 @@ void rk_aiq_sharp40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_
             SharpCreateKernelCoeffs(radius, 5 / 2, rsigma, coeff, 7, 2);
         } else {
             for (i = 0; i < 6; i++)
-                coeff[i] = pdyn->detailShp.midDetailExtra_lpf.hw_shpT_filtSpatial_wgt[i] * (1 << 7);
+                coeff[i] = ROUND_F(pdyn->detailShp.midDetailExtra_lpf.hw_shpT_filtSpatial_wgt[i] * (1 << 7));
         }
 
         for (int k = 0; k < 6; k++) {
@@ -628,7 +628,7 @@ void rk_aiq_sharp40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_
             SharpCreateKernelCoeffs(radius, 7 / 2, rsigma, coeff, 7, 2);
         } else {
             for (i = 0; i < 10; i++)
-                coeff[i] = pdyn->edgeShp.edgeExtra.hw_shpT_filtSpatial_wgt[i] * (1 << 7);
+                coeff[i] = ROUND_F(pdyn->edgeShp.edgeExtra.hw_shpT_filtSpatial_wgt[i] * (1 << 7));
         }
 
         for (int k = 0; k < 10; k++) {

@@ -30,7 +30,7 @@ void rk_aiq_blc30_params_cvt(void* attr, isp_params_t* isp_params,
 #ifdef ISP_HW_V33
     blc_params_static_t* psta = &((blc_param_t*)attr)->sta;
     bool autoblc_en = psta->autoBlc.sw_blcT_autoBlc_en & pdyn->obcPostTnr.sw_blcT_obcPostTnr_en &
-                        pBlcInfo->init_success & (cvtinfo->frameNum == 1);
+                        pBlcInfo->init_success & (cvtinfo->frameNum == 1) & cvtinfo->btnr_en;
     float damping_val = CLIP(psta->autoBlc.sw_blcT_damping_val, 0, 1);
     float totalGain = cvtinfo->ae_exp->LinearExp.exp_real_params.analog_gain
                              * cvtinfo->ae_exp->LinearExp.exp_real_params.digital_gain

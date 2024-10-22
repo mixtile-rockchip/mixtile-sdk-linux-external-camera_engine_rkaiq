@@ -43,6 +43,8 @@ RK_VOID aiq_info_dump_title(st_string *result, const char* titleName);
 RK_VOID aiq_info_dump_title_from_list(st_string *result, string_list *titleList);
 RK_VOID aiq_info_dump_title_from_list_with_width(st_string *result, string_list *titleList, RK_U32 strWidth);
 RK_VOID aiq_info_dump_value(st_string *result, string_list *valueList);
+RK_VOID aiq_info_dump_mod_name(st_string* result, const char* name);
+RK_VOID aiq_info_dump_submod_name(st_string* result, const char* name);
 
 #ifdef __cplusplus
 #if __cplusplus

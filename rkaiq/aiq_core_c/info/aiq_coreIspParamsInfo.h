@@ -21,5 +21,6 @@
 #include "st_string.h"
 
 int core_isp_params_dump(void* self, st_string* result, int argc, void* argv[]);
+void core_isp_params_dump_by_type(void* self, int type, st_string* result);
 
 #endif  //  _AIQ_CORE_ISP_PARAMS_INFO_H_

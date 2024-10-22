@@ -49,42 +49,36 @@
 
 #define Math_LOG2(x)    (log((double)x)   / log((double)2))
 
-void cnr_gauss7x1_filter_coeff(float sigma, int* gstab, int coef_bit)
+void cnr_CreateKernelCoeffs_V32(int radius_x, int radius_y, float rsigma, uint8_t *kernel_coeffs, int fix_bits)
 {
-    int halfx = 7;
-    int centerx = halfx / 2;
-    int gausstab[7 * 1];
-    int i, j, sumc;
-    float tmpf0, tmpf1;
-    float tmpf2, gausstabf[7 * 1];
-    int gstabidx[7 * 1] =
-    { 0, 1, 2, 3, 2, 1, 0 };
+    double e = 2.71828182845905;
 
-    tmpf2 = 0;
-    sumc = 0;
+    float coeff_float[(2 * radius_y + 1) * (2 * radius_x + 1)];
 
-    for (j = 0; j < halfx; j++)
+    float sumTable = 0;
+    for(int y = -radius_y; y <= radius_y; y ++)
     {
-        tmpf0 = (float)((j - centerx) * (j - centerx));
-        tmpf0 = tmpf0 / (2 * sigma * sigma);
-        tmpf1 = expf(-tmpf0);
-        tmpf2 = tmpf2 + tmpf1;
-        gausstabf[j] = tmpf1;
+        for(int x = -radius_x; x <= radius_x; x ++)
+        {
+            float dis = y * y + x * x;
+            float coeff = pow(e, -dis / 2.0 / rsigma / rsigma);
+
+            coeff_float[(y + radius_y) * (2 * radius_x + 1) + x + radius_x] = coeff;
+            sumTable += coeff;
+        }
+    }
+    int sum_coeff = 0;
+    for (int i = 0; i < (2 * radius_x + 1) * (2 * radius_y + 1); i++) {
+        float coeff = coeff_float[i];
+        coeff  = coeff / sumTable;
+        coeff = ROUND_F(coeff * (1 << fix_bits));
+        kernel_coeffs[i] = coeff;
+        sum_coeff  += coeff;
     }
 
-    for (j = 0; j < halfx; j++)
-    {
-        gausstab[j] = (int)(gausstabf[j]  * (1 << coef_bit));
-    }
-
-
-    for (j = 0; j < halfx; j++)
-    {
-        gstab[gstabidx[j]] = gausstab[j];
-#if 0
-        printf("gaus7x5 gstabidx[%d]: 0x%x coefMax:0x%x\n", gstabidx[j], gstab[gstabidx[j]], 1 << coef_bit);
-#endif
-    }
+    // check coeff
+    int offset = (1 << fix_bits) - sum_coeff;
+    kernel_coeffs[radius_y * (2 * radius_x + 1) + radius_x] = kernel_coeffs[radius_y * (2 * radius_x + 1) + radius_x] + offset;
 
 }
 
@@ -150,8 +144,8 @@ void rk_aiq_cnr34_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
 
     /* CNR_LBF_WEITD */
     if (pdyn->loNrGuide_bifilt.sw_cnrT_filtCfg_mode == cnr_cfgByFiltStrg_mode) {
-        int gaus_tmp[7];
-        cnr_gauss7x1_filter_coeff(pdyn->loNrGuide_bifilt.sw_cnrT_filtSpatial_strg, gaus_tmp, RKCNR_V31_exp2_lut_y);
+        uint8_t gaus_tmp[7];
+        cnr_CreateKernelCoeffs_V32(RKCNR_V31_THUMB_BF_RADIUS, 0, pdyn->loNrGuide_bifilt.sw_cnrT_filtSpatial_strg, gaus_tmp, RKCNR_V31_exp2_lut_y);
         pFix->thumb_bf_coeff0 = CLIP(gaus_tmp[0], 0, 0xff);
         pFix->thumb_bf_coeff1 = CLIP(gaus_tmp[1], 0, 0xff);
         pFix->thumb_bf_coeff2 = CLIP(gaus_tmp[2], 0, 0xff);

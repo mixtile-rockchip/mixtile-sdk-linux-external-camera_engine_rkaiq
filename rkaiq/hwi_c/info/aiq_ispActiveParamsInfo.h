@@ -21,6 +21,6 @@
 
 #include "st_string.h"
 
-int active_isp_params_dump(void* dumper, st_string* result, int argc, void* argv[]);
+void active_isp_params_dump_by_type(void* dumper, int type, st_string* result);
 
 #endif  //  _AIQ_ISP_ACTIVE_PARAMS_INFO_H_

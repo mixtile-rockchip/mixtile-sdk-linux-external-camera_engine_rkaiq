@@ -69,6 +69,10 @@ typedef struct AiqManager_s {
     GlobalParamsManager_t mGlobalParamsManager;
     /* aiq_params_base_t* */
     AiqList_t* mParamsList;
+
+#if RKAIQ_HAVE_DUMPSYS
+    int (*dump_mods)(void* self, st_string* result, int argc, void* argv[]);
+#endif
 } AiqManager_t;
 
 XCamReturn AiqManager_init(AiqManager_t* pAiqManager, const char* sns_ent_name, rk_aiq_error_cb err_cb, rk_aiq_metas_cb metas_cb);

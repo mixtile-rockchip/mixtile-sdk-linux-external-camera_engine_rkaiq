@@ -276,6 +276,8 @@ typedef struct AiqCamHwBase_s {
     struct aiq_notifier_subscriber sub_isp_params;
     struct aiq_notifier_subscriber sub_isp_active_params;
 
+    struct aiq_notifier_subscriber sub_isp_mods[_MODS_COUNT];
+
     FrameDumpInfo_t fs;
     FrameDumpInfo_t prev_fs;
     FrameDumpInfo_t stats;

@@ -28,6 +28,11 @@
 //#include "lsc_common.h"
 //#include "lsc_convert_otp.h"
 
+#if RKAIQ_HAVE_DUMPSYS
+#include "include/algo_lsc_info.h"
+#include "rk_info_utils.h"
+#endif
+
 //RKAIQ_BEGIN_DECLARE
 
 
@@ -419,6 +424,17 @@ processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outparams)
     return XCAM_RETURN_NO_ERROR;
 }
 
+#if RKAIQ_HAVE_DUMPSYS
+static int dump(const RkAiqAlgoCom* config, st_string* result)
+{
+    // lsc_dump_mod_param(config, result);
+    lsc_dump_mod_attr(config, result);
+    lsc_dump_mod_status(config, result);
+
+    return 0;
+}
+#endif
+
 XCamReturn algo_lsc_queryalscStatus
 (
     RkAiqAlgoContext* ctx, 
@@ -505,6 +521,9 @@ RkAiqAlgoDescription g_RkIspAlgoDescLsc = {
     .pre_process = NULL,
     .processing = processing,
     .post_process = NULL,
+#if RKAIQ_HAVE_DUMPSYS
+    .dump = dump,
+#endif
 };
 
 //RKAIQ_END_DECLARE

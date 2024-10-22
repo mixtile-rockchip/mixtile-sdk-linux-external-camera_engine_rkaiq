@@ -142,8 +142,6 @@ struct AiqSensorHw_s {
     bool mIsSingleMode;
     int mCamPhyId;
     int32_t dcg_mode;
-    uint32_t set_exp_cnt;
-    int16_t fps;
 #if RKAIQ_HAVE_DUMPSYS
     // dump info
     rk_aiq_exposure_sensor_descriptor desc;

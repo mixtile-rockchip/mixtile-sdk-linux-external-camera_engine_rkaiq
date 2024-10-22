@@ -22,12 +22,6 @@
 #include "aiq_algo_handler.h"
 #include "rk_info_utils.h"
 
-static void to_lowercase(const char* src, char* dst) {
-    for (int i = 0; src[i] != '\0'; i++) {
-        dst[i] = tolower(src[i]);
-    }
-}
-
 void core_buf_mgr_dump_mod_param(AiqCore_t* self, st_string* result) {
     char buffer[MAX_LINE_LENGTH] = {0};
 
@@ -59,7 +53,7 @@ static void __snprintf_strings(const char* key_word, AiqPool_t* pool, uint32_t n
 void core_buf_mgr_dump_mem_pool_info(AiqCore_t* self, st_string* result) {
     char buffer[MAX_LINE_LENGTH] = {0};
 
-    aiq_info_dump_title(result, "core buffer manager mem pool info");
+    aiq_info_dump_title(result, "mem pool info");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-10s%-11s%-10s%-13s", "pool_name", "item_num",
              "item_size", "free_num", "no_free_cnt");
@@ -109,7 +103,7 @@ void core_buf_mgr_dump_mem_pool_info(AiqCore_t* self, st_string* result) {
 void core_buf_mgr_dump_pending_param_map_info(AiqCore_t* self, st_string* result) {
     char buffer[MAX_LINE_LENGTH] = {0};
 
-    aiq_info_dump_title(result, "core buffer manager pending param map info");
+    aiq_info_dump_title(result, "pending param map info");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-10s%-11s%-18s%-13s", "name", "item_num", "item_size",
              "max_pending_size", "pending_num");
@@ -130,7 +124,7 @@ void core_buf_mgr_dump_pending_param_map_status(AiqCore_t* self, st_string* resu
 
     char buffer[MAX_LINE_LENGTH] = {0};
 
-    aiq_info_dump_title(result, "core buffer manager pending param map status");
+    aiq_info_dump_title(result, "pending param map status");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     aiqMutex_lock(&self->_mFullParam_mutex);
@@ -144,7 +138,7 @@ void core_buf_mgr_dump_pending_param_map_status(AiqCore_t* self, st_string* resu
             for (int i = 0; i < (int)RK_AIQ_CORE_ANALYZE_MAX; i++) {
                 if (self->mFullParamReqGroupsMasks & BIT_ULL(i)) {
                     char grp_type[32] = {0};
-                    to_lowercase(AnalyzerGroupType2Str[i], grp_type);
+                    xcam_to_lowercase(AnalyzerGroupType2Str[i], grp_type);
                     snprintf(buffer + strlen(buffer), MAX_LINE_LENGTH, "%-11s", grp_type);
                 }
             }

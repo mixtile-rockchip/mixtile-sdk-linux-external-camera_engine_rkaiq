@@ -847,8 +847,6 @@ XCamReturn SensorHw_handle_sof(AiqSensorHw_t* pBaseSns, int64_t time, uint32_t f
         if (ret != XCAM_RETURN_NO_ERROR)
             LOGE_CAMHW_SUBM(SENSOR_SUBM, "%s: sof_id[%u]: set exposure failed!!!\n", __FUNCTION__,
                             frameid);
-        else
-            pSns->set_exp_cnt++;
 
         _SensorHw_setSensorDpcc(pSns, &exp_time->SensorDpccInfo);
     }
@@ -1171,7 +1169,6 @@ static XCamReturn SensorHw_getSensorDescriptor(AiqSensorHw_t* pBaseSns,
 #if RKAIQ_HAVE_DUMPSYS
     memcpy(&pBaseSns->desc, sns_des, sizeof(*sns_des));
 #endif
-    pBaseSns->fps = (int16_t)fps;
 
     return XCAM_RETURN_NO_ERROR;
 }
@@ -1854,9 +1851,7 @@ void AiqSensorHw_init(AiqSensorHw_t* pSnsHw, const char* name, int cid) {
     pSnsHw->mCamPhyId       = cid;
     pSnsHw->_mirror         = 0;
     pSnsHw->_flip           = 0;
-    pSnsHw->fps             = 0;
     pSnsHw->dcg_mode        = -1;
-    pSnsHw->set_exp_cnt     = 0;
 
     {
         // init pool

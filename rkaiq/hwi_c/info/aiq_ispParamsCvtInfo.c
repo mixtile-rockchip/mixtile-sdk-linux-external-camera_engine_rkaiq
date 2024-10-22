@@ -23,6 +23,7 @@
 
 #include "dumpcam_server/info/include/rk_info_utils.h"
 #include "dumpcam_server/info/include/st_string.h"
+#include "hwi_c/aiq_CamHwBase.h"
 
 void cvt_isp_params_dump_mod_param(AiqIspParamsCvt_t* self, st_string* result) {
 #if defined(ISP_HW_V39)
@@ -82,7 +83,8 @@ void cvt_isp_params_dump_bls_attr(AiqIspParamsCvt_t* self, st_string* result) {
 
     aiq_info_dump_title(result, "bls mod attr");
 
-    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-9s%-11s%-13s%-8s", "en", "bls1_en", "ob_offset",
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-9s%-11s%-12s%-12s%-12s%-12s%-13s%-8s", "en", "bls1_en",
+             "bls1_val.r", "bls1_val.gr", "bls1_val.gb", "bls1_val.b", "ob_offset",
              "ob_predgain", "ob_max");
     string_printf(result, buffer);
     string_printf(result, "\n");
@@ -91,9 +93,10 @@ void cvt_isp_params_dump_bls_attr(AiqIspParamsCvt_t* self, st_string* result) {
     struct isp32_bls_cfg* bls_cfg = &params->others.bls_cfg;
 
     memset(buffer, 0, MAX_LINE_LENGTH);
-    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-9s%-11d%-13d%-8d", en ? "Y" : "N",
-             bls_cfg->bls1_en ? "Y" : "N", bls_cfg->isp_ob_offset, bls_cfg->isp_ob_predgain,
-             bls_cfg->isp_ob_max);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-9s%-11d%-12d%-12d%-12d%-12d%-13d%-8d", en ? "Y" : "N",
+             bls_cfg->bls1_en ? "Y" : "N", bls_cfg->bls1_val.r, bls_cfg->bls1_val.gr,
+             bls_cfg->bls1_val.gb, bls_cfg->bls1_val.b, bls_cfg->isp_ob_offset,
+             bls_cfg->isp_ob_predgain, bls_cfg->isp_ob_max);
 
     string_printf(result, buffer);
     string_printf(result, "\n\n");
@@ -198,6 +201,130 @@ void cvt_isp_params_dump_wbgain_attr(AiqIspParamsCvt_t* self, st_string* result)
         __dump_awb0_gain(self, buffer, result);
 }
 
+void cvt_isp_params_dump_rawawb_attr(AiqIspParamsCvt_t* self, st_string* result) {
+#if defined(ISP_HW_V39)
+    struct isp39_isp_params_cfg* params = self->mCvtedIsp39Prams;
+    struct isp39_rawawb_meas_cfg* awb_cfg = &self->isp_params.isp_cfg->meas.rawawb;
+#elif defined(ISP_HW_V33)
+    struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
+    struct isp33_rawawb_meas_cfg* awb_cfg = &self->isp_params.isp_cfg->meas.rawawb;
+#else
+    return;
+#endif
+
+    char buffer[MAX_LINE_LENGTH] = {0};
+
+    aiq_info_dump_title(result, "rawawb mod attr");
+
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s", "en");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+
+    bool en = params->module_ens & ISP39_MODULE_RAWAWB;
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s", en ? "Y" : "N");
+
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+#if defined(ISP_HW_V33)
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s%-14s", "uvDct_en", "xyDct_en",
+             "drcOut_mod_en", "bnrOut_mod_en", "light_num");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d%-14d", awb_cfg->uv_en0,
+             awb_cfg->xy_en0, awb_cfg->drc2awb_sel, awb_cfg->bnr2awb_sel, awb_cfg->light_num);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+#else
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s%-14s%-14s", "uvDct_en", "xyDct_en",
+             "yuvDct_en", "drcOut_mod_en", "bnrOut_mod_en", "light_num");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d%-14d%-14d", awb_cfg->uv_en0,
+             awb_cfg->xy_en0, awb_cfg->yuv3d_en0, awb_cfg->drc2awb_sel, awb_cfg->bnr2awb_sel, awb_cfg->light_num);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+#endif
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s", "zoneStat_en", "zoneStat_mod",
+             "zoneStat_type", "zoneStat_illu");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d", awb_cfg->blk_measure_enable,
+             awb_cfg->blk_measure_mode, awb_cfg->blk_measure_xytype, awb_cfg->blk_measure_illu_idx);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s", "is12bit", "ds16x8_mode",
+             "ds8x8_mode", "overexpo_th");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d", awb_cfg->low12bit_val,
+             awb_cfg->ds16x8_mode_en, awb_cfg->wind_size, awb_cfg->in_overexposure_threshold);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s%-14s", "mainWin_x", "mainWin_y",
+             "mainWin_width", "mainWin_hegt", "nonROI_en");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d%-14d", awb_cfg->h_offs,
+             awb_cfg->v_offs, awb_cfg->h_size, awb_cfg->v_size, awb_cfg->multiwindow_en);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s", "limit_maxR", "limit_maxG",
+             "limit_maxB", "limit_minY");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d", awb_cfg->r_max,
+             awb_cfg->g_max, awb_cfg->b_max, awb_cfg->y_max);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-6s%-6s%-6s%-6s%-6s%-6s%-6s%-6s%-6s", "luma2WpWgt_en", "w0",
+             "w1", "w2", "w3", "w4", "w5", "w6", "w7", "w8");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-6d%-6d%-6d%-6d%-6d%-6d%-6d%-6d%-6d", awb_cfg->wp_luma_wei_en0,
+             awb_cfg->wp_luma_weicurve_w0, awb_cfg->wp_luma_weicurve_w1, awb_cfg->wp_luma_weicurve_w2,
+             awb_cfg->wp_luma_weicurve_w3, awb_cfg->wp_luma_weicurve_w4, awb_cfg->wp_luma_weicurve_w5,
+             awb_cfg->wp_luma_weicurve_w6, awb_cfg->wp_luma_weicurve_w7, awb_cfg->wp_luma_weicurve_w8);
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+#if defined(ISP_HW_V33)
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-6s%-6s%-6s%-6s%-6s%-6s%-6s%-6s%-6s", "ccm0r", "ccm1r",
+             "ccm2r", "ccm0g", "ccm1g", "ccm1g", "ccm0b", "ccm1b", "ccm1b");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-6d%-6d%-6d%-6d%-6d%-6d%-6d%-6d%-6d", c2trval(15, awb_cfg->ccm_coeff0_r),
+             c2trval(15, awb_cfg->ccm_coeff1_r), c2trval(15, awb_cfg->ccm_coeff2_r), c2trval(15, awb_cfg->ccm_coeff0_g),
+             c2trval(15, awb_cfg->ccm_coeff1_g), c2trval(15, awb_cfg->ccm_coeff2_g), c2trval(15, awb_cfg->ccm_coeff0_b),
+             c2trval(15, awb_cfg->ccm_coeff1_b), c2trval(15, awb_cfg->ccm_coeff2_b));
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+#endif
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s", "pre_wbgain_r", "pre_wbgain_g",
+             "pre_wbgain_b");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d", awb_cfg->pre_wbgain_inv_r,
+             awb_cfg->pre_wbgain_inv_g, awb_cfg->pre_wbgain_inv_b);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+
+}
+
 void cvt_isp_params_dump_dpc_attr(AiqIspParamsCvt_t* self, st_string* result) {
 #if defined(ISP_HW_V39)
     struct isp39_isp_params_cfg* params = self->mCvtedIsp39Prams;
@@ -211,14 +338,18 @@ void cvt_isp_params_dump_dpc_attr(AiqIspParamsCvt_t* self, st_string* result) {
 
     aiq_info_dump_title(result, "dpc mod attr");
 
-    snprintf(buffer, MAX_LINE_LENGTH, "%-5s", "en");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-14s%-16s%-14s%-14s%-14s", "en", "rk_out_sel",
+             "dpcc_output_sel", "use_set_1", "use_set_2", "use_set_3");
     string_printf(result, buffer);
     string_printf(result, "\n");
 
     bool en = params->module_ens & ISP39_MODULE_DPCC;
+    struct isp39_dpcc_cfg* dpc_cfg = &params->others.dpcc_cfg;
 
     memset(buffer, 0, MAX_LINE_LENGTH);
-    snprintf(buffer, MAX_LINE_LENGTH, "%-5s", en ? "Y" : "N");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-14d%-16d%-14d%-14d%-14d", en ? "Y" : "N",
+             dpc_cfg->sw_rk_out_sel, dpc_cfg->sw_dpcc_output_sel, dpc_cfg->stage1_use_set_1,
+             dpc_cfg->stage1_use_set_2, dpc_cfg->stage1_use_set_3);
 
     string_printf(result, buffer);
     string_printf(result, "\n\n");
@@ -986,6 +1117,70 @@ void cvt_isp_params_dump_yme_attr(AiqIspParamsCvt_t* self, st_string* result) {
     string_printf(result, "\n\n");
 }
 
+void cvt_isp_params_dump_aec_attr(AiqIspParamsCvt_t* self, st_string* result) {
+
+    char buffer[MAX_LINE_LENGTH] = {0};
+
+#if defined(ISP_HW_V39)
+    struct isp39_isp_params_cfg* params = self->mCvtedIsp39Prams;
+    struct isp39_isp_meas_cfg* meas_cfg = &params->meas;
+#elif defined(ISP_HW_V33)
+    struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
+    struct isp33_isp_meas_cfg* meas_cfg = &params->meas;
+#else
+    return;
+#endif
+
+    aiq_info_dump_title(result, "aec hwi params");
+
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-8s", "en", "aeswap", "aesel");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+
+    u64 module_en = ISP39_MODULE_RAWAE0 | ISP39_MODULE_RAWAE3 | ISP39_MODULE_RAWHIST0 | ISP39_MODULE_RAWHIST3;
+    bool en = params->module_ens & module_en;
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8d%-8d", en == 1 ? "Y" : "N", meas_cfg->rawae0.rawae_sel, meas_cfg->rawae3.rawae_sel);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13s%-13s%-13s%-13s", "entity", "win_off_h", "win_off_v", "win_size_h", "win_size_v");
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d%-13d", "rawae0",
+             meas_cfg->rawae0.win.h_offs, meas_cfg->rawae0.win.v_offs,
+             meas_cfg->rawae0.win.h_size, meas_cfg->rawae0.win.v_size);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d%-13d", "rawae3",
+             meas_cfg->rawae3.win.h_offs, meas_cfg->rawae3.win.v_offs,
+             meas_cfg->rawae3.win.h_size, meas_cfg->rawae3.win.v_size);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d%-13d", "rawhist0",
+             meas_cfg->rawhist0.win.h_offs, meas_cfg->rawhist0.win.v_offs,
+             meas_cfg->rawhist0.win.h_size, meas_cfg->rawhist0.win.v_size);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d%-13d", "rawhist3",
+             meas_cfg->rawhist3.win.h_offs, meas_cfg->rawhist3.win.v_offs,
+             meas_cfg->rawhist3.win.h_size, meas_cfg->rawhist3.win.v_size);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+}
+
+
 #define CVT_DUMP_INFO(_type, _func) \
     [_type] = {                     \
         .type = _type,              \
@@ -1000,8 +1195,8 @@ struct params_cvt_dump_info {
 
 static const struct params_cvt_dump_info params_dump_cvts[] = {
     CVT_DUMP_INFO(RESULT_TYPE_DEBAYER_PARAM, cvt_isp_params_dump_debayer_attr),
-    CVT_DUMP_INFO(RESULT_TYPE_AESTATS_PARAM, NULL),
-    CVT_DUMP_INFO(RESULT_TYPE_AWB_PARAM, NULL),
+    CVT_DUMP_INFO(RESULT_TYPE_AESTATS_PARAM, cvt_isp_params_dump_aec_attr),
+    CVT_DUMP_INFO(RESULT_TYPE_AWB_PARAM, cvt_isp_params_dump_rawawb_attr),
     CVT_DUMP_INFO(RESULT_TYPE_AWBGAIN_PARAM, cvt_isp_params_dump_wbgain_attr),
     CVT_DUMP_INFO(RESULT_TYPE_CCM_PARAM, cvt_isp_params_dump_ccm_attr),
     CVT_DUMP_INFO(RESULT_TYPE_AF_PARAM, NULL),
@@ -1013,7 +1208,6 @@ static const struct params_cvt_dump_info params_dump_cvts[] = {
     CVT_DUMP_INFO(RESULT_TYPE_SHARPEN_PARAM, cvt_isp_params_dump_sharp_attr),
     CVT_DUMP_INFO(RESULT_TYPE_BLC_PARAM, cvt_isp_params_dump_bls_attr),
     CVT_DUMP_INFO(RESULT_TYPE_CSM_PARAM, cvt_isp_params_dump_csm_attr),
-    CVT_DUMP_INFO(RESULT_TYPE_MOTION_PARAM, NULL),
     CVT_DUMP_INFO(RESULT_TYPE_DPCC_PARAM, cvt_isp_params_dump_dpc_attr),
     CVT_DUMP_INFO(RESULT_TYPE_AGAMMA_PARAM, cvt_isp_params_dump_gammaout_attr),
     CVT_DUMP_INFO(RESULT_TYPE_LSC_PARAM, cvt_isp_params_dump_lsc_attr),
@@ -1022,6 +1216,7 @@ static const struct params_cvt_dump_info params_dump_cvts[] = {
     CVT_DUMP_INFO(RESULT_TYPE_CGC_PARAM, cvt_isp_params_dump_cgc_attr),
     CVT_DUMP_INFO(RESULT_TYPE_IE_PARAM, NULL),
     CVT_DUMP_INFO(RESULT_TYPE_GAIN_PARAM, cvt_isp_params_dump_gain_attr),
+    CVT_DUMP_INFO(RESULT_TYPE_CAC_PARAM, cvt_isp_params_dump_cac_attr),
 #if defined(ISP_HW_V39)
     CVT_DUMP_INFO(RESULT_TYPE_DEHAZE_PARAM, cvt_isp_params_dump_dhaz_attr),
     CVT_DUMP_INFO(RESULT_TYPE_RGBIR_PARAM, cvt_isp_params_dump_rgbir_attr),
@@ -1036,37 +1231,15 @@ static const struct params_cvt_dump_info params_dump_cvts[] = {
 #endif
 #define CVT_DUMP_MODS ARRAY_SIZE(params_dump_cvts)
 
-static bool dump_type_is_known(int32_t type) {
-    if (type >= RESULT_TYPE_MAX_PARAM) return false;
-    return params_dump_cvts[type].type == type;
-}
+void cvt_isp_params_dump_by_type(void* self, int type, st_string* result) {
+    AiqCamHwBase_t* pCamHw = (AiqCamHwBase_t*)self;
 
-void cvt_isp_params_dump(AiqIspParamsCvt_t* self, st_string* result, int argc, void* argv[]) {
-    char* mod = (char*)argv[0];
+    for (size_t pos = 0; pos < CVT_DUMP_MODS; pos++) {
+        if ((params_dump_cvts[pos].type == type) && params_dump_cvts[pos].dump) {
+            aiq_info_dump_submod_name(result, "HWI -> isp_convert_params");
+            cvt_isp_params_dump_mod_param(pCamHw->_mIspParamsCvt, result);
 
-    cvt_isp_params_dump_mod_param(self, result);
-
-    if (!argc || strstr(mod, "all")) {
-        for (size_t i = 0; i < CVT_DUMP_MODS; i++) {
-            if (params_dump_cvts[i].dump) params_dump_cvts[i].dump(self, result);
+            params_dump_cvts[pos].dump(pCamHw->_mIspParamsCvt, result);
         }
-
-        return;
-    }
-
-    const char delim = '-';
-    char* token      = strtok((char*)mod, &delim);
-
-    while (NULL != token) {
-        for (size_t i = 0; i < ARRAY_SIZE(Cam3aResultType2Str); i++) {
-            const char* mod_name = Cam3aResultType2Str[i];
-            if (mod_name && strcasestr(mod_name, token)) {
-                for (size_t pos = 0; pos < CVT_DUMP_MODS; pos++) {
-                    if ((params_dump_cvts[pos].type == (int)i) && params_dump_cvts[i].dump)
-                        params_dump_cvts[i].dump(self, result);
-                }
-            }
-        }
-        token = strtok(NULL, &delim);
     }
 }

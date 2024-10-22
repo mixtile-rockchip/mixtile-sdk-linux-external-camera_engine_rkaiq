@@ -206,9 +206,6 @@ aiq_params_base_t* AiqIspParamsCvt_get_3a_result(AiqIspParamsCvt_t* pCvt, AiqLis
                                                  int32_t type);
 void AiqIspParamsCvt_getCommonCvtInfo(AiqIspParamsCvt_t* pCvt, AiqList_t* results, bool use_aiisp);
 void AiqIspParamsCvt_setCalib(AiqIspParamsCvt_t* pCvt, const CamCalibDbV2Context_t* calibv2);
-#if RKAIQ_HAVE_DUMPSYS
-int AiqIspParamsCvt_dump(void* dumper, st_string* result, int argc, void* argv[]);
-#endif
 
 XCAM_END_DECLARE
 #endif

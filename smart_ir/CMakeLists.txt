@@ -21,6 +21,11 @@ if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/rk_smart_ir.c")
 	install(DIRECTORY include/ DESTINATION include/rkaiq/smartIr FILES_MATCHING PATTERN "*.h")
 	install(FILES ${CMAKE_LIBRARY_PATH}/libsmartIr.so DESTINATION lib)
 	install(FILES ${CMAKE_LIBRARY_PATH}/libsmartIr.a DESTINATION lib RENAME libsmartIr.a)
+
+	# if (EXISTS ${PROJECT_SOURCE_DIR}/demo)
+		# add_subdirectory(demo)
+	# endif()
+
 	return()
 endif()
 
@@ -76,6 +81,7 @@ set(RK_AIQ_INSTALLED_DIR "${RK_AIQ_SOURCE_DIR}/build/${OS}/output/${ARCH}/instal
 set(RK_AIQ_LIB_DIR ${RK_AIQ_INSTALLED_DIR}/lib)
 endif()
 message("rkaiq lib path" ${RK_AIQ_LIB_DIR})
+
 set(RK_AIQ_INCLUDE_DIR
 	${RK_AIQ_INSTALLED_DIR}/
 	${RK_AIQ_INSTALLED_DIR}/rkaiq/
@@ -141,3 +147,7 @@ add_library(smartIr_static STATIC ${SMARTIR_SRC})
 install(DIRECTORY include/ DESTINATION include/rkaiq/smartIr FILES_MATCHING PATTERN "*.h")
 install(FILES ${CMAKE_LIBRARY_PATH}/libsmartIr.so DESTINATION lib)
 install(FILES ${CMAKE_LIBRARY_PATH}/libsmartIr_static.a DESTINATION lib RENAME libsmartIr.a)
+
+if (EXISTS ${PROJECT_SOURCE_DIR}/demo)
+	add_subdirectory(demo)
+endif()

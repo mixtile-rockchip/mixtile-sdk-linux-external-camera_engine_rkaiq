@@ -49,6 +49,10 @@ set (GROUP_AE_SRC
 	ae/rk_aiq_group_ae_algo.c
 )
 
+if (RKAIQ_HAVE_DUMPSYS)
+    set(GROUP_AE_SRC ${GROUP_AE_SRC} ae/rk_aiq_group_ae_algo_info.c)
+endif()
+
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ae/rk_aiq_algo_camgroup_ae_itf.c")
 	message(${LIBRARY_OUTPUT_PATH})
 	add_library(rkaiq_camgroup_ae STATIC ${GROUP_AE_SRC})

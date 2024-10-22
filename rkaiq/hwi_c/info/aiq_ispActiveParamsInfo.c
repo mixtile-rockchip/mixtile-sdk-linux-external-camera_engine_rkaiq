@@ -25,14 +25,6 @@
 #include "rk_info_utils.h"
 
 void active_isp_params_dump_mod_param(void* self, int cam_id, st_string* result) {
-#if defined(ISP_HW_V39)
-    struct isp39_isp_params_cfg* params = (struct isp39_isp_params_cfg*)self;
-#elif defined(ISP_HW_V33)
-    struct isp33_isp_params_cfg* params = (struct isp33_isp_params_cfg*)self;
-#else
-    return;
-#endif
-
     char buffer[MAX_LINE_LENGTH] = {0};
 
     aiq_info_dump_title(result, "ISP active params");
@@ -42,8 +34,6 @@ void active_isp_params_dump_mod_param(void* self, int cam_id, st_string* result)
     string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
-
-    uint32_t seq = params->frame_id;
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8d", cam_id);
     string_printf(result, buffer);
@@ -85,7 +75,8 @@ void active_isp_params_dump_bls_status(void* self, st_string* result) {
 
     aiq_info_dump_title(result, "bls mod status");
 
-    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-9s%-11s%-13s%-8s", "en", "bls1_en", "ob_offset",
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-9s%-11s%-12s%-12s%-12s%-12s%-13s%-8s", "en", "bls1_en",
+             "bls1_val.r", "bls1_val.gr", "bls1_val.gb", "bls1_val.b", "ob_offset",
              "ob_predgain", "ob_max");
     string_printf(result, buffer);
     string_printf(result, "\n");
@@ -94,9 +85,10 @@ void active_isp_params_dump_bls_status(void* self, st_string* result) {
     struct isp32_bls_cfg* bls_cfg = &params->others.bls_cfg;
 
     memset(buffer, 0, MAX_LINE_LENGTH);
-    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-9s%-11d%-13d%-8d", en ? "Y" : "N",
-             bls_cfg->bls1_en ? "Y" : "N", bls_cfg->isp_ob_offset, bls_cfg->isp_ob_predgain,
-             bls_cfg->isp_ob_max);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-9s%-11d%-12d%-12d%-12d%-12d%-13d%-8d", en ? "Y" : "N",
+             bls_cfg->bls1_en ? "Y" : "N", bls_cfg->bls1_val.r, bls_cfg->bls1_val.gr,
+             bls_cfg->bls1_val.gb, bls_cfg->bls1_val.b, bls_cfg->isp_ob_offset,
+             bls_cfg->isp_ob_predgain, bls_cfg->isp_ob_max);
 
     string_printf(result, buffer);
     string_printf(result, "\n\n");
@@ -199,6 +191,130 @@ void active_isp_params_dump_wbgain_status(void* self, st_string* result) {
     __dump_awb0_gain(self, buffer, result);
 }
 
+void active_isp_params_dump_rawawb_status(void* self, st_string* result) {
+#if defined(ISP_HW_V39)
+    struct isp39_isp_params_cfg* params =  (struct isp39_isp_params_cfg*)self;
+    struct isp39_rawawb_meas_cfg* awb_cfg = &params->meas.rawawb;
+#elif defined(ISP_HW_V33)
+    struct isp33_isp_params_cfg* params = (struct isp33_isp_params_cfg*)self;
+    struct isp33_rawawb_meas_cfg* awb_cfg = &params->meas.rawawb;
+#else
+    return;
+#endif
+
+    char buffer[MAX_LINE_LENGTH] = {0};
+
+    aiq_info_dump_title(result, "rawawb mod status");
+
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s", "en");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+
+    bool en = params->module_ens & ISP39_MODULE_RAWAWB;
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s", en ? "Y" : "N");
+
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+#if defined(ISP_HW_V33)
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s%-14s", "uvDct_en", "xyDct_en",
+             "drcOut_mod_en", "bnrOut_mod_en", "light_num");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d%-14d", awb_cfg->uv_en0,
+             awb_cfg->xy_en0, awb_cfg->drc2awb_sel, awb_cfg->bnr2awb_sel, awb_cfg->light_num);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+#else
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s%-14s%-14s", "uvDct_en", "xyDct_en",
+             "yuvDct_en", "drcOut_mod_en", "bnrOut_mod_en", "light_num");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d%-14d%-14d", awb_cfg->uv_en0,
+             awb_cfg->xy_en0, awb_cfg->yuv3d_en0, awb_cfg->drc2awb_sel, awb_cfg->bnr2awb_sel, awb_cfg->light_num);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+#endif
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s", "zoneStat_en", "zoneStat_mod",
+             "zoneStat_type", "zoneStat_illu");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d", awb_cfg->blk_measure_enable,
+             awb_cfg->blk_measure_mode, awb_cfg->blk_measure_xytype, awb_cfg->blk_measure_illu_idx);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s", "is12bit", "ds16x8_mode",
+             "ds8x8_mode", "overexpo_th");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d", awb_cfg->low12bit_val,
+             awb_cfg->ds16x8_mode_en, awb_cfg->wind_size, awb_cfg->in_overexposure_threshold);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s%-14s", "mainWin_x", "mainWin_y",
+             "mainWin_width", "mainWin_hegt", "nonROI_en");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d%-14d", awb_cfg->h_offs,
+             awb_cfg->v_offs, awb_cfg->h_size, awb_cfg->v_size, awb_cfg->multiwindow_en);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s", "limit_maxR", "limit_maxG",
+             "limit_maxB", "limit_minY");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d", awb_cfg->r_max,
+             awb_cfg->g_max, awb_cfg->b_max, awb_cfg->y_max);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-6s%-6s%-6s%-6s%-6s%-6s%-6s%-6s%-6s", "luma2WpWgt_en", "w0",
+             "w1", "w2", "w3", "w4", "w5", "w6", "w7", "w8");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-6d%-6d%-6d%-6d%-6d%-6d%-6d%-6d%-6d", awb_cfg->wp_luma_wei_en0,
+             awb_cfg->wp_luma_weicurve_w0, awb_cfg->wp_luma_weicurve_w1, awb_cfg->wp_luma_weicurve_w2,
+             awb_cfg->wp_luma_weicurve_w3, awb_cfg->wp_luma_weicurve_w4, awb_cfg->wp_luma_weicurve_w5,
+             awb_cfg->wp_luma_weicurve_w6, awb_cfg->wp_luma_weicurve_w7, awb_cfg->wp_luma_weicurve_w8);
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+#if defined(ISP_HW_V33)
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-6s%-6s%-6s%-6s%-6s%-6s%-6s%-6s%-6s", "ccm0r", "ccm1r",
+             "ccm2r", "ccm0g", "ccm1g", "ccm1g", "ccm0b", "ccm1b", "ccm1b");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-6d%-6d%-6d%-6d%-6d%-6d%-6d%-6d%-6d", c2trval(15, awb_cfg->ccm_coeff0_r),
+             c2trval(15, awb_cfg->ccm_coeff1_r), c2trval(15, awb_cfg->ccm_coeff2_r), c2trval(15, awb_cfg->ccm_coeff0_g),
+             c2trval(15, awb_cfg->ccm_coeff1_g), c2trval(15, awb_cfg->ccm_coeff2_g), c2trval(15, awb_cfg->ccm_coeff0_b),
+             c2trval(15, awb_cfg->ccm_coeff1_b), c2trval(15, awb_cfg->ccm_coeff2_b));
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+#endif
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s", "pre_wbgain_r", "pre_wbgain_g",
+             "pre_wbgain_b");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d", awb_cfg->pre_wbgain_inv_r,
+             awb_cfg->pre_wbgain_inv_g, awb_cfg->pre_wbgain_inv_b);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+
+}
+
 void active_isp_params_dump_dpc_status(void* self, st_string* result) {
 #if defined(ISP_HW_V39)
     struct isp39_isp_params_cfg* params = (struct isp39_isp_params_cfg*)self;
@@ -212,14 +328,18 @@ void active_isp_params_dump_dpc_status(void* self, st_string* result) {
 
     aiq_info_dump_title(result, "dpc mod status");
 
-    snprintf(buffer, MAX_LINE_LENGTH, "%-5s", "en");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-14s%-16s%-14s%-14s%-14s", "en", "rk_out_sel",
+             "dpcc_output_sel", "use_set_1", "use_set_2", "use_set_3");
     string_printf(result, buffer);
     string_printf(result, "\n");
 
     bool en = params->module_ens & ISP39_MODULE_DPCC;
+    struct isp39_dpcc_cfg* dpc_cfg = &params->others.dpcc_cfg;
 
     memset(buffer, 0, MAX_LINE_LENGTH);
-    snprintf(buffer, MAX_LINE_LENGTH, "%-5s", en ? "Y" : "N");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-14d%-16d%-14d%-14d%-14d", en ? "Y" : "N",
+             dpc_cfg->sw_rk_out_sel, dpc_cfg->sw_dpcc_output_sel, dpc_cfg->stage1_use_set_1,
+             dpc_cfg->stage1_use_set_2, dpc_cfg->stage1_use_set_3);
 
     string_printf(result, buffer);
     string_printf(result, "\n\n");
@@ -1016,6 +1136,86 @@ void active_isp_params_dump_yme_status(void* self, st_string* result) {
 }
 #endif
 
+void active_isp_params_dump_aec_status(void* self, st_string* result) {
+
+    char buffer[MAX_LINE_LENGTH] = {0};
+
+#if defined(ISP_HW_V39)
+    struct isp39_isp_params_cfg* params = (struct isp39_isp_params_cfg*)self;
+    struct isp39_isp_meas_cfg* meas_cfg     = &params->meas;
+#elif defined(ISP_HW_V33)
+    struct isp33_isp_params_cfg* params = (struct isp33_isp_params_cfg*)self;
+    struct isp33_isp_meas_cfg* meas_cfg     = &params->meas;
+#else
+    return;
+#endif
+
+
+    aiq_info_dump_title(result, "aec hwi params");
+
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-8s", "en", "aeswap", "aesel");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+
+    u64 module_en = ISP39_MODULE_RAWAE0 | ISP39_MODULE_RAWAE3 | ISP39_MODULE_RAWHIST0 | ISP39_MODULE_RAWHIST3;
+    bool en = params->module_ens & module_en;
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8d%-8d", en == 1 ? "Y" : "N", meas_cfg->rawae0.rawae_sel, meas_cfg->rawae3.rawae_sel);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-13s%-13s%-13s%-13s", "rawae0:", "win_off_h", "win_off_v", "win_size_h", "win_size_v");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-13d%-13d%-13d%-13d", "",
+             meas_cfg->rawae0.win.h_offs, meas_cfg->rawae0.win.v_offs,
+             meas_cfg->rawae0.win.h_size, meas_cfg->rawae0.win.v_size);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-13s%-13s%-13s%-13s", "rawae3:", "win_off_h", "win_off_v", "win_size_h", "win_size_v");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-13d%-13d%-13d%-13d", "",
+             meas_cfg->rawae3.win.h_offs, meas_cfg->rawae3.win.v_offs,
+             meas_cfg->rawae3.win.h_size, meas_cfg->rawae3.win.v_size);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-13s%-13s%-13s%-13s", "rawhist0:", "win_off_h", "win_off_v", "win_size_h", "win_size_v");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-13d%-13d%-13d%-13d", "",
+             meas_cfg->rawhist0.win.h_offs, meas_cfg->rawhist0.win.v_offs,
+             meas_cfg->rawhist0.win.h_size, meas_cfg->rawhist0.win.v_size);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-13s%-13s%-13s%-13s", "rawhist3:", "win_off_h", "win_off_v", "win_size_h", "win_size_v");
+    string_printf(result, buffer);
+    string_printf(result, "\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-13d%-13d%-13d%-13d", "",
+             meas_cfg->rawhist3.win.h_offs, meas_cfg->rawhist3.win.v_offs,
+             meas_cfg->rawhist3.win.h_size, meas_cfg->rawhist3.win.v_size);
+    string_printf(result, buffer);
+    string_printf(result, "\n\n");
+
+}
+
+
 #define DUMP_INFO(_type, _func) \
     [_type] = {                 \
         .type = _type,          \
@@ -1030,8 +1230,8 @@ struct params_dump_info {
 
 static const struct params_dump_info params_dump[] = {
     DUMP_INFO(RESULT_TYPE_DEBAYER_PARAM, active_isp_params_dump_debayer_status),
-    DUMP_INFO(RESULT_TYPE_AESTATS_PARAM, NULL),
-    DUMP_INFO(RESULT_TYPE_AWB_PARAM, NULL),
+    DUMP_INFO(RESULT_TYPE_AESTATS_PARAM, active_isp_params_dump_aec_status),
+    DUMP_INFO(RESULT_TYPE_AWB_PARAM, active_isp_params_dump_rawawb_status),
     DUMP_INFO(RESULT_TYPE_AWBGAIN_PARAM, active_isp_params_dump_wbgain_status),
     DUMP_INFO(RESULT_TYPE_CCM_PARAM, active_isp_params_dump_ccm_status),
     DUMP_INFO(RESULT_TYPE_AF_PARAM, NULL),
@@ -1052,6 +1252,7 @@ static const struct params_dump_info params_dump[] = {
     DUMP_INFO(RESULT_TYPE_CGC_PARAM, active_isp_params_dump_cgc_status),
     DUMP_INFO(RESULT_TYPE_IE_PARAM, NULL),
     DUMP_INFO(RESULT_TYPE_GAIN_PARAM, active_isp_params_dump_gain_status),
+    DUMP_INFO(RESULT_TYPE_CAC_PARAM, active_isp_params_dump_cac_status),
 #if defined(ISP_HW_V39)
     DUMP_INFO(RESULT_TYPE_DEHAZE_PARAM, active_isp_params_dump_dhaz_status),
     DUMP_INFO(RESULT_TYPE_RGBIR_PARAM, active_isp_params_dump_rgbir_status),
@@ -1066,12 +1267,7 @@ static const struct params_dump_info params_dump[] = {
 #endif
 #define DUMP_MODS ARRAY_SIZE(params_dump)
 
-static bool dump_type_is_known(int32_t type) {
-    if (type >= RESULT_TYPE_MAX_PARAM) return false;
-    return params_dump[type].type == type;
-}
-
-int active_isp_params_dump(void* dumper, st_string* result, int argc, void* argv[]) {
+void active_isp_params_dump_by_type(void* dumper, int type, st_string* result) {
 #if defined(ISP_HW_V39)
     struct isp39_isp_params_cfg isp_params;
     unsigned long cmd = RKISP_CMD_GET_PARAMS_V39;
@@ -1086,38 +1282,19 @@ int active_isp_params_dump(void* dumper, st_string* result, int argc, void* argv
 
     int ret = pCamHw->mIspParamsDev->io_control(pCamHw->mIspParamsDev, cmd, &isp_params);
     if (ret < 0) {
-        string_printf(result, "\nNot supported by ISP driver.");
-        string_printf(result, "\n\n");
-        return -1;
+        LOGW("Not supported by ISP driver.");
+        return;
     }
 
-    char* mod = (char*)argv[0];
+    for (size_t pos = 0; pos < DUMP_MODS; pos++) {
+        if ((params_dump[pos].type == type) && params_dump[pos].dump) {
+            const char* name = NULL;
+            name = aiq_notifier_notify_subscriber_name(&((AiqCamHwBase_t*)dumper)->notifier,
+                                                       Cam3aResult2NotifierType[type]);
+            aiq_info_dump_submod_name(result, name);
+            active_isp_params_dump_mod_param(&isp_params, pCamHw->mCamPhyId, result);
 
-    active_isp_params_dump_mod_param(&isp_params, pCamHw->mCamPhyId, result);
-
-    if (!argc || strstr(mod, "all")) {
-        for (size_t i = 0; i < DUMP_MODS; i++) {
-            if (params_dump[i].dump) params_dump[i].dump(&isp_params, result);
+            params_dump[pos].dump(&isp_params, result);
         }
-
-        return -1;
     }
-
-    const char delim = '-';
-    char* token      = strtok((char*)mod, &delim);
-
-    while (NULL != token) {
-        for (size_t i = 0; i < ARRAY_SIZE(Cam3aResultType2Str); i++) {
-            const char* mod_name = Cam3aResultType2Str[i];
-            if (mod_name && strcasestr(mod_name, token)) {
-                for (size_t pos = 0; pos < DUMP_MODS; pos++) {
-                    if ((params_dump[pos].type == (int)i) && params_dump[i].dump)
-                        params_dump[i].dump(&isp_params, result);
-                }
-            }
-        }
-        token = strtok(NULL, &delim);
-    }
-
-    return 0;
 }

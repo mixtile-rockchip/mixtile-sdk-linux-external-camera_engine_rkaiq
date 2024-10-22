@@ -432,10 +432,3 @@ void AiqIspParamsCvt_deinit(AiqIspParamsCvt_t* pCvt) {
         pCvt->mCvtedIsp39Prams = NULL;
     }
 }
-
-#if RKAIQ_HAVE_DUMPSYS
-int AiqIspParamsCvt_dump(void* dumper, st_string* result, int argc, void* argv[]) {
-    cvt_isp_params_dump((AiqIspParamsCvt_t*)dumper, result, argc, argv);
-    return 0;
-}
-#endif

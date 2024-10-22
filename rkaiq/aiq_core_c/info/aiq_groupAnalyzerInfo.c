@@ -17,16 +17,8 @@
 
 #include "aiq_groupAnalyzerInfo.h"
 
-#include <ctype.h>
-
 #include "aiq_algogroups_manager.h"
 #include "rk_info_utils.h"
-
-static void to_lowercase(const char* src, char* dst) {
-    for (int i = 0; src[i] != '\0'; i++) {
-        dst[i] = tolower(src[i]);
-    }
-}
 
 void group_analyzer_dump_mod_param(AiqAnalyzeGroupManager_t* self, st_string* result) {
     char buffer[MAX_LINE_LENGTH] = {0};
@@ -66,7 +58,7 @@ void group_analyzer_dump_attr(AiqAnalyzeGroupManager_t* self, st_string* result)
 
         memset(buffer, 0, MAX_LINE_LENGTH);
         char lower_case[32] = {0};
-        to_lowercase(AnalyzerGroupType2Str[pGrp->mGroupType], lower_case);
+        xcam_to_lowercase(AnalyzerGroupType2Str[pGrp->mGroupType], lower_case);
 
         if (pGrp->mUserSetDelayCnts == INT8_MAX && pGrp->mAwakenId == (uint32_t)-1)
             snprintf(buffer, MAX_LINE_LENGTH, "%-12s%-12s%-13s%-11s", lower_case,
@@ -90,7 +82,7 @@ void group_analyzer_dump_msg_hdl_status(AiqAnalyzeGroupManager_t* self, st_strin
 
     char buffer[MAX_LINE_LENGTH] = {0};
 
-    aiq_info_dump_title(result, "group analyzer message msg handler status");
+    aiq_info_dump_title(result, "message handler status");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-6s%-10s%-11s", "name", "item_num", "using_num");
     string_printf(result, buffer);
@@ -106,7 +98,7 @@ void group_analyzer_dump_msg_hdl_status(AiqAnalyzeGroupManager_t* self, st_strin
 void group_analyzer_dump_msg_map_status1(AiqAnalyzeGroupManager_t* self, st_string* result) {
     char buffer[MAX_LINE_LENGTH] = {0};
 
-    aiq_info_dump_title(result, "group analyzer message map status 1");
+    aiq_info_dump_title(result, "message map status 1");
 
     bool isFirst             = true;
     AiqAnalyzerGroup_t* pGrp = NULL;
@@ -123,7 +115,7 @@ void group_analyzer_dump_msg_map_status1(AiqAnalyzeGroupManager_t* self, st_stri
         }
 
         char lower_case[32] = {0};
-        to_lowercase(AnalyzerGroupType2Str[pGrp->mGroupType], lower_case);
+        xcam_to_lowercase(AnalyzerGroupType2Str[pGrp->mGroupType], lower_case);
 
         memset(buffer, 0, MAX_LINE_LENGTH);
         snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-10d%-11d%-13d%-11d%-12d", lower_case,
@@ -146,7 +138,7 @@ void group_analyzer_dump_msg_map_status2(AiqAnalyzeGroupManager_t* self, st_stri
         if (!pGrp || aiqMap_size(pGrp->mGroupMsgMap) <= 0) continue;
 
         if (isFirst) {
-            aiq_info_dump_title(result, "group analyzer message map status 2");
+            aiq_info_dump_title(result, "message map status 2");
             isFirst = false;
         }
 
@@ -156,7 +148,7 @@ void group_analyzer_dump_msg_map_status2(AiqAnalyzeGroupManager_t* self, st_stri
         char lower_case[32]             = {0};
         for (uint32_t j = 0; j < grp_conds->size; j++) {
             memset(lower_case, 0, sizeof(lower_case));
-            to_lowercase(MessageType2Str[grp_conds->conds[j].cond], lower_case);
+            xcam_to_lowercase(MessageType2Str[grp_conds->conds[j].cond], lower_case);
             snprintf(buffer + strlen(buffer), MAX_LINE_LENGTH, "%-16s", lower_case);
         }
 
@@ -166,7 +158,7 @@ void group_analyzer_dump_msg_map_status2(AiqAnalyzeGroupManager_t* self, st_stri
         AiqMapItem_t* pItem = NULL;
         bool rm             = false;
         memset(lower_case, 0, sizeof(lower_case));
-        to_lowercase(AnalyzerGroupType2Str[pGrp->mGroupType], lower_case);
+        xcam_to_lowercase(AnalyzerGroupType2Str[pGrp->mGroupType], lower_case);
 
         AIQ_MAP_FOREACH(pGrp->mGroupMsgMap, pItem, rm) {
             memset(buffer, 0, MAX_LINE_LENGTH);

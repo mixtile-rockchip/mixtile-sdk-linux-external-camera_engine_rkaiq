@@ -510,13 +510,13 @@ RkAiqManager::updateCalibDb(const CamCalibDbV2Context_t* newCalibDb)
     ret = mRkAiqAnalyzer->setCalib(mCalibDbV2);
 
     if (!mRkAiqAnalyzer->isRunningState()) {
-        mRkAiqAnalyzer->updateCalibDbBrutal(mCalibDbV2);
+        ret = mRkAiqAnalyzer->updateCalibDbBrutal(mCalibDbV2);
     } else {
-        mRkAiqAnalyzer->calibTuning(mCalibDbV2, &update_list);
+        ret = mRkAiqAnalyzer->calibTuning(mCalibDbV2, &update_list);
     }
 
     EXIT_XCORE_FUNCTION();
-    return XCAM_RETURN_NO_ERROR;
+    return ret;
 }
 
 XCamReturn

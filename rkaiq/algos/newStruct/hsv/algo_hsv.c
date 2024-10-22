@@ -26,6 +26,11 @@
 #include "interpolation.h"
 #include "c_base/aiq_base.h"
 
+#if RKAIQ_HAVE_DUMPSYS
+#include "include/algo_hsv_info.h"
+#include "rk_info_utils.h"
+#endif
+
 static int illu_estm_once(ahsv_param_illuLink_t* illuLinks, uint8_t illuLink_len, float awbGain[2]) {
     int ret = -1;
     uint8_t case_id = 0;
@@ -356,6 +361,17 @@ XCamReturn Ahsv_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
     return XCAM_RETURN_NO_ERROR;
 }
 
+#if RKAIQ_HAVE_DUMPSYS
+static int dump(const RkAiqAlgoCom* config, st_string* result)
+{
+    hsv_dump_mod_param(config, result);
+    hsv_dump_mod_attr(config, result);
+    hsv_dump_mod_status(config, result);
+
+    return 0;
+}
+#endif
+
 static XCamReturn
 create_context
 (
@@ -510,6 +526,9 @@ RkAiqAlgoDescription g_RkIspAlgoDescHsv = {
     .pre_process = NULL,
     .processing = processing,
     .post_process = NULL,
+#if RKAIQ_HAVE_DUMPSYS
+    .dump = dump,
+#endif
 };
 
 //RKAIQ_END_DECLARE

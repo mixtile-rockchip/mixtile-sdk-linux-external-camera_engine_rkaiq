@@ -844,10 +844,18 @@
  * - isp33 support auto blc 
  * - fix memleak for isp33/isp39 camgroup mode 
  * - support dumpsys 
+ * v6.0x8.2
+ * - update isp33 iq files
+ * - fix isp33 4k bugs: image is split to left-right obviously
+ *   - should be updated with this isp driver commit:
+ *     https://10.10.10.29/c/rk/kernel/+/237217
+ * - fix isp33/isp39 switch scene bugs: wrong ie/csm/blc
+ * - fix ae bugs: weight/stats may not be updated sometime
+ * - improve dumpcam 
  */
 
-#define RK_AIQ_VERSION_REAL_V "v6.0x8.1"
-#define RK_AIQ_RELEASE_DATE "2024-09-26"
+#define RK_AIQ_VERSION_REAL_V "v6.0x8.2"
+#define RK_AIQ_RELEASE_DATE "2024-10-24"
 
 #define RK_AIQ_IQ_HEAD_VERSION_REAL_V "v1.0.2"
 

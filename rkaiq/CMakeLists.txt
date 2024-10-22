@@ -105,6 +105,9 @@ if (RKAIQ_HAVE_DUMPSYS)
     set (AIQ_DUMPSYS_INCLUEDE
         hwi_c/info
         aiq_core_c/info
+        dumpcam_server/include
+        dumpcam_server/info/include
+        dumpcam_server/ipcs/include
         )
 endif()
 
@@ -1214,10 +1217,13 @@ if (RKAIQ_HAVE_DUMPSYS)
         hwi_c/info/aiq_streamProcInfo.c
         hwi_c/info/aiq_ispParamsCvtInfo.c
         hwi_c/info/aiq_ispActiveParamsInfo.c
+        hwi_c/info/aiq_hwiIspModsInfo.c
         aiq_core_c/info/aiq_coreInfo.c
         aiq_core_c/info/aiq_coreBufMgrInfo.c
         aiq_core_c/info/aiq_groupAnalyzerInfo.c
         aiq_core_c/info/aiq_coreIspParamsInfo.c
+        aiq_core_c/info/aiq_coreIspModsInfo.c
+        aiq_core_c/info/aiq_coreAlgosInfo.c
         )
 endif()
 

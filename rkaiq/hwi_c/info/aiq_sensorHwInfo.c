@@ -138,7 +138,7 @@ void sensor_dump_dev_attr2(AiqSensorHw_t* self, st_string* result) {
 void sensor_dump_reg_effect_delay(AiqSensorHw_t* self, st_string* result) {
     char buffer[MAX_LINE_LENGTH] = {0};
 
-    aiq_info_dump_title(result, "register effect delay frames");
+    aiq_info_dump_title(result, "register activation delay");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-12s%-12s%-12s", "time_delay", "gain_delay", "dcg_delay");
     string_printf(result, buffer);
@@ -154,18 +154,18 @@ void sensor_dump_reg_effect_delay(AiqSensorHw_t* self, st_string* result) {
 void sensor_dump_exp_list_size(AiqSensorHw_t* self, st_string* result) {
     char buffer[MAX_LINE_LENGTH] = {0};
 
-    aiq_info_dump_title(result, "sensor exp config debug info");
+    aiq_info_dump_title(result, "debug info for exposure config");
 
-    snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-9s%-10s%-16s%-15s%-14s", "seq", "set_cnt", "exp_list",
+    snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-10s%-16s%-15s%-14s", "seq", "exp_list",
              "effect_exp_map", "gain_del_list", "dcg_del_list");
     string_printf(result, buffer);
     string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     aiqMutex_lock(&self->_mutex);
-    snprintf(buffer, MAX_LINE_LENGTH, "%-10d%-9d%-10d%-16d%-15d%-14d", self->_frame_sequence,
-             self->set_exp_cnt, aiqList_size(self->_exp_list),
-             aiqMap_size(self->_effecting_exp_map), aiqList_size(self->_delayed_gain_list),
+    snprintf(buffer, MAX_LINE_LENGTH, "%-10d%-10d%-16d%-15d%-14d", self->_frame_sequence,
+             aiqList_size(self->_exp_list), aiqMap_size(self->_effecting_exp_map),
+             aiqList_size(self->_delayed_gain_list),
              aiqList_size(self->_delayed_dcg_gain_mode_list));
     aiqMutex_unlock(&self->_mutex);
     string_printf(result, buffer);
@@ -175,13 +175,12 @@ void sensor_dump_exp_list_size(AiqSensorHw_t* self, st_string* result) {
 void __dump_configured_linear_exp(AiqSensorHw_t* self, st_string* result) {
     char buffer[MAX_LINE_LENGTH] = {0};
 
-    aiq_info_dump_title(result, "sensor configured linear exp");
+    aiq_info_dump_title(result, "exposure configured to drv");
 
     AiqMapItem_t* pItem = NULL;
     bool rm             = false;
-    snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-6s%-6s%-7s%-11s%-10s%-10s%-10s%-12s%-10s", "seq",
-             "time", "again", "dgain", "isp_dgain", "time_f", "again_f", "dgain_f", "ispdgain_f",
-             "iso");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-6s%-6s%-10s%-10s%-10s%-12s", "seq", "time", "again",
+             "time_f", "again_f", "dgain_f", "ispdgain_f");
     string_printf(result, buffer);
     string_printf(result, "\n");
 
@@ -190,17 +189,14 @@ void __dump_configured_linear_exp(AiqSensorHw_t* self, st_string* result) {
 
         memset(buffer, 0, MAX_LINE_LENGTH);
         AiqSensorExpInfo_t* pExp = *((AiqSensorExpInfo_t**)(pItem->_pData));
-        snprintf(buffer, MAX_LINE_LENGTH, "%-10d%-6d%-6d%-7d%-11d%-10.6f%-10.2f%-10.2f%-12.2f%-10d",
+        snprintf(buffer, MAX_LINE_LENGTH, "%-10d%-6d%-6d%-10.6f%-10.2f%-10.2f%-12.2f",
                  pExp->_base.frame_id,
                  pExp->aecExpInfo.LinearExp.exp_sensor_params.coarse_integration_time,
                  pExp->aecExpInfo.LinearExp.exp_sensor_params.analog_gain_code_global,
-                 pExp->aecExpInfo.LinearExp.exp_sensor_params.digital_gain_global,
-                 pExp->aecExpInfo.LinearExp.exp_sensor_params.isp_digital_gain,
                  pExp->aecExpInfo.LinearExp.exp_real_params.integration_time,
                  pExp->aecExpInfo.LinearExp.exp_real_params.analog_gain,
                  pExp->aecExpInfo.LinearExp.exp_real_params.digital_gain,
-                 pExp->aecExpInfo.LinearExp.exp_real_params.isp_dgain,
-                 pExp->aecExpInfo.LinearExp.exp_real_params.iso);
+                 pExp->aecExpInfo.LinearExp.exp_real_params.isp_dgain);
         string_printf(result, buffer);
         string_printf(result, "\n");
     }
@@ -212,13 +208,12 @@ out:
 void __dump_configured_hdr_short_exp(AiqSensorHw_t* self, st_string* result) {
     char buffer[MAX_LINE_LENGTH] = {0};
 
-    aiq_info_dump_title(result, "sensor configured hdr-short exp");
+    aiq_info_dump_title(result, "HDR short-frame exposure configured to drv");
 
     AiqMapItem_t* pItem = NULL;
     bool rm             = false;
-    snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-6s%-6s%-7s%-11s%-10s%-10s%-10s%-12s%-10s", "id",
-             "time", "again", "dgain", "isp_dgain", "time_f", "again_f", "dgain_f", "ispdgain_f",
-             "iso");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-6s%-6s%-10s%-10s%-10s%-12s", "id", "time", "again",
+             "time_f", "again_f", "dgain_f", "ispdgain_f");
     string_printf(result, buffer);
     string_printf(result, "\n");
 
@@ -228,17 +223,14 @@ void __dump_configured_hdr_short_exp(AiqSensorHw_t* self, st_string* result) {
         memset(buffer, 0, MAX_LINE_LENGTH);
 
         AiqSensorExpInfo_t* pExp = *((AiqSensorExpInfo_t**)(pItem->_pData));
-        snprintf(buffer, MAX_LINE_LENGTH, "%-10d%-6d%-6d%-7d%-11d%-10.6f%-10.2f%-10.2f%-12.2f%-10d",
+        snprintf(buffer, MAX_LINE_LENGTH, "%-10d%-6d%-6d%-10.6f%-10.2f%-10.2f%-12.2f",
                  pExp->_base.frame_id,
                  pExp->aecExpInfo.HdrExp[0].exp_sensor_params.coarse_integration_time,
                  pExp->aecExpInfo.HdrExp[0].exp_sensor_params.analog_gain_code_global,
-                 pExp->aecExpInfo.HdrExp[0].exp_sensor_params.digital_gain_global,
-                 pExp->aecExpInfo.HdrExp[0].exp_sensor_params.isp_digital_gain,
                  pExp->aecExpInfo.HdrExp[0].exp_real_params.integration_time,
                  pExp->aecExpInfo.HdrExp[0].exp_real_params.analog_gain,
                  pExp->aecExpInfo.HdrExp[0].exp_real_params.digital_gain,
-                 pExp->aecExpInfo.HdrExp[0].exp_real_params.isp_dgain,
-                 pExp->aecExpInfo.HdrExp[0].exp_real_params.iso);
+                 pExp->aecExpInfo.HdrExp[0].exp_real_params.isp_dgain);
         string_printf(result, buffer);
         string_printf(result, "\n");
     }
@@ -250,13 +242,12 @@ out:
 void __dump_configured_hdr_middle_exp(AiqSensorHw_t* self, st_string* result) {
     char buffer[MAX_LINE_LENGTH] = {0};
 
-    aiq_info_dump_title(result, "sensor configured hdr-middle exp");
+    aiq_info_dump_title(result, "HDR mid-frame exposure configured to drv");
 
     AiqMapItem_t* pItem = NULL;
     bool rm             = false;
-    snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-6s%-6s%-7s%-11s%-10s%-10s%-10s%-12s%-10s", "id",
-             "time", "again", "dgain", "isp_dgain", "time_f", "again_f", "dgain_f", "ispdgain_f",
-             "iso");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-6s%-6s%-10s%-10s%-10s%-12s", "id", "time", "again",
+             "time_f", "again_f", "dgain_f", "ispdgain_f");
     string_printf(result, buffer);
     string_printf(result, "\n");
 
@@ -266,17 +257,14 @@ void __dump_configured_hdr_middle_exp(AiqSensorHw_t* self, st_string* result) {
         memset(buffer, 0, MAX_LINE_LENGTH);
 
         AiqSensorExpInfo_t* pExp = *((AiqSensorExpInfo_t**)(pItem->_pData));
-        snprintf(buffer, MAX_LINE_LENGTH, "%-10d%-6d%-6d%-7d%-11d%-10.6f%-10.2f%-10.2f%-12.2f%-10d",
+        snprintf(buffer, MAX_LINE_LENGTH, "%-10d%-6d%-6d%-10.6f%-10.2f%-10.2f%-12.2f",
                  pExp->_base.frame_id,
                  pExp->aecExpInfo.HdrExp[1].exp_sensor_params.coarse_integration_time,
                  pExp->aecExpInfo.HdrExp[1].exp_sensor_params.analog_gain_code_global,
-                 pExp->aecExpInfo.HdrExp[1].exp_sensor_params.digital_gain_global,
-                 pExp->aecExpInfo.HdrExp[1].exp_sensor_params.isp_digital_gain,
                  pExp->aecExpInfo.HdrExp[1].exp_real_params.integration_time,
                  pExp->aecExpInfo.HdrExp[1].exp_real_params.analog_gain,
                  pExp->aecExpInfo.HdrExp[1].exp_real_params.digital_gain,
-                 pExp->aecExpInfo.HdrExp[1].exp_real_params.isp_dgain,
-                 pExp->aecExpInfo.HdrExp[1].exp_real_params.iso);
+                 pExp->aecExpInfo.HdrExp[1].exp_real_params.isp_dgain);
         string_printf(result, buffer);
         string_printf(result, "\n");
     }
@@ -288,13 +276,12 @@ out:
 void __dump_configured_hdr_long_exp(AiqSensorHw_t* self, st_string* result) {
     char buffer[MAX_LINE_LENGTH] = {0};
 
-    aiq_info_dump_title(result, "sensor configured hdr-long exp");
+    aiq_info_dump_title(result, "HDR long-frame exposure configured to drv");
 
     AiqMapItem_t* pItem = NULL;
     bool rm             = false;
-    snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-6s%-6s%-7s%-11s%-10s%-10s%-10s%-12s%-10s", "id",
-             "time", "again", "dgain", "isp_dgain", "time_f", "again_f", "dgain_f", "ispdgain_f",
-             "iso");
+    snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-6s%-6s%-10s%-10s%-10s%-12s", "id", "time", "again",
+             "time_f", "again_f", "dgain_f", "ispdgain_f");
     string_printf(result, buffer);
     string_printf(result, "\n");
 
@@ -304,17 +291,14 @@ void __dump_configured_hdr_long_exp(AiqSensorHw_t* self, st_string* result) {
         memset(buffer, 0, MAX_LINE_LENGTH);
 
         AiqSensorExpInfo_t* pExp = *((AiqSensorExpInfo_t**)(pItem->_pData));
-        snprintf(buffer, MAX_LINE_LENGTH, "%-10d%-6d%-6d%-7d%-11d%-10.6f%-10.2f%-10.2f%-12.2f%-10d",
+        snprintf(buffer, MAX_LINE_LENGTH, "%-10d%-6d%-6d%-10.6f%-10.2f%-10.2f%-12.2f",
                  pExp->_base.frame_id,
                  pExp->aecExpInfo.HdrExp[2].exp_sensor_params.coarse_integration_time,
                  pExp->aecExpInfo.HdrExp[2].exp_sensor_params.analog_gain_code_global,
-                 pExp->aecExpInfo.HdrExp[2].exp_sensor_params.digital_gain_global,
-                 pExp->aecExpInfo.HdrExp[2].exp_sensor_params.isp_digital_gain,
                  pExp->aecExpInfo.HdrExp[2].exp_real_params.integration_time,
                  pExp->aecExpInfo.HdrExp[2].exp_real_params.analog_gain,
                  pExp->aecExpInfo.HdrExp[2].exp_real_params.digital_gain,
-                 pExp->aecExpInfo.HdrExp[2].exp_real_params.isp_dgain,
-                 pExp->aecExpInfo.HdrExp[2].exp_real_params.iso);
+                 pExp->aecExpInfo.HdrExp[2].exp_real_params.isp_dgain);
         string_printf(result, buffer);
         string_printf(result, "\n");
     }

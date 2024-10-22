@@ -206,9 +206,13 @@ void rk_aiq_drc40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
         }
     } else if (cvtinfo->frameNum > 1) {
         if (L2S_Ratio * drc_gain > MAX_AE_DRC_GAIN) {
-            LOGE_ATMO("%s:  AERatio*sw_drcT_toneGain_maxLimit > 256x!!!\n", __FUNCTION__);
+            LOGE_ATMO(
+                "%s:  AERatio(%f)*sw_drcT_toneGain_maxLimit(%f): %f > 256x!!! Please change AE HDR "
+                "parameters and DRC sw_drcT_toneGain_maxLimit vaule.\n",
+                __FUNCTION__, L2S_Ratio, drc_gain, L2S_Ratio * drc_gain);
             if (L2S_Ratio < GAINMIN) {
-                LOGE_ATMO("%s:  AERatio < 1x!!!\n", __FUNCTION__);
+                LOGE_ATMO("%s:  AERatio: %f < 1x!!! Please check AE status.\n", __FUNCTION__,
+                          L2S_Ratio);
                 L2S_Ratio = GAINMIN;
             }
             drc_gain = MAX(MAX_AE_DRC_GAIN / L2S_Ratio, GAINMIN);
@@ -219,15 +223,21 @@ void rk_aiq_drc40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
 #if ISP_HW_V33
     if (cvtinfo->frameNum > 1) {
         if (L2S_Ratio * drc_gain > MAX_AE_DRC_GAIN_RV1103B) {
-            LOGE_ATMO("%s:  AERatio*sw_drcT_toneGain_maxLimit > 32x!!!\n", __FUNCTION__);
+            LOGE_ATMO(
+                "%s:  AERatio(%f)*sw_drcT_toneGain_maxLimit(%f): %f > 32x!!! Please change AE HDR "
+                "parameters and DRC sw_drcT_toneGain_maxLimit vaule.\n",
+                __FUNCTION__, L2S_Ratio, drc_gain, L2S_Ratio * drc_gain);
             if (L2S_Ratio > MAX_AE_DRC_GAIN_RV1103B) {
-                LOGE_ATMO("%s:  AERatio > 32x, which leads to the loss of highlight region.\n",
-                          __FUNCTION__);
+                LOGE_ATMO(
+                    "%s:  AERatio: %f > 32x, which leads to the loss of highlight region. Please "
+                    "change AE parameters to decrease AE ratio value.\n",
+                    __FUNCTION__, L2S_Ratio);
                 L2S_Ratio = MAX_AE_DRC_GAIN_RV1103B;
                 drc_gain  = GAINMIN;
             } else {
                 if (L2S_Ratio < GAINMIN) {
-                    LOGE_ATMO("%s:  AERatio < 1x!!!\n", __FUNCTION__);
+                    LOGE_ATMO("%s:  AERatio: %f < 1x!!! Please check AE status.\n", __FUNCTION__,
+                              L2S_Ratio);
                     L2S_Ratio = GAINMIN;
                 }
                 drc_gain = MAX(MAX_AE_DRC_GAIN_RV1103B / L2S_Ratio, GAINMIN);

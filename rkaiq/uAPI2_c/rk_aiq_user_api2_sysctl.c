@@ -683,16 +683,25 @@ rk_aiq_uapi2_sysctl_resetCam(const rk_aiq_sys_ctx_t* sys_ctx, int camId)
 static void
 rk_aiq_uapi2_sysctl_deinit_locked(rk_aiq_sys_ctx_t* ctx)
 {
+#if RKAIQ_HAVE_DUMPSYS
+    aiq_ipcs_exit();
+    RKAIQRegistry_deinit();
+#endif
+
     if (ctx->_rkAiqManager) {
         AiqManager_deinit(ctx->_rkAiqManager);
 		aiq_free(ctx->_rkAiqManager);
 	}
 
-	if (ctx->_camHw)
-		aiq_free(ctx->_camHw);
+    if (ctx->_camHw) {
+        aiq_free(ctx->_camHw);
+        ctx->_camHw = NULL;
+    }
 
-	if (ctx->_analyzer)
-		aiq_free(ctx->_analyzer);
+    if (ctx->_analyzer) {
+        aiq_free(ctx->_analyzer);
+        ctx->_analyzer = NULL;
+    }
 
     if (ctx->_socket) {
         socket_client_exit(ctx->_socket);
@@ -715,11 +724,6 @@ rk_aiq_uapi2_sysctl_deinit_locked(rk_aiq_sys_ctx_t* ctx)
 
     if (ctx->_sensor_entity_name)
         xcam_free((void*)(ctx->_sensor_entity_name));
-
-#if RKAIQ_HAVE_DUMPSYS
-    aiq_ipcs_exit();
-    RKAIQRegistry_deinit();
-#endif
 
     LOGK("cid[%d] %s success.", ctx->_camPhyId, __func__);
 #if 0
@@ -1729,7 +1733,9 @@ rk_aiq_uapi2_sysctl_switch_scene(const rk_aiq_sys_ctx_t* sys_ctx,
 				GlobalParamsManager_t* paramsManager = &cam_ctx->_rkAiqManager->mGlobalParamsManager;
 				GlobalParamsManager_switchCalibDb(paramsManager, &new_calib, true);
 				ret = AiqManager_updateCalibDb(cam_ctx->_rkAiqManager, &new_calib);
-                if (ret) {
+                if (ret == XCAM_RETURN_ERROR_TIMEOUT) {
+                    LOGE("cid[%d] %s: switch scene timeout\n", cam_ctx->_camPhyId, __func__);
+                } else if (ret) {
                     LOGE("failed to switch scene\n");
                     return ret;
                 }
@@ -1763,7 +1769,9 @@ rk_aiq_uapi2_sysctl_switch_scene(const rk_aiq_sys_ctx_t* sys_ctx,
 		GlobalParamsManager_t* paramsManager = &sys_ctx->_rkAiqManager->mGlobalParamsManager;
 		GlobalParamsManager_switchCalibDb(paramsManager, &new_calib, true);
         ret = AiqManager_updateCalibDb(sys_ctx->_rkAiqManager, &new_calib);
-        if (ret) {
+        if (ret == XCAM_RETURN_ERROR_TIMEOUT) {
+            LOGE("cid[%d] %s: switch scene timeout\n", sys_ctx->_camPhyId, __func__);
+        } else if (ret) {
             LOGE("failed to switch scene\n");
             return ret;
         }
@@ -1771,7 +1779,7 @@ rk_aiq_uapi2_sysctl_switch_scene(const rk_aiq_sys_ctx_t* sys_ctx,
 
     LOGK("cid[%d] %s: success. main:%s, sub:%s", sys_ctx->_camPhyId, __func__, main_scene, sub_scene);
 
-    return XCAM_RETURN_NO_ERROR;
+    return ret;
 }
 
 XCamReturn

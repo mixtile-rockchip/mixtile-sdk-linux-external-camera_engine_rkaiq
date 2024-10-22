@@ -1027,8 +1027,10 @@ XCamReturn AiqV4l2Device_qbuf(AiqV4l2Device_t* v4l2_dev, AiqV4l2Buffer_t* buf, b
     struct v4l2_buffer v4l2_buf_s;
     struct v4l2_buffer* v4l2_buf = &v4l2_buf_s;
     struct v4l2_plane planes[v4l2_dev->_mplanes_count];
+    uint32_t sequence = 0;
 
     if (!locked) aiqMutex_lock(&v4l2_dev->_buf_mutex);
+    if (buf) sequence = AiqV4l2Buffer_getSequence(buf);
 
     XCAM_ASSERT(buf);
     AiqV4l2Buffer_reset(buf);
@@ -1086,6 +1088,8 @@ XCamReturn AiqV4l2Device_qbuf(AiqV4l2Device_t* v4l2_dev, AiqV4l2Buffer_t* buf, b
 
         return XCAM_RETURN_ERROR_IOCTL;
     }
+
+    AiqV4l2Buffer_setSequence(buf, sequence);
 
     return XCAM_RETURN_NO_ERROR;
 }

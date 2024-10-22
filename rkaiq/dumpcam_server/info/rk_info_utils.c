@@ -71,3 +71,20 @@ RK_VOID aiq_info_dump_value(st_string *result, string_list *valueList) {
 
     return;
 }
+
+RK_VOID aiq_info_dump_mod_name(st_string* result, const char* name) {
+    char buffer[MAX_LINE_LENGTH] = {0};
+
+    string_printf(result, "╔══════════════════════════════════════════════════════════════╗\n");
+    snprintf(buffer, MAX_LINE_LENGTH, "║  Module: %-50s  ║\n", name);
+    string_printf(result, buffer);
+    string_printf(result, "╠══════════════════════════════════════════════════════════════╣\n");
+}
+
+RK_VOID aiq_info_dump_submod_name(st_string* result, const char* name) {
+    char buffer[MAX_LINE_LENGTH] = {0};
+
+    snprintf(buffer, MAX_LINE_LENGTH, "║    └── Sub-module: %-42s║\n", name);
+    string_printf(result, buffer);
+    string_printf(result, "╚══════════════════════════════════════════════════════════════╝\n");
+}

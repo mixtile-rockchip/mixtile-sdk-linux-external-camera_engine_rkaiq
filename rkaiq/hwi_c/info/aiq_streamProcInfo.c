@@ -26,9 +26,6 @@
 void stream_proc_dump_mod_param(AiqRawStreamProcUnit_t* self, st_string* result) {
     char buffer[MAX_LINE_LENGTH] = {0};
 
-    snprintf(buffer, MAX_LINE_LENGTH, "[%s]:\n", "HWI -> stream_proc");
-    string_printf(result, buffer);
-
     aiq_info_dump_title(result, "stream proc module param");
     snprintf(buffer, MAX_LINE_LENGTH, "%-12s", "drop_frame");
     string_printf(result, buffer);

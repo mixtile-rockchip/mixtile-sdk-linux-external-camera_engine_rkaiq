@@ -25,9 +25,6 @@
 void stream_cap_dump_mod_param(AiqRawStreamCapUnit_t* self, st_string* result) {
     char buffer[MAX_LINE_LENGTH] = {0};
 
-    snprintf(buffer, MAX_LINE_LENGTH, "[%s]:\n", "HWI -> stream_cap");
-    string_printf(result, buffer);
-
     aiq_info_dump_title(result, "stream cap module param");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-12s", "drop_frame");

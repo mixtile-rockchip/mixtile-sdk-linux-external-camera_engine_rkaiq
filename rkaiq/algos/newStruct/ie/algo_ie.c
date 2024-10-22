@@ -90,6 +90,9 @@ prepare(RkAiqAlgoCom* params)
         }
     }
 
+    pIeCtx->ie_attrib =
+        (ie_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(params->u.prepare.calibv2, ie));
+
     return result;
 }
 

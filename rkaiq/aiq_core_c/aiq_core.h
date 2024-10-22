@@ -322,6 +322,7 @@ typedef struct AiqCore_s {
     struct aiq_notifier_subscriber sub_buf_mgr;
     struct aiq_notifier_subscriber sub_grp_analyzer;
     struct aiq_notifier_subscriber sub_isp_params;
+    struct aiq_notifier_subscriber sub_isp_mods[_MODS_COUNT];
 
     AiqCorePoolNofreeBufCnt_t mNoFreeBufCnt;
     AiqCoreIsStatsAvail_t mIsStatsAvail;

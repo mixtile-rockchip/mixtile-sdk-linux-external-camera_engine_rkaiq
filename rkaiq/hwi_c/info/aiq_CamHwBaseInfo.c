@@ -126,7 +126,7 @@ void hwi_base_dump_stats_videobuf_status(AiqCamHwBase_t* self, st_string* result
     for (int32_t i = 0; i < cnt; i++) {
         AiqV4l2Buffer_t* buf = AiqV4l2Device_getBufByIndex(self->mIspStatsDev, i);
         snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-10d%-9d%-7d%-8d%-11d%-6d%-10d%-10d",
-                 AiqV4l2Device_getDevName(self->mIspStatsDev), self->stats.id,
+                 AiqV4l2Device_getDevName(self->mIspStatsDev), AiqV4l2Buffer_getSequence(buf),
                  AiqV4l2Buffer_getV4lBufIndex(buf), AiqV4l2Buffer_getExpbufFd(buf),
                  AiqV4l2Buffer_getQueued(buf), AiqV4l2Buffer_getV4lBufLength(buf), buf->_ref_cnts,
                  AiqV4l2Device_getMemType(self->mIspStatsDev),
@@ -154,7 +154,7 @@ void hwi_base_dump_params_videobuf_status(AiqCamHwBase_t* self, st_string* resul
     for (int32_t i = 0; i < cnt; i++) {
         AiqV4l2Buffer_t* buf = AiqV4l2Device_getBufByIndex(self->mIspParamsDev, i);
         snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-10d%-9d%-7d%-8d%-11d%-6d%-10d%-10d",
-                 AiqV4l2Device_getDevName(self->mIspParamsDev), self->stats.id,
+                 AiqV4l2Device_getDevName(self->mIspParamsDev), AiqV4l2Buffer_getSequence(buf),
                  AiqV4l2Buffer_getV4lBufIndex(buf), AiqV4l2Buffer_getExpbufFd(buf),
                  AiqV4l2Buffer_getQueued(buf), AiqV4l2Buffer_getV4lBufLength(buf), buf->_ref_cnts,
                  AiqV4l2Device_getMemType(self->mIspParamsDev),

@@ -869,6 +869,7 @@ static XCamReturn AeDemoPrepare(RkAiqAlgoCom* params)
         }
     } else {
         if(algo_ctx->isGrpMode) {
+            LOGE("GROUP PREPARE");
 #ifdef RKAIQ_ENABLE_CAMGROUP
             ret = g_RkIspAlgoDescCamgroupAe.prepare(params);
 #endif
@@ -1126,6 +1127,27 @@ static XCamReturn AeDemoPostProcess(const RkAiqAlgoCom* inparams, RkAiqAlgoResCo
     return XCAM_RETURN_NO_ERROR;
 }
 
+#if RKAIQ_HAVE_DUMPSYS
+static XCamReturn AeDemoDump(const RkAiqAlgoCom* inparams, st_string* result)
+{
+    RESULT ret = RK_AIQ_RET_SUCCESS;
+
+    RkAiqAlgoContext* algo_ctx = inparams->ctx;
+
+    if(algo_ctx->cbs == NULL) {
+
+        if(algo_ctx->isGrpMode) {
+#ifdef RKAIQ_ENABLE_CAMGROUP
+            ret = g_RkIspAlgoDescCamgroupAe.dump(inparams, result);
+#endif
+        } else {
+            ret = g_RkIspAlgoDescAe.dump(inparams, result);
+        }
+    }
+
+    return XCAM_RETURN_NO_ERROR;
+}
+#endif
 //static std::map<rk_aiq_sys_ctx_t*, RkAiqAlgoDescription*> g_customAe_desc_map;
 
 XCamReturn
@@ -1201,6 +1223,9 @@ rk_aiq_uapi2_ae_register(const rk_aiq_sys_ctx_t* ctx, rk_aiq_pfnAe_t* cbs)
     desc->pre_process = AeDemoPreProcess;
     desc->processing = AeDemoProcessing;
     desc->post_process = AeDemoPostProcess;
+#if RKAIQ_HAVE_DUMPSYS
+    desc->dump = AeDemoDump;
+#endif
 
     static RkAiqGrpCondition_t aeGrpCondV3x[] = {
         [0] = {XCAM_MESSAGE_AEC_STATS_OK, ISP_PARAMS_EFFECT_DELAY_CNT},
@@ -1277,6 +1302,9 @@ rk_aiq_uapi2_ae_register(const rk_aiq_sys_ctx_t* ctx, rk_aiq_pfnAe_t* cbs)
         desc->pre_process = AeDemoPreProcess;
         desc->processing = AeDemoGroupProcessing;
         desc->post_process = AeDemoPostProcess;
+#if RKAIQ_HAVE_DUMPSYS
+        desc->dump = AeDemoDump;
+#endif
 
         struct RkAiqAlgoDesCommExt algoDes_group[] = {
 #if defined(ISP_HW_V39)

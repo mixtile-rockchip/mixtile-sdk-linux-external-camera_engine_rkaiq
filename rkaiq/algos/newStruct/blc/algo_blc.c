@@ -79,11 +79,14 @@ prepare(RkAiqAlgoCom* params)
             pBlcCtx->blc_attrib =
                 (blc_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(params->u.prepare.calibv2, blc));
             pBlcCtx->iso_list = params->u.prepare.calibv2->sensor_info->iso_list;
-            pBlcCtx->isReCal_ = true;
+            return XCAM_RETURN_NO_ERROR;
         }
     }
 
+    pBlcCtx->blc_attrib =
+        (blc_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(params->u.prepare.calibv2, blc));
     pBlcCtx->iso_list = params->u.prepare.calibv2->sensor_info->iso_list;
+    pBlcCtx->isReCal_ = true;
     LOG1_ABLC("%s: (exit)\n", __FUNCTION__ );
     return result;
 }

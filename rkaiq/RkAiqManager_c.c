@@ -28,6 +28,10 @@
 
 extern sensor_info_share_t g_rk1608_share_inf;
 
+#if RKAIQ_HAVE_DUMPSYS
+static int __dump_mods(void* self, st_string* result, int argc, void* argv[]);
+#endif
+
 static XCamReturn hwResCb(void* pCtx, AiqHwEvt_t* hwres)
 {
     ENTER_XCORE_FUNCTION();
@@ -609,7 +613,11 @@ XCamReturn AiqManager_init(AiqManager_t* pAiqManager, const char* sns_ent_name, 
 	if (!pAiqManager->mParamsList)
 		LOGE_ANALYZER("init %s error", paramsListCfg._name);
 
-	return ret;
+#if RKAIQ_HAVE_DUMPSYS
+        pAiqManager->dump_mods = __dump_mods;
+#endif
+
+        return ret;
 }
 
 XCamReturn AiqManager_prepare(AiqManager_t* pAiqManager, uint32_t width, uint32_t height, rk_aiq_working_mode_t mode)
@@ -821,11 +829,11 @@ XCamReturn AiqManager_updateCalibDb(AiqManager_t* pAiqManager, const CamCalibDbV
 		strcpy(update_list.moduleNames[0], "colorAsGrey");
 		strcpy(update_list.moduleNames[1], "ALL");
 		update_list.moduleNamesSize = 2;
-        AiqCore_calibTuning(pAiqManager->mRkAiqAnalyzer, pAiqManager->mCalibDbV2, &update_list);
+        ret = AiqCore_calibTuning(pAiqManager->mRkAiqAnalyzer, pAiqManager->mCalibDbV2, &update_list);
     }
 
     EXIT_XCORE_FUNCTION();
-    return XCAM_RETURN_NO_ERROR;
+    return ret;
 }
 
 XCamReturn AiqManager_syncSofEvt(AiqManager_t* pAiqManager, AiqHwEvt_t* hwres)
@@ -952,3 +960,50 @@ XCamReturn AiqManager_setVicapStreamMode(AiqManager_t* pAiqManager, int on, bool
 {
     return AiqCamHw_setVicapStreamMode(pAiqManager->mCamHw, on, isSingleMode);
 }
+
+#if RKAIQ_HAVE_DUMPSYS
+static int __dump_mods(void* self, st_string* result, int argc, void* argv[]) {
+    if (!self) return -1;
+
+    AiqManager_t* mgr = (AiqManager_t*)self;
+    char argvArray[256][256];
+    char* extended_argv[256];
+    int extended_argc = 0;
+
+    extended_argv[0] = argvArray[0];
+    extended_argc++;
+
+    if (argc > 0) {
+        char mod[32] = {0};
+        xcam_to_lowercase((char*)argv[0], mod);
+
+        snprintf(argvArray[extended_argc], sizeof(argvArray[extended_argc]), "--%s", mod);
+        extended_argv[extended_argc] = argvArray[extended_argc];
+        extended_argc++;
+    }
+
+    {
+        AiqCore_t* analyzer = mgr->mRkAiqAnalyzer;
+
+        if (analyzer && analyzer->dump_algos) {
+            snprintf(argvArray[0], sizeof(argvArray[0]), "%s", "algo");
+            extended_argv[0] = argvArray[0];
+
+            analyzer->dump_algos(analyzer, result, extended_argc, (void**)extended_argv);
+        }
+    }
+
+    {
+        AiqCamHwBase_t* cam_hw = mgr->mCamHw;
+
+        if (cam_hw && cam_hw->dump) {
+            snprintf(argvArray[0], sizeof(argvArray[0]), "%s", "hwi");
+            extended_argv[0] = argvArray[0];
+
+            cam_hw->dump(cam_hw, result, extended_argc, (void**)extended_argv);
+        }
+    }
+
+    return 0;
+}
+#endif

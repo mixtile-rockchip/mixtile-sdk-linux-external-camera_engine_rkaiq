@@ -339,6 +339,19 @@ static XCamReturn AwbDemoPostProcess(const RkAiqAlgoCom* inparams, RkAiqAlgoResC
 }
 
 //static std::map<rk_aiq_sys_ctx_t*, RkAiqAlgoDescription*> g_customAwb_desc_map;
+#if RKAIQ_HAVE_DUMPSYS
+static int dump(const RkAiqAlgoCom* inparams, st_string* result)
+{
+
+    //aiq_info_dump_title(result, "awb status");
+    RkAiqAwbAlgoContext2* algo_ctx = (RkAiqAwbAlgoContext2*)inparams->ctx;
+    if(algo_ctx->isRkCb){
+        return (awb_dump(inparams, result));
+    }
+
+    return 0;
+}
+#endif
 
 XCamReturn
 rk_aiq_uapi2_awb_register(const rk_aiq_sys_ctx_t* ctx, rk_aiq_customeAwb_cbs_t* cbs)
@@ -410,7 +423,9 @@ rk_aiq_uapi2_awb_register(const rk_aiq_sys_ctx_t* ctx, rk_aiq_customeAwb_cbs_t* 
     desc->pre_process = AwbDemoPreProcess;
     desc->processing = AwbDemoProcessing;
     desc->post_process = AwbDemoPostProcess;
-
+#if RKAIQ_HAVE_DUMPSYS
+    desc->dump= dump;
+#endif
     static RkAiqGrpCondition_t awbGrpCond[] = {
         [0] = {XCAM_MESSAGE_SOF_INFO_OK, 0},
         [1] = {XCAM_MESSAGE_AE_PRE_RES_OK, 0},
@@ -496,7 +511,9 @@ rk_aiq_uapi2_awb_register(const rk_aiq_sys_ctx_t* ctx, rk_aiq_customeAwb_cbs_t* 
     desc->pre_process = AwbDemoPreProcess;
     desc->processing = AwbDemoGroupProcessing;
     desc->post_process = AwbDemoPostProcess;
-
+#if RKAIQ_HAVE_DUMPSYS
+    desc->dump= dump;
+#endif
     struct RkAiqAlgoDesCommExt algoDes_camgroup[] = {
         { &desc->common, RK_AIQ_CORE_ANALYZE_AWB,  1, 2, 32, {0, 0}},
         { NULL, RK_AIQ_CORE_ANALYZE_ALL, 0,  0,  0, {0, 0} },

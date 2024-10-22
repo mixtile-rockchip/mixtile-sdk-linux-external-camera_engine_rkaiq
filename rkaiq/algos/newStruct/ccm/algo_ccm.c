@@ -27,6 +27,11 @@
 #include "interpolation.h"
 #include "c_base/aiq_base.h"
 
+#if RKAIQ_HAVE_DUMPSYS
+#include "include/algo_ccm_info.h"
+#include "rk_info_utils.h"
+#endif
+
 // RKAIQ_BEGIN_DECLARE
 
 static int illu_estm_once(accm_param_illuLink_t *illuLinks, uint8_t illuLink_len, float awbGain[2]) {
@@ -530,6 +535,17 @@ processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outparams)
     return XCAM_RETURN_NO_ERROR;
 }
 
+#if RKAIQ_HAVE_DUMPSYS
+static int dump(const RkAiqAlgoCom* config, st_string* result)
+{
+    // ccm_dump_mod_param(config, result);
+    // ccm_dump_mod_attr(config, result);
+    ccm_dump_mod_status(config, result);
+
+    return 0;
+}
+#endif
+
 XCamReturn
 algo_ccm_queryaccmStatus
 (
@@ -619,6 +635,9 @@ RkAiqAlgoDescription g_RkIspAlgoDescCcm = {
     .pre_process = NULL,
     .processing = processing,
     .post_process = NULL,
+#if RKAIQ_HAVE_DUMPSYS
+    .dump = dump,
+#endif
 };
 
 // RKAIQ_END_DECLARE
