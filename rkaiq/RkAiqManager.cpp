@@ -510,13 +510,13 @@ RkAiqManager::updateCalibDb(const CamCalibDbV2Context_t* newCalibDb)
     ret = mRkAiqAnalyzer->setCalib(mCalibDbV2);
 
     if (!mRkAiqAnalyzer->isRunningState()) {
-        ret = mRkAiqAnalyzer->updateCalibDbBrutal(mCalibDbV2);
+        mRkAiqAnalyzer->updateCalibDbBrutal(mCalibDbV2);
     } else {
-        ret = mRkAiqAnalyzer->calibTuning(mCalibDbV2, &update_list);
+        mRkAiqAnalyzer->calibTuning(mCalibDbV2, &update_list);
     }
 
     EXIT_XCORE_FUNCTION();
-    return ret;
+    return XCAM_RETURN_NO_ERROR;
 }
 
 XCamReturn
@@ -1356,7 +1356,8 @@ void RkAiqManager::unsetTuningCalibDb(bool isNeedFreeCalib)
 XCamReturn RkAiqManager::setVicapStreamMode(int on, bool isSingleMode)
 {
     SmartPtr<CamHwIsp20> camHwIsp20 = mCamHw.dynamic_cast_ptr<CamHwIsp20>();
-    return camHwIsp20->setVicapStreamMode(on, isSingleMode);
+    mRkAiqAnalyzer->setAovMode(!on);
+    return camHwIsp20->setVicapStreamMode(on, isSingleMode);;
 }
 
 } //namespace RkCam

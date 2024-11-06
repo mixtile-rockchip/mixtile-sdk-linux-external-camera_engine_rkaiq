@@ -2592,11 +2592,10 @@ XCamReturn RkAiqCore::calibTuning(const CamCalibDbV2Context_t* aiqCalib,
         return XCAM_RETURN_ERROR_PARAM;
     }
 
-    XCamReturn ret = XCAM_RETURN_NO_ERROR;
-
     // Fill new calib to the AlogsSharedParams
     mAlogsComSharedParams.calibv2 = aiqCalib;
     LOGK_ANALYZER("new calib %p", aiqCalib);
+    mAlogsComSharedParams.conf_type = RK_AIQ_ALGO_CONFTYPE_UPDATECALIB;
 
     for (int i = 0; i < change_name_list->moduleNamesSize; i++) {
         char* name = change_name_list->moduleNames[i];
@@ -2640,11 +2639,12 @@ XCamReturn RkAiqCore::calibTuning(const CamCalibDbV2Context_t* aiqCalib,
     }
 
     notifyUpdate(grpMask);
-    if (mState != RK_AIQ_CORE_STATE_RUNNING)
+    if (mState != RK_AIQ_CORE_STATE_RUNNING || mIsAovMode)
         updateCalib(RK_AIQ_CORE_ANALYZE_ALL);
     else {
-        ret = waitUpdateDone();
+        waitUpdateDone();
     }
+    mAlogsComSharedParams.conf_type &= ~RK_AIQ_ALGO_CONFTYPE_UPDATECALIB;
 
     EXIT_ANALYZER_FUNCTION();
 
@@ -3728,9 +3728,6 @@ XCamReturn RkAiqCore::updateCalib(enum rk_aiq_core_analyze_type_e type)
     prepare(type);
     // clear group bit after update
     groupUpdateMask &= (~need_update);
-    if (groupUpdateMask == 0) {
-        mAlogsComSharedParams.conf_type &= ~RK_AIQ_ALGO_CONFTYPE_UPDATECALIB;
-    }
     // notify update done
     _update_done_cond.broadcast();
 
@@ -3741,7 +3738,6 @@ XCamReturn RkAiqCore::notifyUpdate(uint64_t mask)
 {
     SmartLock lock (_update_mutex);
 
-    mAlogsComSharedParams.conf_type = RK_AIQ_ALGO_CONFTYPE_UPDATECALIB;
     groupUpdateMask |= mask;
 
     return XCamReturn();
@@ -3758,7 +3754,6 @@ XCamReturn RkAiqCore::waitUpdateDone()
 
     if (groupUpdateMask != 0) {
         LOGW_ANALYZER("calib not updated completely !");
-        return XCAM_RETURN_ERROR_TIMEOUT;
     }
 
     return XCamReturn();

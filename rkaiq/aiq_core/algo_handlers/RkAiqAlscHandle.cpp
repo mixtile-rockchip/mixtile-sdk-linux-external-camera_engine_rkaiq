@@ -195,8 +195,14 @@ XCamReturn RkAiqAlscHandleInt::prepare() {
         alsc_config_int->alsc_sw_info.otpInfo.flag = 0;
     }
 
+#ifdef DISABLE_HANDLE_ATTRIB
+    mCfgMutex.lock();
+#endif
     RkAiqAlgoDescription* des = (RkAiqAlgoDescription*)mDes;
     ret                       = des->prepare(mConfig);
+#ifdef DISABLE_HANDLE_ATTRIB
+    mCfgMutex.unlock();
+#endif
     RKAIQCORE_CHECK_RET(ret, "alsc algo prepare failed");
 
     EXIT_ANALYZER_FUNCTION();

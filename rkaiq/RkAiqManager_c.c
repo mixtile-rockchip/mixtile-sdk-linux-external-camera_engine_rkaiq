@@ -829,11 +829,11 @@ XCamReturn AiqManager_updateCalibDb(AiqManager_t* pAiqManager, const CamCalibDbV
 		strcpy(update_list.moduleNames[0], "colorAsGrey");
 		strcpy(update_list.moduleNames[1], "ALL");
 		update_list.moduleNamesSize = 2;
-        ret = AiqCore_calibTuning(pAiqManager->mRkAiqAnalyzer, pAiqManager->mCalibDbV2, &update_list);
+        AiqCore_calibTuning(pAiqManager->mRkAiqAnalyzer, pAiqManager->mCalibDbV2, &update_list);
     }
 
     EXIT_XCORE_FUNCTION();
-    return ret;
+    return XCAM_RETURN_NO_ERROR;
 }
 
 XCamReturn AiqManager_syncSofEvt(AiqManager_t* pAiqManager, AiqHwEvt_t* hwres)
@@ -958,6 +958,7 @@ XCamReturn AiqManager_calibTuning(AiqManager_t* pAiqManager, CamCalibDbV2Context
 
 XCamReturn AiqManager_setVicapStreamMode(AiqManager_t* pAiqManager, int on, bool isSingleMode)
 {
+    AiqCore_setAovMode(pAiqManager->mRkAiqAnalyzer, !on);
     return AiqCamHw_setVicapStreamMode(pAiqManager->mCamHw, on, isSingleMode);
 }
 

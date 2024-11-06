@@ -1146,8 +1146,14 @@ XCamReturn RkAiqAeHandleInt::prepare() {
     ae_config_int->compr_bit = sharedCom->snsDes.compr_bit;
     ae_config_int->dcg_ratio = sharedCom->snsDes.dcg_ratio;
 
+#ifdef DISABLE_HANDLE_ATTRIB
+    mCfgMutex.lock();
+#endif
     RkAiqAlgoDescription* des = (RkAiqAlgoDescription*)mDes;
     ret                       = des->prepare(mConfig);
+#ifdef DISABLE_HANDLE_ATTRIB
+    mCfgMutex.unlock();
+#endif
     RKAIQCORE_CHECK_RET(ret, "ae algo prepare failed");
 
     EXIT_ANALYZER_FUNCTION();

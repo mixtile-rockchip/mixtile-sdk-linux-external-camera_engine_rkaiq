@@ -313,6 +313,8 @@ typedef struct AiqCore_s {
     rk_aiq_user_otp_info_t mUserOtpInfo;
     GlobalParamsManager_t* mGlobalParamsManger;
 
+    bool mIsAovMode;
+
 #if RKAIQ_HAVE_DUMPSYS
     int (*dump_algos)(void* self, st_string* result, int argc, void* argv[]);
     int (*dump_core)(void* self, st_string* result, int argc, void* argv[]);
@@ -433,6 +435,9 @@ XCamReturn AiqCore_setUserOtpInfo(AiqCore_t* pAiqCore, rk_aiq_user_otp_info_t ot
 bool AiqCore_isGroupAlgo(AiqCore_t* pAiqCore, int algoType);
 XCamReturn AiqCore_register3Aalgo(AiqCore_t* pAiqCore, void* algoDes, void* cbs);
 XCamReturn AiqCore_unregister3Aalgo(AiqCore_t* pAiqCore, int algoType);
+
+#define AiqCore_setAovMode(pAiqCore, mode) \
+        pAiqCore->mIsAovMode = mode;
 
 RKAIQ_END_DECLARE
 

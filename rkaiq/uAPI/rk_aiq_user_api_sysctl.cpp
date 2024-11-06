@@ -2072,9 +2072,7 @@ int rk_aiq_uapi_sysctl_switch_scene(const rk_aiq_sys_ctx_t* sys_ctx,
                 }
 
                 ret = cam_ctx->_rkAiqManager->updateCalibDb(&new_calib);
-                if (ret == XCAM_RETURN_ERROR_TIMEOUT) {
-                    LOGE("cid[%d] %s: switch scene timeout\n", cam_ctx->_camPhyId, __func__);
-                } else if (ret) {
+                if (ret) {
                     LOGE("failed to switch scene\n");
                     return ret;
                 }
@@ -2111,9 +2109,7 @@ int rk_aiq_uapi_sysctl_switch_scene(const rk_aiq_sys_ctx_t* sys_ctx,
             return ret;
         }
         ret = sys_ctx->_rkAiqManager->updateCalibDb(&new_calib);
-        if (ret == XCAM_RETURN_ERROR_TIMEOUT) {
-            LOGE("cid[%d] %s: switch scene timeout\n", sys_ctx->_camPhyId, __func__);
-        } else if (ret) {
+        if (ret) {
             LOGE("failed to switch scene\n");
             return ret;
         }
@@ -2121,7 +2117,7 @@ int rk_aiq_uapi_sysctl_switch_scene(const rk_aiq_sys_ctx_t* sys_ctx,
 
     LOGK("cid[%d] %s: success. main:%s, sub:%s", sys_ctx->_camPhyId, __func__, main_scene, sub_scene);
 
-    return ret;
+    return XCAM_RETURN_NO_ERROR;
 }
 
 #if defined(ISP_HW_V33)

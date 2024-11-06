@@ -93,8 +93,10 @@ static XCamReturn _handlerAe_prepare(AiqAlgoHandler_t* pAlgoHandler) {
     ae_config_int->compr_bit = sharedCom->snsDes.compr_bit;
     ae_config_int->dcg_ratio = sharedCom->snsDes.dcg_ratio;
 
+    aiqMutex_lock(&pAlgoHandler->mCfgMutex);
     RkAiqAlgoDescription* des = (RkAiqAlgoDescription*)pAlgoHandler->mDes;
     ret                       = des->prepare(pAlgoHandler->mConfig);
+    aiqMutex_unlock(&pAlgoHandler->mCfgMutex);
     RKAIQCORE_CHECK_RET(ret, "ae algo prepare failed");
 
     EXIT_ANALYZER_FUNCTION();

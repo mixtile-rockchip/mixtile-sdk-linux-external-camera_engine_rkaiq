@@ -2999,7 +2999,6 @@ static void mapModStrListToEnum(AiqCore_t* pAiqCore, TuningCalib* change_name_li
 
 static XCamReturn notifyUpdate(AiqCore_t* pAiqCore, uint64_t mask) {
     aiqMutex_lock(&pAiqCore->_update_mutex);
-    pAiqCore->mAlogsComSharedParams.conf_type = RK_AIQ_ALGO_CONFTYPE_UPDATECALIB;
     pAiqCore->groupUpdateMask |= mask;
     aiqMutex_unlock(&pAiqCore->_update_mutex);
 
@@ -3016,8 +3015,6 @@ static XCamReturn waitUpdateDone(AiqCore_t* pAiqCore) {
 
     if (pAiqCore->groupUpdateMask != 0) {
         LOGW_ANALYZER("calib not updated completely !");
-        aiqMutex_unlock(&pAiqCore->_update_mutex);
-        return XCAM_RETURN_ERROR_TIMEOUT;
     }
 
     aiqMutex_unlock(&pAiqCore->_update_mutex);
@@ -3081,9 +3078,6 @@ XCamReturn AiqCore_updateCalib(AiqCore_t * pAiqCore, enum rk_aiq_core_analyze_ty
     _prepare(pAiqCore, type);
     // clear group bit after update
     pAiqCore->groupUpdateMask &= (~need_update);
-    if (pAiqCore->groupUpdateMask == 0) {
-        pAiqCore->mAlogsComSharedParams.conf_type &= ~RK_AIQ_ALGO_CONFTYPE_UPDATECALIB;
-    }
     // notify update done
     aiqCond_broadcast(&pAiqCore->_update_done_cond);
     aiqMutex_unlock(&pAiqCore->_update_mutex);
@@ -3100,11 +3094,10 @@ XCamReturn AiqCore_calibTuning(AiqCore_t* pAiqCore, const CamCalibDbV2Context_t*
         return XCAM_RETURN_ERROR_PARAM;
     }
 
-    XCamReturn ret = XCAM_RETURN_NO_ERROR;
-
     // Fill new calib to the AlogsSharedParams
     pAiqCore->mAlogsComSharedParams.calibv2 = aiqCalib;
     LOGK_ANALYZER("new calib %p", aiqCalib);
+    pAiqCore->mAlogsComSharedParams.conf_type = RK_AIQ_ALGO_CONFTYPE_UPDATECALIB;
 
 	for (int i = 0; i < change_name_list->moduleNamesSize; i++) {
         char* name = change_name_list->moduleNames[i];
@@ -3133,15 +3126,16 @@ XCamReturn AiqCore_calibTuning(AiqCore_t* pAiqCore, const CamCalibDbV2Context_t*
     }
 
     notifyUpdate(pAiqCore, grpMask);
-    if (pAiqCore->mState != RK_AIQ_CORE_STATE_RUNNING)
+    if (pAiqCore->mState != RK_AIQ_CORE_STATE_RUNNING || pAiqCore->mIsAovMode)
         AiqCore_updateCalib(pAiqCore, RK_AIQ_CORE_ANALYZE_ALL);
     else {
-        ret = waitUpdateDone(pAiqCore);
+        waitUpdateDone(pAiqCore);
     }
+    pAiqCore->mAlogsComSharedParams.conf_type &= ~RK_AIQ_ALGO_CONFTYPE_UPDATECALIB;
 
     EXIT_ANALYZER_FUNCTION();
 
-    return ret;
+    return XCAM_RETURN_NO_ERROR;
 }
 
 XCamReturn AiqCore_setMemsSensorIntf(AiqCore_t* pAiqCore, const rk_aiq_mems_sensor_intf_t* intf) {

@@ -47,8 +47,10 @@ static XCamReturn _handlerDrc_prepare(AiqAlgoHandler_t* pAlgoHandler) {
     RkAiqAlgoConfigDrc* adrc_config_int     = (RkAiqAlgoConfigDrc*)pAlgoHandler->mConfig;
     RkAiqAlgosComShared_t* sharedCom = &pAlgoHandler->mAiqCore->mAlogsComSharedParams;
 
+    GlobalParamsManager_lockAlgoParam(pAlgoHandler->mAiqCore->mGlobalParamsManger, pAlgoHandler->mResultType);
     RkAiqAlgoDescription* des = (RkAiqAlgoDescription*)pAlgoHandler->mDes;
     ret                       = des->prepare(pAlgoHandler->mConfig);
+    GlobalParamsManager_unlockAlgoParam(pAlgoHandler->mAiqCore->mGlobalParamsManger, pAlgoHandler->mResultType);
     RKAIQCORE_CHECK_RET(ret, "drc algo prepare failed");
 
     EXIT_ANALYZER_FUNCTION();
