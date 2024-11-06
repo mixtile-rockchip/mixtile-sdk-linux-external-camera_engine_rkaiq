@@ -15,7 +15,7 @@
 #define USE_IPC_SERVER
 
 #ifdef USE_IPC_SERVER
-#define LOCALSOCKET_NAME "/tmp/UNIX.domain0"
+#define LOCALSOCKET_NAME "/tmp/UNIX.domain"
 #else
 #ifdef __ANDROID__
 #define LOCALSOCKET_NAME "/dev/socket/camera_tool"
@@ -137,9 +137,9 @@ static void *ClientThreadFunc(void *p)
     memset (&addr, 0, sizeof (addr));
 
     /* unix_path_max appears to be missing on linux */
-    namelen = strlen(LOCALSOCKET_NAME);
     addr.sun_family = AF_LOCAL;
-    strcpy(addr.sun_path, LOCALSOCKET_NAME);
+    sprintf(addr.sun_path, "%s%d", LOCALSOCKET_NAME, cid);
+    namelen = strlen(addr.sun_path);
     alen = namelen + offsetof(struct sockaddr_un, sun_path) + 1;
     LOGD_IPC("%s[%d]: local client sun_path %s, len %d", __func__, cid, addr.sun_path, namelen);
 
