@@ -2606,6 +2606,11 @@ static XCamReturn _setLensVcmModInfo(AiqCamHwBase_t* pCamHw, struct rkmodule_inf
                     new_cfg.start_ma = start_ma - (int)(range * posture_diff);
                     new_cfg.rated_ma = rated_ma + (int)(range * posture_diff);
 
+                    if (new_cfg.start_ma < 0)
+                        new_cfg.start_ma = 0;
+                    if (new_cfg.rated_ma > 1023)
+                        new_cfg.rated_ma = 1023;
+
                     LOGD_AF("posture_diff %f, start_ma %d -> %d, rated_ma %d -> %d", posture_diff,
                             start_ma, new_cfg.start_ma, rated_ma, new_cfg.rated_ma);
                 }
@@ -4964,6 +4969,8 @@ static XCamReturn _setIspConfig(AiqCamHwBase_t* pCamHw, AiqList_t* result_list) 
             }
         }
 
+        pCamHw->_curIspParamsSeq = frameId;
+
         LOGD_CAMHW_SUBM(
             ISP20HW_SUBM,
             "Config id(%u)'s isp params, full_en 0x%llx ens 0x%llx ens_up 0x%llx, cfg_up 0x%llx", isp_params->frame_id,
@@ -6253,7 +6260,7 @@ static int AiqCamHw_dump(void* pCamHw, st_string* result, int argc, void* argv[]
         if (_gHelp || argc < 0) {
             _gHelp = 0;
             argparse_usage_string(&argparse, buffer);
-            string_printf(result, buffer);
+            aiq_string_printf(result, buffer);
         }
     }
 

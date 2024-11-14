@@ -39,8 +39,8 @@ void cvt_isp_params_dump_mod_param(AiqIspParamsCvt_t* self, st_string* result) {
     aiq_info_dump_title(result, "convert isp params module param");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-10s%-18s%-18s", "phychn", "seq", "en_upd", "cfg_upd");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
 
@@ -48,8 +48,8 @@ void cvt_isp_params_dump_mod_param(AiqIspParamsCvt_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8d%-10d%-#18llx%-#18llx", self->_CamPhyId, seq,
              params->module_en_update, params->module_cfg_update);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_rgbir_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -58,16 +58,16 @@ void cvt_isp_params_dump_rgbir_attr(AiqIspParamsCvt_t* self, st_string* result) 
     aiq_info_dump_title(result, "rgbir mod attr");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s", "en");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en                           = self->mCvtedIsp39Prams->module_ens & ISP39_MODULE_RGBIR;
     struct isp39_rgbir_cfg* rgbir_cfg = &self->mCvtedIsp39Prams->others.rgbir_cfg;
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s", en ? "Y" : "N");
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_bls_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -86,8 +86,8 @@ void cvt_isp_params_dump_bls_attr(AiqIspParamsCvt_t* self, st_string* result) {
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-9s%-11s%-12s%-12s%-12s%-12s%-13s%-8s", "en", "bls1_en",
              "bls1_val.r", "bls1_val.gr", "bls1_val.gb", "bls1_val.b", "ob_offset",
              "ob_predgain", "ob_max");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en                       = params->module_ens & ISP39_MODULE_BLS;
     struct isp32_bls_cfg* bls_cfg = &params->others.bls_cfg;
@@ -98,8 +98,8 @@ void cvt_isp_params_dump_bls_attr(AiqIspParamsCvt_t* self, st_string* result) {
              bls_cfg->bls1_val.gb, bls_cfg->bls1_val.b, bls_cfg->isp_ob_offset,
              bls_cfg->isp_ob_predgain, bls_cfg->isp_ob_max);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 static void __dump_awb1_gain(AiqIspParamsCvt_t* self, char* buffer, st_string* result) {
@@ -116,13 +116,13 @@ static void __dump_awb1_gain(AiqIspParamsCvt_t* self, char* buffer, st_string* r
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s", "wb1_gain0_r", "wb1_gain0_gr",
              "wb1_gain0_gb", "wb1_gain0_b");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d", wb_cfg->awb1_gain_r,
              wb_cfg->awb1_gain_gr, wb_cfg->awb1_gain_gb, wb_cfg->awb1_gain_b);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 static void __dump_awb0_gain(AiqIspParamsCvt_t* self, char* buffer, st_string* result) {
@@ -139,35 +139,35 @@ static void __dump_awb0_gain(AiqIspParamsCvt_t* self, char* buffer, st_string* r
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s", "wb0_gain0_r", "wb0_gain0_gr",
              "wb0_gain0_gb", "wb0_gain0_b");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d", wb_cfg->gain0_red,
              wb_cfg->gain0_green_r, wb_cfg->gain0_green_b, wb_cfg->gain0_blue);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s", "wb0_gain1_r", "wb0_gain1_gr",
              "wb0_gain1_gb", "wb0_gain1_b");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d", wb_cfg->gain1_red,
              wb_cfg->gain1_green_r, wb_cfg->gain1_green_b, wb_cfg->gain1_blue);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s", "wb0_gain2_r", "wb0_gain2_gr",
              "wb0_gain2_gb", "wb0_gain2_b");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d", wb_cfg->gain2_red,
              wb_cfg->gain2_green_r, wb_cfg->gain2_green_b, wb_cfg->gain2_blue);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_wbgain_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -184,16 +184,16 @@ void cvt_isp_params_dump_wbgain_attr(AiqIspParamsCvt_t* self, st_string* result)
     aiq_info_dump_title(result, "awb gain mod attr");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s", "en");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en = params->module_ens & ISP39_MODULE_AWB_GAIN;
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s", en ? "Y" : "N");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     if (!self->_working_mode)
         __dump_awb1_gain(self, buffer, result);
@@ -217,110 +217,110 @@ void cvt_isp_params_dump_rawawb_attr(AiqIspParamsCvt_t* self, st_string* result)
     aiq_info_dump_title(result, "rawawb mod attr");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s", "en");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en = params->module_ens & ISP39_MODULE_RAWAWB;
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s", en ? "Y" : "N");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 #if defined(ISP_HW_V33)
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s%-14s", "uvDct_en", "xyDct_en",
              "drcOut_mod_en", "bnrOut_mod_en", "light_num");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d%-14d", awb_cfg->uv_en0,
              awb_cfg->xy_en0, awb_cfg->drc2awb_sel, awb_cfg->bnr2awb_sel, awb_cfg->light_num);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 #else
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s%-14s%-14s", "uvDct_en", "xyDct_en",
              "yuvDct_en", "drcOut_mod_en", "bnrOut_mod_en", "light_num");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d%-14d%-14d", awb_cfg->uv_en0,
              awb_cfg->xy_en0, awb_cfg->yuv3d_en0, awb_cfg->drc2awb_sel, awb_cfg->bnr2awb_sel, awb_cfg->light_num);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 #endif
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s", "zoneStat_en", "zoneStat_mod",
              "zoneStat_type", "zoneStat_illu");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d", awb_cfg->blk_measure_enable,
              awb_cfg->blk_measure_mode, awb_cfg->blk_measure_xytype, awb_cfg->blk_measure_illu_idx);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s", "is12bit", "ds16x8_mode",
              "ds8x8_mode", "overexpo_th");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d", awb_cfg->low12bit_val,
              awb_cfg->ds16x8_mode_en, awb_cfg->wind_size, awb_cfg->in_overexposure_threshold);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s%-14s", "mainWin_x", "mainWin_y",
              "mainWin_width", "mainWin_hegt", "nonROI_en");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d%-14d", awb_cfg->h_offs,
              awb_cfg->v_offs, awb_cfg->h_size, awb_cfg->v_size, awb_cfg->multiwindow_en);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s", "limit_maxR", "limit_maxG",
              "limit_maxB", "limit_minY");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d", awb_cfg->r_max,
              awb_cfg->g_max, awb_cfg->b_max, awb_cfg->y_max);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-6s%-6s%-6s%-6s%-6s%-6s%-6s%-6s%-6s", "luma2WpWgt_en", "w0",
              "w1", "w2", "w3", "w4", "w5", "w6", "w7", "w8");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-6d%-6d%-6d%-6d%-6d%-6d%-6d%-6d%-6d", awb_cfg->wp_luma_wei_en0,
              awb_cfg->wp_luma_weicurve_w0, awb_cfg->wp_luma_weicurve_w1, awb_cfg->wp_luma_weicurve_w2,
              awb_cfg->wp_luma_weicurve_w3, awb_cfg->wp_luma_weicurve_w4, awb_cfg->wp_luma_weicurve_w5,
              awb_cfg->wp_luma_weicurve_w6, awb_cfg->wp_luma_weicurve_w7, awb_cfg->wp_luma_weicurve_w8);
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 #if defined(ISP_HW_V33)
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-6s%-6s%-6s%-6s%-6s%-6s%-6s%-6s%-6s", "ccm0r", "ccm1r",
              "ccm2r", "ccm0g", "ccm1g", "ccm1g", "ccm0b", "ccm1b", "ccm1b");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     snprintf(buffer, MAX_LINE_LENGTH, "%-6d%-6d%-6d%-6d%-6d%-6d%-6d%-6d%-6d", c2trval(15, awb_cfg->ccm_coeff0_r),
              c2trval(15, awb_cfg->ccm_coeff1_r), c2trval(15, awb_cfg->ccm_coeff2_r), c2trval(15, awb_cfg->ccm_coeff0_g),
              c2trval(15, awb_cfg->ccm_coeff1_g), c2trval(15, awb_cfg->ccm_coeff2_g), c2trval(15, awb_cfg->ccm_coeff0_b),
              c2trval(15, awb_cfg->ccm_coeff1_b), c2trval(15, awb_cfg->ccm_coeff2_b));
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 #endif
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s", "pre_wbgain_r", "pre_wbgain_g",
              "pre_wbgain_b");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d", awb_cfg->pre_wbgain_inv_r,
              awb_cfg->pre_wbgain_inv_g, awb_cfg->pre_wbgain_inv_b);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
 
 }
@@ -340,8 +340,8 @@ void cvt_isp_params_dump_dpc_attr(AiqIspParamsCvt_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-14s%-16s%-14s%-14s%-14s", "en", "rk_out_sel",
              "dpcc_output_sel", "use_set_1", "use_set_2", "use_set_3");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en = params->module_ens & ISP39_MODULE_DPCC;
     struct isp39_dpcc_cfg* dpc_cfg = &params->others.dpcc_cfg;
@@ -351,8 +351,8 @@ void cvt_isp_params_dump_dpc_attr(AiqIspParamsCvt_t* self, st_string* result) {
              dpc_cfg->sw_rk_out_sel, dpc_cfg->sw_dpcc_output_sel, dpc_cfg->stage1_use_set_1,
              dpc_cfg->stage1_use_set_2, dpc_cfg->stage1_use_set_3);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_lsc_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -370,8 +370,8 @@ void cvt_isp_params_dump_lsc_attr(AiqIspParamsCvt_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-8s%-8s%-8s%-8s%-9s%-9s%-8s", "en", "x_size",
              "y_size", "x_grad", "y_grad", "r_data", "gr_data", "gb_data", "b_data");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en                       = params->module_ens & ISP39_MODULE_LSC;
     struct isp3x_lsc_cfg* lsc_cfg = &params->others.lsc_cfg;
@@ -382,8 +382,8 @@ void cvt_isp_params_dump_lsc_attr(AiqIspParamsCvt_t* self, st_string* result) {
              lsc_cfg->y_grad_tbl[0], lsc_cfg->r_data_tbl[0], lsc_cfg->gr_data_tbl[0],
              lsc_cfg->gb_data_tbl[0], lsc_cfg->b_data_tbl[0]);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_gic_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -392,8 +392,8 @@ void cvt_isp_params_dump_gic_attr(AiqIspParamsCvt_t* self, st_string* result) {
     aiq_info_dump_title(result, "gic mod attr");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s", "en", "bypass");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en                       = self->mCvtedIsp39Prams->module_ens & ISP39_MODULE_GIC;
     struct isp39_gic_cfg* gic_cfg = &self->mCvtedIsp39Prams->others.gic_cfg;
@@ -401,8 +401,8 @@ void cvt_isp_params_dump_gic_attr(AiqIspParamsCvt_t* self, st_string* result) {
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s", en ? "Y" : "N", gic_cfg->bypass_en ? "Y" : "N");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_debayer_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -425,8 +425,8 @@ void cvt_isp_params_dump_debayer_attr(AiqIspParamsCvt_t* self, st_string* result
 #elif defined(ISP_HW_V33)
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-10s", "en", "bypass", "g_flt_en");
 #endif
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en = params->module_ens & ISP39_MODULE_DEBAYER;
 
@@ -439,8 +439,8 @@ void cvt_isp_params_dump_debayer_attr(AiqIspParamsCvt_t* self, st_string* result
              dm_cfg->g_out_flt_en ? "Y" : "N");
 #endif
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 static void __dump_ccm_coeff(AiqIspParamsCvt_t* self, char* buffer, st_string* result) {
@@ -457,26 +457,26 @@ static void __dump_ccm_coeff(AiqIspParamsCvt_t* self, char* buffer, st_string* r
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-10s%-10s%-10s%-10s%-10s%-10s%-10s", "coeff0_r",
              "coeff1_r", "coeff2_r", "offset_r", "coeff0_g", "coeff1_g", "coeff2_g", "offset_g");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-10d%-10d%-10d%-10d%-10d%-10d%-10d%-10d", ccm_cfg->coeff0_r,
              ccm_cfg->coeff1_r, ccm_cfg->coeff2_r, ccm_cfg->offset_r, ccm_cfg->coeff0_g,
              ccm_cfg->coeff1_g, ccm_cfg->coeff2_g, ccm_cfg->offset_g);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-10s%-10s%-10s%-10s%-10s%-10s", "coeff0_b", "coeff1_b",
              "coeff2_b", "offset_b", "coeff0_y", "coeff1_y", "coeff2_y");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-10d%-10d%-10d%-10d%-10d%-10d%-10d", ccm_cfg->coeff0_b,
              ccm_cfg->coeff1_b, ccm_cfg->coeff2_b, ccm_cfg->offset_b, ccm_cfg->coeff0_y,
              ccm_cfg->coeff1_y, ccm_cfg->coeff2_y);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 static void __dump_ccm_alp(AiqIspParamsCvt_t* self, char* buffer, st_string* result) {
@@ -493,26 +493,26 @@ static void __dump_ccm_alp(AiqIspParamsCvt_t* self, char* buffer, st_string* res
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s", "alp_y0", "alp_y1",
              "alp_y2", "alp_y3", "alp_y4", "alp_y5", "alp_y6", "alp_y7", "alp_y8");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8d%-8d%-8d%-8d%-8d%-8d%-8d%-8d%-8d", ccm_cfg->alp_y[0],
              ccm_cfg->alp_y[1], ccm_cfg->alp_y[2], ccm_cfg->alp_y[3], ccm_cfg->alp_y[4],
              ccm_cfg->alp_y[5], ccm_cfg->alp_y[6], ccm_cfg->alp_y[7], ccm_cfg->alp_y[8]);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-9s%-9s%-9s%-9s%-9s%-9s%-9s%-9s", "alp_y9", "alp_y10",
              "alp_y11", "alp_y12", "alp_y13", "alp_y14", "alp_y15", "alp_y16", "alp_y17");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8d%-9d%-9d%-9d%-9d%-9d%-9d%-9d%-9d", ccm_cfg->alp_y[9],
              ccm_cfg->alp_y[10], ccm_cfg->alp_y[11], ccm_cfg->alp_y[12], ccm_cfg->alp_y[13],
              ccm_cfg->alp_y[14], ccm_cfg->alp_y[15], ccm_cfg->alp_y[16], ccm_cfg->alp_y[17]);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_ccm_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -532,8 +532,8 @@ void cvt_isp_params_dump_ccm_attr(AiqIspParamsCvt_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-11s%-12s%-12s%-12s", "en", "hi_adj_en", "enh_adj_en",
              "asym_adj_en", "sat_decay_en");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en = params->module_ens & ISP39_MODULE_CCM;
 
@@ -542,8 +542,8 @@ void cvt_isp_params_dump_ccm_attr(AiqIspParamsCvt_t* self, st_string* result) {
              ccm_cfg->highy_adjust_dis, ccm_cfg->enh_adj_en ? "Y" : "N",
              ccm_cfg->asym_adj_en ? "Y" : "N", ccm_cfg->sat_decay_en ? "Y" : "N");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     __dump_ccm_coeff(self, buffer, result);
     __dump_ccm_alp(self, buffer, result);
@@ -563,8 +563,8 @@ void cvt_isp_params_dump_gammaout_attr(AiqIspParamsCvt_t* self, st_string* resul
     aiq_info_dump_title(result, "gammaout mod attr");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-10s%-12s%-10s", "en", "equ_segm", "fx4_den_en", "y0");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en                                 = params->module_ens & ISP39_MODULE_GOC;
     struct isp3x_gammaout_cfg* gammaout_cfg = &params->others.gammaout_cfg;
@@ -573,8 +573,8 @@ void cvt_isp_params_dump_gammaout_attr(AiqIspParamsCvt_t* self, st_string* resul
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-10d%-12s%-10d", en ? "Y" : "N", gammaout_cfg->equ_segm,
              gammaout_cfg->finalx4_dense_en ? "Y" : "N", gammaout_cfg->gamma_y[0]);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_cp_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -592,8 +592,8 @@ void cvt_isp_params_dump_cp_attr(AiqIspParamsCvt_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-11s%-11s%-11s%-6s%-8s%-5s%-5s", "en", "c_o_range",
              "y_i_range", "y_o_range", "cont", "bright", "sat", "hue");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en                        = params->module_ens & ISP39_MODULE_CPROC;
     struct isp2x_cproc_cfg* cp_cfg = &params->others.cproc_cfg;
@@ -603,8 +603,8 @@ void cvt_isp_params_dump_cp_attr(AiqIspParamsCvt_t* self, st_string* result) {
              cp_cfg->c_out_range, cp_cfg->y_in_range, cp_cfg->y_out_range, cp_cfg->contrast,
              cp_cfg->brightness, cp_cfg->sat, cp_cfg->hue);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_sdg_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -613,16 +613,16 @@ void cvt_isp_params_dump_sdg_attr(AiqIspParamsCvt_t* self, st_string* result) {
     aiq_info_dump_title(result, "SDG mod attr");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s", "en");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en = self->mCvtedIsp39Prams->module_ens & ISP39_MODULE_SDG;
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s", en ? "Y" : "N");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_drc_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -641,8 +641,8 @@ void cvt_isp_params_dump_drc_attr(AiqIspParamsCvt_t* self, st_string* result) {
     aiq_info_dump_title(result, "drc mod attr");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-10s%-9s", "en", "bypass", "cmps_byp", "gx32_en");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en = params->module_ens & ISP39_MODULE_DRC;
 
@@ -651,8 +651,8 @@ void cvt_isp_params_dump_drc_attr(AiqIspParamsCvt_t* self, st_string* result) {
              drc_cfg->bypass_en ? "Y" : "N", drc_cfg->cmps_byp_en ? "Y" : "N",
              drc_cfg->gainx32_en ? "Y" : "N");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_mge_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -669,8 +669,8 @@ void cvt_isp_params_dump_mge_attr(AiqIspParamsCvt_t* self, st_string* result) {
     aiq_info_dump_title(result, "hdr merge mod attr");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-6s", "en", "s_base", "mode");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en                          = params->module_ens & ISP39_MODULE_HDRMGE;
     struct isp32_hdrmge_cfg* mge_cfg = &params->others.hdrmge_cfg;
@@ -679,8 +679,8 @@ void cvt_isp_params_dump_mge_attr(AiqIspParamsCvt_t* self, st_string* result) {
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8d%-6d", en ? "Y" : "N", mge_cfg->s_base,
              mge_cfg->mode);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_dhaz_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -690,8 +690,8 @@ void cvt_isp_params_dump_dhaz_attr(AiqIspParamsCvt_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-7s%-9s%-10s%-11s%-8s%-10s%-12s%-13s", "en", "dc_en",
              "hist_en", "map_mode", "air_lc_en", "enh_en", "round_en", "color_devi", "enh_luma_en");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en                         = self->mCvtedIsp39Prams->module_ens & ISP39_MODULE_DHAZ;
     struct isp39_dhaz_cfg* dhaz_cfg = &self->mCvtedIsp39Prams->others.dhaz_cfg;
@@ -703,8 +703,8 @@ void cvt_isp_params_dump_dhaz_attr(AiqIspParamsCvt_t* self, st_string* result) {
              dhaz_cfg->round_en ? "Y" : "N", dhaz_cfg->color_deviate_en ? "Y" : "N",
              dhaz_cfg->enh_luma_en ? "Y" : "N");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_3dlut_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -714,8 +714,8 @@ void cvt_isp_params_dump_3dlut_attr(AiqIspParamsCvt_t* self, st_string* result) 
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-6s%-8s%-8s%-8s", "en", "bypass", "size", "lut_r0",
              "lut_g0", "lut_b0");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en                           = self->mCvtedIsp39Prams->module_ens & ISP39_MODULE_3DLUT;
     struct isp2x_3dlut_cfg* lut3d_cfg = &self->mCvtedIsp39Prams->others.isp3dlut_cfg;
@@ -725,8 +725,8 @@ void cvt_isp_params_dump_3dlut_attr(AiqIspParamsCvt_t* self, st_string* result) 
              lut3d_cfg->bypass_en ? "Y" : "N", lut3d_cfg->actual_size, lut3d_cfg->lut_r[0],
              lut3d_cfg->lut_g[0], lut3d_cfg->lut_r[0]);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_ldch_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -746,8 +746,8 @@ void cvt_isp_params_dump_ldch_attr(AiqIspParamsCvt_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-9s%-12s%-10s%-11s%-9s", "en", "fe_dis", "sample_avr",
              "bic_mode", "force_map", "map13p3");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en = params->module_ens & ISP39_MODULE_LDCH;
 
@@ -757,20 +757,20 @@ void cvt_isp_params_dump_ldch_attr(AiqIspParamsCvt_t* self, st_string* result) {
              ldch_cfg->bic_mode_en ? "Y" : "N", ldch_cfg->force_map_en ? "Y" : "N",
              ldch_cfg->map13p3_en ? "Y" : "N");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-8s%-8s", "mesh_x", "mesh_y", "buf_fd");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-8d%-8d%-8d", ldch_cfg->hsize, ldch_cfg->vsize,
              ldch_cfg->buf_fd);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_ldcv_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -780,8 +780,8 @@ void cvt_isp_params_dump_ldcv_attr(AiqIspParamsCvt_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-7s%-12s%-11s%-9s", "en", "thumb", "dth_bypass",
              "force_map", "map13p3");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en                         = self->mCvtedIsp39Prams->module_ens & ISP39_MODULE_LDCV;
     struct isp39_ldcv_cfg* ldcv_cfg = &self->mCvtedIsp39Prams->others.ldcv_cfg;
@@ -791,20 +791,20 @@ void cvt_isp_params_dump_ldcv_attr(AiqIspParamsCvt_t* self, st_string* result) {
              ldcv_cfg->thumb_mode, ldcv_cfg->dth_bypass ? "Y" : "N",
              ldcv_cfg->force_map_en ? "Y" : "N", ldcv_cfg->map13p3_en ? "Y" : "N");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-6s%-8s%-8s%-8s", "out_v", "mesh_x", "mesh_y", "buf_fd");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-6d%-8d%-8d%-8d", ldcv_cfg->out_vsize, ldcv_cfg->hsize,
              ldcv_cfg->vsize, ldcv_cfg->buf_fd);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_ldc_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -832,8 +832,8 @@ void cvt_isp_params_dump_bay3d_attr(AiqIspParamsCvt_t* self, st_string* result) 
     aiq_info_dump_title(result, "bay3d mod attr");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-14s", "en", "bypass", "iirsparse_en");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en = params->module_ens & ISP39_MODULE_BAY3D;
 
@@ -841,8 +841,8 @@ void cvt_isp_params_dump_bay3d_attr(AiqIspParamsCvt_t* self, st_string* result) 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-14s", en ? "Y" : "N",
              bay3d_cfg->bypass_en ? "Y" : "N", bay3d_cfg->iirsparse_en ? "Y" : "N");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_ynr_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -867,8 +867,8 @@ void cvt_isp_params_dump_ynr_attr(AiqIspParamsCvt_t* self, st_string* result) {
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-12s%-12s%-12s%-10s%-9s%-5s", "en", "lospnr_byp",
              "hispnr_byp", "mispnr_byp", "glo_gain", "gain_alp", "rnr");
 #endif
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en      = params->module_ens & ISP39_MODULE_YNR;
     bool en_upd  = params->module_en_update & ISP39_MODULE_YNR;
@@ -887,8 +887,8 @@ void cvt_isp_params_dump_ynr_attr(AiqIspParamsCvt_t* self, st_string* result) {
              ynr_cfg->gain_merge_alpha, ynr_cfg->rnr_en ? "Y" : "N");
 #endif
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_cnr_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -908,8 +908,8 @@ void cvt_isp_params_dump_cnr_attr(AiqIspParamsCvt_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-11s%-13s%-12s%-12s%-12s", "en", "exgain_byp",
              "yuv422_mode", "thumb_mode", "hiflt_wgt0", "loflt_coeff");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en = params->module_ens & ISP39_MODULE_CNR;
 
@@ -918,8 +918,8 @@ void cvt_isp_params_dump_cnr_attr(AiqIspParamsCvt_t* self, st_string* result) {
              cnr_cfg->exgain_bypass ? "Y" : "N", cnr_cfg->yuv422_mode, cnr_cfg->thumb_mode,
              cnr_cfg->hiflt_wgt0_mode, cnr_cfg->loflt_coeff);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_sharp_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -946,8 +946,8 @@ void cvt_isp_params_dump_sharp_attr(AiqIspParamsCvt_t* self, st_string* result) 
              "bypass", "lo_gain_byp", "tex_est", "max_flt", "fusion_wgt", "noise_calc",
              "radius_step", "curve_clip", "gain_wgt", "lp_en");
 #endif
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en = params->module_ens & ISP39_MODULE_SHARP;
 
@@ -966,8 +966,8 @@ void cvt_isp_params_dump_sharp_attr(AiqIspParamsCvt_t* self, st_string* result) 
              shp_cfg->gain_wgt_mode, shp_cfg->detail_lp_en ? "Y" : "N");
 #endif
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_cac_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -992,8 +992,8 @@ void cvt_isp_params_dump_cac_attr(AiqIspParamsCvt_t* self, st_string* result) {
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-16s%-14s%-14s", "en", "bypass", "edge_detect_en",
              "neg_clip0_en", "wgt_color_en");
 #endif
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en = params->module_ens & ISP39_MODULE_CAC;
 
@@ -1008,8 +1008,8 @@ void cvt_isp_params_dump_cac_attr(AiqIspParamsCvt_t* self, st_string* result) {
              cac_cfg->neg_clip0_en ? "Y" : "N", cac_cfg->wgt_color_en ? "Y" : "N");
 #endif
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_gain_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -1026,8 +1026,8 @@ void cvt_isp_params_dump_gain_attr(AiqIspParamsCvt_t* self, st_string* result) {
     aiq_info_dump_title(result, "gain mod attr");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-8s%-8s", "en", "gain0", "gain1", "gain2");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en                         = params->module_ens & ISP39_MODULE_GAIN;
     struct isp3x_gain_cfg* gain_cfg = &params->others.gain_cfg;
@@ -1035,8 +1035,8 @@ void cvt_isp_params_dump_gain_attr(AiqIspParamsCvt_t* self, st_string* result) {
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8d%-8d%-8d", en ? "Y" : "N", gain_cfg->g0,
              gain_cfg->g1, gain_cfg->g2);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_csm_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -1054,8 +1054,8 @@ void cvt_isp_params_dump_csm_attr(AiqIspParamsCvt_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-12s%-10s%-10s", "en", "full_range", "y_offset",
              "c_offset");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en                       = params->module_ens & ISP39_MODULE_CSM;
     struct isp21_csm_cfg* csm_cfg = &params->others.csm_cfg;
@@ -1064,8 +1064,8 @@ void cvt_isp_params_dump_csm_attr(AiqIspParamsCvt_t* self, st_string* result) {
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-12d%-10d%-10d", en ? "Y" : "N",
              csm_cfg->csm_full_range, csm_cfg->csm_y_offset, csm_cfg->csm_c_offset);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_cgc_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -1082,8 +1082,8 @@ void cvt_isp_params_dump_cgc_attr(AiqIspParamsCvt_t* self, st_string* result) {
     aiq_info_dump_title(result, "cgc mod attr");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-11s%-10s", "en", "yuv_limit", "ratio_en");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en                       = params->module_ens & ISP39_MODULE_CGC;
     struct isp21_cgc_cfg* cgc_cfg = &params->others.cgc_cfg;
@@ -1092,8 +1092,8 @@ void cvt_isp_params_dump_cgc_attr(AiqIspParamsCvt_t* self, st_string* result) {
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-11d%-10s", en ? "Y" : "N", cgc_cfg->yuv_limit,
              cgc_cfg->ratio_en ? "Y" : "N");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_yme_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -1102,8 +1102,8 @@ void cvt_isp_params_dump_yme_attr(AiqIspParamsCvt_t* self, st_string* result) {
     aiq_info_dump_title(result, "yme mod attr");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-13s", "en", "bypass", "tnr_wgt0_en");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     uint64_t seq                    = self->mCvtedIsp39Prams->frame_id;
     bool en                         = self->mCvtedIsp39Prams->module_ens & ISP39_MODULE_YUVME;
@@ -1113,8 +1113,8 @@ void cvt_isp_params_dump_yme_attr(AiqIspParamsCvt_t* self, st_string* result) {
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-13s", en ? "Y" : "N", yme_cfg->bypass ? "Y" : "N",
              yme_cfg->tnr_wgt0_en ? "Y" : "N");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void cvt_isp_params_dump_aec_attr(AiqIspParamsCvt_t* self, st_string* result) {
@@ -1134,49 +1134,49 @@ void cvt_isp_params_dump_aec_attr(AiqIspParamsCvt_t* self, st_string* result) {
     aiq_info_dump_title(result, "aec hwi params");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-8s", "en", "aeswap", "aesel");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     u64 module_en = ISP39_MODULE_RAWAE0 | ISP39_MODULE_RAWAE3 | ISP39_MODULE_RAWHIST0 | ISP39_MODULE_RAWHIST3;
     bool en = params->module_ens & module_en;
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8d%-8d", en == 1 ? "Y" : "N", meas_cfg->rawae0.rawae_sel, meas_cfg->rawae3.rawae_sel);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13s%-13s%-13s%-13s", "entity", "win_off_h", "win_off_v", "win_size_h", "win_size_v");
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d%-13d", "rawae0",
              meas_cfg->rawae0.win.h_offs, meas_cfg->rawae0.win.v_offs,
              meas_cfg->rawae0.win.h_size, meas_cfg->rawae0.win.v_size);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d%-13d", "rawae3",
              meas_cfg->rawae3.win.h_offs, meas_cfg->rawae3.win.v_offs,
              meas_cfg->rawae3.win.h_size, meas_cfg->rawae3.win.v_size);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d%-13d", "rawhist0",
              meas_cfg->rawhist0.win.h_offs, meas_cfg->rawhist0.win.v_offs,
              meas_cfg->rawhist0.win.h_size, meas_cfg->rawhist0.win.v_size);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d%-13d", "rawhist3",
              meas_cfg->rawhist3.win.h_offs, meas_cfg->rawhist3.win.v_offs,
              meas_cfg->rawhist3.win.h_size, meas_cfg->rawhist3.win.v_size);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
 }
 

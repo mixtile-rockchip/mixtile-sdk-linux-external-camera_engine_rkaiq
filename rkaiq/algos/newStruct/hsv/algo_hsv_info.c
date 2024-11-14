@@ -29,8 +29,8 @@ void hsv_dump_mod_param(const RkAiqAlgoCom* self, st_string* result) {
     hsv_api_attrib_t* tunning = &ctx->hsv_calib->tunning;
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-8s%-8s", "lut1d0", "lut1d1", "lut2d");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
 
@@ -40,8 +40,8 @@ void hsv_dump_mod_param(const RkAiqAlgoCom* self, st_string* result) {
              tunning->stAuto.sta.hsvCfg.hw_hsvT_lut1d1_en ? "om" : "off",
              tunning->stAuto.sta.hsvCfg.hw_hsvT_lut2d_en ? "on" : "off");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void hsv_dump_mod_attr(const RkAiqAlgoCom* self, st_string* result) {
@@ -53,8 +53,8 @@ void hsv_dump_mod_attr(const RkAiqAlgoCom* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-8s%-8s%-12s%-12s%-12s",
              "--", "chl_in", "chl_out", "lut[4]", "lut[21]", "lut[177]");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     int16_t* mat_tmp = ctx->undamped_lut.lut0;
 
@@ -68,8 +68,8 @@ void hsv_dump_mod_attr(const RkAiqAlgoCom* self, st_string* result) {
                 (ctx->calib_lut->lut1d0.hw_hsvT_lut1d_mode % 2 ? "Value" : "Sat"),
              mat_tmp[4], mat_tmp[21], "--");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     mat_tmp = ctx->undamped_lut.lut1;
 
@@ -83,8 +83,8 @@ void hsv_dump_mod_attr(const RkAiqAlgoCom* self, st_string* result) {
                 (ctx->calib_lut->lut1d1.hw_hsvT_lut1d_mode % 2 ? "Val" : "Sat"),
              mat_tmp[4], mat_tmp[21], "--");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     mat_tmp = ctx->undamped_lut.lut2;
     char chl_out[5] = {0};
@@ -120,8 +120,8 @@ void hsv_dump_mod_attr(const RkAiqAlgoCom* self, st_string* result) {
              chl_in, chl_out,
              mat_tmp[4], mat_tmp[21], mat_tmp[177]);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void hsv_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
@@ -135,8 +135,8 @@ void hsv_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-12s%-12s%-12s%-12s%-12s%-12s",
              "phy_chn", "seq", "cur_rgain", "cur_bgain", "cur_illu", "cur_gain", "cur_alp");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     RkAiqAlgoProcHsv* proc_param = (RkAiqAlgoProcHsv*)self;
     illu_estm_info_t *swinfo = &proc_param->illu_info;
@@ -146,15 +146,15 @@ void hsv_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
              self->cid, self->frame_id, swinfo->awbGain[0], swinfo->awbGain[1],
              pIlluCase->sw_hsvC_illu_name, swinfo->sensorGain, ctx->pre_alpha);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-12s%-8s%-16s%-10s",
              "phy_chn", "seq", "damp_en", "damp_converged", "dampCoef");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-8d%-12d%-8s%-16s%-10.4f",
@@ -162,6 +162,6 @@ void hsv_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
              tunning->stAuto.sta.sw_hsvT_damp_en ? "Y" : "N",
              ctx->damp_converged ? "Y" : "N", swinfo->awbIIRDampCoef);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }

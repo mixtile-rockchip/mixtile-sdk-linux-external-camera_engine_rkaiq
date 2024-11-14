@@ -25,7 +25,7 @@ void ccm_dump_mod_param(const RkAiqAlgoCom* self, st_string* result) {
 
     aiq_info_dump_title(result, "module param");
 
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, "\n\n");
 }
 
 void ccm_dump_mod_attr(const RkAiqAlgoCom* self, st_string* result) {
@@ -33,7 +33,7 @@ void ccm_dump_mod_attr(const RkAiqAlgoCom* self, st_string* result) {
 
     aiq_info_dump_title(result, "ccm attr");
 
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, "\n\n");
 }
 
 void ccm_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
@@ -47,8 +47,8 @@ void ccm_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-12s%-12s%-12s%-12s%-12s",
              "phy_chn", "seq", "cur_rgain", "cur_bgain", "cur_illu", "cur_sat");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     RkAiqAlgoProcCcm* proc_param = (RkAiqAlgoProcCcm*)self;
     illu_estm_info_t *swinfo = &proc_param->illu_info;
@@ -58,30 +58,30 @@ void ccm_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
              self->cid, self->frame_id, swinfo->awbGain[0], swinfo->awbGain[1],
              pIlluCase->sw_ccmC_illu_name, ctx->pre_saturation);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-12s%-12s%-12s%-12s%-12s",
              "phy_chn", "seq", "cur_iso", "last_scale", "cur_scale", "used_scale");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-8d%-12d%-12d%-12.2f%-12.2f%-12.2f",
              self->cid, self->frame_id, ctx->pre_iso, ctx->pre_scale, ctx->fScale,
              fabs(ctx->pre_scale - ctx->fScale) > 0.01 ? ctx->fScale : ctx->pre_scale);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-12s%-8s%-16s%-10s",
              "phy_chn", "seq", "damp_en", "damp_converged", "dampCoef");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-8d%-12d%-8s%-16s%-10.4f",
@@ -89,8 +89,8 @@ void ccm_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
              tunning->stAuto.sta.sw_ccmT_damp_en ? "Y" : "N",
              ctx->damp_converged ? "Y" : "N", swinfo->awbIIRDampCoef);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     if(tunning->stAuto.sta.sw_ccmT_damp_en && (!ctx->damp_converged)) {
         float* mat_tmp = ctx->undamped_matrix.hw_ccmC_matrix_coeff;
@@ -103,8 +103,8 @@ void ccm_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
                  mat_tmp[0], mat_tmp[1], mat_tmp[2],
                  mat_tmp[3], mat_tmp[4], mat_tmp[5],
                  mat_tmp[6], mat_tmp[7], mat_tmp[8]);
-        string_printf(result, buffer);
-        string_printf(result, "\n\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n\n");
 
         aiq_info_dump_title(result, "undampOffset");
 
@@ -114,7 +114,7 @@ void ccm_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
         snprintf(buffer, MAX_LINE_LENGTH, "%-8.3f%-8.3f%-8.3f",
                  mat_tmp[0], mat_tmp[1], mat_tmp[2]);
 
-        string_printf(result, buffer);
-        string_printf(result, "\n\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n\n");
     }
 }

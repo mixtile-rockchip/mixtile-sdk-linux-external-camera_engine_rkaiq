@@ -191,7 +191,7 @@ void rk_aiq_blc30_params_cvt(void* attr, isp_params_t* isp_params,
             phwcfg->bls1_val.b = (int)pBlcInfo->pre_adjust[1];
             pBlcInfo->pre_adjust[0] = blc1_r;
             pBlcInfo->pre_adjust[1] = blc1_b;
-            if (phwcfg->bls1_val.r != pBlcInfo->pre_adjust[0] || phwcfg->bls1_val.b != pBlcInfo->pre_adjust[1] || phwcfg->isp_ob_offset != pBlcInfo->pre_ob_offset) {
+            if (phwcfg->bls1_val.r != pBlcInfo->pre_adjust[0] || phwcfg->bls1_val.b != pBlcInfo->pre_adjust[1] || phwcfg->isp_ob_offset != pdyn->obcPostTnr.sw_blcT_autoOB_offset) {
                 *blc_res->damping = true;
             }
         }

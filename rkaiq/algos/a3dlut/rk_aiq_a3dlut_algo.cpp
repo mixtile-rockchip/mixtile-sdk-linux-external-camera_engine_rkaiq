@@ -330,8 +330,8 @@ XCamReturn Alut3dManualConfig
     LOGI_A3DLUT("%s: (enter)\n", __FUNCTION__);
 
     memcpy(hAlut3d->lut3d_hw_conf.tbl.look_up_table_r, hAlut3d->mCurAtt.stManual.look_up_table_r, sizeof(unsigned short)*LUT3D_LUT_WSIZE);
-    memcpy(hAlut3d->lut3d_hw_conf.tbl.look_up_table_r, hAlut3d->mCurAtt.stManual.look_up_table_r, sizeof(unsigned short)*LUT3D_LUT_WSIZE);
-    memcpy(hAlut3d->lut3d_hw_conf.tbl.look_up_table_r, hAlut3d->mCurAtt.stManual.look_up_table_r, sizeof(unsigned short)*LUT3D_LUT_WSIZE);
+    memcpy(hAlut3d->lut3d_hw_conf.tbl.look_up_table_g, hAlut3d->mCurAtt.stManual.look_up_table_g, sizeof(unsigned short)*LUT3D_LUT_WSIZE);
+    memcpy(hAlut3d->lut3d_hw_conf.tbl.look_up_table_b, hAlut3d->mCurAtt.stManual.look_up_table_b, sizeof(unsigned short)*LUT3D_LUT_WSIZE);
 
     LOGI_A3DLUT("%s: (exit)\n", __FUNCTION__);
 

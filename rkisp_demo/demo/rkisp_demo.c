@@ -1410,6 +1410,7 @@ static int read_frame_pp_oneframe(demo_context_t *ctx)
     return 1;
 }
 
+static bool g_allow_enter_sleep = false;
 static int aov_read_frame(demo_context_t *ctx) {
     int ret = read_frame(ctx);
     if (ret == 1) {
@@ -1421,16 +1422,20 @@ static int aov_read_frame(demo_context_t *ctx) {
                 ctx->aovLoopRunCnt = 0;
             }
         } else {
-            ctx->aovLoopRunCnt++;
             if (ctx->aovLoopRunCnt < ctx->aovLoopCnt) {
-                ctx->aovEnterSleep = true;
+                if (g_allow_enter_sleep) {
+                    ctx->aovLoopRunCnt++;
+                    ctx->aovEnterSleep = true;
+                }
             } else {
                 ctx->aovContinueRunCnt = 0;
                 rk_aiq_uapi2_sysctl_resume(ctx->aiq_ctx);
                 ctx->aovPauseAiq = false;
+                g_allow_enter_sleep = false;
             }
         }
     } else if (ctx->aovPauseAiq) {
+        g_allow_enter_sleep = true;
         ctx->aovEnterSleep = true;
     }
     return ret;
@@ -3242,10 +3247,10 @@ static void* aov_enter_sleep_thread(void* args) {
     demo_context_t *ctx = (demo_context_t *)args;
     while (1) {
         if (ctx->aovEnterSleep) {
-            aov_test_enter_sleep(args);
             ctx->aovEnterSleep = false;
+            aov_test_enter_sleep(args);
         }
-        usleep(10 * 1000);
+        usleep(1 * 1000);
     }
     return 0;
 }

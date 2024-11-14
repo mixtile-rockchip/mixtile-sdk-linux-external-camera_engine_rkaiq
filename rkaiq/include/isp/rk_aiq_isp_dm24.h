@@ -191,7 +191,7 @@ typedef struct dm_gOutlsFlt_bifilt_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(sw_dmT_filtCfg_mode),
         M4_TYPE(enum),
-        M4_ENUM_DEF(sw_dmT_filtCfg_mode),
+        M4_ENUM_DEF(dm_filtCfg_mode_t),
         M4_DEFAULT(dm_cfgByFiltStrg_mode),
         M4_HIDE_EX(0),
         M4_RO(0),

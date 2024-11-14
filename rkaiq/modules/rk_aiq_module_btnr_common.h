@@ -82,4 +82,7 @@ int bayertnr_update_sq(btnr_trans_params_t* pTransPrarms);
 void bayertnr_save_stats(void *stats_buffer, btnr_cvt_info_t *pBtnrInfo);
 int bayertnr_autosigma_config(btnr_stats_t *pStats, btnr_trans_params_t *pTransPrarms, blc_res_cvt_t* pBlc);
 int bayertnr_tnr_noise_curve(int data, int isHdrShort, btnr_trans_params_t *pTransPrarms);
+
+void bayertnr_sigmaY_interpolate(u16 *pSigX, u16 *pSigY, u16 *pLowX, u16 *pHighX, u16 *pLowY, u16 *pHighY,  int sigbins, float iso_ratio);
+
 #endif

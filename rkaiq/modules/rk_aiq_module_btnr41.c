@@ -1039,6 +1039,9 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
         if(pTransParams->isHdrMode || pTransParams->isTransfBypass || opMode == RK_AIQ_OP_MODE_MANUAL) {
             for(i = 0; i < sigbins; i++) {
                 pTransParams->tnr_luma_sigma_y[i] = pdyn->sigmaEnv.hw_btnrC_mdSigma_curve.val[i];
+                if(opMode == RK_AIQ_OP_MODE_MANUAL) {
+                    pCfg->tnr_luma2sigma_x[i] = pdyn->sigmaEnv.hw_btnrC_mdSigma_curve.idx[i];
+                }
             }
         } else {
             // interpolate y in low iso
@@ -1046,56 +1049,9 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
             uint16_t* pHighY = btnr_attrib->stAuto.spNrDyn[ihigh].sigmaEnv.hw_btnrC_mdSigma_curve.val;
             uint16_t* pLowX = btnr_attrib->stAuto.spNrDyn[ilow].sigmaEnv.hw_btnrC_mdSigma_curve.idx;
             uint16_t* pHighX = btnr_attrib->stAuto.spNrDyn[ihigh].sigmaEnv.hw_btnrC_mdSigma_curve.idx;
-            for(i = 0; i < sigbins; i++) {
-                tmp = pCfg->tnr_luma2sigma_x[i];
-                for(j = 0; j < sigbins - 1; j++) {
-                    if(tmp >= pLowX[j] &&  tmp <= pLowX[j + 1]) {
-                        x_ratio = (float)(tmp - pLowX[j]) / (pLowX[j + 1] - pLowX[j]);
-                        break;
-                    }
-                }
-                if(j == sigbins - 1) {
-                    if(tmp < pLowX[0]) {
-                        j = 0;
-                        x_ratio = 0;
-                    }
-                    if(tmp > pLowX[sigbins - 1] ) {
-                        j = sigbins - 2;
-                        x_ratio = 1;
-                    }
-                }
-                y_lowISO = x_ratio * (pLowY[j + 1] - pLowY[j]) + pLowY[j];
-#if 0
-                printf("tnr low: x:%u xlow:%u xHigh:%u xratio:%f ylow:%u yhigh:%u y:%u\n",
-                       tmp, pLowX[j], pLowX[j + 1], x_ratio, pLowY[j], pLowY[j + 1], y_lowISO);
-#endif
-
-                //interpolate y in high iso
-                for(j = 0; j < sigbins - 1; j++) {
-                    if(tmp >= pHighX[j] &&  tmp <= pHighX[j + 1]) {
-                        x_ratio = (float)(tmp - pHighX[j]) / (pHighX[j + 1] - pHighX[j]);
-                        break;
-                    }
-                }
-                if(j == sigbins - 1) {
-                    if(tmp < pHighX[0]) {
-                        j = 0;
-                        x_ratio = 0;
-                    }
-                    if(tmp > pHighX[sigbins - 1] ) {
-                        j = sigbins - 2;
-                        x_ratio = 1;
-                    }
-                }
-                y_highISO = x_ratio * (pHighY[j + 1] - pHighY[j]) + pHighY[j];
-
-                // intepolate y between two iso
-                pTransParams->tnr_luma_sigma_y[i]  = iso_ratio * (y_highISO - y_lowISO) + y_lowISO;
-#if 0
-                printf("tnr high: x:%u xlow:%u xHigh:%u xratio:%f ylow:%u yhigh:%u y:%u  finnalY:%u\n",
-                       tmp, pHighX[j], pHighX[j + 1], x_ratio, pHighY[j], pHighY[j + 1], y_highISO, pTransParams->tnr_luma_sigma_y[i]);
-#endif
-            }
+            uint16_t* pSigmaX = pCfg->tnr_luma2sigma_x;
+            uint16_t* pSigmaY = pTransParams->tnr_luma_sigma_y;
+            bayertnr_sigmaY_interpolate(pSigmaX, pSigmaY, pLowX, pHighX, pLowY, pHighY, sigbins, iso_ratio);
         }
     } else {
         pTransParams->bayertnr_auto_sig_count_en = 1;
@@ -1243,6 +1199,9 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
         if(pTransParams->isHdrMode || pTransParams->isTransfBypass || opMode == RK_AIQ_OP_MODE_MANUAL) {
             for(i = 0; i < spnrsigbins; i++) {
                 pCfg->pre_spnr_luma2sigma_y[i] = CLIP((int)(pdyn->sigmaEnv.hw_btnrC_preSpNrSgm_curve.val[i]), 0, max_sig);
+                if(opMode == RK_AIQ_OP_MODE_MANUAL) {
+                    pCfg->pre_spnr_luma2sigma_x[i] = pdyn->sigmaEnv.hw_btnrC_preSpNrSgm_curve.idx[i];
+                }
             }
         } else {
             // interpolate y in low iso
@@ -1250,56 +1209,9 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
             uint16_t* pHighY = btnr_attrib->stAuto.spNrDyn[ihigh].sigmaEnv.hw_btnrC_preSpNrSgm_curve.val;
             uint16_t* pLowX = btnr_attrib->stAuto.spNrDyn[ilow].sigmaEnv.hw_btnrC_preSpNrSgm_curve.idx;
             uint16_t* pHighX = btnr_attrib->stAuto.spNrDyn[ihigh].sigmaEnv.hw_btnrC_preSpNrSgm_curve.idx;
-            for(i = 0; i < spnrsigbins; i++) {
-                tmp = pdyn->sigmaEnv.hw_btnrC_preSpNrSgm_curve.idx[i];
-                for(j = 0; j < spnrsigbins - 1; j++) {
-                    if(tmp >= pLowX[j] &&  tmp <= pLowX[j + 1]) {
-                        x_ratio = (float)(tmp - pLowX[j]) / (pLowX[j + 1] - pLowX[j]);
-                        break;
-                    }
-                }
-                if(j == spnrsigbins - 1) {
-                    if(tmp < pLowX[0]) {
-                        j = 0;
-                        x_ratio = 0;
-                    }
-                    if(tmp > pLowX[spnrsigbins - 1] ) {
-                        j = spnrsigbins - 2;
-                        x_ratio = 1;
-                    }
-                }
-                y_lowISO = x_ratio * (pLowY[j + 1] - pLowY[j]) + pLowY[j];
-#if 0
-                printf("spnr low: x:%u xlow:%u xHigh:%u xratio:%f ylow:%u yhigh:%u y:%u\n",
-                       tmp, pLowX[j], pLowX[j + 1], x_ratio, pLowY[j], pLowY[j + 1], y_lowISO);
-#endif
-                //interpolate y in high iso
-                for(j = 0; j < spnrsigbins - 2; j++) {
-                    if(tmp >= pHighX[j] &&  tmp <= pHighX[j + 1]) {
-                        x_ratio = (float)(tmp - pHighX[j]) / (pHighX[j + 1] - pHighX[j]);
-                        break;
-                    }
-                }
-                if(j == spnrsigbins - 1) {
-                    if(tmp < pHighX[0]) {
-                        j = 0;
-                        x_ratio = 0;
-                    }
-                    if(tmp > pHighX[spnrsigbins - 1] ) {
-                        j = spnrsigbins - 2;
-                        x_ratio = 1;
-                    }
-                }
-                y_highISO = x_ratio * (pHighY[j + 1] - pHighY[j]) + pHighY[j];
-
-                // intepolate y between two iso
-                pCfg->pre_spnr_luma2sigma_y[i]  = iso_ratio * (y_highISO - y_lowISO) + y_lowISO;
-                pCfg->pre_spnr_luma2sigma_x[i] = CLIP(pdyn->sigmaEnv.hw_btnrC_preSpNrSgm_curve.idx[i], 0, pCfg->pix_max_limit);
-#if 0
-                printf("spnr high: x:%u xlow:%u xHigh:%u xratio:%f ylow:%u yhigh:%u y:%u  finnalY:%u\n",
-                       tmp, pHighX[j], pHighX[j + 1], x_ratio, pHighY[j], pHighY[j + 1], y_highISO, pTransParams->tnr_luma_sigma_y[i]);
-#endif
-            }
+            uint16_t* pSigmaX = pCfg->pre_spnr_luma2sigma_x;
+            uint16_t* pSigmaY = pCfg->pre_spnr_luma2sigma_y;
+            bayertnr_sigmaY_interpolate(pSigmaX, pSigmaY, pLowX, pHighX, pLowY, pHighY, spnrsigbins, iso_ratio);
         }
 
     } else {

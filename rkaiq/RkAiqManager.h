@@ -277,6 +277,7 @@ private:
     int mTBStatsCnt {0};
     uint32_t mLastAweekId{(uint32_t)-1};
     SmartPtr<GlobalParamsManager> mGlobalParamsManager;
+    bool mIsAovMode{false};
 };
 
 } //namespace RkCam

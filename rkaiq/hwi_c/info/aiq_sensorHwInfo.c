@@ -29,8 +29,8 @@ void sensor_dump_mod_param(AiqSensorHw_t* self, st_string* result) {
     aiq_info_dump_title(result, "sensor module param");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-9s%-9s", "dev", "phy_chn", "i2c_exp");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     // sensor entity name format SHOULD be like this:
     // m00_b_ov13850 1-0010
@@ -42,8 +42,8 @@ void sensor_dump_mod_param(AiqSensorHw_t* self, st_string* result) {
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-9d%-9s", name, self->mCamPhyId,
              self->_is_i2c_exp ? "Y" : "N");
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void sensor_dump_dev_attr1(AiqSensorHw_t* self, st_string* result) {
@@ -53,8 +53,8 @@ void sensor_dump_dev_attr1(AiqSensorHw_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-9s%-8s%-14s%-7s%-8s%-8s%-6s%-5s", "phy_chn", "mode",
              "pixel_format", "width", "height", "mirror", "flip", "dcg");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     const char* mode = "linear";
     if (RK_AIQ_HDR_GET_WORKING_MODE(self->_working_mode) == RK_AIQ_WORKING_MODE_ISP_HDR2) {
@@ -80,8 +80,8 @@ void sensor_dump_dev_attr1(AiqSensorHw_t* self, st_string* result) {
     snprintf(buffer, MAX_LINE_LENGTH, "%-9d%-8s%-14s%-7d%-8d%-8s%-6s%-5s", self->mCamPhyId, mode,
              fmt_str, self->desc.sensor_output_width, self->desc.sensor_output_height,
              self->_mirror ? "Y" : "N", self->_flip ? "Y" : "N", dcg);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void sensor_dump_dev_attr2(AiqSensorHw_t* self, st_string* result) {
@@ -124,15 +124,15 @@ void sensor_dump_dev_attr2(AiqSensorHw_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-9s%-16s%-9s%-6s%-9s%-6s%-9s%-11s%-9s", "phy_chn",
              "pixel_clk(mHz)", "fps", "hts", "h-blank", "vts", "v-blank", "line_time", "vb_time");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-9d%-16.3f%-9.3f%-6d%-9d%-6d%-9d%-11.3f%-9.0f",
              self->mCamPhyId, self->desc.pixel_clock_freq_mhz, fps, hts, h_blank, vts, v_blank,
              line_time * 1000000 * 1000 / 1000, vb_time * 1000000);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void sensor_dump_reg_effect_delay(AiqSensorHw_t* self, st_string* result) {
@@ -141,14 +141,14 @@ void sensor_dump_reg_effect_delay(AiqSensorHw_t* self, st_string* result) {
     aiq_info_dump_title(result, "register activation delay");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-12s%-12s%-12s", "time_delay", "gain_delay", "dcg_delay");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-12d%-12d%-12d", self->_time_delay, self->_gain_delay,
              MAX(self->_dcg_gain_mode_delay, 0));
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void sensor_dump_exp_list_size(AiqSensorHw_t* self, st_string* result) {
@@ -158,8 +158,8 @@ void sensor_dump_exp_list_size(AiqSensorHw_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-10s%-16s%-15s%-14s", "seq", "exp_list",
              "effect_exp_map", "gain_del_list", "dcg_del_list");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     aiqMutex_lock(&self->_mutex);
@@ -168,8 +168,8 @@ void sensor_dump_exp_list_size(AiqSensorHw_t* self, st_string* result) {
              aiqList_size(self->_delayed_gain_list),
              aiqList_size(self->_delayed_dcg_gain_mode_list));
     aiqMutex_unlock(&self->_mutex);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void __dump_configured_linear_exp(AiqSensorHw_t* self, st_string* result) {
@@ -181,8 +181,8 @@ void __dump_configured_linear_exp(AiqSensorHw_t* self, st_string* result) {
     bool rm             = false;
     snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-6s%-6s%-10s%-10s%-10s%-12s", "seq", "time", "again",
              "time_f", "again_f", "dgain_f", "ispdgain_f");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     AIQ_MAP_FOREACH(self->_effecting_exp_map, pItem, rm) {
         if (!pItem) goto out;
@@ -197,12 +197,12 @@ void __dump_configured_linear_exp(AiqSensorHw_t* self, st_string* result) {
                  pExp->aecExpInfo.LinearExp.exp_real_params.analog_gain,
                  pExp->aecExpInfo.LinearExp.exp_real_params.digital_gain,
                  pExp->aecExpInfo.LinearExp.exp_real_params.isp_dgain);
-        string_printf(result, buffer);
-        string_printf(result, "\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n");
     }
 
 out:
-    string_printf(result, "\n");
+    aiq_string_printf(result, "\n");
 }
 
 void __dump_configured_hdr_short_exp(AiqSensorHw_t* self, st_string* result) {
@@ -214,8 +214,8 @@ void __dump_configured_hdr_short_exp(AiqSensorHw_t* self, st_string* result) {
     bool rm             = false;
     snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-6s%-6s%-10s%-10s%-10s%-12s", "id", "time", "again",
              "time_f", "again_f", "dgain_f", "ispdgain_f");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     AIQ_MAP_FOREACH(self->_effecting_exp_map, pItem, rm) {
         if (!pItem) goto out;
@@ -231,12 +231,12 @@ void __dump_configured_hdr_short_exp(AiqSensorHw_t* self, st_string* result) {
                  pExp->aecExpInfo.HdrExp[0].exp_real_params.analog_gain,
                  pExp->aecExpInfo.HdrExp[0].exp_real_params.digital_gain,
                  pExp->aecExpInfo.HdrExp[0].exp_real_params.isp_dgain);
-        string_printf(result, buffer);
-        string_printf(result, "\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n");
     }
 
 out:
-    string_printf(result, "\n");
+    aiq_string_printf(result, "\n");
 }
 
 void __dump_configured_hdr_middle_exp(AiqSensorHw_t* self, st_string* result) {
@@ -248,8 +248,8 @@ void __dump_configured_hdr_middle_exp(AiqSensorHw_t* self, st_string* result) {
     bool rm             = false;
     snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-6s%-6s%-10s%-10s%-10s%-12s", "id", "time", "again",
              "time_f", "again_f", "dgain_f", "ispdgain_f");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     AIQ_MAP_FOREACH(self->_effecting_exp_map, pItem, rm) {
         if (!pItem) goto out;
@@ -265,12 +265,12 @@ void __dump_configured_hdr_middle_exp(AiqSensorHw_t* self, st_string* result) {
                  pExp->aecExpInfo.HdrExp[1].exp_real_params.analog_gain,
                  pExp->aecExpInfo.HdrExp[1].exp_real_params.digital_gain,
                  pExp->aecExpInfo.HdrExp[1].exp_real_params.isp_dgain);
-        string_printf(result, buffer);
-        string_printf(result, "\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n");
     }
 
 out:
-    string_printf(result, "\n");
+    aiq_string_printf(result, "\n");
 }
 
 void __dump_configured_hdr_long_exp(AiqSensorHw_t* self, st_string* result) {
@@ -282,8 +282,8 @@ void __dump_configured_hdr_long_exp(AiqSensorHw_t* self, st_string* result) {
     bool rm             = false;
     snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-6s%-6s%-10s%-10s%-10s%-12s", "id", "time", "again",
              "time_f", "again_f", "dgain_f", "ispdgain_f");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     AIQ_MAP_FOREACH(self->_effecting_exp_map, pItem, rm) {
         if (!pItem) goto out;
@@ -299,12 +299,12 @@ void __dump_configured_hdr_long_exp(AiqSensorHw_t* self, st_string* result) {
                  pExp->aecExpInfo.HdrExp[2].exp_real_params.analog_gain,
                  pExp->aecExpInfo.HdrExp[2].exp_real_params.digital_gain,
                  pExp->aecExpInfo.HdrExp[2].exp_real_params.isp_dgain);
-        string_printf(result, buffer);
-        string_printf(result, "\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n");
     }
 
 out:
-    string_printf(result, "\n");
+    aiq_string_printf(result, "\n");
 }
 
 void sensor_dump_configured_exp(AiqSensorHw_t* self, st_string* result) {

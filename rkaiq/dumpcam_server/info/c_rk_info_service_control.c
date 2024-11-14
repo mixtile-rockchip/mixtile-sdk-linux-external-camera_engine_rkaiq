@@ -179,27 +179,27 @@ static struct dump_mod_descr aiq_modules[] = {
 #define AIQ_MODS ARRAY_SIZE(aiq_modules)
 
 static void AIQInfo_dumpVerInfoHelp(int type, st_string* dump_info) {
-    string_printf(dump_info, "Dump detailed AIQ version info.");
+    aiq_string_printf(dump_info, "Dump detailed AIQ version info.");
 }
 
 static void AIQInfo_dumpLogHelp(int type, st_string* dump_info) {
-    string_printf(dump_info, "Query or configure the debug log level of AIQ.");
+    aiq_string_printf(dump_info, "Query or configure the debug log level of AIQ.");
 }
 
 static void AIQInfo_dumpAlgoHelp(int type, st_string* dump_info) {
-    string_printf(dump_info, "Dump the state information of the ISP software algorithm.");
+    aiq_string_printf(dump_info, "Dump the state information of the ISP software algorithm.");
 }
 
 static void AIQInfo_dumpCoreHelp(int type, st_string* dump_info) {
-    string_printf(dump_info, "Dump the state information of core management layer.");
+    aiq_string_printf(dump_info, "Dump the state information of core management layer.");
 }
 
 static void AIQInfo_dumpHwiHelp(int type, st_string* dump_info) {
-    string_printf(dump_info, "Dump the state information of hardware abstraction layer.");
+    aiq_string_printf(dump_info, "Dump the state information of hardware abstraction layer.");
 }
 
 static void AIQInfo_dumpCamgroupHelp(int type, st_string* dump_info) {
-    string_printf(dump_info, "Dump the state information of camgroup management layer.");
+    aiq_string_printf(dump_info, "Dump the state information of camgroup management layer.");
 }
 
 static void AIQInfo_dumpIspModHelp(int type, st_string* dump_info) {
@@ -207,47 +207,47 @@ static void AIQInfo_dumpIspModHelp(int type, st_string* dump_info) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "Dump the complete state information of %s module.",
              aiq_modules[type].descr);
-    string_printf(dump_info, buffer);
+    aiq_string_printf(dump_info, buffer);
 }
 
 static void __dumpListInfo(st_string* dumpInfo) {
     unsigned int i, longest = 0;
     char buffer[MAX_LINE_LENGTH] = {0};
 
-    string_printf(dumpInfo, "\n Usage: ./dumpcam [moudle] [moudle ARGS]\n\n");
-    string_printf(dumpInfo, " The modules supported by dumpcam include:\n");
+    aiq_string_printf(dumpInfo, "\n Usage: ./dumpcam [moudle] [moudle ARGS]\n\n");
+    aiq_string_printf(dumpInfo, " The modules supported by dumpcam include:\n");
 
     for (i = 0; i < AIQ_MODS - 2; i++) {
         if (longest < strlen(aiq_modules[i].descr)) longest = strlen(aiq_modules[i].descr);
     }
 
     snprintf(buffer, MAX_LINE_LENGTH, "   %-*s   ", longest, "ver-info");
-    string_printf(dumpInfo, buffer);
+    aiq_string_printf(dumpInfo, buffer);
     AIQInfo_dumpVerInfoHelp(-1, dumpInfo);
-    string_printf(dumpInfo, "\n");
+    aiq_string_printf(dumpInfo, "\n");
 
     aiq_memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "   %-*s   ", longest, "log");
-    string_printf(dumpInfo, buffer);
+    aiq_string_printf(dumpInfo, buffer);
     AIQInfo_dumpLogHelp(-1, dumpInfo);
-    string_printf(dumpInfo, "\n");
+    aiq_string_printf(dumpInfo, "\n");
 
     for (i = 0; i < AIQ_MODS - 2; i++) {
         aiq_memset(buffer, 0, MAX_LINE_LENGTH);
 
         snprintf(buffer, MAX_LINE_LENGTH, "   %-*s   ", longest, aiq_modules[i].descr);
-        string_printf(dumpInfo, buffer);
+        aiq_string_printf(dumpInfo, buffer);
         aiq_modules[i].help_info(i, dumpInfo);
-        string_printf(dumpInfo, "\n");
+        aiq_string_printf(dumpInfo, "\n");
     }
 
-    string_printf(dumpInfo, "\n");
+    aiq_string_printf(dumpInfo, "\n");
 }
 
 static void __dumpAiqVersionInfo(st_string* dumpInfo) {
     char buffer[MAX_LINE_LENGTH] = {0};
 
-    string_printf(dumpInfo, "\n");
+    aiq_string_printf(dumpInfo, "\n");
 
     snprintf(buffer, MAX_LINE_LENGTH,
              "************************** VERSION INFOS **************************\n\n"
@@ -265,8 +265,8 @@ static void __dumpAiqVersionInfo(st_string* dumpInfo) {
 #endif
     );
 
-    string_printf(dumpInfo, buffer);
-    string_printf(dumpInfo, "\n");
+    aiq_string_printf(dumpInfo, buffer);
+    aiq_string_printf(dumpInfo, "\n");
 }
 
 static void __dumpAllModule(rk_aiq_sys_ctx_t* ctx, bool dumpPartialMods, st_string* dumpInfo,
@@ -275,7 +275,7 @@ static void __dumpAllModule(rk_aiq_sys_ctx_t* ctx, bool dumpPartialMods, st_stri
 
     char buffer[MAX_LINE_LENGTH] = {0};
 
-    string_printf(dumpInfo, "\n");
+    aiq_string_printf(dumpInfo, "\n");
 
     for (int i = 0; i < (int)AIQ_MODS; i ++) {
         aiq_modules[i].dump.dumper    = NULL;
@@ -356,7 +356,7 @@ static void __dumpMultiModule(rk_aiq_sys_ctx_t* ctx, bool dumpPartialMods, st_st
 
     char buffer[MAX_LINE_LENGTH] = {0};
 
-    string_printf(dumpInfo, "\n");
+    aiq_string_printf(dumpInfo, "\n");
 
     for (int i = 0; i < (int)AIQ_MODS; i++) {
         aiq_modules[i].dump.dumper    = NULL;

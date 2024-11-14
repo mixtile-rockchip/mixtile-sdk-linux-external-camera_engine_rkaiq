@@ -107,8 +107,12 @@ do {                                                             \
 
 #define string_body(s) ((s)->d)
 
-ST_STRING_UNUSED void string_printf_va(st_string *s, const char *fmt, va_list ap);
+ST_STRING_UNUSED void aiq_string_printf_va(st_string *s, const char *fmt, va_list ap);
 
-ST_STRING_UNUSED void string_printf(st_string *s, const char *fmt, ...);
+#if RKAIQ_HAVE_DUMPSYS
+ST_STRING_UNUSED void aiq_string_printf(st_string *s, const char *fmt, ...);
+#else
+inline ST_STRING_UNUSED void aiq_string_printf(st_string* s, const char* fmt, ...) { return; }
+#endif
 
 #endif /* ST_STRING_H */

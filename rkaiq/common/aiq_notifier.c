@@ -125,7 +125,7 @@ int aiq_notifier_notify_dumpinfo(struct aiq_notifier* notifier, int type, st_str
         if (sub->match_type < _MODS_NUM_OFFSET) aiq_info_dump_submod_name(dump_info, sub->name);
 
         sub->dump.dump_fn_t(sub->dump.dumper, dump_info, argc, argv);
-        string_printf(dump_info, "\n");
+        aiq_string_printf(dump_info, "\n");
     }
 
     return 0;

@@ -3442,6 +3442,12 @@ AiqCore_register3Aalgo(AiqCore_t* pAiqCore, void* algoDes, void *cbs)
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
     struct RkAiqAlgoDesCommExt *algoDesArray = (struct RkAiqAlgoDesCommExt*)algoDes;
 
+    for (size_t i = 0; algoDesArray[i].des != NULL; i++) {
+        int algo_type = algoDesArray[i].des->type;
+		if (algo_type == algoDesArray->des->type)
+			pAiqCore->mAlogsComSharedParams.ctxCfigs[algo_type].cbs = cbs;
+    }
+
     addDefaultAlgos(pAiqCore, algoDesArray);
     ret = newAllAiqParamPool(pAiqCore);
     if (ret != XCAM_RETURN_NO_ERROR) {
@@ -3449,12 +3455,6 @@ AiqCore_register3Aalgo(AiqCore_t* pAiqCore, void* algoDes, void *cbs)
         return XCAM_RETURN_ERROR_ANALYZER;
     }
     newAiqGroupAnayzer(pAiqCore, algoDesArray);
-
-    for (size_t i = 0; algoDesArray[i].des != NULL; i++) {
-        int algo_type = algoDesArray[i].des->type;
-		if (algo_type == algoDesArray->des->type)
-			pAiqCore->mAlogsComSharedParams.ctxCfigs[algo_type].cbs = cbs;
-	}
 
     return ret;
 }
@@ -3565,7 +3565,7 @@ static int AiqCore_dump(void* self, st_string* result, int argc, void* argv[]) {
         if (_gHelp || argc < 0) {
             _gHelp = 0;
             argparse_usage_string(&argparse, buffer);
-            string_printf(result, buffer);
+            aiq_string_printf(result, buffer);
         }
     }
 
@@ -3692,7 +3692,7 @@ static int AiqCore_algosDump(void* self, st_string* result, int argc, void* argv
             _gHelp = 0;
 
             argparse_usage_string(&argparse, buffer);
-            string_printf(result, buffer);
+            aiq_string_printf(result, buffer);
         }
     }
 

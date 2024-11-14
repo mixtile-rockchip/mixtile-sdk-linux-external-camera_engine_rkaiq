@@ -1,4 +1,5 @@
 #include "rk_aiq_isp39_modules.h"
+#include "interpolation.h"
 
 // fix define
 #define FIXTNRSQRT      30
@@ -155,7 +156,7 @@ void bay_gauss7x5_filter_coeff(float sigma, int halftaby, int halftabx, int strd
     }
 }
 
-void bayertnr_luma2sigmax_config_v30(btnr_trans_params_t *pTransParams)
+void bayertnr_luma2sigmax_config_v30(btnr_trans_params_t *pTransParams, blc_res_cvt_t *pBlc, float preDgain)
 {
     int pix_max;
     int i, tmp, tmp0, tmp1;
@@ -197,6 +198,7 @@ void bayertnr_luma2sigmax_config_v30(btnr_trans_params_t *pTransParams)
         for(i = 0; i < 20; i++) {
         }
     } else if(!transf_bypass_en)   {
+#if 0
         int segs = 6;
         pTransParams->bayertnr_tnr_sigma_curve_double_en = 0;
         pTransParams->bayertnr_tnr_sigma_curve_double_pos = 0;
@@ -207,6 +209,34 @@ void bayertnr_luma2sigmax_config_v30(btnr_trans_params_t *pTransParams)
             pTransParams->tnr_luma_sigma_x[i] = 64 * (i - segs + 1) + 32 * segs;
         }
         pTransParams->tnr_luma_sigma_x[sigbins - 1] = pix_max;
+#else
+        uint32_t blc_remain = 0;
+        if(pBlc->obcPostTnr.sw_blcT_autoOB_offset && pBlc->obcPostTnr.sw_blcT_obcPostTnr_en) {
+            blc_remain = pBlc->obcPostTnr.sw_blcT_autoOB_offset;
+        }
+        int log_pix_max = bayertnr_logtrans(((1 << 12) * preDgain - 1), pTransParams);
+        int log_ob_offset = bayertnr_logtrans(blc_remain, pTransParams);
+        pTransParams->tnr_luma_sigma_x[0] = (log_ob_offset + 128);
+#if 0
+        printf("tnr sigmax ob offset:%d, log_ob_offset:%d  log_pix_max:%d step:128 finnal x0:%d\n",
+               blc_remain, log_ob_offset, log_pix_max,  pTransParams->tnr_luma_sigma_x[0]);
+#endif
+        int step = 0;
+        for(i = 1; i < sigbins; i++) {
+            step = (log_pix_max - pTransParams->tnr_luma_sigma_x[i - 1]) / (sigbins - i);
+            if(i != sigbins - 1) {
+                step = 1 << (ROUND_F(LOG2(step)));
+            } else {
+                step = 1 << (FLOOR(LOG2(step)));
+            }
+            tmp = pTransParams->tnr_luma_sigma_x[i - 1] + step;
+            pTransParams->tnr_luma_sigma_x[i] = CLIP(tmp, 0, log_pix_max);
+#if 0
+            printf(" tnr sigmax idx:%d step:%d stepfinnal:%d x[%d]=%d clip:%u\n",
+                   i, (log_pix_max - pTransParams->tnr_luma_sigma_x[i - 1]) / (sigbins - i), step, i, tmp,  pTransParams->tnr_luma_sigma_x[i]);
+#endif
+        }
+#endif
     }
     else
     {
@@ -238,10 +268,16 @@ void rk_aiq_btnr40_params_logtrans(struct isp39_bay3d_cfg *pCfg)
 #undef LOGTRANSF_VAR
 }
 
+
+
 void rk_aiq_btnr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t* cvtinfo, btnr_cvt_info_t* pBtnrInfo)
 {
     btnr_trans_params_t *pTransParams = &pBtnrInfo->mBtnrTransParams;
     btnr_stats_t *btnr_stats = &pBtnrInfo->mBtnrStats[0];
+
+    btnr_api_attrib_t *btnr_attrib = pBtnrInfo->btnr_attrib;
+    btnr_param_auto_t *paut = &btnr_attrib->stAuto;
+    rk_aiq_op_mode_t opMode = btnr_attrib->opMode;
 
     if (cvtinfo->isFirstFrame) {
         memset(pBtnrInfo, 0, sizeof(btnr_cvt_info_t));
@@ -258,7 +294,7 @@ void rk_aiq_btnr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
         }
     }
 
-    int i;
+    int i, j;
     int tmp, tmp0, tmp1;
     int pix_max, sigbins = 20;
     struct isp39_bay3d_cfg *pFix = &isp_params->isp_cfg->others.bay3d_cfg;
@@ -279,6 +315,17 @@ void rk_aiq_btnr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     //pFix->bypass_en = bypass;
     pFix->iirsparse_en = cvtinfo->use_aiisp ? 1 : 0;
 
+
+    if(psta->hw_btnrCfg_pixDomain_mode != pdyn->sigmaEnv.hw_btnrC_sigmaAttrib.hw_btnrCfg_pixDomain_mode
+            || psta->transCfg.hw_btnr_trans_mode != pdyn->sigmaEnv.hw_btnrC_sigmaAttrib.hw_btnrCfg_trans_mode
+            || psta->transCfg.hw_btnr_trans_offset != pdyn->sigmaEnv.hw_btnrC_sigmaAttrib.hw_btnrCfg_trans_offset) {
+        LOGW_ANR("Btnr run in pixLog2Domain is %d, trans_mode is %d, trans_offset is %d.\n"
+                 "But calib pixLog2Domain_mode is %d, trans_mode is %d, trans_offset is %d.\n",
+                 psta->hw_btnrCfg_pixDomain_mode, pdyn->sigmaEnv.hw_btnrC_sigmaAttrib.hw_btnrCfg_pixDomain_mode,
+                 psta->transCfg.hw_btnr_trans_mode, pdyn->sigmaEnv.hw_btnrC_sigmaAttrib.hw_btnrCfg_trans_mode,
+                 psta->transCfg.hw_btnr_trans_offset, pdyn->sigmaEnv.hw_btnrC_sigmaAttrib.hw_btnrCfg_trans_offset);
+    }
+
     if (cvtinfo->frameNum > 1) {
         if (psta->hw_btnrCfg_pixDomain_mode != btnr_pixLog2Domain_mode) {
             LOGW_ANR("Btnr must run in pixLog2Domain(ori mode is %d) when isp is HDR mode(framenum=%d), btnr_pixLog2Domain_mode is be forcibly set to hw_btnrCfg_pixDomain_mode in HWI\n"
@@ -288,9 +335,17 @@ void rk_aiq_btnr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
         }
         if (psta->transCfg.hw_btnr_trans_mode != btnr_pixInBw20b_mode) {
             LOGE_ANR("hw_btnrCfg_trans_mode == %s(0x%x) is error. When isp is in HDR mode, btnr must run in 'btnr_pixInBw20b_mode'. "
-                "The trans_mode will be forcibly set to 'btnr_pixInBw20b_mode' in HWI.",
-                trans_mode2str(psta->transCfg.hw_btnr_trans_mode), psta->transCfg.hw_btnr_trans_mode);
+                     "The trans_mode will be forcibly set to 'btnr_pixInBw20b_mode' in HWI.",
+                     trans_mode2str(psta->transCfg.hw_btnr_trans_mode), psta->transCfg.hw_btnr_trans_mode);
             psta->transCfg.hw_btnr_trans_mode = btnr_pixInBw20b_mode;
+        }
+    }
+
+    if(cvtinfo->frameNum == 1 && cvtinfo->preDGain > 1.0) {
+        if (psta->hw_btnrCfg_pixDomain_mode != btnr_pixLog2Domain_mode) {
+            LOGW_ANR("Btnr must run in pixLog2Domain(ori mode is %d) when predgain > 1.0, btnr_pixLog2Domain_mode is be forcibly set to hw_btnrCfg_pixDomain_mode in HWI\n",
+                     psta->hw_btnrCfg_pixDomain_mode);
+            psta->hw_btnrCfg_pixDomain_mode = btnr_pixLog2Domain_mode;
         }
     }
 
@@ -405,11 +460,11 @@ void rk_aiq_btnr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
         if (pFix->cur_spnr_sigma_curve_double_en == 0 || pFix->pre_spnr_sigma_curve_double_en == 0) {
             if (cvtinfo->btnr_warning_count < 5) {
                 LOGW_ANR("When isp is HDR mode, hw_btnrT_sigmaCurve_mode recommends using btnr_midSegmInterpOff_mode. "
-                        "You can set by dyn.curFrmSpNr.hw_btnrT_sigmaCurve_mode\n");
+                         "You can set by dyn.curFrmSpNr.hw_btnrT_sigmaCurve_mode\n");
             }
             else if (cvtinfo->btnr_warning_count % 300 == 0) {
                 LOGW_ANR("When isp is HDR mode, hw_btnrT_sigmaCurve_mode recommends using btnr_midSegmInterpOff_mode. "
-                        "You can set by dyn.curFrmSpNr.hw_btnrT_sigmaCurve_mode\n");
+                         "You can set by dyn.curFrmSpNr.hw_btnrT_sigmaCurve_mode\n");
             }
             cvtinfo->btnr_warning_count++;
         }
@@ -463,6 +518,17 @@ void rk_aiq_btnr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
         }
     }
 
+
+    if(pFix->transf_bypass_en) {
+        pFix->tnr_pix_max = ((1 << 12) - 1);
+    } else {
+        if(pFix->transf_mode_scale) {
+            pFix->tnr_pix_max = bayertnr_logtrans(((1 << 15) - 1), pTransParams);
+        } else {
+            pFix->tnr_pix_max = bayertnr_logtrans(((1 << 20) - 1), pTransParams);;
+        }
+    }
+
     // BAY3D_CURDGAIN 0x2c14
     tmp = pdyn->curFrmSpNr.hw_btnrT_sigmaHdrS_scale * (1 << FIXBITDGAIN);
     pFix->cur_spnr_sigma_hdr_sht_scale = CLIP(tmp, 0, 0xffff);
@@ -481,18 +547,49 @@ void rk_aiq_btnr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     pTransParams->itransf_mode_offset = pFix->itransf_mode_offset;
 
     pTransParams->isTransfBypass = pFix->transf_bypass_en;
-    bayertnr_luma2sigmax_config_v30(pTransParams);
+    bayertnr_luma2sigmax_config_v30(pTransParams, &cvtinfo->blc_res, cvtinfo->preDGain);
     for(i = 0; i < sigbins; i++) {
         pFix->tnr_luma_sigma_x[i] = pTransParams->tnr_luma_sigma_x[i];
     }
+
+    //x_step must be 2^n
+    int x_step = 0;
+    for(i = 1; i < sigbins; i++) {
+        x_step = pFix->tnr_luma_sigma_x[i] - pFix->tnr_luma_sigma_x[i - 1];
+        x_step = 1 << (FLOOR(LOG2(x_step)));
+        tmp = pFix->tnr_luma_sigma_x[i - 1] + x_step;
+        pFix->tnr_luma_sigma_x[i] = CLIP(tmp, 0, pFix->tnr_pix_max);
+    }
+
+    int iso = cvtinfo->frameIso[0];
+    int ilow = 0, ihigh = 0;
+    float iso_ratio = 0.0f;
+    float x_ratio = 0.0f;
+    int y_lowISO = 0;
+    int y_highISO = 0;
+    pre_interp(iso, NULL, 0, &ilow, &ihigh, &iso_ratio);
 
     float kcoef0 = 1.0;
     float kcoef1 = 1.0;
     int max_sig = ((1 << 12) - 1);
     if(psta->sigmaEnv.sw_btnrCfg_sigma_mode == btnr_manualSigma_mode || cvtinfo->isFirstFrame || bayertnr_default_noise_curve_use) {
         pTransParams->bayertnr_auto_sig_count_en = 0;
-        for(i = 0; i < sigbins; i++) {
-            pTransParams->tnr_luma_sigma_y[i] = pdyn->sigmaEnv.hw_btnrC_mdSigma_curve.val[i];
+        if(pTransParams->isHdrMode || pTransParams->isTransfBypass || opMode == RK_AIQ_OP_MODE_MANUAL) {
+            for(i = 0; i < sigbins; i++) {
+                pTransParams->tnr_luma_sigma_y[i] = pdyn->sigmaEnv.hw_btnrC_mdSigma_curve.val[i];
+                if(opMode == RK_AIQ_OP_MODE_MANUAL) {
+                    pFix->tnr_luma_sigma_x[i] = pdyn->sigmaEnv.hw_btnrC_mdSigma_curve.idx[i];
+                }
+            }
+        } else {
+            // interpolate y in low iso
+            uint16_t* pLowY = btnr_attrib->stAuto.dyn[ilow].sigmaEnv.hw_btnrC_mdSigma_curve.val;
+            uint16_t* pHighY = btnr_attrib->stAuto.dyn[ihigh].sigmaEnv.hw_btnrC_mdSigma_curve.val;
+            uint16_t* pLowX = btnr_attrib->stAuto.dyn[ilow].sigmaEnv.hw_btnrC_mdSigma_curve.idx;
+            uint16_t* pHighX = btnr_attrib->stAuto.dyn[ihigh].sigmaEnv.hw_btnrC_mdSigma_curve.idx;
+            uint16_t* pSigmaX = pFix->tnr_luma_sigma_x;
+            uint16_t* pSigmaY = pFix->tnr_luma_sigma_y;
+            bayertnr_sigmaY_interpolate(pSigmaX, pSigmaY, pLowX, pHighX, pLowY, pHighY, sigbins, iso_ratio);
         }
     } else {
         pTransParams->bayertnr_auto_sig_count_en = 1;
@@ -535,7 +632,8 @@ void rk_aiq_btnr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
         pFix->pre_spnr_luma_sigma_x[spnrsigbins - 1] = tmp1;
     }
     else if(!pFix->transf_bypass_en) {
-        // hdr long bins
+        // sensor linear mode, tnr use log domain
+#if 0
         for(i = 0; i < spnrsigbins; i++)
         {
             pFix->cur_spnr_luma_sigma_x[i] = 64 * (i + 1);
@@ -543,7 +641,32 @@ void rk_aiq_btnr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
         }
         pFix->cur_spnr_luma_sigma_x[spnrsigbins - 1] = pix_max;
         pFix->pre_spnr_luma_sigma_x[spnrsigbins - 1] = pix_max;
+#else
+        uint32_t blc_remain = 0;
+        if(cvtinfo->blc_res.obcPostTnr.sw_blcT_autoOB_offset && cvtinfo->blc_res.obcPostTnr.sw_blcT_obcPostTnr_en) {
+            blc_remain = cvtinfo->blc_res.obcPostTnr.sw_blcT_autoOB_offset;
+        }
+        int log_pix_max = bayertnr_logtrans(((1 << 12) * cvtinfo->preDGain - 1), pTransParams);
+        int log_ob_offset = bayertnr_logtrans(blc_remain, pTransParams);
 
+        pFix->pre_spnr_luma_sigma_x[0] = (log_ob_offset + 128);
+        int step = 0;
+        for(i = 1; i < spnrsigbins; i++) {
+            step = (log_pix_max - pFix->pre_spnr_luma_sigma_x[i - 1]) / (spnrsigbins - i);
+            if(i != spnrsigbins - 1) {
+                step = 1 << (ROUND_F(LOG2(step)));
+            } else {
+                step = 1 << (FLOOR(LOG2(step)));
+            }
+            tmp = pFix->pre_spnr_luma_sigma_x[i - 1] + step;
+            pFix->pre_spnr_luma_sigma_x[i] = CLIP(tmp, 0, log_pix_max);
+            pFix->cur_spnr_luma_sigma_x[i] = pFix->pre_spnr_luma_sigma_x[i];
+#if 0
+            printf("spnr sigmax idx:%d step:%d stepfinnal:%d x[%d]=%d clip:%u\n",
+                   i, (log_pix_max - pFix->pre_spnr_luma2sigma_x[i - 1]) / (spnrsigbins - i), step, i, tmp,  pFix->pre_spnr_luma2sigma_x[i]);
+#endif
+        }
+#endif
     } else {
         for(i = 0; i < spnrsigbins; i++)
         {
@@ -554,17 +677,59 @@ void rk_aiq_btnr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
         pFix->pre_spnr_luma_sigma_x[spnrsigbins - 1] = pix_max;
     }
 
-    for(i = 0; i < 16; i++) {
-        if(!auto_sig_curve_spnruse || cvtinfo->isFirstFrame) {
-            pFix->cur_spnr_luma_sigma_y[i] = CLIP((int)(pdyn->sigmaEnv.hw_btnrC_curSpNrSgm_curve.val[i] * kcoef0), 0, max_sig);
-            pFix->pre_spnr_luma_sigma_y[i] = CLIP((int)(pdyn->sigmaEnv.hw_btnrC_iirSpNrSgm_curve.val[i] * kcoef1), 0, max_sig);
+
+    if(!auto_sig_curve_spnruse || cvtinfo->isFirstFrame) {
+        if(pTransParams->isHdrMode || pTransParams->isTransfBypass || opMode == RK_AIQ_OP_MODE_MANUAL) {
+            for(i = 0; i < 16; i++) {
+                pFix->cur_spnr_luma_sigma_y[i] = CLIP((int)(pdyn->sigmaEnv.hw_btnrC_curSpNrSgm_curve.val[i] * kcoef0), 0, max_sig);
+                pFix->pre_spnr_luma_sigma_y[i] = CLIP((int)(pdyn->sigmaEnv.hw_btnrC_iirSpNrSgm_curve.val[i] * kcoef1), 0, max_sig);
+                if(opMode == RK_AIQ_OP_MODE_MANUAL) {
+                    pFix->cur_spnr_luma_sigma_x[i] = pdyn->sigmaEnv.hw_btnrC_curSpNrSgm_curve.idx[i];
+                    pFix->pre_spnr_luma_sigma_x[i] = pdyn->sigmaEnv.hw_btnrC_iirSpNrSgm_curve.idx[i];
+                }
+            }
+        } else {
+            // interpolate y in low iso
+            uint16_t* pLowY = btnr_attrib->stAuto.dyn[ilow].sigmaEnv.hw_btnrC_curSpNrSgm_curve.val;
+            uint16_t* pHighY = btnr_attrib->stAuto.dyn[ihigh].sigmaEnv.hw_btnrC_curSpNrSgm_curve.val;
+            uint16_t* pLowX = btnr_attrib->stAuto.dyn[ilow].sigmaEnv.hw_btnrC_curSpNrSgm_curve.idx;
+            uint16_t* pHighX = btnr_attrib->stAuto.dyn[ihigh].sigmaEnv.hw_btnrC_curSpNrSgm_curve.idx;
+            uint16_t* pSigmaX = pFix->cur_spnr_luma_sigma_x;
+            uint16_t* pSigmaY = pFix->cur_spnr_luma_sigma_y;
+            bayertnr_sigmaY_interpolate(pSigmaX, pSigmaY, pLowX, pHighX, pLowY, pHighY, spnrsigbins, iso_ratio);
+
+            pLowY = btnr_attrib->stAuto.dyn[ilow].sigmaEnv.hw_btnrC_iirSpNrSgm_curve.val;
+            pHighY = btnr_attrib->stAuto.dyn[ihigh].sigmaEnv.hw_btnrC_iirSpNrSgm_curve.val;
+            pLowX = btnr_attrib->stAuto.dyn[ilow].sigmaEnv.hw_btnrC_iirSpNrSgm_curve.idx;
+            pHighX = btnr_attrib->stAuto.dyn[ihigh].sigmaEnv.hw_btnrC_iirSpNrSgm_curve.idx;
+            pSigmaX = pFix->pre_spnr_luma_sigma_x;
+            pSigmaY = pFix->pre_spnr_luma_sigma_y;
+            bayertnr_sigmaY_interpolate(pSigmaX, pSigmaY, pLowX, pHighX, pLowY, pHighY, spnrsigbins, iso_ratio);
         }
-        else {
+    }
+    else {
+        for(i = 0; i < 16; i++) {
             tmp = bayertnr_tnr_noise_curve(pFix->cur_spnr_luma_sigma_x[i], 0, pTransParams);
             pFix->cur_spnr_luma_sigma_y[i] = CLIP((int)(tmp * kcoef0), 0, max_sig);
             tmp = bayertnr_tnr_noise_curve(pFix->pre_spnr_luma_sigma_x[i], 0, pTransParams);
             pFix->pre_spnr_luma_sigma_y[i] = CLIP((int)(tmp * kcoef1), 0, max_sig);
         }
+    }
+
+    //x step must 2^n
+    for(i = 1; i < spnrsigbins; i++) {
+        x_step = pFix->cur_spnr_luma_sigma_x[i] - pFix->cur_spnr_luma_sigma_x[i - 1];
+        x_step = 1 << (FLOOR(LOG2(x_step)));
+        tmp = pFix->cur_spnr_luma_sigma_x[i - 1] + x_step;
+        pFix->cur_spnr_luma_sigma_x[i] = CLIP(tmp, 0, pFix->tnr_pix_max);
+    }
+
+    //x step must 2^n
+    for(i = 1; i < spnrsigbins; i++) {
+        x_step = pFix->pre_spnr_luma_sigma_x[i] - pFix->pre_spnr_luma_sigma_x[i - 1];
+        x_step = 1 << (FLOOR(LOG2(x_step)));
+        tmp = pFix->pre_spnr_luma_sigma_x[i - 1] + x_step;
+        pFix->pre_spnr_luma_sigma_x[i] = CLIP(tmp, 0, pFix->tnr_pix_max);
     }
 
     /* BAY3D_CURGAIN_OFF 0x2c58 */
@@ -774,15 +939,6 @@ void rk_aiq_btnr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     tmp =  pdyn->noiseBal_byHiAlpha.hw_btnrT_iirHiOrg_alpha * (1 << FIXBITWFWGT);
     pFix->tnr_pre_spnr_hi_wgt_min_limit  = CLIP(tmp, 0, 0xff);
 
-    if(pFix->transf_bypass_en) {
-        pFix->tnr_pix_max = ((1 << 12) - 1);
-    } else {
-        if(pFix->transf_mode_scale) {
-            pFix->tnr_pix_max = bayertnr_logtrans(((1 << 15) - 1), pTransParams);
-        } else {
-            pFix->tnr_pix_max = bayertnr_logtrans(((1 << 20) - 1), pTransParams);;
-        }
-    }
 
     tmp = psta->sigmaEnv.hw_btnrCfg_statsPixCnt_thred;
     pFix->tnr_auto_sigma_count_th = CLIP(tmp, 0, 0xfffff);

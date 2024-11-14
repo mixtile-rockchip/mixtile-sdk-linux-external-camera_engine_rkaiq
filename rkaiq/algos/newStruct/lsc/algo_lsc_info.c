@@ -25,7 +25,7 @@ void lsc_dump_mod_param(const RkAiqAlgoCom* self, st_string* result) {
 
     aiq_info_dump_title(result, "module param");
 
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, "\n\n");
 }
 
 void lsc_dump_mod_attr(const RkAiqAlgoCom* self, st_string* result) {
@@ -37,16 +37,16 @@ void lsc_dump_mod_attr(const RkAiqAlgoCom* self, st_string* result) {
     lsc_api_attrib_t* tunning = &ctx->lsc_attrib->tunning;
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-16s", "meshGrid_mode");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-16s",
              tunning->stAuto.sta.lscCfg.sw_lscT_meshGrid_mode > lsc_usrConfig_mode ? 
              "equal" : "userCfg");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void lsc_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
@@ -60,8 +60,8 @@ void lsc_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-12s%-12s%-12s%-12s%-12s%-12s",
              "phy_chn", "seq", "cur_rgain", "cur_bgain", "cur_illu", "cur_gain", "cur_vig");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     RkAiqAlgoProcLsc* proc_param = (RkAiqAlgoProcLsc*)self;
     illu_estm_info_t *swinfo = &proc_param->illu_info;
@@ -71,15 +71,15 @@ void lsc_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
              self->cid, self->frame_id, swinfo->awbGain[0], swinfo->awbGain[1],
              pIlluCase->sw_lscC_illu_name, swinfo->sensorGain, ctx->pre_vignetting);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-12s%-8s%-16s%-10s",
              "phy_chn", "seq", "damp_en", "damp_converged", "dampCoef");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-8d%-12d%-8s%-16s%-10.4f",
@@ -87,16 +87,16 @@ void lsc_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
              tunning->stAuto.sta.sw_lscT_damp_en ? "Y" : "N",
              ctx->damp_converged ? "Y" : "N", swinfo->awbIIRDampCoef);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     if(tunning->stAuto.sta.sw_lscT_damp_en) {
         memset(buffer, 0, MAX_LINE_LENGTH);
 
         snprintf(buffer, MAX_LINE_LENGTH, "%-12s%-8s%-8s%-8s%-8s%-8s%-8s",
                 "undampCoef", "lut[0]", "lut[1]", "lut[2]", "lut[3]", "lut[4]", "lut[5]");
-        string_printf(result, buffer);
-        string_printf(result, "\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n");
 
         uint16_t* mat_tmp = ctx->undamped_matrix.hw_lscC_gainR_val;
 
@@ -107,8 +107,8 @@ void lsc_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
                  "gainR_val",
                  mat_tmp[0], mat_tmp[1], mat_tmp[2],
                  mat_tmp[3], mat_tmp[4], mat_tmp[5]);
-        string_printf(result, buffer);
-        string_printf(result, "\n\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n\n");
 
         mat_tmp = ctx->undamped_matrix.hw_lscC_gainGr_val;
 
@@ -119,8 +119,8 @@ void lsc_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
                  "gainGr_val",
                  mat_tmp[0], mat_tmp[1], mat_tmp[2],
                  mat_tmp[3], mat_tmp[4], mat_tmp[5]);
-        string_printf(result, buffer);
-        string_printf(result, "\n\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n\n");
 
         mat_tmp = ctx->undamped_matrix.hw_lscC_gainGb_val;
 
@@ -131,8 +131,8 @@ void lsc_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
                  "gainGb_val",
                  mat_tmp[0], mat_tmp[1], mat_tmp[2],
                  mat_tmp[3], mat_tmp[4], mat_tmp[5]);
-        string_printf(result, buffer);
-        string_printf(result, "\n\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n\n");
 
         mat_tmp = ctx->undamped_matrix.hw_lscC_gainB_val;
 
@@ -143,7 +143,7 @@ void lsc_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
                  "gainB_val",
                  mat_tmp[0], mat_tmp[1], mat_tmp[2],
                  mat_tmp[3], mat_tmp[4], mat_tmp[5]);
-        string_printf(result, buffer);
-        string_printf(result, "\n\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n\n");
     }
 }

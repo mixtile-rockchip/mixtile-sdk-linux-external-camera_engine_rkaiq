@@ -586,7 +586,19 @@ RkAiqManager::hwResCb(SmartPtr<VideoBuffer>& hwres)
             return XCAM_RETURN_BYPASS;
         }
 
+#if defined(RKAIQ_ENABLE_CAMGROUP)
+        if (mIsAovMode && mCamGroupCoreManager) {
+            if ((stats->meas_type & ISP32_STAT_RTT_FST) && (seq != mLastAweekId)) {
+                mLastAweekId = seq;
+                mCamHwIsp20->sendNullParamBufForIsp(seq);
+            } else {
+                ret = mRkAiqAnalyzer->pushStats(hwres);
+            }
+            return ret;
+        } else if ((stats->meas_type & ISP32_STAT_RTT_FST) && (seq != mLastAweekId)) {
+#else
         if ((stats->meas_type & ISP32_STAT_RTT_FST) && (seq != mLastAweekId)) {
+#endif
             mRkAiqAnalyzer->awakenClean(seq);
             ret = mCamHwIsp20->setFastAeExp(seq);
 #if 0
@@ -1356,8 +1368,9 @@ void RkAiqManager::unsetTuningCalibDb(bool isNeedFreeCalib)
 XCamReturn RkAiqManager::setVicapStreamMode(int on, bool isSingleMode)
 {
     SmartPtr<CamHwIsp20> camHwIsp20 = mCamHw.dynamic_cast_ptr<CamHwIsp20>();
+    mIsAovMode = !on;
     mRkAiqAnalyzer->setAovMode(!on);
-    return camHwIsp20->setVicapStreamMode(on, isSingleMode);;
+    return camHwIsp20->setVicapStreamMode(on, isSingleMode);
 }
 
 } //namespace RkCam

@@ -28,14 +28,14 @@ void stream_cap_dump_mod_param(AiqRawStreamCapUnit_t* self, st_string* result) {
     aiq_info_dump_title(result, "stream cap module param");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-12s", "drop_frame");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-12d", self->fe.frameloss);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void stream_cap_dump_dev_attr(AiqRawStreamCapUnit_t* self, st_string* result) {
@@ -45,8 +45,8 @@ void stream_cap_dump_dev_attr(AiqRawStreamCapUnit_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-9s%-8s%-9s%-6s%-10s%-11s", "dev_node", "phy_chn",
              "mode", "ext_dev", "skip", "buf_list", "1608_strm");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     memset(buffer, 0, MAX_LINE_LENGTH);
 
     const char* mode = "linear";
@@ -62,8 +62,8 @@ void stream_cap_dump_dev_attr(AiqRawStreamCapUnit_t* self, st_string* result) {
              self->_is_1608_stream ? "Y" : "N");
     aiqMutex_unlock(&self->_buf_mutex);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void stream_cap_dump_chn_attr(AiqRawStreamCapUnit_t* self, st_string* result) {
@@ -73,8 +73,8 @@ void stream_cap_dump_chn_attr(AiqRawStreamCapUnit_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-9s%-14s%-12s%-7s%-7s%-7s%-7s%-7s%-7s", "phy_chn",
              "pixel_format", "data_mode", "cap_x", "cap_y", "cap_w", "cap_h", "dst_w", "dst_h");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     char fmt_str[5];
     fmt_str[0] = AiqV4l2Device_getPixelFmt(self->_dev[0]) & 0xFF;
@@ -99,8 +99,8 @@ void stream_cap_dump_chn_attr(AiqRawStreamCapUnit_t* self, st_string* result) {
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-9d%-14s%-12s%-7d%-7d%-7d%-7d%-7d%-7d", self->mCamPhyId,
              fmt_str, data_mode, sel.r.top, sel.r.left, sel.r.width, sel.r.height, width, height);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void stream_cap_dump_chn_status(AiqRawStreamCapUnit_t* self, st_string* result) {
@@ -110,14 +110,14 @@ void stream_cap_dump_chn_status(AiqRawStreamCapUnit_t* self, st_string* result) 
     snprintf(buffer, MAX_LINE_LENGTH, "%-9s%-10s%-9s%-14s%-10s", "phy_chn", "tx_id", "tx_drop",
              "tx_time(s)", "tx_delay");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     aiq_memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-9d%-10d%-9d%-14.3f%-10d", self->mCamPhyId, self->fe.id,
              self->fe.frameloss, self->fe.timestamp / 1000000.0f, self->fe.delay);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void stream_cap_dump_videobuf_status(AiqRawStreamCapUnit_t* self, st_string* result) {
@@ -127,8 +127,8 @@ void stream_cap_dump_videobuf_status(AiqRawStreamCapUnit_t* self, st_string* res
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-10s%-9s%-7s%-8s%-11s%-6s%-10s%-10s", "dev_node",
              "seq", "buf_idx", "fd", "queued", "sizeimage", "refs", "mem_type", "buf_type");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
 
@@ -141,9 +141,9 @@ void stream_cap_dump_videobuf_status(AiqRawStreamCapUnit_t* self, st_string* res
                  AiqV4l2Buffer_getQueued(buf), AiqV4l2Buffer_getV4lBufPlanarLength(buf, 0),
                  buf->_ref_cnts, AiqV4l2Device_getMemType(self->_dev[0]),
                  AiqV4l2Device_getBufType(self->_dev[0]));
-        string_printf(result, buffer);
-        string_printf(result, "\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n");
     }
 
-    string_printf(result, "\n");
+    aiq_string_printf(result, "\n");
 }

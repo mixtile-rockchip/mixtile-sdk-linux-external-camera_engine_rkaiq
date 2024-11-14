@@ -39,15 +39,15 @@ void core_dump_mod_param(AiqCore_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-9s%-14s%-16s%-15s", "phy_chn", "status", "force_done_cnt",
              "force_done_id");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-9d%-14s%-16d%-15d", self->mAlogsComSharedParams.mCamPhyId,
              State2Str[self->mState], self->mForceDoneCnt, self->mForceDoneId);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void core_dump_mod_attr(AiqCore_t* self, st_string* result) {
@@ -57,8 +57,8 @@ void core_dump_mod_attr(AiqCore_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-9s%-8s%-11s%-11s%-11s%-10s", "phy_chn", "mode",
              "multi_isp", "cam_group", "gray_mode", "fastboot");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     const char* mode = "linear";
     if (RK_AIQ_HDR_GET_WORKING_MODE(self->mAlogsComSharedParams.working_mode) ==
@@ -76,8 +76,8 @@ void core_dump_mod_attr(AiqCore_t* self, st_string* result) {
              self->mGrayMode == RK_AIQ_GRAY_MODE_ON ? "Y" : "N",
              self->mTbInfo.is_fastboot ? "Y" : "N");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void core_dump_mod_status(AiqCore_t* self, st_string* result) {
@@ -88,16 +88,16 @@ void core_dump_mod_status(AiqCore_t* self, st_string* result) {
     snprintf(buffer, MAX_LINE_LENGTH, "%-9s%-12s%-10s%-12s%-10s", "phy_chn", "fs_id", "fs_drop",
              "stats_id", "stats_drop");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     aiq_memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-9d%-12d%-10d%-12d%-10d",
              self->mAlogsComSharedParams.mCamPhyId, self->mLatestEvtsId, self->mSofLoss,
              self->mLatestStatsId, self->mStatsLoss);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void core_dump_mod_3a_stats(AiqCore_t* self, st_string* result) {
@@ -108,8 +108,8 @@ void core_dump_mod_3a_stats(AiqCore_t* self, st_string* result) {
     snprintf(buffer, MAX_LINE_LENGTH, "%-9s%-12s%-4s%-5s%-4s%-6s%-8s%-6s", "phy_chn", "seq", "ae",
              "awb", "af", "btnr", "dehaze", "gain");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     aiq_memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-9d%-12d%-4s%-5s%-4s%-6s%-8s%-6s",
@@ -118,6 +118,6 @@ void core_dump_mod_3a_stats(AiqCore_t* self, st_string* result) {
              self->mIsStatsAvail.af ? "Y" : "N", self->mIsStatsAvail.btnr ? "Y" : "N",
              self->mIsStatsAvail.dhaze ? "Y" : "N", self->mIsStatsAvail.gain ? "Y" : "N");
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }

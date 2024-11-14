@@ -2620,6 +2620,11 @@ CamHwIsp20::setLensVcmCfg(struct rkmodule_inf& mod_info)
                     new_cfg.start_ma = start_ma - (int)(range * posture_diff);
                     new_cfg.rated_ma = rated_ma + (int)(range * posture_diff);
 
+                    if (new_cfg.start_ma < 0)
+                        new_cfg.start_ma = 0;
+                    if (new_cfg.rated_ma > 1023)
+                        new_cfg.rated_ma = 1023;
+
                     LOGD_AF("posture_diff %f, start_ma %d -> %d, rated_ma %d -> %d",
                             posture_diff, start_ma, new_cfg.start_ma, rated_ma, new_cfg.rated_ma);
                 }
@@ -6268,6 +6273,7 @@ CamHwIsp20::setIspConfig(cam3aResultList* result_list)
             }
         }
 #endif
+        _curIspParamsSeq = isp_params->frame_id;
 		// assume the max valid bit is 60
 		for (int i = 0; i < 60; i++) {
 			if (isp_params->module_en_update & (1ULL << i)) {
@@ -7128,6 +7134,79 @@ CamHwIsp20::setSnsSyncMode(uint32_t mode)
 {
     SensorHw* mSensorSubdev = mSensorDev.get_cast_ptr<SensorHw>();
     return mSensorSubdev->set_sync_mode(mode);
+}
+
+XCamReturn
+CamHwIsp20::sendNullParamBufForIsp(uint32_t frameId)
+{
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+    SmartPtr<V4l2Buffer> v4l2buf;
+    if (mIspParamsDev.ptr()) {
+        ret = mIspParamsDev->get_buffer(v4l2buf);
+        if (ret) {
+            LOGE_CAMHW_SUBM(ISP20HW_SUBM, "%s: Can not get isp params buffer, queued cnts:%d \n",
+                            __FUNCTION__, mIspParamsDev->get_queued_bufcnt());
+            return XCAM_RETURN_ERROR_PARAM;
+        }
+    } else
+        return XCAM_RETURN_BYPASS;
+
+    if (v4l2buf.ptr()) {
+#if defined(ISP_HW_V32) || defined(ISP_HW_V32_LITE)
+        struct isp32_isp_params_cfg* isp_params =
+            (struct isp32_isp_params_cfg*)v4l2buf->get_buf().m.userptr;
+#elif defined(ISP_HW_V30)
+        struct isp3x_isp_params_cfg* isp_params =
+            (struct isp3x_isp_params_cfg*)v4l2buf->get_buf().m.userptr;
+#elif defined(ISP_HW_V21)
+        struct isp21_isp_params_cfg* isp_params =
+            (struct isp21_isp_params_cfg*)v4l2buf->get_buf().m.userptr;
+#else
+        struct isp20_isp_params_cfg* isp_params =
+            (struct isp20_isp_params_cfg*)v4l2buf->get_buf().m.userptr;
+#endif
+        isp_params->module_en_update  = 0;
+        isp_params->module_cfg_update = 0;
+        isp_params->module_ens = 0;
+        isp_params->frame_id = frameId;
+        isp_params->module_cfg_update |= ISP32_MODULE_RTT_FST;
+
+
+        if (mIspParamsDev->queue_buffer(v4l2buf) != 0) {
+            LOGE_CAMHW_SUBM(ISP20HW_SUBM,
+                            "%s: RKISP1: failed to ioctl VIDIOC_QBUF for index %d, %d %s.\n",
+                            __FUNCTION__, v4l2buf->get_buf().index, errno, strerror(errno));
+            mIspParamsDev->return_buffer_to_pool(v4l2buf);
+            return XCAM_RETURN_ERROR_IOCTL;
+        }
+
+        int timeout = 1;
+        int buf_counts = mIspParamsDev->get_buffer_count ();
+        int try_time = 3;
+        while (mIspParamsDev->get_queued_bufcnt() > 2) {
+            if (mIspParamsDev->poll_event (timeout, -1) <= 0) {
+                LOGW_CAMHW_SUBM(ISP20HW_SUBM, "poll params error, queue cnts: %d !",
+                                mIspParamsDev->get_queued_bufcnt());
+                if (mIspParamsDev->get_queued_bufcnt() == buf_counts && try_time > 0) {
+                    timeout = 30;
+                    try_time--;
+                    continue;
+                } else
+                    break;
+            }
+            SmartPtr<V4l2Buffer> buf;
+            ret = mIspParamsDev->dequeue_buffer (buf);
+            if (ret != XCAM_RETURN_NO_ERROR) {
+                XCAM_LOG_WARNING ("dequeue buffer failed");
+            } else {
+                mIspParamsDev->return_buffer_to_pool(buf);
+            }
+        }
+    } else
+        return XCAM_RETURN_BYPASS;
+
+    return ret;
 }
 
 } //namspace RkCam

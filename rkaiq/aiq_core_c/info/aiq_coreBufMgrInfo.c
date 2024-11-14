@@ -28,14 +28,14 @@ void core_buf_mgr_dump_mod_param(AiqCore_t* self, st_string* result) {
     aiq_info_dump_title(result, "module param");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-9s", "phy_chn");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-9d", self->mAlogsComSharedParams.mCamPhyId);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 static void __snprintf_strings(const char* key_word, AiqPool_t* pool, uint32_t no_free_cnt,
@@ -46,8 +46,8 @@ static void __snprintf_strings(const char* key_word, AiqPool_t* pool, uint32_t n
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-10d%-11d%-10d%-13d", key_word,
              aiqPool_getItemNums(pool), aiqPool_getItemSize(pool), aiqPool_freeNums(pool),
              no_free_cnt);
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 }
 
 void core_buf_mgr_dump_mem_pool_info(AiqCore_t* self, st_string* result) {
@@ -57,8 +57,8 @@ void core_buf_mgr_dump_mem_pool_info(AiqCore_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-10s%-11s%-10s%-13s", "pool_name", "item_num",
              "item_size", "free_num", "no_free_cnt");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     __snprintf_strings("sof_info", self->mAiqSofInfoWrapperPool, self->mNoFreeBufCnt.sofInfo,
                        buffer, result);
@@ -97,7 +97,7 @@ void core_buf_mgr_dump_mem_pool_info(AiqCore_t* self, st_string* result) {
     __snprintf_strings("ynr_proc_res", self->mProcResYnrSharedPool, self->mNoFreeBufCnt.ynrProcRes,
                        buffer, result);
 
-    string_printf(result, "\n");
+    aiq_string_printf(result, "\n");
 }
 
 void core_buf_mgr_dump_pending_param_map_info(AiqCore_t* self, st_string* result) {
@@ -107,16 +107,16 @@ void core_buf_mgr_dump_pending_param_map_info(AiqCore_t* self, st_string* result
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-10s%-11s%-18s%-13s", "name", "item_num", "item_size",
              "max_pending_size", "pending_num");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-10d%-11d%-18d%-13d", "pendingParam",
              aiqMap_itemNums(self->mFullParamsPendingMap),
              aiqMap_itemSize(self->mFullParamsPendingMap), FULLPARMAS_MAX_PENDING_SIZE,
              aiqMap_size(self->mFullParamsPendingMap));
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void core_buf_mgr_dump_pending_param_map_status(AiqCore_t* self, st_string* result) {
@@ -142,8 +142,8 @@ void core_buf_mgr_dump_pending_param_map_status(AiqCore_t* self, st_string* resu
                     snprintf(buffer + strlen(buffer), MAX_LINE_LENGTH, "%-11s", grp_type);
                 }
             }
-            string_printf(result, buffer);
-            string_printf(result, "\n");
+            aiq_string_printf(result, buffer);
+            aiq_string_printf(result, "\n");
             isFirst = false;
         }
 
@@ -160,12 +160,12 @@ void core_buf_mgr_dump_pending_param_map_status(AiqCore_t* self, st_string* resu
             }
         }
 
-        string_printf(result, buffer);
-        string_printf(result, "\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n");
     }
     aiqMutex_unlock(&self->_mFullParam_mutex);
 
-    string_printf(result, "\n");
+    aiq_string_printf(result, "\n");
 }
 
 int core_buf_mgr_dump(void* self, st_string* result, int argc, void* argv[]) {

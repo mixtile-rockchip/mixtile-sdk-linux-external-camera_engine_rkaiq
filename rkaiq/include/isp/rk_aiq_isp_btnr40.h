@@ -1389,6 +1389,132 @@ typedef struct btnr_sigma_static_s {
     uint32_t hw_btnrCfg_statsPixCnt_thred;
 } btnr_sigma_static_t;
 
+
+typedef enum btnr_pixDomain_mode_e {
+    /*
+    reg: (hw_btnr_transf_bypass_en== 0 && hw_btnr_transf_mode == 0)
+    */
+    btnr_pixLog2Domain_mode = 0,
+    // /*
+    // reg: (hw_btnr_transf_bypass_en== 0 && hw_btnr_transf_mode == 1)
+    // */
+    // btnr_pixSqrtDomain_mode,
+    /*
+    reg: (hw_btnr_transf_bypass_en== 1)
+    */
+    btnr_pixLinearDomain_mode,
+} btnr_pixDomain_mode_t;
+
+typedef enum btnr_trans_mode_e {
+    /*
+    reg: hw_btnr_transfMode_scale == 0
+    */
+    btnr_pixInBw20b_mode = 0,
+    /*
+    reg: hw_btnr_transfMode_scale == 1
+    */
+    btnr_pixInBw15b_mode = 1
+} btnr_trans_mode_t;
+
+typedef struct btnr_transCfg_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(hw_btnr_transfMode_scale),
+        M4_TYPE(enum),
+        M4_ENUM_DEF(btnr_trans_mode_t),
+        M4_DEFAULT(btnr_pixInBw20b_mode),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_GROUP(pixDomain_mode_group:btnr_pixLog2Domain_mode),
+        M4_NOTES(Scale used for transformation.\n
+        Freq of use: low))  */
+    // reg: hw_btnr_transfMode_scale
+    btnr_trans_mode_t hw_btnr_trans_mode;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(hw_btnr_transfMode_offset),
+        M4_TYPE(s32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,8191),
+        M4_DEFAULT(256),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(Offset used for transformation.\n
+        Freq of use: low))  */
+    // reg: hw_btnr_transfMode_offset
+    int hw_btnr_trans_offset;
+} btnr_transCfg_t;
+
+
+typedef struct btnr_sigmaAttrib_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(hw_btnrCfg_pixDomain_mode),
+        M4_TYPE(enum),
+        M4_ENUM_DEF(btnr_pixDomain_mode_t),
+        M4_DEFAULT(btnr_pixLog2Domain_mode),
+        M4_HIDE_EX(0),
+        M4_RO(1),
+        M4_ORDER(0),
+        M4_NOTES(The pixDomain mode used on isp calibration tuning, read only.\n
+        Freq of use: low))  */
+    btnr_pixDomain_mode_t hw_btnrCfg_pixDomain_mode;
+    /* M4_GENERIC_DESC(
+       M4_ALIAS(hw_btnr_transfMode_scale),
+       M4_TYPE(enum),
+       M4_ENUM_DEF(btnr_trans_mode_t),
+       M4_DEFAULT(btnr_pixInBw15b_mode),
+       M4_DIGIT_EX(0),
+       M4_HIDE_EX(0),
+       M4_RO(1),
+       M4_ORDER(0),
+       M4_NOTES(Scale used for transformation.\n
+       Freq of use: low))  */
+    // reg: hw_btnr_transfMode_scale
+    btnr_trans_mode_t hw_btnrCfg_trans_mode;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(hw_btnr_transfMode_offset),
+        M4_TYPE(s32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,8191),
+        M4_DEFAULT(256),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(1),
+        M4_ORDER(0),
+        M4_NOTES(Offset used for transformation.\n
+        Freq of use: low))  */
+    // reg: hw_btnr_transfMode_offset
+    int hw_btnrCfg_trans_offset;
+    /* M4_GENERIC_DESC(
+       M4_ALIAS(ob_offset),
+       M4_TYPE(u16),
+       M4_SIZE_EX(1,1),
+       M4_RANGE_EX(0,511),
+       M4_DEFAULT(0),
+       M4_HIDE_EX(0),
+       M4_RO(1),
+       M4_ORDER(0),
+       M4_NOTES(The ob_offset value used on isp calibration tuning, read only.\n
+       Freq of use: low))  */
+    uint16_t ob_offset;
+    /* M4_GENERIC_DESC(
+       M4_ALIAS(predgain),
+       M4_TYPE(f32),
+       M4_SIZE_EX(1,1),
+       M4_RANGE_EX(0,16.0),
+       M4_DEFAULT(1.0),
+       M4_DIGIT_EX(3),
+       M4_HIDE_EX(0),
+       M4_RO(1),
+       M4_ORDER(0),
+       M4_NOTES(The predgain value used on isp calibration tuning, read only.\n
+       Freq of use: low))  */
+    float predgain;
+} btnr_sigmaAttrib_t;
+
+
 typedef struct btnr_sigmaEnv_dyn_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(hw_btnr_autoSigmaCountWgt_thred),
@@ -1419,6 +1545,16 @@ typedef struct btnr_sigmaEnv_dyn_s {
         M4_NOTES(The weight of previous sigma value with current sigma value on auto sigma count mode.\n
         Freq of use: low))  */
     float sw_btnrT_autoSgmIIR_alpha;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(sigmaAttrib),
+        M4_TYPE(struct),
+        M4_UI_MODULE(normal_ui_style),
+        M4_HIDE_EX(0),
+        M4_RO(1),
+        M4_ORDER(0),
+        M4_NOTES(TODO.\n
+        Freq of use: low))  */
+    btnr_sigmaAttrib_t hw_btnrC_sigmaAttrib;
     /* M4_GENERIC_DESC(
         M4_ALIAS(hw_btnr_curSpnrLuma2sigma),
         M4_TYPE(struct),
@@ -1477,63 +1613,6 @@ typedef struct btnr_locSgmStrg_dyn_s {
     float hw_bnrT_locSgmStrg_maxLimit;
 } btnr_locSgmStrg_dyn_t;
 
-
-typedef enum btnr_pixDomain_mode_e {
-    /*
-    reg: (hw_btnr_transf_bypass_en== 0 && hw_btnr_transf_mode == 0)
-    */
-    btnr_pixLog2Domain_mode = 0,
-    // /*
-    // reg: (hw_btnr_transf_bypass_en== 0 && hw_btnr_transf_mode == 1)
-    // */
-    // btnr_pixSqrtDomain_mode,
-    /*
-    reg: (hw_btnr_transf_bypass_en== 1)
-    */
-    btnr_pixLinearDomain_mode,
-} btnr_pixDomain_mode_t;
-
-typedef enum btnr_trans_mode_e {
-    /*
-    reg: hw_btnr_transfMode_scale == 0
-    */
-    btnr_pixInBw20b_mode = 0,
-    /*
-    reg: hw_btnr_transfMode_scale == 1
-    */
-    btnr_pixInBw15b_mode = 1
-} btnr_trans_mode_t;
-
-typedef struct btnr_transCfg_s {
-    /* M4_GENERIC_DESC(
-        M4_ALIAS(hw_btnr_transfMode_scale),
-        M4_TYPE(enum),
-        M4_ENUM_DEF(btnr_trans_mode_t),
-        M4_DEFAULT(btnr_pixInBw20b_mode),
-        M4_DIGIT_EX(0),
-        M4_HIDE_EX(0),
-        M4_RO(0),
-        M4_ORDER(0),
-        M4_GROUP(pixDomain_mode_group:btnr_pixLog2Domain_mode),
-        M4_NOTES(Scale used for transformation.\n
-        Freq of use: low))  */
-    // reg: hw_btnr_transfMode_scale
-    btnr_trans_mode_t hw_btnr_trans_mode;
-    /* M4_GENERIC_DESC(
-        M4_ALIAS(hw_btnr_transfMode_offset),
-        M4_TYPE(s32),
-        M4_SIZE_EX(1,1),
-        M4_RANGE_EX(0,8191),
-        M4_DEFAULT(256),
-        M4_DIGIT_EX(0),
-        M4_HIDE_EX(0),
-        M4_RO(0),
-        M4_ORDER(0),
-        M4_NOTES(Offset used for transformation.\n
-        Freq of use: low))  */
-    // reg: hw_btnr_transfMode_offset
-    int hw_btnr_trans_offset;
-} btnr_transCfg_t;
 
 
 typedef enum btnr_dbgOutMux_mode_e {

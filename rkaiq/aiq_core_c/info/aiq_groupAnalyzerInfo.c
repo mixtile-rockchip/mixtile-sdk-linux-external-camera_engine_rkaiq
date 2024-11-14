@@ -26,14 +26,14 @@ void group_analyzer_dump_mod_param(AiqAnalyzeGroupManager_t* self, st_string* re
     aiq_info_dump_title(result, "module param");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-9s%-15s", "phy_chn", "single_thread");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-9d%-15s", self->mAiqCore->mAlogsComSharedParams.mCamPhyId,
              self->mSingleThreadMode ? "Y" : "N");
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void group_analyzer_dump_attr(AiqAnalyzeGroupManager_t* self, st_string* result) {
@@ -51,8 +51,8 @@ void group_analyzer_dump_attr(AiqAnalyzeGroupManager_t* self, st_string* result)
             memset(buffer, 0, MAX_LINE_LENGTH);
             snprintf(buffer, MAX_LINE_LENGTH, "%-12s%-12s%-13s%-11s", "name", "st_vi_scale",
                      "user_delay", "awaken_id");
-            string_printf(result, buffer);
-            string_printf(result, "\n");
+            aiq_string_printf(result, buffer);
+            aiq_string_printf(result, "\n");
             isFirst = false;
         }
 
@@ -70,11 +70,11 @@ void group_analyzer_dump_attr(AiqAnalyzeGroupManager_t* self, st_string* result)
             snprintf(buffer, MAX_LINE_LENGTH, "%-12s%-12s%-13d%-11s", lower_case,
                      pGrp->mVicapScaleStart ? "Y" : "N", pGrp->mUserSetDelayCnts, "\\");
 
-        string_printf(result, buffer);
-        string_printf(result, "\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n");
     }
 
-    string_printf(result, "\n");
+    aiq_string_printf(result, "\n");
 }
 
 void group_analyzer_dump_msg_hdl_status(AiqAnalyzeGroupManager_t* self, st_string* result) {
@@ -85,14 +85,14 @@ void group_analyzer_dump_msg_hdl_status(AiqAnalyzeGroupManager_t* self, st_strin
     aiq_info_dump_title(result, "message handler status");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-6s%-10s%-11s", "name", "item_num", "using_num");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-6s%-10d%-11d", "msgQ",
              aiqList_num(self->mMsgThrd->mMsgsQueue), aiqList_size(self->mMsgThrd->mMsgsQueue));
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void group_analyzer_dump_msg_map_status1(AiqAnalyzeGroupManager_t* self, st_string* result) {
@@ -109,8 +109,8 @@ void group_analyzer_dump_msg_map_status1(AiqAnalyzeGroupManager_t* self, st_stri
         if (isFirst) {
             snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-10s%-11s%-13s%-11s%-12s", "name", "item_num",
                      "item_size", "overflow_th", "using_num", "reduce_cnt");
-            string_printf(result, buffer);
-            string_printf(result, "\n");
+            aiq_string_printf(result, buffer);
+            aiq_string_printf(result, "\n");
             isFirst = false;
         }
 
@@ -121,11 +121,11 @@ void group_analyzer_dump_msg_map_status1(AiqAnalyzeGroupManager_t* self, st_stri
         snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-10d%-11d%-13d%-11d%-12d", lower_case,
                  aiqMap_itemNums(pGrp->mGroupMsgMap), aiqMap_itemSize(pGrp->mGroupMsgMap),
                  GROUP_MSG_OVERFLOW_TH, aiqMap_size(pGrp->mGroupMsgMap), pGrp->mMsgReduceCnt);
-        string_printf(result, buffer);
-        string_printf(result, "\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n");
     }
 
-    string_printf(result, "\n");
+    aiq_string_printf(result, "\n");
 }
 
 void group_analyzer_dump_msg_map_status2(AiqAnalyzeGroupManager_t* self, st_string* result) {
@@ -152,8 +152,8 @@ void group_analyzer_dump_msg_map_status2(AiqAnalyzeGroupManager_t* self, st_stri
             snprintf(buffer + strlen(buffer), MAX_LINE_LENGTH, "%-16s", lower_case);
         }
 
-        string_printf(result, buffer);
-        string_printf(result, "\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n");
 
         AiqMapItem_t* pItem = NULL;
         bool rm             = false;
@@ -173,10 +173,10 @@ void group_analyzer_dump_msg_map_status2(AiqAnalyzeGroupManager_t* self, st_stri
                 else
                     snprintf(buffer + strlen(buffer), MAX_LINE_LENGTH, "%-16s", "N");
             }
-            string_printf(result, buffer);
-            string_printf(result, "\n");
+            aiq_string_printf(result, buffer);
+            aiq_string_printf(result, "\n");
         }
 
-        string_printf(result, "\n");
+        aiq_string_printf(result, "\n");
     }
 }

@@ -17,7 +17,7 @@ include_directories(
     )
 
 if(RKAIQ_HAVE_DUMPSYS)
-    include_directories(${CMAKE_SOURCE_DIR}/dumpcam_server/info/include)
+    include_directories(../dumpcam_server/info/include)
 endif()
 
 if(WIN32)

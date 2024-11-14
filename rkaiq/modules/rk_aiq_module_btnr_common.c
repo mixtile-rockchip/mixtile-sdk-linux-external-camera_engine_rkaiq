@@ -179,9 +179,9 @@ int bayertnr_logiitrans(int tmpData, btnr_trans_params_t *pTransPrarms)
 {
     long long iii, ss, n, dn, s;
     long long one = 1;
-	long long ix1, ix2, dp;
-	long long lt1, lt2, fx;
-	long long stepbit, step, yy;
+    long long ix1, ix2, dp;
+    long long lt1, lt2, fx;
+    long long stepbit, step, yy;
     long long  tempdat;
     int bayertnr_logprecision = pTransPrarms->bayertnr_logprecision;
     int bayertnr_logfixbit = pTransPrarms->bayertnr_logfixbit;
@@ -194,58 +194,58 @@ int bayertnr_logiitrans(int tmpData, btnr_trans_params_t *pTransPrarms)
     uint8_t bayertnr_trans_mode = pTransPrarms->transf_mode;
     uint32_t bayertnr_trans_data_max = pTransPrarms->transf_data_max_limit;
 
-	if(bayertnr_trans_mode)
-	{
-		fx = tmpData;
-		fx = fx + bayertnr_itrans_mode_offset;
+    if(bayertnr_trans_mode)
+    {
+        fx = tmpData;
+        fx = fx + bayertnr_itrans_mode_offset;
 
-		n  = (long long)bayertnr_find_top_one_pos((int)fx);
-		dn = n - bayertnr_logscalebit;
+        n  = (long long)bayertnr_find_top_one_pos((int)fx);
+        dn = n - bayertnr_logscalebit;
 
-		s = fx - (one<<(bayertnr_logscalebit+dn));
-		s = s*bayertnr_logtblmul/(one<<(bayertnr_logscalebit+dn));
-		stepbit = bayertnr_logtblbit - bayertnr_logprecision;
-		step = (one<<stepbit);
+        s = fx - (one << (bayertnr_logscalebit + dn));
+        s = s * bayertnr_logtblmul / (one << (bayertnr_logscalebit + dn));
+        stepbit = bayertnr_logtblbit - bayertnr_logprecision;
+        step = (one << stepbit);
 
-		ix1 = s/step;
-		dp = s - ix1*step;
+        ix1 = s / step;
+        dp = s - ix1 * step;
 
-		ix2 = ix1 + 1;
+        ix2 = ix1 + 1;
 
-		lt1 = pTransPrarms->bayertnr_logtablei[ix1];
-		lt2 = pTransPrarms->bayertnr_logtablei[ix2];
+        lt1 = pTransPrarms->bayertnr_logtablei[ix1];
+        lt2 = pTransPrarms->bayertnr_logtablei[ix2];
 
-		ss = lt1*(step - dp) + lt2*dp;
+        ss = lt1 * (step - dp) + lt2 * dp;
 
-		ss = ss+(one<<(bayertnr_logtblbit+stepbit-dn*2-1));
-		yy = ss>>(bayertnr_logtblbit+stepbit-dn*2);
-		yy = yy - bayertnr_trans_mode_offset;
-		tempdat = MIN(yy, bayertnr_trans_data_max);
-	}
-	else
-	{
-		fx = tmpData;
-		fx = fx + bayertnr_itrans_mode_offset;
+        ss = ss + (one << (bayertnr_logtblbit + stepbit - dn * 2 - 1));
+        yy = ss >> (bayertnr_logtblbit + stepbit - dn * 2);
+        yy = yy - bayertnr_trans_mode_offset;
+        tempdat = MIN(yy, bayertnr_trans_data_max);
+    }
+    else
+    {
+        fx = tmpData;
+        fx = fx + bayertnr_itrans_mode_offset;
 
-		iii = fx / (one<<bayertnr_logscalebit);
-		ss = fx - iii*(one<<bayertnr_logscalebit);
+        iii = fx / (one << bayertnr_logscalebit);
+        ss = fx - iii * (one << bayertnr_logscalebit);
 
-		stepbit = bayertnr_logscalebit - bayertnr_logprecision;
-		step = (one<<stepbit);
+        stepbit = bayertnr_logscalebit - bayertnr_logprecision;
+        step = (one << stepbit);
 
-		ix1 = ss/step;
-		dp = ss - ix1*step;
+        ix1 = ss / step;
+        dp = ss - ix1 * step;
 
-		ix2 = ix1 + 1;
+        ix2 = ix1 + 1;
 
-		lt1 = pTransPrarms->bayertnr_logtablei[ix1];
-		lt2 = pTransPrarms->bayertnr_logtablei[ix2];
+        lt1 = pTransPrarms->bayertnr_logtablei[ix1];
+        lt2 = pTransPrarms->bayertnr_logtablei[ix2];
 
-		ss = lt1*(step - dp) + lt2*dp;
+        ss = lt1 * (step - dp) + lt2 * dp;
 
-		yy = (one<<iii)*ss;
-		yy = yy/(one<<(bayertnr_logtblbit+stepbit));
-		yy = yy - bayertnr_trans_mode_offset;
+        yy = (one << iii) * ss;
+        yy = yy / (one << (bayertnr_logtblbit + stepbit));
+        yy = yy - bayertnr_trans_mode_offset;
         tempdat = MIN(yy, bayertnr_trans_data_max);
     }
     return (int)tempdat;
@@ -254,15 +254,15 @@ int bayertnr_logiitrans(int tmpData, btnr_trans_params_t *pTransPrarms)
 int rk_autoblc_gen_tbl(unsigned int* bayertnr_itransf_tbl, uint16_t bayertnr_pixlog_max, btnr_trans_params_t *pTransPrarms)
 {
 
-	for (int j = 0; j <= bayertnr_pixlog_max; j++)
-	{
-		bayertnr_itransf_tbl[j] = pTransPrarms->isTransfBypass == 0 ? bayertnr_logiitrans(j, pTransPrarms) : j;
-	}
-	for (int j = bayertnr_pixlog_max + 1; j < 4096; j++)
-	{
-		bayertnr_itransf_tbl[j] = pTransPrarms->isTransfBypass == 0 ? bayertnr_logiitrans(bayertnr_pixlog_max, pTransPrarms) : j;
-	}
-	return 0;
+    for (int j = 0; j <= bayertnr_pixlog_max; j++)
+    {
+        bayertnr_itransf_tbl[j] = pTransPrarms->isTransfBypass == 0 ? bayertnr_logiitrans(j, pTransPrarms) : j;
+    }
+    for (int j = bayertnr_pixlog_max + 1; j < 4096; j++)
+    {
+        bayertnr_itransf_tbl[j] = pTransPrarms->isTransfBypass == 0 ? bayertnr_logiitrans(bayertnr_pixlog_max, pTransPrarms) : j;
+    }
+    return 0;
 }
 
 void bayertnr_save_stats(void *stats_buffer, btnr_cvt_info_t *pBtnrInfo)
@@ -679,3 +679,62 @@ int bayertnr_tnr_noise_curve(int data, int isHdrShort, btnr_trans_params_t *pTra
 
     return sigma;
 }
+
+void bayertnr_sigmaY_interpolate(u16 *pSigX, u16 *pSigY, u16 *pLowX, u16 *pHighX, u16 *pLowY, u16 *pHighY,  int sigbins, float iso_ratio)
+{
+    int i, j, tmp;
+    float x_ratio = 0.0;
+    u16 y_lowISO = 0, y_highISO = 0;
+
+    for(i = 0; i < sigbins; i++) {
+        tmp = pSigX[i];
+        for(j = 0; j < sigbins - 1; j++) {
+            if(tmp >= pLowX[j] &&  tmp <= pLowX[j + 1]) {
+                x_ratio = (float)(tmp - pLowX[j]) / (pLowX[j + 1] - pLowX[j]);
+                break;
+            }
+        }
+        if(j == sigbins - 1) {
+            if(tmp < pLowX[0]) {
+                j = 0;
+                x_ratio = 0;
+            }
+            if(tmp > pLowX[sigbins - 1] ) {
+                j = sigbins - 2;
+                x_ratio = 1;
+            }
+        }
+        y_lowISO = x_ratio * (pLowY[j + 1] - pLowY[j]) + pLowY[j];
+#if 0
+        printf("tnr low: x:%u xlow:%u xHigh:%u xratio:%f ylow:%u yhigh:%u y:%u\n",
+               tmp, pLowX[j], pLowX[j + 1], x_ratio, pLowY[j], pLowY[j + 1], y_lowISO);
+#endif
+
+        //interpolate y in high iso
+        for(j = 0; j < sigbins - 1; j++) {
+            if(tmp >= pHighX[j] &&  tmp <= pHighX[j + 1]) {
+                x_ratio = (float)(tmp - pHighX[j]) / (pHighX[j + 1] - pHighX[j]);
+                break;
+            }
+        }
+        if(j == sigbins - 1) {
+            if(tmp < pHighX[0]) {
+                j = 0;
+                x_ratio = 0;
+            }
+            if(tmp > pHighX[sigbins - 1] ) {
+                j = sigbins - 2;
+                x_ratio = 1;
+            }
+        }
+        y_highISO = x_ratio * (pHighY[j + 1] - pHighY[j]) + pHighY[j];
+
+        // intepolate y between two iso
+        pSigY[i]  = iso_ratio * (y_highISO - y_lowISO) + y_lowISO;
+#if 0
+        printf("tnr high: x:%u xlow:%u xHigh:%u xratio:%f ylow:%u yhigh:%u y:%u  finnalY:%u\n",
+               tmp, pHighX[j], pHighX[j + 1], x_ratio, pHighY[j], pHighY[j + 1], y_highISO, pSigY[i]);
+#endif
+    }
+}
+

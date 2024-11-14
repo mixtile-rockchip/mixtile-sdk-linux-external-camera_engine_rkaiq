@@ -350,15 +350,15 @@ int xcam_dump_log(st_string* result, int argc, void* argv[]) {
 
 #ifdef NDEBUG
     sprintf(buffer, "\nNot supported, AIQ logs has been removed at compile time\n");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     return true;
 #endif
 
     if (!argc) {
         sprintf(buffer, "\nCurrent AIQ log level: 0x%llx\n", g_cam_engine_log_level);
-        string_printf(result, buffer);
-        string_printf(result, "\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n");
         return true;
     }
 
@@ -540,14 +540,14 @@ int xcam_dump_log(st_string* result, int argc, void* argv[]) {
     xcam_set_log_level(log_cfg);
 
     sprintf(buffer, "\nSet AIQ log level: 0x%llx\n", g_cam_engine_log_level);
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     return true;
 
 __FAILED:
     argparse_usage_string(&argparse, buffer);
-    string_printf(result, buffer);
+    aiq_string_printf(result, buffer);
 
     return true;
 }

@@ -69,10 +69,12 @@ RkIspFecHwMgr* RkIspFecHwMgr::getInstance()
     RkIspFecHwMgr* mgr = NULL;
     int ret = pthread_mutex_lock (&mMutex);
 
-    if (!mInstance)
+    if (!mInstance) {
         mgr = new RkIspFecHwMgr();
-    else
+        mInstance = mgr;
+    } else {
         mgr = mInstance;
+    }
 
     mRefCnt++;
     ret = pthread_mutex_unlock (&mMutex);
@@ -187,10 +189,23 @@ RkIspFecHwMgr::selectFecHw()
         fecHw = 1;
         mIsFecHwWking[1] = true;
     } else {
+#if 0
         // wait for fecHw0
         ret = pthread_cond_wait (&mCond, &mMutex);
         fecHw = 0;
         mIsFecHwWking[0] = true;
+#else
+        while (mIsFecHwWking[0] && mIsFecHwWking[1])
+            ret = pthread_cond_wait (&mCond, &mMutex);
+
+        if (!mIsFecHwWking[0]) {
+            fecHw = 0;
+            mIsFecHwWking[0] = true;
+        } else {
+            fecHw = 1;
+            mIsFecHwWking[1] = true;
+        }
+#endif
     }
     ret = pthread_mutex_unlock (&mMutex);
 
@@ -210,7 +225,7 @@ RkIspFecHwMgr::process(struct rkispp_fec_in_out& param)
         }
         ret |= pthread_mutex_lock (&mMutex);
         mIsFecHwWking[fecHw] = false;
-        pthread_cond_broadcast(&mCond);
+        pthread_cond_signal(&mCond);
         ret |= pthread_mutex_unlock (&mMutex);
     } else {
         printf("E: no fecHw exsist \n");

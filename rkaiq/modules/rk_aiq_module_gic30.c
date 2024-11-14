@@ -253,7 +253,10 @@ void rk_aiq_gic30_params_cvt(void* attr, struct isp33_gic_cfg* gic_cfg)
     int sumLoFltGbCoeff                     = pFix->lofltgb_coeff0 * 2 + pFix->lofltgb_coeff1 * 2;
     if(sumLoFltGrCoeff != sumLoFltGbCoeff)
     {
-        LOGE_AGIC("-----------------sumLoFltGrCoeff must be the same as sumLoFltGbCoeff\n");
+        LOGE_AGIC("sumLoFltGrCoeff must be the same as sumLoFltGbCoeff,\n" 
+            "sumLoFltGrCoeff = grFiltSpatial_wgt[0] * 2 + grFiltSpatial_wgt[1] + 2 * grFiltSpatial_wgt[2] + grFiltSpatial_wgt[3]\n"
+            "sumLoFltGbCoeff = gbFiltSpatial_wgt[0] * 2 + gbFiltSpatial_wgt[1] * 2\n"
+            "You can set by gic.dyn.gicPost_guideEpf.lpf.hw_gicT_grFiltSpatial_wgt and gic.dyn.gicPost_guideEpf.lpf.hw_gicT_gbFiltSpatial_wgt\n");
     }
     tmp =  ROUND_F(1.0f / MAX(sumLoFltGrCoeff, sumLoFltGbCoeff) * (1 << RKGIC_V30_COEFF_INV_FIX_BITS));
     pFix->sumlofltcoeff_inv = CLIP(tmp, 0, 0x1fff);
@@ -263,6 +266,15 @@ void rk_aiq_gic30_params_cvt(void* attr, struct isp33_gic_cfg* gic_cfg)
     pFix->lofltthred_coeff0 = CLIP(tmp, 0, 0x1f);
     tmp = pdyn->gicPost_guideEpf.autoSoftThd.hw_gicT_thredFiltSpatial_wgt[1];
     pFix->lofltthred_coeff1 = CLIP(tmp, 0, 0x1f);
+    if (pFix->lofltthred_coeff0 * 2 + pFix->lofltthred_coeff1 != 16) {
+        float ratio = (float)pFix->lofltthred_coeff0 / (float)(pFix->lofltthred_coeff0 * 2 + pFix->lofltthred_coeff1);
+        pFix->lofltthred_coeff0 = (int)(ratio * 16.0f);
+        pFix->lofltthred_coeff1 = 16 - pFix->lofltthred_coeff0 * 2;
+        LOGW_AGIC("(thredFiltSpatial_wgt[0]*2+thredFiltSpatial_wgt[1]) must be 16, "
+            "they are forcibly allocated weights according to the proportion set by the user in HWI, "
+            "which is [%d, %d].\n You can set by gic.dyn.gicPost_guideEpf.autoSoftThd.hw_gicT_thredFiltSpatial_wgt\n",
+            pFix->lofltthred_coeff0, pFix->lofltthred_coeff1);
+    }
 
     /* GAIN */
     tmp = pdyn->locGicStrg.locSgmStrg.hw_gicT_glbSgmStrg_alpha * (1 << RKGIC_V30_G_GAIN_ALPHA_FIX_BITS);

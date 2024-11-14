@@ -947,15 +947,21 @@ XCamReturn AlscAutoConfig(alsc_handle_t hAlsc)
     }
 
     //1) Estimate best(nearest) illuminant case;
-    uint32_t estimateIlluCaseIdx;
+    uint32_t pre_estimateIlluCaseIdx;
     int dominateIlluListSize = 15;//to do from xml;
     //float varianceLumaTh = 0.006;//to do from xml;
-    ret = illuminant_index_estimation(alsc_mode_now, hAlsc->alscSwInfo.awbGain, estimateIlluCaseIdx);
+    ret = illuminant_index_estimation(alsc_mode_now, hAlsc->alscSwInfo.awbGain, pre_estimateIlluCaseIdx);
     RETURN_RESULT_IF_DIFFERENT(ret, XCAM_RETURN_NO_ERROR);
-    UpdateDominateIlluList(&hAlsc->alscRest.dominateIlluList, estimateIlluCaseIdx, dominateIlluListSize);
+    UpdateDominateIlluList(&hAlsc->alscRest.dominateIlluList, pre_estimateIlluCaseIdx, dominateIlluListSize);
+    uint32_t estimateIlluCaseIdx = pre_estimateIlluCaseIdx;
     //TODO: working mode which has only one illuminant case, like gray mode, does not need to estimate index.
     StableIlluEstimation(&hAlsc->alscRest.dominateIlluList, dominateIlluListSize,
         alsc_mode_now.illu_case_count, estimateIlluCaseIdx);
+
+    if (estimateIlluCaseIdx == pre_estimateIlluCaseIdx) {
+        hAlsc->smartRunRes.last_awbGain[0] = hAlsc->alscSwInfo.awbGain[0];
+        hAlsc->smartRunRes.last_awbGain[1] = hAlsc->alscSwInfo.awbGain[1];
+    }
 
     alsc_illu_case_t* illu_case = alsc_mode_now.illu_case[estimateIlluCaseIdx];
 
@@ -1134,8 +1140,6 @@ void JudgeAutoRun
 
     if ((hAlsc->smartRunRes.last_awbGain[0]-hAlsc->alscSwInfo.awbGain[0])*(hAlsc->smartRunRes.last_awbGain[0]-hAlsc->alscSwInfo.awbGain[0])
          + (hAlsc->smartRunRes.last_awbGain[1]-hAlsc->alscSwInfo.awbGain[1])*(hAlsc->smartRunRes.last_awbGain[1]-hAlsc->alscSwInfo.awbGain[1]) > wb_th) {
-        hAlsc->smartRunRes.last_awbGain[0] = hAlsc->alscSwInfo.awbGain[0];
-        hAlsc->smartRunRes.last_awbGain[1] = hAlsc->alscSwInfo.awbGain[1];
         wbgainStable = false;
         LOGD_ALSC("update wbgain: %f, %f\n", hAlsc->alscSwInfo.awbGain[0], hAlsc->alscSwInfo.awbGain[1]);
     } else {
@@ -1429,7 +1433,7 @@ XCamReturn AlscAutoParamFree(alsc_handle_t hAlsc)
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
 
     if (hAlsc->fixed_calib.alscCoef.illAll &&
-            (hAlsc->mCurAtt.stAuto.tbl.tableAll_len !=
+            (hAlsc->mCurAtt.stAuto.alscCoef.illAll_len !=
             hAlsc->fixed_calib.alscCoef.illAll_len)) {
         free(hAlsc->fixed_calib.alscCoef.illAll);
         hAlsc->fixed_calib.alscCoef.illAll = NULL;

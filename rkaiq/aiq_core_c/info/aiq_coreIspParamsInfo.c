@@ -26,14 +26,14 @@ void core_isp_params_dump_mod_param(AiqCore_t* self, st_string* result) {
     aiq_info_dump_title(result, "module param");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-9s", "phy_chn");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-9d", self->mAlogsComSharedParams.mCamPhyId);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void core_isp_params_dump_ldc_params(AiqCore_t* self, st_string* result) {
@@ -45,8 +45,8 @@ void core_isp_params_dump_ldc_params(AiqCore_t* self, st_string* result) {
     aiq_info_dump_title(result, "ldc mod params");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-11s%-9s%-8s", "mod", "is_update", "en", "buf_fd");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     aiq_params_base_t* base = self->mAiqCurParams->pParamsArray[RESULT_TYPE_LDC_PARAM];
@@ -54,20 +54,20 @@ void core_isp_params_dump_ldc_params(AiqCore_t* self, st_string* result) {
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-11s%-9s%-8d", "ldch", base->is_update ? "Y" : "N",
              ldc_param->sta.ldchCfg.en ? "Y" : "N",
              ldc_param->sta.ldchCfg.lutMapCfg.sw_ldcT_lutMapBuf_fd[0]);
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 #if defined(ISP_HW_V39)
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-11s%-9s%-8d", "ldcv", base->is_update ? "Y" : "N",
              ldc_param->sta.ldcvCfg.en ? "Y" : "N",
              ldc_param->sta.ldcvCfg.lutMapCfg.sw_ldcT_lutMapBuf_fd[0]);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 #endif
 }
 
 void core_isp_params_dump_awbgain_params(AiqCore_t* self, st_string* result) {
-    AiqAlgoHandler_t* handler = self->mAlgoHandleMaps[RESULT_TYPE_AWBGAIN_PARAM];
+    AiqAlgoHandler_t* handler = self->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AWB];
     if (!handler || !AiqAlgoHandler_getEnable(handler)) return;
 
     char buffer[MAX_LINE_LENGTH] = {0};
@@ -75,8 +75,8 @@ void core_isp_params_dump_awbgain_params(AiqCore_t* self, st_string* result) {
     aiq_info_dump_title(result, "awbgain mod params");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-11s%-9s", "mod", "is_update", "en");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
 
@@ -84,25 +84,25 @@ void core_isp_params_dump_awbgain_params(AiqCore_t* self, st_string* result) {
     rk_aiq_isp_awb_gain_params_t* awbgain_param  = (rk_aiq_isp_awb_gain_params_t*)(base->_data);
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-11s%-9s", "awbgain", base->is_update ? "Y" : "N",
              "Y" );
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s", "awbgain_r", "awbgain_gr",
              "awbgain_gb", "awbgain_b");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     memset(buffer, 0, MAX_LINE_LENGTH);
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-14f%-14f%-14f%-14f", awbgain_param->rgain,
              awbgain_param->grgain, awbgain_param->gbgain, awbgain_param->bgain);
-    string_printf(result, buffer);
+    aiq_string_printf(result, buffer);
 
-    string_printf(result, "\n");
+    aiq_string_printf(result, "\n");
 }
 
 void core_isp_params_dump_rawawb_params(AiqCore_t* self, st_string* result) {
-    AiqAlgoHandler_t* handler = self->mAlgoHandleMaps[RESULT_TYPE_AWB_PARAM];
+    AiqAlgoHandler_t* handler = self->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AWB];
     if (!handler || !AiqAlgoHandler_getEnable(handler)) return;
 
     char buffer[MAX_LINE_LENGTH] = {0};
@@ -114,93 +114,92 @@ void core_isp_params_dump_rawawb_params(AiqCore_t* self, st_string* result) {
     aiq_info_dump_title(result, "rawawb mod params");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-11s%-9s", "mode", "is_update", "en");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
-    LOGE_AWB("%s enter,mode(%d)", __FUNCTION__, awb_meas_priv->mode);
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-8d%-11s%-9s", awb_meas_priv->mode, base->is_update ? "Y" : "N",
              awb_meas_priv->com.hw_awbCfg_stats_en ? "Y" : "N" );
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 #if defined(ISP_HW_V33)
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s", "uvDct_en", "xyDct_en",
              "statsSrc_mode", "light_num");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d",
              awb_meas->wpEngine.norWpStatsCfg.hw_awbCfg_uvDct_en,
              awb_meas->wpEngine.norWpStatsCfg.hw_awbCfg_xyDct_en,
              awb_meas->hw_awbCfg_statsSrc_mode, awb_meas->wpEngine.hw_awbCfg_lightSrcNum_val);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 #else
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s%-14s", "uvDct_en", "xyDct_en",
              "yuvDct_en", "statsSrc_mode", "light_num");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d%-14d",
              awb_meas->wpEngine.norWpStatsCfg.hw_awbCfg_uvDct_en,
              awb_meas->wpEngine.norWpStatsCfg.hw_awbCfg_xyDct_en,
              awb_meas->wpEngine.norWpStatsCfg.hw_awbCfg_rotYuvDct_en,
              awb_meas->hw_awbCfg_statsSrc_mode, awb_meas->wpEngine.hw_awbCfg_lightSrcNum_val);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 #endif
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s", "zoneStat_en", "zoneStat_mod");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d",
              awb_meas->pixEngine.hw_awbCfg_stats_en,
              awb_meas->pixEngine.hw_awbCfg_zoneStatsSrc_mode);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s", "is12bit", "ds_mode",
              "overexpo_th");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14d%-14s", "unkonwn",
              awb_meas->hw_awbCfg_ds_mode, "unkonwn");
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s%-14s", "mainWin_x", "mainWin_y",
              "mainWin_width", "mainWin_hegt", "nonROI_en");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-14d%-14d%-14d%-14d",
              awb_meas->mainWin.hw_awbCfg_win_x,
              awb_meas->mainWin.hw_awbCfg_win_y,
              awb_meas->mainWin.hw_awbCfg_win_width,
              awb_meas->mainWin.hw_awbCfg_win_height,
              awb_meas->mainWin.hw_awbCfg_nonROI_en);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s", "limit_maxR", "limit_maxG",
              "limit_maxB", "limit_minY");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     snprintf(buffer, MAX_LINE_LENGTH, "%-14.4f%-14.4f%-14.4f%-14.4f",
              awb_meas->wpEngine.wpDct_rgbySpace.hw_awbT_wpMaxR_thred,
              awb_meas->wpEngine.wpDct_rgbySpace.hw_awbT_wpMaxG_thred,
              awb_meas->wpEngine.wpDct_rgbySpace.hw_awbT_wpMaxB_thred,
              awb_meas->wpEngine.wpDct_rgbySpace.hw_awbT_wpMaxY_thred);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s", "luma2WpWgt_en", "w0",
              "w1", "w2", "w3", "w4", "w5", "w6", "w7", "w8");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     snprintf(buffer, MAX_LINE_LENGTH, "%-14d%-8.3f%-8.3f%-8.3f%-8.3f%-8.3f%-8.3f%-8.3f%-8.3f%-8.3f",
              awb_meas->wpEngine.norWpStatsCfg.hw_awbCfg_lumaWgt_en,
              awb_meas->wpEngine.hw_awbT_luma2WpWgt_curve.val[0],
@@ -212,14 +211,14 @@ void core_isp_params_dump_rawawb_params(AiqCore_t* self, st_string* result) {
              awb_meas->wpEngine.hw_awbT_luma2WpWgt_curve.val[6],
              awb_meas->wpEngine.hw_awbT_luma2WpWgt_curve.val[7],
              awb_meas->wpEngine.hw_awbT_luma2WpWgt_curve.val[8]);
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 #if defined(ISP_HW_V33)
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s", "ccm0r", "ccm1r",
              "ccm2r", "ccm0g", "ccm1g", "ccm1g", "ccm0b", "ccm1b", "ccm1b");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     snprintf(buffer, MAX_LINE_LENGTH, "%-8.3f%-8.3f%-8.3f%-8.3f%-8.3f%-8.3f%-8.3f%-8.3f%-3.2f",
              awb_meas->wpEngine.hw_awbT_luma2WpWgt_ccm[0],
              awb_meas->wpEngine.hw_awbT_luma2WpWgt_ccm[1],
@@ -230,22 +229,22 @@ void core_isp_params_dump_rawawb_params(AiqCore_t* self, st_string* result) {
              awb_meas->wpEngine.hw_awbT_luma2WpWgt_ccm[6],
              awb_meas->wpEngine.hw_awbT_luma2WpWgt_ccm[7],
              awb_meas->wpEngine.hw_awbT_luma2WpWgt_ccm[8]);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 #endif
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s", "pre_wbgain_r", "pre_wbgain_g",
              "pre_wbgain_b");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
     snprintf(buffer, MAX_LINE_LENGTH, "%-14f%-14f%-14f", awb_meas_priv->preWbgainSw[0],
              awb_meas_priv->preWbgainSw[1], awb_meas_priv->preWbgainSw[3]);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 void core_isp_params_dump_cac_params(AiqCore_t* self, st_string* result) {
-    AiqAlgoHandler_t* handler = self->mAlgoHandleMaps[RESULT_TYPE_CAC_PARAM];
+    AiqAlgoHandler_t* handler = self->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_ACAC];
     if (!handler || !AiqAlgoHandler_getEnable(handler)) return;
 
     char buffer[MAX_LINE_LENGTH] = {0};
@@ -253,8 +252,8 @@ void core_isp_params_dump_cac_params(AiqCore_t* self, st_string* result) {
     aiq_info_dump_title(result, "cac mod params");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-11s", "mod", "is_update");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
 
@@ -263,8 +262,8 @@ void core_isp_params_dump_cac_params(AiqCore_t* self, st_string* result) {
     cac_params_dyn_t* pdyn = &cac_param->dyn;
     cac_params_static_t* psta = &cac_param->sta;
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-11s", "cac", base->is_update ? "Y" : "N");
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
 #if defined(ISP_HW_V39)
@@ -274,8 +273,8 @@ void core_isp_params_dump_cac_params(AiqCore_t* self, st_string* result) {
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-16s%-14s%-14s", "en", "bypass", "edge_detect_en",
              "neg_clip0_en", "wgt_color_en");
 #endif
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     bool en = base->en;
 
@@ -292,8 +291,8 @@ void core_isp_params_dump_cac_params(AiqCore_t* self, st_string* result) {
              pdyn->hfCalc.hw_cacT_negClip0_en ? "Y" : "N",
              pdyn->chromaAberrCorr.hw_cacT_wgtColor_en ? "Y" : "N");
 #endif
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 }
 
 #if defined(USE_NEWSTRUCT)
@@ -310,8 +309,8 @@ void core_isp_params_dump_aec_params(AiqCore_t* self, st_string* result) {
     aiq_info_dump_title(result, "aec hwi params");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-8s%-11s%-9s", "aeswap", "aesel", "is_update", "en");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     u16 aeswap = 0, aesel = 0;
@@ -340,13 +339,13 @@ void core_isp_params_dump_aec_params(AiqCore_t* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8d%-8d%-11s%-9s", aeswap, aesel,
              base->is_update ? "Y" : "N", ae_meas_cfg->sw_aeCfg_stats_en ? "Y" : "N" );
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13s%-13s%-13s%-13s", "entity", "win_off_h", "win_off_v", "win_size_h", "win_size_v");
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d%-13d", "rawae0",
@@ -354,8 +353,8 @@ void core_isp_params_dump_aec_params(AiqCore_t* self, st_string* result) {
              ae_meas_cfg->entityGroup.entities.entity0.mainWin.hw_aeCfg_win_y,
              ae_meas_cfg->entityGroup.entities.entity0.mainWin.hw_aeCfg_win_width,
              ae_meas_cfg->entityGroup.entities.entity0.mainWin.hw_aeCfg_win_height);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d%-13d", "rawae3",
@@ -363,8 +362,8 @@ void core_isp_params_dump_aec_params(AiqCore_t* self, st_string* result) {
              ae_meas_cfg->entityGroup.entities.entity3.mainWin.hw_aeCfg_win_y,
              ae_meas_cfg->entityGroup.entities.entity3.mainWin.hw_aeCfg_win_width,
              ae_meas_cfg->entityGroup.entities.entity3.mainWin.hw_aeCfg_win_height);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d%-13d", "rawhist0",
@@ -372,8 +371,8 @@ void core_isp_params_dump_aec_params(AiqCore_t* self, st_string* result) {
              ae_meas_cfg->entityGroup.entities.entity0.hist.hw_aeCfg_win_y,
              ae_meas_cfg->entityGroup.entities.entity0.hist.hw_aeCfg_win_width,
              ae_meas_cfg->entityGroup.entities.entity0.hist.hw_aeCfg_win_height);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d%-13d", "rawhist3",
@@ -381,8 +380,8 @@ void core_isp_params_dump_aec_params(AiqCore_t* self, st_string* result) {
              ae_meas_cfg->entityGroup.entities.entity3.hist.hw_aeCfg_win_y,
              ae_meas_cfg->entityGroup.entities.entity3.hist.hw_aeCfg_win_width,
              ae_meas_cfg->entityGroup.entities.entity3.hist.hw_aeCfg_win_height);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
 }
 
@@ -404,47 +403,47 @@ void core_isp_params_dump_aec_params(AiqCore_t* self, st_string* result) {
     aiq_info_dump_title(result, "aec hwi params");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-8s%-11s%-9s", "aeswap", "aesel", "is_update", "en");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-8d%-8d%-11s%-9s", ae_meas_cfg->rawae0.rawae_sel, ae_meas_cfg->rawae3.rawae_sel,, ae_base->is_update ? "Y" : "N",
              ae_meas_cfg->ae_meas_en ? "Y" : "N" );
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13s%-13s%-13s%-13s", "entity", "win_off_h", "win_off_v", "win_size_h", "win_size_v");
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d%-13d", "rawae0",
              ae_meas_cfg->rawae0.win.h_offs, ae_meas_cfg->rawae0.win.v_offs,
              ae_meas_cfg->rawae0.win.h_size, ae_meas_cfg->rawae0.win.v_size);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d%-13d", "rawae3",
              ae_meas_cfg->rawae3.win.h_offs, ae_meas_cfg->rawae3.win.v_offs,
              ae_meas_cfg->rawae3.win.h_size, ae_meas_cfg->rawae3.win.v_size);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d%-13d", "rawhist0",
              hist_meas_cfg->rawhist0.win.h_offs, hist_meas_cfg->rawhist0.win.v_offs,
              hist_meas_cfg->rawhist0.win.h_size, hist_meas_cfg->rawhist0.win.v_size);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d%-13d", "rawhist3",
              hist_meas_cfg->rawhist3.win.h_offs, hist_meas_cfg->rawhist3.win.v_offs,
              hist_meas_cfg->rawhist3.win.h_size, hist_meas_cfg->rawhist3.win.v_size);
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
 }
 #endif

@@ -25,7 +25,7 @@ void lut3d_dump_mod_param(const RkAiqAlgoCom* self, st_string* result) {
 
     aiq_info_dump_title(result, "module param");
 
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, "\n\n");
 }
 
 void lut3d_dump_mod_attr(const RkAiqAlgoCom* self, st_string* result) {
@@ -33,7 +33,7 @@ void lut3d_dump_mod_attr(const RkAiqAlgoCom* self, st_string* result) {
 
     aiq_info_dump_title(result, "3dlut attr");
 
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, "\n\n");
 }
 
 void lut3d_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
@@ -47,8 +47,8 @@ void lut3d_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-12s%-12s%-12s%-12s%-12s%-12s",
              "phy_chn", "seq", "cur_rgain", "cur_bgain", "cur_illu", "cur_gain", "cur_alp");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     RkAiqAlgoProcLut3d* proc_param = (RkAiqAlgoProcLut3d*)self;
     illu_estm_info_t *swinfo = &proc_param->illu_info;
@@ -58,15 +58,15 @@ void lut3d_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
              self->cid, self->frame_id, swinfo->awbGain[0], swinfo->awbGain[1],
              pIlluCase->sw_lut3dC_illu_name, swinfo->sensorGain, ctx->pre_alpha);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-12s%-8s%-16s%-10s",
              "phy_chn", "seq", "damp_en", "damp_converged", "dampCoef");
-    string_printf(result, buffer);
-    string_printf(result, "\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-8d%-12d%-8s%-16s%-10.4f",
@@ -74,16 +74,16 @@ void lut3d_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
              tunning->stAuto.sta.sw_lut3dT_damp_en ? "Y" : "N",
              ctx->damp_converged ? "Y" : "N", swinfo->awbIIRDampCoef);
 
-    string_printf(result, buffer);
-    string_printf(result, "\n\n");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
 
     if(tunning->stAuto.sta.sw_lut3dT_damp_en) {
         memset(buffer, 0, MAX_LINE_LENGTH);
 
         snprintf(buffer, MAX_LINE_LENGTH, "%-12s%-12s%-12s%-12s%-12s",
                 "undampCoef", "lut[9]", "lut[82]", "lut[627]", "lut[727]");
-        string_printf(result, buffer);
-        string_printf(result, "\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n");
 
         uint16_t* mat_tmp = ctx->undamped_matrix.hw_lut3dC_lutR_val;
 
@@ -93,8 +93,8 @@ void lut3d_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
                  "%-12s%-12d%-12d%-12d%-12d",
                  "lutR_val:", mat_tmp[9], mat_tmp[82], 
                  mat_tmp[627], mat_tmp[727]);
-        string_printf(result, buffer);
-        string_printf(result, "\n\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n\n");
 
         mat_tmp = ctx->undamped_matrix.hw_lut3dC_lutG_val;
 
@@ -104,8 +104,8 @@ void lut3d_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
                  "%-12s%-12d%-12d%-12d%-12d",
                  "lutG_val:", mat_tmp[9], mat_tmp[82], 
                  mat_tmp[627], mat_tmp[727]);
-        string_printf(result, buffer);
-        string_printf(result, "\n\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n\n");
 
         mat_tmp = ctx->undamped_matrix.hw_lut3dC_lutB_val;
 
@@ -115,7 +115,7 @@ void lut3d_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
                  "%-12s%-12d%-12d%-12d%-12d",
                  "lutB_val:", mat_tmp[9], mat_tmp[82], 
                  mat_tmp[627], mat_tmp[727]);
-        string_printf(result, buffer);
-        string_printf(result, "\n\n");
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n\n");
     }
 }

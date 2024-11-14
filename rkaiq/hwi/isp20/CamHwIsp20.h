@@ -202,6 +202,7 @@ public:
     XCamReturn setLastAeExpToRttShared();
 
     XCamReturn setVicapStreamMode(int mode, bool is_single_mode);
+    XCamReturn sendNullParamBufForIsp(uint32_t frameId);
     void setListenStrmEvt(bool isListen) {
         mIsListenStrmEvt = isListen;
     }

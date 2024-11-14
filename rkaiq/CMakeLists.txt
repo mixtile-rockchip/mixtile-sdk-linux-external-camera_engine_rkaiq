@@ -109,6 +109,8 @@ if (RKAIQ_HAVE_DUMPSYS)
         dumpcam_server/info/include
         dumpcam_server/ipcs/include
         )
+else()
+    set (AIQ_DUMPSYS_INCLUEDE dumpcam_server/info/include)
 endif()
 
 include_directories(
