@@ -110,7 +110,7 @@ if (RKAIQ_HAVE_DUMPSYS)
         dumpcam_server/ipcs/include
         )
 else()
-    set (AIQ_DUMPSYS_INCLUEDE dumpcam_server/info/include)
+    set (AIQ_DUMPSYS_INCLUEDE dumpcam_server/include dumpcam_server/info/include)
 endif()
 
 include_directories(
@@ -1014,6 +1014,8 @@ set(COMMON_SRC
 
 if (RKAIQ_HAVE_DUMPSYS)
     set (COMMON_SRC ${COMMON_SRC} common/aiq_notifier.c)
+else()
+    set (COMMON_SRC ${COMMON_SRC} dumpcam_server/rk_aiq_dummy_function.c)
 endif()
 
 if (RKAIQ_NEWSTRUCT_TEST)

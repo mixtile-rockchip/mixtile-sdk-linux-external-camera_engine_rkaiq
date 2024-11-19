@@ -109,10 +109,6 @@ do {                                                             \
 
 ST_STRING_UNUSED void aiq_string_printf_va(st_string *s, const char *fmt, va_list ap);
 
-#if RKAIQ_HAVE_DUMPSYS
 ST_STRING_UNUSED void aiq_string_printf(st_string *s, const char *fmt, ...);
-#else
-inline ST_STRING_UNUSED void aiq_string_printf(st_string* s, const char* fmt, ...) { return; }
-#endif
 
 #endif /* ST_STRING_H */
