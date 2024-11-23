@@ -1589,7 +1589,7 @@ rk_aiq_uapi2_sysctl_enumStaticMetasByPhyId(int index, rk_aiq_static_info_t* stat
         g_rk_aiq_init_lib = true;
     }
 
-    rk_aiq_static_info_t* s_info = AiqCamHw_getStaticCamHwInfo(NULL, index);
+    rk_aiq_static_info_t* s_info = AiqCamHw_getStaticCamHwInfoByPhyId(NULL, index);
 
     if (s_info)
         memcpy(static_info, s_info, sizeof(rk_aiq_static_info_t));
