@@ -1193,24 +1193,36 @@ set (XCORE_C_SRC
     xcore_c/aiq_video_buffer.c
     xcore_c/aiq_v4l2_buffer.c
     xcore_c/aiq_v4l2_device.c
-	xcore_c/aiq_fake_v4l2_device.c
 )
 set (HWI_C_SRC
     hwi_c/aiq_sensorHw.c
-    hwi_c/aiq_fake_sensor.c
     hwi_c/aiq_ispParamsCvt.c
     hwi_c/aiq_rawStreamCapUnit.c
     hwi_c/aiq_rawStreamProcUnit.c
     hwi_c/aiq_stream.c
     hwi_c/aiq_CamHwBase.c
-    hwi_c/aiq_fake_camhw.c
     hwi_c/aiq_lensHw.c
-    hwi_c/aiq_ispParamsSplitter.c
-    hwi_c/aiq_ispParamsSplitterCom.c
     hwi_c/aiq_cifScaleStream.c
     hwi_c/aiq_aiIspLoader.c
     hwi_c/aiq_dumpRkRaw.c
 )
+
+if (RKAIQ_HAVE_MULTIISP)
+    list(APPEND HWI_C_SRC
+        hwi_c/aiq_ispParamsSplitter.c
+        hwi_c/aiq_ispParamsSplitterCom.c
+        )
+endif()
+
+if (RKAIQ_HAVE_FAKECAM)
+    list(APPEND HWI_C_SRC
+        hwi_c/aiq_fake_sensor.c
+        hwi_c/aiq_fake_camhw.c
+        )
+    list(APPEND XCORE_C_SRC
+        xcore_c/aiq_fake_v4l2_device.c
+        )
+endif()
 
 if (RKAIQ_HAVE_DUMPSYS)
     set (HWI_C_SRC
@@ -1244,7 +1256,9 @@ if (RKAIQ_ISP_VERSION STREQUAL "33")
     list(APPEND HWI_C_SRC hwi_c/isp33/aiq_CamHwIsp33.c)
     list(APPEND HWI_C_SRC hwi_c/isp39/aiq_isp39ParamsCvt.c)
     list(APPEND HWI_C_SRC hwi_c/isp33/aiq_isp33ParamsCvt.c)
+if (RKAIQ_HAVE_MULTIISP)
     list(APPEND HWI_C_SRC hwi_c/isp33/aiq_isp33ParamsSplitter.c)
+endif()
 endif()
 
 set (CORE_C_SRC

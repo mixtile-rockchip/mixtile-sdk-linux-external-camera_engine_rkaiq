@@ -616,8 +616,10 @@ XCamReturn translateAecStatsV33(AiqStatsTranslator_t* pStatsTrans, const aiq_Vid
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
 
 #if defined(ISP_HW_V33)
+#if defined(RKAIQ_HAVE_MULTIISP)
     if (pStatsTrans->mIsMultiIsp && pStatsTrans->mIspUnitedMode)
         return translateMultiAecStats(pStatsTrans, from, to);
+#endif
     // 0) blc awb cfg
     struct isp33_isp_meas_cfg* isp_params = &pStatsTrans->_ispParams->meas;
     uint8_t AeSwapMode, AeSelMode;
@@ -900,9 +902,9 @@ XCamReturn translateAecStatsV33(AiqStatsTranslator_t* pStatsTrans, const aiq_Vid
 
     return ret;
 }
-#endif
 
 
+#if defined(RKAIQ_HAVE_MULTIISP) && defined(ISP_HW_V33)
 void MergeAwbHistBinStats(
     unsigned int *merge_stats,
     u16 *left_stats,
@@ -1211,15 +1213,19 @@ XCamReturn translateMultiAwbStats(AiqStatsTranslator_t* pStatsTrans, const aiq_V
     return ret;
 }
 
+#endif
+#endif
+
 
 XCamReturn translateAwbStatsV33(AiqStatsTranslator_t* pStatsTrans, const aiq_VideoBuffer_t* from,
                                 aiq_stats_base_t* to) {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
 #if defined(ISP_HW_V33)
 
+#if defined(RKAIQ_HAVE_MULTIISP)
     if (pStatsTrans->mIsMultiIsp && pStatsTrans->mIspUnitedMode)
         return translateMultiAwbStats(pStatsTrans, from, to);
-
+#endif
     aiq_awb_stats_wrapper_t* statsInt = (aiq_awb_stats_wrapper_t*)to->_data;
     struct rkisp33_stat_buffer* stats =
         (struct rkisp33_stat_buffer*)(AiqV4l2Buffer_getExpbufUsrptr((AiqV4l2Buffer_t*)from));

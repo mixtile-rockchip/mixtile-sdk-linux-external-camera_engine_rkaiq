@@ -582,7 +582,9 @@ XCamReturn AiqManager_init(AiqManager_t* pAiqManager, const char* sns_ent_name, 
 	pAiqManager->mHwResCb.hwResCb = hwResCb;
 	AiqCamHw_setHwResListener(pAiqManager->mCamHw, &pAiqManager->mHwResCb);
 	if (pAiqManager->mCamHw->mIsFake) {
+#ifdef RKAIQ_ENABLE_FAKECAM
 		AiqCamHwFake_init((AiqCamHwFake_t*)pAiqManager->mCamHw, pAiqManager->mSnsEntName);
+#endif
 	} else {
 #if defined(ISP_HW_V39)
         pAiqManager->mTBStatsCnt = 1;
@@ -776,7 +778,9 @@ XCamReturn AiqManager_deinit(AiqManager_t* pAiqManager)
     RKAIQMNG_CHECK_RET(ret, "analyzer deinit error %d", ret);
 
 	if (pAiqManager->mCamHw->mIsFake) {
+#ifdef RKAIQ_ENABLE_FAKECAM
 		AiqCamHwFake_deinit((AiqCamHwFake_t*)pAiqManager->mCamHw);
+#endif
 	} else {
 		AiqCamHwBase_deinit(pAiqManager->mCamHw);
 	}
@@ -887,7 +891,9 @@ XCamReturn AiqManager_rawdataPrepare(AiqManager_t* pAiqManager, rk_aiq_raw_prop_
 {
     ENTER_XCORE_FUNCTION();
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
+#ifdef RKAIQ_ENABLE_FAKECAM
     ret = AiqCamHwFake_rawdataPrepare((AiqCamHwFake_t*)pAiqManager->mCamHw, prop);
+#endif
     EXIT_XCORE_FUNCTION();
     return ret;
 }
@@ -896,7 +902,9 @@ XCamReturn AiqManager_enqueueRawBuffer(AiqManager_t* pAiqManager, void *rawdata,
 {
     ENTER_XCORE_FUNCTION();
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
+#ifdef RKAIQ_ENABLE_FAKECAM
     ret = AiqCamHwFake_enqueueRawBuffer((AiqCamHwFake_t*)pAiqManager->mCamHw, rawdata, sync);
+#endif
     EXIT_XCORE_FUNCTION();
     return ret;
 
@@ -907,7 +915,9 @@ XCamReturn AiqManager_enqueueRawFile(AiqManager_t* pAiqManager, const char *path
     ENTER_XCORE_FUNCTION();
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
 	// TODO
+#ifdef RKAIQ_ENABLE_FAKECAM
     ret = AiqCamHwFake_enqueueRawFile((AiqCamHwFake_t*)pAiqManager->mCamHw, path);
+#endif
     EXIT_XCORE_FUNCTION();
     return ret;
 }
@@ -916,7 +926,9 @@ XCamReturn AiqManager_registRawdataCb(AiqManager_t* pAiqManager, void (*callback
 {
     ENTER_XCORE_FUNCTION();
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
+#ifdef RKAIQ_ENABLE_FAKECAM
     ret = AiqCamHwFake_registRawdataCb((AiqCamHwFake_t*)pAiqManager->mCamHw, callback);
+#endif
     EXIT_XCORE_FUNCTION();
     return ret;
 }
