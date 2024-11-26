@@ -80,6 +80,10 @@ add_compile_options(${ISP_HW_VERSION})
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMakeTargets")
 
+if (RKAIQ_DISABLE_J2S)
+    add_compile_options(-DAIQ_DISABLE_J2S=1)
+endif()
+
 if(NOT RKAIQ_ENABLE_SIMULATOR)
     if (RKAIQ_HAVE_LDCH_V22)
         set(RKAIQ_HAVE_LDC true)

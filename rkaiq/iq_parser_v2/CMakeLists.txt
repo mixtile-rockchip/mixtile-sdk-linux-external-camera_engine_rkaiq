@@ -238,13 +238,22 @@ add_custom_target(
 endif()
 
 SET(IQ_PARSERV2_SRC
-    ${CMAKE_CURRENT_SOURCE_DIR}/j2s/cJSON.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/j2s/cJSON_Utils.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/j2s/j2s.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/j2s/j2s_utils.c
+    #${CMAKE_CURRENT_SOURCE_DIR}/j2s/cJSON.c
+    #${CMAKE_CURRENT_SOURCE_DIR}/j2s/cJSON_Utils.c
+    #${CMAKE_CURRENT_SOURCE_DIR}/j2s/j2s.c
+    #${CMAKE_CURRENT_SOURCE_DIR}/j2s/j2s_utils.c
     ${CMAKE_CURRENT_SOURCE_DIR}/RkAiqCalibDbV2.c
     ${CMAKE_CURRENT_SOURCE_DIR}/scene/scene_manager.c
     )
+
+if (NOT RKAIQ_DISABLE_J2S)
+    list(APPEND IQ_PARSERV2_SRC
+         ${CMAKE_CURRENT_SOURCE_DIR}/j2s/cJSON.c
+         ${CMAKE_CURRENT_SOURCE_DIR}/j2s/cJSON_Utils.c
+         ${CMAKE_CURRENT_SOURCE_DIR}/j2s/j2s.c
+         ${CMAKE_CURRENT_SOURCE_DIR}/j2s/j2s_utils.c
+         )
+endif()
 
 SET(RK_AIQ_SRC ${RK_AIQ_SRC} ${IQ_PARSERV2_SRC} PARENT_SCOPE)
 

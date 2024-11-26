@@ -20,6 +20,7 @@ set(RKAIQ_J2S4B_DEV          TRUE CACHE INTERNAL "Build j2s4b_dev running on dev
 set(RKAIQ_NEWSTRUCT_TEST     FALSE CACHE INTERNAL "Build rkaiq with new structs")
 set(RKAIQ_IMPLEMENT_C	FALSE CACHE INTERNAL "Build rkaiq with C implementation")
 set(RKAIQ_BUILD_IQBINFORRTT	FALSE CACHE INTERNAL "Build rkaiq with iqBinForRtt")
+set(RKAIQ_DISABLE_J2S FALSE CACHE INTERNAL "Build rkaiq with j2s")
 
 if (RKAIQ_TARGET_SOC STREQUAL "rv1103b")
     set(RKAIQ_ISP_VERSION        "33"  CACHE INTERNAL "ISP hardware version 33"     FORCE)

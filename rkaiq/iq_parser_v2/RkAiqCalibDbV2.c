@@ -3094,4 +3094,157 @@ int CamCalibDbRestoreBinStructMap(uint8_t *data, size_t len, uint8_t *restore_pt
     return 0;
 }
 
-
+#if AIQ_DISABLE_J2S
+int j2s_struct_free(j2s_ctx* ctx, const char* name, void* ptr)
+{
+    LOGE("J2S disabled !");
+    return -1;
+}
+int j2s_json_to_struct(j2s_ctx* ctx, cJSON* json, const char* name, void* ptr)
+{
+    LOGE("J2S disabled !");
+    return -1;
+}
+void j2s_camgroup_init(j2s_ctx* ctx)
+{
+    LOGE("J2S disabled !");
+}
+cJSON* j2s_struct_to_json(j2s_ctx* ctx, const char* name, void* ptr)
+{
+    LOGE("J2S disabled !");
+    return NULL;
+}
+void j2s_init(j2s_ctx* ctx)
+{
+    LOGE("J2S disabled !");
+}
+void j2s_deinit(j2s_ctx* ctx)
+{
+    LOGE("J2S disabled !");
+}
+void* j2s_read_file(const char* file, size_t* size)
+{
+    LOGE("J2S disabled !");
+   return NULL;
+}
+int j2s_json_file_to_struct(j2s_ctx* ctx, const char* file, const char* name,
+    void* ptr)
+{
+    LOGE("J2S disabled !");
+    return -1;
+}
+CJSON_PUBLIC(cJSON *) RkCam_cJSON_Parse(const char *value)
+{
+    LOGE("J2S disabled !");
+    return NULL;
+}
+CJSON_PUBLIC(cJSON_bool) RkCam_cJSON_AddItemToObject(cJSON *object, const char *string, cJSON *item)
+{
+    LOGE("J2S disabled !");
+    return -1;
+}
+CJSON_PUBLIC(int) RkCam_cJSON_GetArraySize(const cJSON *array)
+{
+    LOGE("J2S disabled !");
+    return -1;
+}
+CJSON_PUBLIC(cJSON_bool) RkCam_cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newitem)
+{
+    LOGE("J2S disabled !");
+    return -1;
+}
+CJSON_PUBLIC(cJSON_bool) RkCam_cJSON_AddItemToArray(cJSON *array, cJSON *item)
+{
+    LOGE("J2S disabled !");
+    return -1;
+}
+CJSON_PUBLIC(cJSON_bool) RkCam_cJSON_IsArray(const cJSON * const item)
+{
+    LOGE("J2S disabled !");
+    return -1;
+}
+CJSON_PUBLIC(cJSON*) RkCam_cJSON_AddStringToObject(cJSON * const object, const char * const name, const char * const string)
+{
+    LOGE("J2S disabled !");
+    return NULL;
+}
+CJSON_PUBLIC(cJSON *) RkCam_cJSON_CreateObject(void)
+{
+    LOGE("J2S disabled !");
+    return NULL;
+}
+CJSON_PUBLIC(char *) RkCam_cJSON_Print(const cJSON *item)
+{
+    LOGE("J2S disabled !");
+    return NULL;
+}
+CJSON_PUBLIC(char *) RkCam_cJSON_GetStringValue(const cJSON * const item)
+{
+    LOGE("J2S disabled !");
+    return NULL;
+}
+CJSON_PUBLIC(cJSON *) RkCam_cJSON_CreateString(const char *string)
+{
+    LOGE("J2S disabled !");
+    return NULL;
+}
+CJSON_PUBLIC(void) RkCam_cJSON_Delete(cJSON *item)
+{
+    LOGE("J2S disabled !");
+}
+CJSON_PUBLIC(cJSON *) RkCam_cJSON_Duplicate(const cJSON *item, cJSON_bool recurse)
+{
+    LOGE("J2S disabled !");
+    return NULL;
+}
+CJSON_PUBLIC(cJSON *) RkCam_cJSON_GetObjectItem(const cJSON * const object, const char * const string)
+{
+    LOGE("J2S disabled !");
+    return NULL;
+}
+CJSON_PUBLIC(cJSON_bool) RkCam_cJSON_IsNull(const cJSON * const item)
+{
+    LOGE("J2S disabled !");
+    return -1;
+}
+CJSON_PUBLIC(cJSON_bool) RkCam_cJSON_IsString(const cJSON * const item)
+{
+    LOGE("J2S disabled !");
+    return -1;
+}
+CJSON_PUBLIC(cJSON_bool) RkCam_cJSON_ReplaceItemInObject(cJSON *object, const char *string, cJSON *newitem)
+{
+    LOGE("J2S disabled !");
+    return -1;
+}
+CJSON_PUBLIC(cJSON *) RkCam_cJSON_CreateArray(void)
+{
+    LOGE("J2S disabled !");
+    return NULL;
+}
+CJSON_PUBLIC(cJSON *) RkCam_cJSON_GetArrayItem(const cJSON *array, int index)
+{
+    LOGE("J2S disabled !");
+    return NULL;
+}
+CJSON_PUBLIC(cJSON *) RkCam_cJSON_GetObjectItemCaseSensitive(const cJSON * const object, const char * const string)
+{
+    LOGE("J2S disabled !");
+    return NULL;
+}
+CJSON_PUBLIC(int) RkCam_cJSONUtils_ApplyPatches(cJSON * const object, const cJSON * const patches)
+{
+    LOGE("J2S disabled !");
+    return -1;
+}
+CJSON_PUBLIC(cJSON *) RkCam_cJSONUtils_MergePatch(cJSON *target, const cJSON * const patch)
+{
+    LOGE("J2S disabled !");
+    return NULL;
+}
+CJSON_PUBLIC(cJSON *) RkCam_cJSONUtils_GetPointer(cJSON * const object, const char *pointer)
+{
+    LOGE("J2S disabled !");
+    return NULL;
+}
+#endif
