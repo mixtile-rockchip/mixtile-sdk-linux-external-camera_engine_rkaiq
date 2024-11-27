@@ -865,6 +865,10 @@ rk_aiq_uapi2_sysctl_init(const char* sns_ent_name,
 		*(char*)(sns_ent_name + lens - 2) = '\0';
 	}
 
+    char* forceSameIqParams = getenv("AIQ_FORCE_SAME_IQ_PARAMS");
+    if (forceSameIqParams && atoi(forceSameIqParams) != 0)
+        is_group_mode = true;
+
     bool is_ent_name = true;
     if (sns_ent_name[0] != 'm' || sns_ent_name[3] != '_')
         is_ent_name = false;
