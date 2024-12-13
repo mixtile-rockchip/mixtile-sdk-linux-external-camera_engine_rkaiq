@@ -314,20 +314,20 @@ void core_isp_params_dump_aec_params(AiqCore_t* self, st_string* result) {
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     u16 aeswap = 0, aesel = 0;
-    if(ae_meas_cfg->entityGroup.entities.entity0.hw_aeCfg_statsSrc_mode ==  aeStats_entity0_chl0Wb0Out_mode) {
+    if(ae_meas_cfg->entityGroup.entities.entity0.hw_aeCfg_statsSrc_mode ==  aeStats_entity0_chl0DpcOut_mode) {
         aeswap = 0;
 
-    } else if(ae_meas_cfg->entityGroup.entities.entity0.hw_aeCfg_statsSrc_mode ==  aeStats_entity0_chl1Wb0Out_mode) {
+    } else if(ae_meas_cfg->entityGroup.entities.entity0.hw_aeCfg_statsSrc_mode ==  aeStats_entity0_chl1DpcOut_mode) {
         aeswap = 1;
 
     } else if(ae_meas_cfg->entityGroup.entities.entity0.hw_aeCfg_statsSrc_mode ==  aeStats_btnrOutLow_mode) {
         aeswap = 0x20;
     }
 
-    if(ae_meas_cfg->entityGroup.entities.entity3.hw_aeCfg_statsSrc_mode ==  aeStats_entity3_chl0Wb0Out_mode) {
+    if(ae_meas_cfg->entityGroup.entities.entity3.hw_aeCfg_statsSrc_mode ==  aeStats_entity3_chl0DpcOut_mode) {
         aesel = 0;
 
-    } else if(ae_meas_cfg->entityGroup.entities.entity3.hw_aeCfg_statsSrc_mode ==  aeStats_entity3_chl1Wb0Out_mode) {
+    } else if(ae_meas_cfg->entityGroup.entities.entity3.hw_aeCfg_statsSrc_mode ==  aeStats_entity3_chl1DpcOut_mode) {
         aesel = 1;
 
     } else if(ae_meas_cfg->entityGroup.entities.entity3.hw_aeCfg_statsSrc_mode ==  aeStats_dmIn_mode) {

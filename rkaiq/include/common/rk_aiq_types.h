@@ -377,6 +377,8 @@ typedef struct {
     int32_t focus_maximum;
     int32_t zoom_minimum;
     int32_t zoom_maximum;
+    int32_t zoom1_minimum;
+    int32_t zoom1_maximum;
 } rk_aiq_lens_descriptor;
 
 typedef struct {

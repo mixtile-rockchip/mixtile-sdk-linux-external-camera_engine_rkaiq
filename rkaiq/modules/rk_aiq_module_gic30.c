@@ -106,7 +106,7 @@ static void GicV30CreateKernelCoeffs(int radius, int max_radius, float rsigma, u
     for (k = 0; k < coeffNums_max; k++)
     {
         gaus_table[k] = gaus_table[k] / sumTable;
-        kernel_coeffs[k] = (uint8_t)(gaus_table[k] * (1 << fix_bits));
+        kernel_coeffs[k] = ROUND_F(gaus_table[k] * (1 << fix_bits));
     }
 
     //check gaus params
@@ -119,7 +119,7 @@ static void GicV30CreateKernelCoeffs(int radius, int max_radius, float rsigma, u
     kernel_coeffs[0] = kernel_coeffs[0] + offset;
 }
 
-void rk_aiq_gic30_params_cvt(void* attr, struct isp33_gic_cfg* gic_cfg)
+void rk_aiq_gic30_params_cvt(void* attr, struct isp33_gic_cfg* gic_cfg, btnr_cvt_info_t* pBtnrInfo)
 {
     int i, tmp;
     struct isp33_gic_cfg *pFix = gic_cfg;
@@ -139,10 +139,7 @@ void rk_aiq_gic30_params_cvt(void* attr, struct isp33_gic_cfg* gic_cfg)
             pFix->manualnoisethred_en = 0;
     }
 
-    if (psta->epf.sw_gicCfg_rgeSgm_mode == gic_autoSigma_mode)
-        pFix->manualnoisecurve_en = 0;
-    else
-        pFix->manualnoisecurve_en = 1;
+    pFix->manualnoisecurve_en = 1;
 
     if (pdyn->locGicStrg.locSgmStrg.hw_gicT_locSgmStrg_mode == gic_locGlbSgmStrgMix_mode )
         pFix->gain_bypass_en = 0;
@@ -167,8 +164,7 @@ void rk_aiq_gic30_params_cvt(void* attr, struct isp33_gic_cfg* gic_cfg)
 
     /* NOISE_SCALE */
     tmp = ROUND_F(pdyn->epf.sw_gicT_rgeSgm_scale * 1.414 * (1 << RKGIC_V30_CURVE_SCALE_FIX_BITS));
-    if (pFix->manualnoisecurve_en == 0) {
-        tmp = ROUND_F(pdyn->epf.sw_gicT_rgeSgm_scale * 1.414 * (1 << RKGIC_V30_CURVE_SCALE_FIX_BITS));
+    if (psta->epf.sw_gicCfg_rgeSgm_mode == gic_autoSigma_mode) {
         tmp     = ROUND_F(tmp * 0.5);
     }
     pFix->noisecurve_scale = CLIP(tmp, 0, 0x3ff);
@@ -200,11 +196,18 @@ void rk_aiq_gic30_params_cvt(void* attr, struct isp33_gic_cfg* gic_cfg)
     pFix->bfflt_coeff1 = bfflt_coeff[1];
     pFix->bfflt_coeff2 = bfflt_coeff[2];
 
+    // ydb: let sharp do auto noise curve
+    if (psta->epf.sw_gicCfg_rgeSgm_mode == gic_autoSigma_mode) {
+        pBtnrInfo->gic_noise_auto_mode = 1;
+    } else {
+        pBtnrInfo->gic_noise_auto_mode = 0;
+    }
     /* SIGMA_Y */
     for(int i = 0; i < 17; i++) {
         tmp = (pdyn->epf.hw_gicT_luma2Manual_rgeSgm[i]);
         pFix->bfflt_vsigma_y[i] = CLIP(tmp, 0, 0x3ff);
     }
+
     /* LUMA_DX */
     for(int i = 0; i < 7; i++) {
         tmp = LOG2(pdyn->lumaLutCfg.hw_gicT_lumaLutIdx_val[i + 1] - pdyn->lumaLutCfg.hw_gicT_lumaLutIdx_val[i]);

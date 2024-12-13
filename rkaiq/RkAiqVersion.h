@@ -852,10 +852,16 @@
  * - fix isp33/isp39 switch scene bugs: wrong ie/csm/blc
  * - fix ae bugs: weight/stats may not be updated sometime
  * - improve dumpcam 
+ * v6.0x9.0
+ * - set exposure info to isp driver
+ *   - should updated with isp driver:
+ *     https://10.10.10.29/c/rk/kernel/+/238143/9
+ * - tuning tool of ae and awb support api path
+ * - improve dumpcam
  */
 
-#define RK_AIQ_VERSION_REAL_V "v6.0x8.2"
-#define RK_AIQ_RELEASE_DATE "2024-10-24"
+#define RK_AIQ_VERSION_REAL_V "v6.0x9.0"
+#define RK_AIQ_RELEASE_DATE "2024-12-13"
 
 #define RK_AIQ_IQ_HEAD_VERSION_REAL_V "v1.0.2"
 

@@ -317,6 +317,7 @@ RkAiqManager::prepare(uint32_t width, uint32_t height, rk_aiq_working_mode_t mod
 
     RKAIQMNG_CHECK_RET(ret, "getSensorModeData error %d", ret);
     mRkAiqAnalyzer->notifyIspStreamMode(mCamHw->getIspStreamMode());
+    mRkAiqAnalyzer->setTranslaterIspUniteMode(mCamHw->getIspUniteMode());
     ret = mRkAiqAnalyzer->prepare(&sensor_des, working_mode_hw);
     RKAIQMNG_CHECK_RET(ret, "analyzer prepare error %d", ret);
 

@@ -309,11 +309,11 @@ typedef enum aeStats_srcEntity0_mode_e {    // Domain,        linear
     /*
     reg: (sw_rawae0_sel == 0) && (sw_bnr2ae0_sel == 0) && (sw_rawae_from_vicap == 0)
     */
-    aeStats_entity0_chl0Wb0Out_mode = 1,           //Raw12,         Y
+    aeStats_entity0_chl0DpcOut_mode = 1,           //Raw12,         Y
     /*
     reg: (sw_rawae0_sel == 1) && (sw_bnr2ae0_sel == 0) && (sw_rawae_from_vicap == 0)
     */
-    aeStats_entity0_chl1Wb0Out_mode = 2,           //Raw12,         Y
+    aeStats_entity0_chl1DpcOut_mode = 2,           //Raw12,         Y
     /*
     reg: (sw_bnr2ae0_sel == 1) && (sw_rawae_from_vicap == 0)
     */
@@ -368,11 +368,11 @@ typedef enum aeStats_srcEntity3_mode_e {    // Domain,        linear
     /*
     reg: (sw_rawae_sel == 0) && (sw_bnr2aebig_sel == 0)
     */
-    aeStats_entity3_chl0Wb0Out_mode = 0,           //Raw12bit,         Y
+    aeStats_entity3_chl0DpcOut_mode = 0,           //Raw12bit,         Y
     /*
     reg: (sw_rawae_sel == 1) && (sw_bnr2aebig_sel == 0)
     */
-    aeStats_entity3_chl1Wb0Out_mode = 1,           //Raw12bit,         Y
+    aeStats_entity3_chl1DpcOut_mode = 1,           //Raw12bit,         Y
     /*
     reg: (sw_rawae_sel == 3)
     */

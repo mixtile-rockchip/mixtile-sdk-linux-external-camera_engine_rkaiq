@@ -752,7 +752,7 @@ XCamReturn AiqRawStreamCapUnit_setVicapStreamMode(AiqRawStreamCapUnit_t* pRawStr
     if (pRawStrCapUnit->_dev[0]->io_control(pRawStrCapUnit->_dev[0], RKCIF_CMD_SET_QUICK_STREAM,
                                             &info) < 0) {
         LOGE_CAMHW("dev(%s) ioctl faile, set vicap %s faile",
-                   AiqV4l2Device_getDevName(pRawStrCapUnit->_dev[0]), mode ? "pause" : "resume");
+                   AiqV4l2Device_getDevName(pRawStrCapUnit->_dev[0]), mode ? "resume" : "pause");
         ret = XCAM_RETURN_ERROR_IOCTL;
     }
     if (frameId) *frameId = info.frame_num;

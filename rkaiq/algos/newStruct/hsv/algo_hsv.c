@@ -31,6 +31,10 @@
 #include "rk_info_utils.h"
 #endif
 
+#ifndef CLIPBIT
+#define CLIPBIT(a,b) ((a)>((1<<(b))-1)?((1<<(b))-1):(a))
+#endif
+
 static int illu_estm_once(ahsv_param_illuLink_t* illuLinks, uint8_t illuLink_len, float awbGain[2]) {
     int ret = -1;
     uint8_t case_id = 0;
@@ -89,7 +93,7 @@ static void interpolate_lut1d_alpha(float alpha, hsv_lut1d_dyn_t* in, int16_t* o
         }
     } else {
         for(int i = 0; i < HSV_1DLUT_NUM; i++) {
-            lut1d0 = (i << 4) & 0x3ff;
+            lut1d0 = CLIPBIT(i << 4, 10);
             out[i] = (int16_t)((f1 * (int32_t)in->hw_hsvT_lut1d_val[i] + f2 * lut1d0 + (1 << 6)) >> 7);
         }
     }
@@ -103,7 +107,7 @@ static void interpolate_lut2d_alpha(float alpha, hsv_lut2d_dyn_t* in, int16_t* o
 
     if (in->hw_hsvT_lut2d_mode > 2) {
         for (int i = 0; i < HSV_2DLUT_ROW; i++) {
-            lut2d0 = (i << 6) & 0x3ff;
+            lut2d0 = CLIPBIT(i << 6, 10) ;
             for (int j = 0; j < HSV_2DLUT_COL; j++) {
                 lut_idx = i * HSV_2DLUT_COL + j;
                 out[lut_idx] = 
@@ -112,7 +116,7 @@ static void interpolate_lut2d_alpha(float alpha, hsv_lut2d_dyn_t* in, int16_t* o
         }
     } else {
         for (int j = 0; j < HSV_2DLUT_COL; j++) {
-            lut2d0 = (j << 6) & 0x3ff;
+            lut2d0 = CLIPBIT(j << 6, 10);
             for (int i = 0; i < HSV_2DLUT_ROW; i++) {
                 lut_idx = i * HSV_2DLUT_ROW + j;
                 out[lut_idx] = 
@@ -124,7 +128,7 @@ static void interpolate_lut2d_alpha(float alpha, hsv_lut2d_dyn_t* in, int16_t* o
 
 static void array_weight_sum(int16_t* in, int16_t* out, int32_t wei0, int32_t num, int bit, int32_t* sum) 
 {
-    int32_t wei1 = (1 >> bit) - wei0;
+    int32_t wei1 = (1 << bit) - wei0;
     for (int i = 0; i < num; i++) {
         out[i] =
             (int16_t)((wei0 * (int32_t) out[i] + wei1 * (int32_t)in[i])>>bit);
@@ -144,34 +148,34 @@ static void Damping(HsvContext_t* pHsvCtx, float damp)
 
     /* calc. damped lut */
     if (sta->hsvCfg.hw_hsvT_lut1d0_en) {
-        array_weight_sum(pDamped->lut0, pUndamped->lut0, f1, 
+        array_weight_sum(pUndamped->lut0, pDamped->lut0, f1, 
                          HSV_1DLUT_NUM, 7, &lutSum[0]);
         LOGD_AHSV("lut0: Damping %f, lutsum0 %d -> %d\n", 
                   damp, lutSum[0], pHsvCtx->pre_lutSum[0]);
     } else {
-        array_weight_sum(pDamped->lut0, pUndamped->lut0, 128, 
+        array_weight_sum(pUndamped->lut0, pDamped->lut0, 128, 
                          HSV_1DLUT_NUM, 7, &lutSum[0]);
         LOGD_AHSV("lut1: Damping 0, lutsum0 %d -> %d\n", 
                   lutSum[0], pHsvCtx->pre_lutSum[0]);
     }
     if (sta->hsvCfg.hw_hsvT_lut1d1_en) {
-        array_weight_sum(pDamped->lut1, pUndamped->lut1, f1, 
+        array_weight_sum(pUndamped->lut1, pDamped->lut1, f1, 
                          HSV_1DLUT_NUM, 7, &lutSum[1]);
         LOGD_AHSV("lut1: Damping %f, lutsum1 %d -> %d\n", 
                   damp, lutSum[1], pHsvCtx->pre_lutSum[1]);
     } else {
-        array_weight_sum(pDamped->lut1, pUndamped->lut1, 128, 
+        array_weight_sum(pUndamped->lut1, pDamped->lut1, 128, 
                          HSV_1DLUT_NUM, 7, &lutSum[1]);
         LOGD_AHSV("lut1: Damping 0, lutsum1 %d -> %d\n", 
                   lutSum[1], pHsvCtx->pre_lutSum[1]);
     }
     if (sta->hsvCfg.hw_hsvT_lut2d_en) {
-        array_weight_sum(pDamped->lut2, pUndamped->lut2, f1, 
+        array_weight_sum(pUndamped->lut2, pDamped->lut2, f1, 
                          HSV_2DLUT_NUM, 7, &lutSum[2]);
         LOGD_AHSV("lut2: Damping %f, lutsum2 %d -> %d\n", 
                   damp, lutSum[2], pHsvCtx->pre_lutSum[2]);
     } else {
-        array_weight_sum(pDamped->lut2, pUndamped->lut2, 128, 
+        array_weight_sum(pUndamped->lut2, pDamped->lut2, 128, 
                          HSV_2DLUT_NUM, 7, &lutSum[2]);
         LOGD_AHSV("lut2: Damping 0, lutsum2 %d -> %d\n", 
                   lutSum[2], pHsvCtx->pre_lutSum[2]);
@@ -351,6 +355,7 @@ XCamReturn Ahsv_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
             memcpy(hsvRes->dyn.lut2d.hw_hsvT_lut2d_val, 
                    pHsvCtx->undamped_lut.lut2, 
                    sizeof(pHsvCtx->undamped_lut.lut2));
+            pHsvCtx->damped_lut = pHsvCtx->undamped_lut;
         }
 
         outparams->cfg_update = true;

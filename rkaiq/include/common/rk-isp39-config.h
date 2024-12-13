@@ -1661,6 +1661,7 @@ struct isp39_isp_params_cfg {
 	u32 frame_id;
 	struct isp39_isp_meas_cfg meas;
 	struct isp39_isp_other_cfg others;
+    struct sensor_exposure_cfg exposure;
 } __attribute__ ((packed));
 
 struct isp39_dhaz_stat {

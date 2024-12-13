@@ -20,7 +20,7 @@
 #include "aiq_base.h"
 #include "aiq_core.h"
 #include "newStruct/drc/drc_types_prvt.h"
-#include "rk_aiq_uapi_ae_int.h"
+#include "ae/rk_aiq_uapi_ae_int.h"
 
 static void _handlerDrc_init(AiqAlgoHandler_t* pHdl) {
     ENTER_ANALYZER_FUNCTION();

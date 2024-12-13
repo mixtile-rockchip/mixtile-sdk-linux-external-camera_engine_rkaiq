@@ -66,6 +66,7 @@ typedef struct {
     sharp_stats_t mSharpStats[RK_AIQ_BTNR_STATS_CNT];
     uint16_t sharp_noise_curve_pre[17];
 #endif
+    uint8_t gic_noise_auto_mode;
     btnr_trans_params_t mBtnrTransParams;
     int hw_btnrCfg_pixDomain_mode;
     uint16_t btnr_stats_miss_cnt;

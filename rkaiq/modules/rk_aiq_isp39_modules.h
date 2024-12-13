@@ -49,6 +49,7 @@ typedef struct {
     bool is_multi_sensor;
     bool is_multi_isp;
     uint8_t multi_isp_extended_pixel;
+    int isp_unite_mode;
     LutBufferManager* lut_manger_;
     LutBuffer* current_lut_[2];
     uint16_t current_lut_size;

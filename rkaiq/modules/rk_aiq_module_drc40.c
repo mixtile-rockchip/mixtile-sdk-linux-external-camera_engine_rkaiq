@@ -405,7 +405,7 @@ void rk_aiq_drc40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
     phwcfg->weig_bilat      = tmp > 16 ? 16 : tmp;
     tmp                     = 256.0f * pdyn->bifilt_filter.hw_drcT_midWgt_alpha;
     phwcfg->weight_8x8thumb = tmp > 255 ? 255 : tmp;
-    tmp                     = 2048.0f * pdyn->bifilt_filter.hw_drcT_softThd_thred;
+    tmp                     = 256.0f * pdyn->bifilt_filter.hw_drcT_softThd_thred;
     phwcfg->bilat_soft_thd  = tmp > 0x3ff ? 0x3ff : tmp;
     phwcfg->enable_soft_thd = pdyn->bifilt_filter.hw_drcT_softThd_en;
 

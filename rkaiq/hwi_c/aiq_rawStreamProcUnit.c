@@ -32,6 +32,13 @@
 #include "xcore_c/aiq_v4l2_buffer.h"
 #include "xcore_c/aiq_v4l2_device.h"
 
+#ifdef ANDROID_OS
+#include <cutils/properties.h>
+#ifndef PROPERTY_VALUE_MAX
+#define PROPERTY_VALUE_MAX 32
+#endif
+#endif
+
 static XCamReturn DumpRkRawInFrameEnd(AiqRawStreamProcUnit_t* pRawStrProcUnit,
                                       AiqV4l2Buffer_t* rx_buf) {
     uint32_t sequence = 0;
@@ -82,7 +89,7 @@ static int8_t getDumpRkRawType(AiqRawStreamProcUnit_t* pRawStrProcUnit) {
     char property_value[PROPERTY_VALUE_MAX] = {0};
 
     property_get("persist.vendor.rkisp.rkraw.type", property_value, "1");
-    dumpRkRawType = strtoull(property_value, NULL, 16);
+    pRawStrProcUnit->dumpRkRawType = strtoull(property_value, NULL, 16);
 #else
     char* valueStr = getenv("rkisp_dump_rkraw_type");
     if (valueStr) pRawStrProcUnit->dumpRkRawType = strtoull(valueStr, NULL, 16);

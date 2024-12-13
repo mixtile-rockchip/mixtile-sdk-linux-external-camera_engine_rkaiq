@@ -617,7 +617,7 @@ XCamReturn translateAecStatsV33(AiqStatsTranslator_t* pStatsTrans, const aiq_Vid
 
 #if defined(ISP_HW_V33)
 #if defined(RKAIQ_HAVE_MULTIISP)
-    if (pStatsTrans->mIsMultiIsp && pStatsTrans->mIspUnitedMode)
+    if (pStatsTrans->mIsMultiIsp && pStatsTrans->mIspUniteMode != RK_AIQ_ISP_UNITE_MODE_NORMAL)
         return translateMultiAecStats(pStatsTrans, from, to);
 #endif
     // 0) blc awb cfg
@@ -1223,7 +1223,7 @@ XCamReturn translateAwbStatsV33(AiqStatsTranslator_t* pStatsTrans, const aiq_Vid
 #if defined(ISP_HW_V33)
 
 #if defined(RKAIQ_HAVE_MULTIISP)
-    if (pStatsTrans->mIsMultiIsp && pStatsTrans->mIspUnitedMode)
+    if (pStatsTrans->mIsMultiIsp && pStatsTrans->mIspUniteMode != RK_AIQ_ISP_UNITE_MODE_NORMAL)
         return translateMultiAwbStats(pStatsTrans, from, to);
 #endif
     aiq_awb_stats_wrapper_t* statsInt = (aiq_awb_stats_wrapper_t*)to->_data;

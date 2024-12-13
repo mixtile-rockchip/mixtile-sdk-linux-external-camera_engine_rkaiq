@@ -208,7 +208,7 @@ int xcam_get_log_level() {
     char property_value_default[PROPERTY_VALUE_MAX] = {0};
     sprintf(property_value_default, "%llx", g_cam_engine_log_level);
     property_get("persist.vendor.rkisp.log", property_value, property_value_default);
-    g_cam_engine_log_level = strtoull(property_value, nullptr, 16);
+    g_cam_engine_log_level = strtoull(property_value, NULL, 16);
     ALOGI("rkaiq log level %llx\n", g_cam_engine_log_level);
 #else
     xcam_get_enviroment_value("persist_camera_engine_log",

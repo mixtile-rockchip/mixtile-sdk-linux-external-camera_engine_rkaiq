@@ -161,6 +161,7 @@ __RKAIQUAPI_CALLER(aie_attrib_t);
 __RKAIQUAPI_CALLER(acp_attrib_t);
 __RKAIQUAPI_CALLER(camgroup_uapi_t);
 #if USE_NEWSTRUCT
+__RKAIQUAPI_CALLER(awb_api_attrib_t);
 __RKAIQUAPI_CALLER(ae_param_t);
 __RKAIQUAPI_CALLER(ae_api_expSwAttr_t);
 __RKAIQUAPI_CALLER(ae_queryInfo_t);
@@ -463,6 +464,8 @@ RkAiqUapiDesc_t rkaiq_uapidesc_list[] = {
 
 
 #if USE_NEWSTRUCT
+    __RKAIQUAPI_DESC_DEF("/uapi/0/awb_uapi/attr", awb_api_attrib_t, rk_aiq_user_api2_awb_SetAttrib,
+                         rk_aiq_user_api2_awb_GetAttrib),
     __RKAIQUAPI_DESC_DEF("/uapi/0/ae_uapi/attr", ae_param_t, rk_aiq_user_api2_ae_setAttr, rk_aiq_user_api2_ae_getAttr),
     __RKAIQUAPI_DESC_DEF("/uapi/0/ae_uapi/expSwAttr", ae_api_expSwAttr_t, rk_aiq_user_api2_ae_setExpSwAttr, rk_aiq_user_api2_ae_getExpSwAttr),
     __RKAIQUAPI_DESC_DEF("/uapi/0/ae_uapi/queryExpInfo", ae_queryInfo_t, NULL, rk_aiq_user_api2_ae_queryExpResInfo),
@@ -513,7 +516,24 @@ RkAiqUapiDesc_t rkaiq_uapidesc_list[] = {
     __RKAIQUAPI_DESC_DEF("/uapi/0/lut3d_uapi/attr", lut3d_api_attrib_t, rk_aiq_user_api2_3dlut_SetAttrib, rk_aiq_user_api2_3dlut_GetAttrib),
     __RKAIQUAPI_DESC_DEF("/uapi/0/lut3d_uapi/info", lut3d_status_t, NULL, rk_aiq_user_api2_3dlut_QueryStatus),
 #endif
+
+#if defined(ISP_HW_V20) || defined(ISP_HW_V21)
+    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/calib", CalibDbV2_AF_Tuning_Para_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
+#endif
+#if defined(ISP_HW_V30)
+    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/calib", CalibDbV2_AFV30_Tuning_Para_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
+#endif
+#if defined(ISP_HW_V32)
+    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/calib", CalibDbV2_AFV31_Tuning_Para_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
+#endif
+#if defined(ISP_HW_V32_LITE)
+    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/calib", CalibDbV2_AFV32_Tuning_Para_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
+#endif
+#if defined(ISP_HW_V39)
+    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/calib", CalibDbV2_AFV33_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
+#endif
 };
+
 /***********************END OF CUSTOM AREA**************************/
 
 char* rkaiq_uapi_rpc_response(const char* cmd_path, cJSON* root_js,

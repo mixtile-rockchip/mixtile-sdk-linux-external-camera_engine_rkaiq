@@ -1876,6 +1876,7 @@ struct sensor_exposure_s {
     u32 analog_gain_code_global;
     u32 digital_gain_global;
     u32 isp_digital_gain;
+    u32 rolling_shutter_skew;
 } __attribute__ ((packed));
 
 struct sensor_exposure_cfg {

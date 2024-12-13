@@ -28,6 +28,10 @@
 #include <arm_neon.h>
 #endif
 
+#ifdef ANDROID_OS
+#include <cutils/properties.h>
+#endif
+
 #define DEFAULT_PD_RAW_PATH "/data/pdaf/frm%04u_pdAll.raw"
 #define DEFAULT_PD_LRAW_PATH "/data/pdaf/frm%04u_pdLeft.raw"
 #define DEFAULT_PD_RRAW_PATH "/data/pdaf/frm%04u_pdRight.raw"
@@ -61,8 +65,8 @@ AiqStatsTranslator_t* AiqStatsTranslator_SetMultiIspMode(AiqStatsTranslator_t* p
 }
 
 AiqStatsTranslator_t* AiqStatsTranslator_SetIspUnitedMode(AiqStatsTranslator_t* pStatsTrans,
-                                                          RkAiqIspUnitedMode mode) {
-    pStatsTrans->mIspUnitedMode = mode;
+                                                          RkAiqIspUniteMode mode) {
+    pStatsTrans->mIspUniteMode = mode;
     return pStatsTrans;
 }
 
@@ -100,8 +104,8 @@ bool AiqStatsTranslator_IsMultiIspMode(AiqStatsTranslator_t* pStatsTrans) {
     return pStatsTrans->mIsMultiIsp;
 }
 
-RkAiqIspUnitedMode AiqStatsTranslator_GetIspUnitedMode(AiqStatsTranslator_t* pStatsTrans) {
-    return pStatsTrans->mIspUnitedMode;
+RkAiqIspUniteMode AiqStatsTranslator_GetIspUnitedMode(AiqStatsTranslator_t* pStatsTrans) {
+    return pStatsTrans->mIspUniteMode;
 }
 
 Rectangle_t AiqStatsTranslator_GetPicInfo(AiqStatsTranslator_t* pStatsTrans) {

@@ -2054,37 +2054,37 @@ void AiqCamHwBase_deinit(AiqCamHwBase_t* pCamHw) {
     EXIT_CAMHW_FUNCTION();
 }
 
-static XCamReturn _pixFmt2Bpp(uint32_t pixFmt, int8_t bpp) {
+static XCamReturn _pixFmt2Bpp(uint32_t pixFmt, int8_t *bpp) {
     switch (pixFmt) {
         case V4L2_PIX_FMT_SBGGR8:
         case V4L2_PIX_FMT_SGBRG8:
         case V4L2_PIX_FMT_SGRBG8:
         case V4L2_PIX_FMT_SRGGB8:
-            bpp = 8;
+            *bpp = 8;
             break;
         case V4L2_PIX_FMT_SBGGR10:
         case V4L2_PIX_FMT_SGBRG10:
         case V4L2_PIX_FMT_SGRBG10:
         case V4L2_PIX_FMT_SRGGB10:
-            bpp = 10;
+            *bpp = 10;
             break;
         case V4L2_PIX_FMT_SBGGR12:
         case V4L2_PIX_FMT_SGBRG12:
         case V4L2_PIX_FMT_SGRBG12:
         case V4L2_PIX_FMT_SRGGB12:
-            bpp = 12;
+            *bpp = 12;
             break;
         case V4L2_PIX_FMT_SBGGR14:
         case V4L2_PIX_FMT_SGBRG14:
         case V4L2_PIX_FMT_SGRBG14:
         case V4L2_PIX_FMT_SRGGB14:
-            bpp = 14;
+            *bpp = 14;
             break;
         case V4L2_PIX_FMT_SBGGR16:
         case V4L2_PIX_FMT_SGBRG16:
         case V4L2_PIX_FMT_SGRBG16:
         case V4L2_PIX_FMT_SRGGB16:
-            bpp = 16;
+            *bpp = 16;
             break;
         default:
             LOGE_CAMHW_SUBM(ISP20HW_SUBM, "unknown format");
@@ -2104,7 +2104,7 @@ static XCamReturn _setupPipelineFmtCif(AiqCamHwBase_t* pCamHw,
     struct v4l2_subdev_selection aSelection;
     struct v4l2_subdev_format isp_src_fmt;
 
-    _pixFmt2Bpp(sns_v4l_pix_fmt, bpp);
+    _pixFmt2Bpp(sns_v4l_pix_fmt, &bpp);
 
     if (g_mIsMultiIspMode && !pCamHw->mNoReadBack) {
         ret = AiqRawStreamCapUnit_set_csi_mem_word_big_align(
@@ -2237,7 +2237,7 @@ static XCamReturn _setupPipelineFmtIsp(AiqCamHwBase_t* pCamHw,
     // set scale fmt
     if (pCamHw->mCifScaleStream) {
         int8_t bpp = 0;
-        _pixFmt2Bpp(sns_v4l_pix_fmt, bpp);
+        _pixFmt2Bpp(sns_v4l_pix_fmt, &bpp);
         AiqCifSclStream_set_format2(pCamHw->mCifScaleStream, sns_sd_sel, sns_v4l_pix_fmt, bpp);
     }
 
@@ -2940,14 +2940,16 @@ XCamReturn AiqCamHw_prepare(AiqCamHwBase_t* pCamHw, uint32_t width, uint32_t hei
         return ret;
     }
 
-    if (pCamHw->mIsGroupMode) {
-        ret = sensorHw->set_sync_mode(
-            sensorHw, pCamHw->mIsMain ? INTERNAL_MASTER_MODE : EXTERNAL_MASTER_MODE);
-        if (ret) {
-            LOGW_CAMHW_SUBM(ISP20HW_SUBM, "set sensor group mode error !\n");
+    if (!pCamHw->mTbInfo.is_fastboot) {
+        if (pCamHw->mIsGroupMode) {
+            ret = sensorHw->set_sync_mode(
+                sensorHw, pCamHw->mIsMain ? INTERNAL_MASTER_MODE : EXTERNAL_MASTER_MODE);
+            if (ret) {
+                LOGW_CAMHW_SUBM(ISP20HW_SUBM, "set sensor group mode error !\n");
+            }
+        } else {
+            sensorHw->set_sync_mode(sensorHw, NO_SYNC_MODE);
         }
-    } else {
-        sensorHw->set_sync_mode(sensorHw, NO_SYNC_MODE);
     }
 
     if (!pCamHw->use_rkrawstream) {
@@ -2981,31 +2983,48 @@ XCamReturn AiqCamHw_prepare(AiqCamHwBase_t* pCamHw, uint32_t width, uint32_t hei
                 (AiqIspParamsSplitter_t*)aiq_mallocz(sizeof(AiqIspParamsSplitter_t));
             AiqIspParamsSplitter_init(pCamHw->mParamsSplitter, 0);
         }
-#if defined(ISP_HW_V32_LITE)
-        ASSIGN_POINT(split_rectangle, 0, 0, width, height);
-        AiqIspParamsSplitter_SetPicInfo(pCamHw->mParamsSplitter, &split_rectangle);
-        ASSIGN_POINT(split_rectangle, 0, 0, width / 2 + extended_pixel,
-                     height / 2 + extended_pixel);
-        AiqIspParamsSplitter_SetLeftIspRect(pCamHw->mParamsSplitter, &split_rectangle);
-        ASSIGN_POINT(split_rectangle, width / 2 - extended_pixel, 0, width / 2 + extended_pixel,
-                     height / 2 + extended_pixel);
-        AiqIspParamsSplitter_SetLeftIspRect(pCamHw->mParamsSplitter, &split_rectangle);
-        AiqIspParamsSplitter_SetRightIspRect(pCamHw->mParamsSplitter, &split_rectangle);
-        ASSIGN_POINT(split_rectangle, 0, height / 2 - extended_pixel, width / 2 + extended_pixel,
-                     height / 2 + extended_pixel);
-        AiqIspParamsSplitter_SetBottomLeftIspRect(pCamHw->mParamsSplitter, &split_rectangle);
-        ASSIGN_POINT(split_rectangle, width / 2 - extended_pixel, height / 2 - extended_pixel,
-                     width / 2 + extended_pixel, height / 2 + extended_pixel);
-        AiqIspParamsSplitter_SetBottomRightIspRect(pCamHw->mParamsSplitter, &split_rectangle);
-#else
-        ASSIGN_POINT(split_rectangle, 0, 0, width, height);
-        AiqIspParamsSplitter_SetPicInfo(pCamHw->mParamsSplitter, &split_rectangle);
-        ASSIGN_POINT(split_rectangle, 0, 0, width / 2 + extended_pixel, height);
-        AiqIspParamsSplitter_SetLeftIspRect(pCamHw->mParamsSplitter, &split_rectangle);
-        ASSIGN_POINT(split_rectangle, width / 2 - extended_pixel, 0, width / 2 + extended_pixel,
-                     height);
-        AiqIspParamsSplitter_SetRightIspRect(pCamHw->mParamsSplitter, &split_rectangle);
-#endif
+
+        struct rkisp_isp_info isp_act_info;
+        memset(&isp_act_info, 0, sizeof(isp_act_info));
+        if (pCamHw->mIspCoreDev->_v4l_base.io_control(&pCamHw->mIspCoreDev->_v4l_base,
+                                                      RKISP_CMD_GET_ISP_INFO, &isp_act_info) != 0) {
+            LOGE_CAMHW("%s:%d can't get act isp info", __FUNCTION__, __LINE__);
+        }
+
+        if (isp_act_info.act_width  == width / 2 + extended_pixel &&
+            isp_act_info.act_height == height / 2 + extended_pixel) {
+            AiqIspParamsSplitter_SetIspUniteMode(pCamHw->mParamsSplitter, RK_AIQ_ISP_UNITE_MODE_FOUR_GRID);
+            ASSIGN_POINT(split_rectangle, 0, 0, width, height);
+            AiqIspParamsSplitter_SetPicInfo(pCamHw->mParamsSplitter, &split_rectangle);
+            ASSIGN_POINT(split_rectangle, 0, 0, width / 2 + extended_pixel,
+                         height / 2 + extended_pixel);
+            AiqIspParamsSplitter_SetLeftIspRect(pCamHw->mParamsSplitter, &split_rectangle);
+            ASSIGN_POINT(split_rectangle, width / 2 - extended_pixel, 0, width / 2 + extended_pixel,
+                         height / 2 + extended_pixel);
+            AiqIspParamsSplitter_SetLeftIspRect(pCamHw->mParamsSplitter, &split_rectangle);
+            AiqIspParamsSplitter_SetRightIspRect(pCamHw->mParamsSplitter, &split_rectangle);
+            ASSIGN_POINT(split_rectangle, 0, height / 2 - extended_pixel, width / 2 + extended_pixel,
+                         height / 2 + extended_pixel);
+            AiqIspParamsSplitter_SetBottomLeftIspRect(pCamHw->mParamsSplitter, &split_rectangle);
+            ASSIGN_POINT(split_rectangle, width / 2 - extended_pixel, height / 2 - extended_pixel,
+                         width / 2 + extended_pixel, height / 2 + extended_pixel);
+            AiqIspParamsSplitter_SetBottomRightIspRect(pCamHw->mParamsSplitter, &split_rectangle);
+        } else if (isp_act_info.act_width  == width / 2 + extended_pixel &&
+                   isp_act_info.act_height == height) {
+            AiqIspParamsSplitter_SetIspUniteMode(pCamHw->mParamsSplitter, RK_AIQ_ISP_UNITE_MODE_TWO_GRID);
+            ASSIGN_POINT(split_rectangle, 0, 0, width, height);
+            AiqIspParamsSplitter_SetPicInfo(pCamHw->mParamsSplitter, &split_rectangle);
+            ASSIGN_POINT(split_rectangle, 0, 0, width / 2 + extended_pixel, height);
+            AiqIspParamsSplitter_SetLeftIspRect(pCamHw->mParamsSplitter, &split_rectangle);
+            ASSIGN_POINT(split_rectangle, width / 2 - extended_pixel, 0, width / 2 + extended_pixel,
+                        height);
+            AiqIspParamsSplitter_SetRightIspRect(pCamHw->mParamsSplitter, &split_rectangle);
+        } else {
+            AiqIspParamsSplitter_SetIspUniteMode(pCamHw->mParamsSplitter, RK_AIQ_ISP_UNITE_MODE_NORMAL);
+            ASSIGN_POINT(split_rectangle, 0, 0, width, height);
+            AiqIspParamsSplitter_SetPicInfo(pCamHw->mParamsSplitter, &split_rectangle);
+        }
+
         {
             const Splitter_Rectangle_t* f =
                 AiqIspParamsSplitter_GetPicInfo(pCamHw->mParamsSplitter);
@@ -3013,12 +3032,14 @@ XCamReturn AiqCamHw_prepare(AiqCamHwBase_t* pCamHw, uint32_t width, uint32_t hei
                 AiqIspParamsSplitter_GetLeftIspRect(pCamHw->mParamsSplitter);
             const Splitter_Rectangle_t* r =
                 AiqIspParamsSplitter_GetRightIspRect(pCamHw->mParamsSplitter);
-            LOGD_ANALYZER(
+            LOGK_ANALYZER(
                 "Set Multi-ISP Mode ParamSplitter:\n"
+                " Unite mode: %d\n"
                 " Extended Pixel%d\n"
                 " F : { %u, %u, %u, %u }\n"
                 " L : { %u, %u, %u, %u }\n"
                 " R : { %u, %u, %u, %u }\n",
+                AiqIspParamsSplitter_GetIspUniteMode(pCamHw->mParamsSplitter),
                 extended_pixel, f->x, f->y, f->w, f->h, l->x, l->y, l->w, l->h, r->x, r->y, r->w,
                 r->h);
         }
@@ -3538,10 +3559,12 @@ XCamReturn AiqCamHw_getSensorModeData(AiqCamHwBase_t* pCamHw, const char* sns_en
         pCamHw->rkAiqManager->mRkAiqAnalyzer->mShareMemOps;
     pCamHw->_mIspParamsCvt->mCacInfo.is_multi_sensor =
         pCamHw->rkAiqManager->mRkAiqAnalyzer->mAlogsComSharedParams.is_multi_sensor;
-    pCamHw->_mIspParamsCvt->mCacInfo.is_multi_isp =
-        pCamHw->rkAiqManager->mRkAiqAnalyzer->mAlogsComSharedParams.is_multi_isp_mode;
-    pCamHw->_mIspParamsCvt->mCacInfo.multi_isp_extended_pixel =
-        pCamHw->rkAiqManager->mRkAiqAnalyzer->mAlogsComSharedParams.multi_isp_extended_pixels;
+    pCamHw->_mIspParamsCvt->mCacInfo.is_multi_isp = g_mIsMultiIspMode;
+    pCamHw->_mIspParamsCvt->mCacInfo.multi_isp_extended_pixel = g_mMultiIspExtendedPixel;
+    if (g_mIsMultiIspMode && pCamHw->mParamsSplitter) {
+        pCamHw->_mIspParamsCvt->mCacInfo.isp_unite_mode =
+            AiqIspParamsSplitter_GetIspUniteMode(pCamHw->mParamsSplitter);
+    }
     if (pCamHw->rkAiqManager->mRkAiqAnalyzer->mAlogsComSharedParams.resourcePath) {
         strcpy(pCamHw->_mIspParamsCvt->mCacInfo.iqpath, pCamHw->rkAiqManager->mRkAiqAnalyzer->mAlogsComSharedParams.resourcePath);
     } else {
@@ -4513,17 +4536,27 @@ XCamReturn AiqCamHw_handleIspRstList(AiqCamHwBase_t* pCamHw, AiqList_t* pList) {
             }
 
 #if defined(RKAIQ_HAVE_MULTIISP)
-            if (g_mIsMultiIspMode) {
+            if (g_mIsMultiIspMode && pCamHw->mParamsSplitter) {
                 // dequeue param buffer to judge whether unite isp is splitted into two sides or not.
                 AiqV4l2Buffer_t* pV4l2Buf    = NULL;
                 int              buf_length  = 0;
                 int              struct_size = 0;
+                int              isp_unite   = 0;
+                int              buf_cnt     = 0;
                 pV4l2Buf = AiqV4l2Device_getBuf(pCamHw->mIspParamsDev, -1);
                 if (!pV4l2Buf) {
                     LOGE_CAMHW_SUBM(ISP20HW_SUBM, "Can not get isp params buffer, queued cnts:%d \n",
                                     AiqV4l2Device_getQueuedBufCnt(pCamHw->mIspParamsDev));
                 } else {
                    buf_length = pV4l2Buf->_buf.length;
+                }
+                isp_unite = AiqIspParamsSplitter_GetIspUniteMode(pCamHw->mParamsSplitter);
+                if (isp_unite == RK_AIQ_ISP_UNITE_MODE_TWO_GRID) {
+                    buf_cnt = 2;
+                } else if (isp_unite == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
+                    buf_cnt = 4;
+                } else {
+                    buf_cnt = 1;
                 }
 #if defined(ISP_HW_V33)
                 struct_size = sizeof(struct isp33_isp_params_cfg);
@@ -4536,10 +4569,10 @@ XCamReturn AiqCamHw_handleIspRstList(AiqCamHwBase_t* pCamHw, AiqList_t* pList) {
 #elif defined(ISP_HW_V21)
                 struct_size = sizeof(struct isp21_isp_params_cfg);
 #endif
-                if (struct_size && buf_length && (buf_length / struct_size) != 2) {
+                if (struct_size && buf_length && (buf_length / struct_size) != buf_cnt) {
                     LOGE_CAMHW("isp param buf length %d, isp param struct size %d", buf_length, struct_size);
                     LOGE_CAMHW("unite isp size error!!!!! raw size is %s than expect size",
-                                    (buf_length / struct_size) > 2 ? "largger": "smaller");
+                                    (buf_length / struct_size) > buf_cnt ? "largger": "smaller");
                 }
 
                 if (pV4l2Buf) {
@@ -4723,6 +4756,58 @@ XCamReturn AiqCamHw_notify_sof(AiqCamHwBase_t* pCamHw, AiqHwEvt_t* sof_evt) {
     return XCAM_RETURN_NO_ERROR;
 }
 
+#if defined(ISP_HW_V39)
+static void _setIspExp(AiqCamHwBase_t* pCamHw, struct sensor_exposure_cfg* pExpCfg, AiqSensorExpInfo_t* ae_exp)
+{
+    rk_aiq_exposure_sensor_descriptor* pSnsDes = &pCamHw->_mSensorDev->_sensor_desc;
+    uint64_t nano_seconds_per_second = 1000000000ULL;
+    uint32_t rolling_shutter_skew =
+            pSnsDes->line_length_pck * nano_seconds_per_second /
+            pSnsDes->vt_pix_clk_freq_hz * pSnsDes->sensor_output_height / 1000;
+    if (RK_AIQ_HDR_GET_WORKING_MODE(pCamHw->_hdr_mode) == RK_AIQ_WORKING_MODE_NORMAL) {
+        pExpCfg->linear_exp.fine_integration_time = 0;
+        pExpCfg->linear_exp.coarse_integration_time = ae_exp->aecExpInfo.LinearExp.exp_real_params.integration_time * 1000 * 1000; // us
+        pExpCfg->linear_exp.analog_gain_code_global = ae_exp->aecExpInfo.LinearExp.exp_real_params.analog_gain * 1000;
+        pExpCfg->linear_exp.digital_gain_global = ae_exp->aecExpInfo.LinearExp.exp_real_params.digital_gain * 1000;;
+        pExpCfg->linear_exp.isp_digital_gain = ae_exp->aecExpInfo.LinearExp.exp_real_params.isp_dgain * 1000;
+        pExpCfg->linear_exp.rolling_shutter_skew = rolling_shutter_skew;
+    } else if (RK_AIQ_HDR_GET_WORKING_MODE(pCamHw->_hdr_mode) == RK_AIQ_WORKING_MODE_ISP_HDR2) {
+        pExpCfg->hdr_exp[0].fine_integration_time = 0;
+        pExpCfg->hdr_exp[0].coarse_integration_time = ae_exp->aecExpInfo.HdrExp[0].exp_real_params.integration_time * 1000 * 1000; // us
+        pExpCfg->hdr_exp[0].analog_gain_code_global = ae_exp->aecExpInfo.HdrExp[0].exp_real_params.analog_gain * 1000;
+        pExpCfg->hdr_exp[0].digital_gain_global = ae_exp->aecExpInfo.HdrExp[0].exp_real_params.digital_gain * 1000;;
+        pExpCfg->hdr_exp[0].isp_digital_gain = ae_exp->aecExpInfo.HdrExp[0].exp_real_params.isp_dgain * 1000;
+        pExpCfg->hdr_exp[0].rolling_shutter_skew = rolling_shutter_skew;
+        pExpCfg->hdr_exp[1].fine_integration_time = 0;
+        pExpCfg->hdr_exp[1].coarse_integration_time = ae_exp->aecExpInfo.HdrExp[1].exp_real_params.integration_time * 1000 * 1000; // us
+        pExpCfg->hdr_exp[1].analog_gain_code_global = ae_exp->aecExpInfo.HdrExp[1].exp_real_params.analog_gain * 1000;
+        pExpCfg->hdr_exp[1].digital_gain_global = ae_exp->aecExpInfo.HdrExp[1].exp_real_params.digital_gain * 1000;;
+        pExpCfg->hdr_exp[1].isp_digital_gain = ae_exp->aecExpInfo.HdrExp[1].exp_real_params.isp_dgain * 1000;
+        pExpCfg->hdr_exp[1].rolling_shutter_skew = rolling_shutter_skew;
+    } else if (RK_AIQ_HDR_GET_WORKING_MODE(pCamHw->_hdr_mode) == RK_AIQ_WORKING_MODE_ISP_HDR3) {
+        pExpCfg->hdr_exp[0].fine_integration_time = 0;
+        pExpCfg->hdr_exp[0].coarse_integration_time = ae_exp->aecExpInfo.HdrExp[0].exp_real_params.integration_time * 1000 * 1000; // us
+        pExpCfg->hdr_exp[0].analog_gain_code_global = ae_exp->aecExpInfo.HdrExp[0].exp_real_params.analog_gain * 1000;
+        pExpCfg->hdr_exp[0].digital_gain_global = ae_exp->aecExpInfo.HdrExp[0].exp_real_params.digital_gain * 1000;;
+        pExpCfg->hdr_exp[0].isp_digital_gain = ae_exp->aecExpInfo.HdrExp[0].exp_real_params.isp_dgain * 1000;
+        pExpCfg->hdr_exp[0].rolling_shutter_skew = rolling_shutter_skew;
+        pExpCfg->hdr_exp[1].fine_integration_time = 0;
+        pExpCfg->hdr_exp[1].coarse_integration_time = ae_exp->aecExpInfo.HdrExp[1].exp_real_params.integration_time * 1000 * 1000; // us
+        pExpCfg->hdr_exp[1].analog_gain_code_global = ae_exp->aecExpInfo.HdrExp[1].exp_real_params.analog_gain * 1000;
+        pExpCfg->hdr_exp[1].digital_gain_global = ae_exp->aecExpInfo.HdrExp[1].exp_real_params.digital_gain * 1000;;
+        pExpCfg->hdr_exp[1].isp_digital_gain = ae_exp->aecExpInfo.HdrExp[1].exp_real_params.isp_dgain * 1000;
+        pExpCfg->hdr_exp[1].rolling_shutter_skew = rolling_shutter_skew;
+        pExpCfg->hdr_exp[2].fine_integration_time = 0;
+        pExpCfg->hdr_exp[2].coarse_integration_time = ae_exp->aecExpInfo.HdrExp[2].exp_real_params.integration_time * 1000 * 1000; // us
+        pExpCfg->hdr_exp[2].analog_gain_code_global = ae_exp->aecExpInfo.HdrExp[2].exp_real_params.analog_gain * 1000;
+        pExpCfg->hdr_exp[2].digital_gain_global = ae_exp->aecExpInfo.HdrExp[2].exp_real_params.digital_gain * 1000;;
+        pExpCfg->hdr_exp[2].isp_digital_gain = ae_exp->aecExpInfo.HdrExp[2].exp_real_params.isp_dgain * 1000;
+        pExpCfg->hdr_exp[2].rolling_shutter_skew = rolling_shutter_skew;
+    }
+
+}
+#endif
+
 static XCamReturn _setIspConfig(AiqCamHwBase_t* pCamHw, AiqList_t* result_list) {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
 
@@ -4730,6 +4815,7 @@ static XCamReturn _setIspConfig(AiqCamHwBase_t* pCamHw, AiqList_t* result_list) 
 
     AiqV4l2Buffer_t* pV4l2Buf = NULL;
     uint32_t frameId          = -1;
+    int ispUniteMode          = 0;
 
     aiqMutex_lock(&pCamHw->_isp_params_cfg_mutex);
     while (aiqMap_size(pCamHw->_effecting_ispparam_map) > 4) {
@@ -4759,8 +4845,9 @@ static XCamReturn _setIspConfig(AiqCamHwBase_t* pCamHw, AiqList_t* result_list) 
 
     // add isp dgain results to ready results
     AiqSensorHw_t* mSensorSubdev = pCamHw->_mSensorDev;
+    AiqSensorExpInfo_t* expParam = NULL;
     if (mSensorSubdev) {
-        AiqSensorExpInfo_t* expParam = mSensorSubdev->getEffectiveExpParams(mSensorSubdev, frameId);
+        expParam = mSensorSubdev->getEffectiveExpParams(mSensorSubdev, frameId);
 
         if (!expParam) {
             LOGE_CAMHW_SUBM(ISP20HW_SUBM, "frame_id(%d), get exposure failed!!!\n", frameId);
@@ -4794,6 +4881,9 @@ static XCamReturn _setIspConfig(AiqCamHwBase_t* pCamHw, AiqList_t* result_list) 
         bool isMultiIsp    = g_mIsMultiIspMode;
         bool extened_pixel = g_mMultiIspExtendedPixel;
 
+#if defined(ISP_HW_V39)
+        _setIspExp(pCamHw, &isp_params->exposure, expParam);
+#endif
         isp_params->module_en_update  = 0;
         isp_params->module_cfg_update = 0;
         isp_params->module_ens = 0;
@@ -4830,9 +4920,10 @@ static XCamReturn _setIspConfig(AiqCamHwBase_t* pCamHw, AiqList_t* result_list) 
         }
 #endif
 
+        ispUniteMode = AiqCamHw_getIspUniteMode(pCamHw);
 #if defined(RKAIQ_HAVE_MULTIISP) && defined(ISP_HW_V30)
         struct isp3x_isp_params_cfg ori_params;
-        if (g_mIsMultiIspMode) {
+        if (g_mIsMultiIspMode && ispUniteMode == RK_AIQ_ISP_UNITE_MODE_TWO_GRID) {
             ori_params = *isp_params;
             pCamHw->mParamsSplitter->SplitIspParams(pCamHw->mParamsSplitter, &ori_params,
                                                     isp_params);
@@ -4845,19 +4936,19 @@ static XCamReturn _setIspConfig(AiqCamHwBase_t* pCamHw, AiqList_t* result_list) 
         struct isp32_isp_params_cfg ori_params;
         if (g_mIsMultiIspMode) {
             ori_params = *isp_params;
-#if defined(ISP_HW_V32_LITE)
-            pCamHw->mParamsSplitter->SplitIspParamsVertical(pCamHw->mParamsSplitter, &ori_params,
-                                                            isp_params);
-#else
-            pCamHw->mParamsSplitter->SplitIspParams(pCamHw->mParamsSplitter, &ori_params,
-                                                    isp_params);
-#endif
+            if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
+                pCamHw->mParamsSplitter->SplitIspParamsVertical(pCamHw->mParamsSplitter, &ori_params,
+                                                                isp_params);
+            } else if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_TWO_GRID) {
+                pCamHw->mParamsSplitter->SplitIspParams(pCamHw->mParamsSplitter, &ori_params,
+                                                        isp_params);
+            }
         }
 #endif
 
 #if defined(RKAIQ_HAVE_MULTIISP) && defined(ISP_HW_V39)
         struct isp39_isp_params_cfg ori_params;
-        if (g_mIsMultiIspMode) {
+        if (g_mIsMultiIspMode && ispUniteMode == RK_AIQ_ISP_UNITE_MODE_TWO_GRID) {
             ori_params = *isp_params;
             pCamHw->mParamsSplitter->SplitIspParams(pCamHw->mParamsSplitter, &ori_params,
                                                     isp_params);
@@ -4866,7 +4957,7 @@ static XCamReturn _setIspConfig(AiqCamHwBase_t* pCamHw, AiqList_t* result_list) 
 
 #if defined(RKAIQ_HAVE_MULTIISP) && defined(ISP_HW_V33)
         struct isp33_isp_params_cfg ori_params;
-        if (g_mIsMultiIspMode) {
+        if (g_mIsMultiIspMode && ispUniteMode == RK_AIQ_ISP_UNITE_MODE_TWO_GRID) {
             ori_params = *isp_params;
             pCamHw->mParamsSplitter->SplitIspParams(pCamHw->mParamsSplitter, &ori_params,
                                                     isp_params);
@@ -6070,6 +6161,14 @@ static XCamReturn SetLastAeExpToRttShared(AiqCamHwBase_t* pCamHw) {
     }
 
     return ret;
+}
+
+RkAiqIspUniteMode
+AiqCamHw_getIspUniteMode(AiqCamHwBase_t* pCamHw) {
+    if (pCamHw->mParamsSplitter)
+        return AiqIspParamsSplitter_GetIspUniteMode(pCamHw->mParamsSplitter);
+
+    return RK_AIQ_ISP_UNITE_MODE_NORMAL;
 }
 
 static void AiqCamHwBase_initNotifier(AiqCamHwBase_t* pCamHw) {

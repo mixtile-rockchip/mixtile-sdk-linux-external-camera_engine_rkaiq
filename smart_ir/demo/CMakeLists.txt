@@ -69,5 +69,6 @@ add_executable(smartIr_demo ${DIR_SRCS})
 add_dependencies(smartIr_demo ${SMARTIR_LIB})
 link_directories("${RK_AIQ_LIB_DIR}" "${SMARTIR_LIB_DIR}")
 target_link_libraries(smartIr_demo ${RK_AIQ_LIB} ${SMARTIR_LIB})
+target_link_libraries(smartIr_demo pthread m)
 install(TARGETS smartIr_demo RUNTIME DESTINATION bin)
 

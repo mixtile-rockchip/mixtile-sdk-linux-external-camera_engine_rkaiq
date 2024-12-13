@@ -1014,32 +1014,39 @@ void rk_aiq_sharp40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_
     tmp = (pTexDyn->noiseEst.hw_texEstT_nsEstTexThd_maxLimit) * (1 << 0);
     pCfg->noise_clip_max_limit = CLIP(tmp, 0, 0x7ff);
 
-    if (pTexDyn->noiseEst.hw_texEstT_nsEstTexThd_mode == texEst_baseNoiseStats_mode) {
+    if (!cvtinfo->isFirstFrame) {
         sharp_stats_t *sharp_stats = &pBtnrInfo->mSharpStats[0];
-        if (!cvtinfo->isFirstFrame) {
-            sharp_stats = sharp_get_stats(pBtnrInfo, cvtinfo->frameId);
-            if (cvtinfo->frameId - BAYERTNR_STATS_DELAY != sharp_stats->id) {
-                pBtnrInfo->sharp_stats_miss_cnt ++;
-                if ((pBtnrInfo->sharp_stats_miss_cnt > 10) && (pBtnrInfo->sharp_stats_miss_cnt % 30 == 0)) {
-                    LOGE_ANR("Sharp stats miss match! frameId: %d stats [%d %d %d]", cvtinfo->frameId,
-                             pBtnrInfo->mSharpStats[0].id, pBtnrInfo->mSharpStats[1].id, pBtnrInfo->mSharpStats[2].id);
-                    for (i = 0; i < 17; i++) {
-                        noise_curve_ext[i] = pBtnrInfo->sharp_noise_curve_pre[i];
-                    }
-
-                } else {
-                    noiseCurveInterp(sharp_stats->noise_curve, noise_curve_ext, pBtnrInfo->sharp_noise_curve_pre);
+        sharp_stats = sharp_get_stats(pBtnrInfo, cvtinfo->frameId);
+        if (cvtinfo->frameId - BAYERTNR_STATS_DELAY != sharp_stats->id) {
+            pBtnrInfo->sharp_stats_miss_cnt ++;
+            if ((pBtnrInfo->sharp_stats_miss_cnt > 10) && (pBtnrInfo->sharp_stats_miss_cnt % 30 == 0)) {
+                LOGE_ANR("Sharp stats miss match! frameId: %d stats [%d %d %d]", cvtinfo->frameId,
+                         pBtnrInfo->mSharpStats[0].id, pBtnrInfo->mSharpStats[1].id, pBtnrInfo->mSharpStats[2].id);
+                for (i = 0; i < 17; i++) {
+                    noise_curve_ext[i] = pBtnrInfo->sharp_noise_curve_pre[i];
                 }
+
             }
+        } else {
+            noiseCurveInterp(sharp_stats->noise_curve, noise_curve_ext, pBtnrInfo->sharp_noise_curve_pre);
         }
-    } else {
+    }
+    for (i = 0; i < 17; i++) {
+        pBtnrInfo->sharp_noise_curve_pre[i] = noise_curve_ext[i];
+    }
+
+    // cal noise curve for gic
+    if (pBtnrInfo->gic_noise_auto_mode && !cvtinfo->isFirstFrame) {
+        struct isp33_gic_cfg* gic_cfg = &isp_params->isp_cfg->others.gic_cfg;
         for (i = 0; i < 17; i++) {
-            noise_curve_ext[i] = pTexDyn->noiseEst.hw_texEstT_nsEstTexManual_thred[i];
+            gic_cfg->bfflt_vsigma_y[i] = CLIP(noise_curve_ext[i], 0, 0x3ff);
         }
     }
 
-    for (i = 0; i < 17; i++) {
-        pBtnrInfo->sharp_noise_curve_pre[i] = noise_curve_ext[i];
+    if (pTexDyn->noiseEst.hw_texEstT_nsEstTexThd_mode != texEst_baseNoiseStats_mode) {
+        for (i = 0; i < 17; i++) {
+            noise_curve_ext[i] = pTexDyn->noiseEst.hw_texEstT_nsEstTexManual_thred[i];
+        }
     }
 
     // REG: NOISE_CURVE0

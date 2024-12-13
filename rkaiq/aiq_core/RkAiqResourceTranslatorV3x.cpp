@@ -37,7 +37,7 @@ RkAiqResourceTranslatorV3x::RkAiqResourceTranslatorV3x() : mIsMultiIsp(false) {
     memset(&pic_rect_, 0, sizeof(RkAiqResourceTranslatorV3x::Rectangle));
     memset(&left_isp_rect_, 0, sizeof(RkAiqResourceTranslatorV3x::Rectangle));
     memset(&right_isp_rect_, 0, sizeof(RkAiqResourceTranslatorV3x::Rectangle));
-    mIspUnitedMode = RK_AIQ_ISP_UNITED_MODE_NORMAL;
+    mIspUniteMode = RK_AIQ_ISP_UNITE_MODE_NORMAL;
 }
 
 RkAiqResourceTranslatorV3x& RkAiqResourceTranslatorV3x::SetMultiIspMode(bool isMultiIsp) {
@@ -45,8 +45,8 @@ RkAiqResourceTranslatorV3x& RkAiqResourceTranslatorV3x::SetMultiIspMode(bool isM
     return *this;
 }
 
-RkAiqResourceTranslatorV3x& RkAiqResourceTranslatorV3x::SetIspUnitedMode(RkAiqIspUnitedMode mode) {
-    mIspUnitedMode = mode;
+RkAiqResourceTranslatorV3x& RkAiqResourceTranslatorV3x::SetIspUnitedMode(RkAiqIspUniteMode mode) {
+    mIspUniteMode = mode;
     return *this;
 }
 
@@ -108,8 +108,8 @@ bool RkAiqResourceTranslatorV3x::IsMultiIspMode() const {
     return mIsMultiIsp;
 }
 
-RkAiqIspUnitedMode RkAiqResourceTranslatorV3x::GetIspUnitedMode() {
-    return mIspUnitedMode;
+RkAiqIspUniteMode RkAiqResourceTranslatorV3x::GetIspUnitedMode() {
+    return mIspUniteMode;
 }
 
 RkAiqResourceTranslatorV3x::Rectangle RkAiqResourceTranslatorV3x::GetPicInfo() {
@@ -2366,7 +2366,7 @@ RkAiqResourceTranslatorV3x::translateAecStats (const SmartPtr<VideoBuffer> &from
     SmartPtr<RkAiqAecStats> statsInt = to->data();
 
 #if defined(RKAIQ_HAVE_MULTIISP)
-    if (mIsMultiIsp) {
+    if (mIsMultiIsp && mIspUniteMode == RK_AIQ_ISP_UNITE_MODE_TWO_GRID) {
         return translateMultiAecStats(from, to);
     }
 #endif
@@ -2719,7 +2719,7 @@ RkAiqResourceTranslatorV3x::translateAwbStats (const SmartPtr<VideoBuffer> &from
     SmartPtr<RkAiqAwbStats> statsInt = to->data();
 
 #if defined(RKAIQ_HAVE_MULTIISP)
-    if (mIsMultiIsp) {
+    if (mIsMultiIsp && mIspUniteMode == RK_AIQ_ISP_UNITE_MODE_TWO_GRID) {
         return translateMultiAwbStats(from, to);
     }
 #endif
@@ -2883,7 +2883,7 @@ RkAiqResourceTranslatorV3x::translateAfStats (const SmartPtr<VideoBuffer> &from,
     SmartPtr<RkAiqAfStats> statsInt = to->data();
 
 #if defined(RKAIQ_HAVE_MULTIISP)
-    if (mIsMultiIsp) {
+    if (mIsMultiIsp && mIspUniteMode == RK_AIQ_ISP_UNITE_MODE_TWO_GRID) {
         return translateMultiAfStats(from, to);
     }
 #endif
@@ -2958,7 +2958,7 @@ RkAiqResourceTranslatorV3x::translateAdehazeStats (const SmartPtr<VideoBuffer> &
     SmartPtr<RkAiqAdehazeStats> statsInt = to->data();
 
 #if defined(RKAIQ_HAVE_MULTIISP)
-    if (mIsMultiIsp) {
+    if (mIsMultiIsp && mIspUniteMode == RK_AIQ_ISP_UNITE_MODE_TWO_GRID) {
         return translateMultiAdehazeStats(from, to);
     }
 #endif

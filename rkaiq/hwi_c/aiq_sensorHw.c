@@ -722,10 +722,10 @@ static XCamReturn _SensorHw_setI2cDAta(AiqSensorHw_t* pSnsHw, aiq_pending_split_
     struct rkmodule_reg regs;
 
     regs.num_regs         = (__u64)(exps->i2c_exp_res.nNumRegs);
-    regs.preg_addr        = (__u64)(ulong)(exps->i2c_exp_res.RegAddr);
-    regs.preg_value       = (__u64)(ulong)(exps->i2c_exp_res.RegValue);
-    regs.preg_addr_bytes  = (__u64)(ulong)(exps->i2c_exp_res.AddrByteNum);
-    regs.preg_value_bytes = (__u64)(ulong)(exps->i2c_exp_res.ValueByteNum);
+    regs.preg_addr        = (__u64)(unsigned long)(exps->i2c_exp_res.RegAddr);
+    regs.preg_value       = (__u64)(unsigned long)(exps->i2c_exp_res.RegValue);
+    regs.preg_addr_bytes  = (__u64)(unsigned long)(exps->i2c_exp_res.AddrByteNum);
+    regs.preg_value_bytes = (__u64)(unsigned long)(exps->i2c_exp_res.ValueByteNum);
 
     LOG1_CAMHW_SUBM(SENSOR_SUBM, "set sensor reg array num %d ------", exps->i2c_exp_res.nNumRegs);
     if (exps->i2c_exp_res.nNumRegs <= 0) return XCAM_RETURN_NO_ERROR;
@@ -1129,6 +1129,8 @@ XCamReturn SensorHw_getSensorModeData(AiqSensorHw_t* pBaseSns, const char* sns_e
     sns_des->sensor_output_width  = sensor_desc.sensor_output_width;
     sns_des->sensor_output_height = sensor_desc.sensor_output_height;
     sns_des->sensor_pixelformat   = sensor_desc.sensor_pixelformat;
+
+    pBaseSns->_sensor_desc = *sns_des;
 
     LOGD_CAMHW_SUBM(SENSOR_SUBM, "vts-hts-pclk: %d-%d-%d-%f, rect: [%dx%d]\n",
                     sns_des->frame_length_lines, sns_des->line_length_pck,

@@ -276,7 +276,7 @@ typedef rk_aiq_isp_params_t<ynr_param_t>        rk_aiq_isp_ynr_params_t;
 typedef rk_aiq_isp_params_t<sharp_param_t>      rk_aiq_isp_sharp_params_t;
 typedef rk_aiq_isp_params_t<cnr_param_t>        rk_aiq_isp_cnr_params_t;
 typedef rk_aiq_isp_params_t<rk_aiq_isp_drc_v39_t>      rk_aiq_isp_drc_params_t;
-typedef rk_aiq_isp_params_t<rk_aiq_isp_dehaze_v39_t>      rk_aiq_isp_dehaze_params_t;
+// typedef rk_aiq_isp_params_t<rk_aiq_isp_dehaze_v39_t>      rk_aiq_isp_dehaze_params_t;
 typedef rk_aiq_isp_params_t<dpc_param_t>          rk_aiq_isp_dpcc_params_t;
 typedef rk_aiq_isp_params_t<gic_param_t>         rk_aiq_isp_gic_params_t;
 typedef rk_aiq_isp_params_t<yme_param_t>         rk_aiq_isp_yme_params_t;
@@ -924,10 +924,10 @@ typedef struct _RkAiqBay3dStat {
 } RkAiqBay3dStat;
 
 typedef enum _RkAiqIspUnitedMode {
-    RK_AIQ_ISP_UNITED_MODE_NORMAL = 0,
-    RK_AIQ_ISP_UNITED_MODE_TWO_GRID,
-    RK_AIQ_ISP_UNITED_MODE_FOUR_GRID,
-} RkAiqIspUnitedMode;
+    RK_AIQ_ISP_UNITE_MODE_NORMAL = 0,
+    RK_AIQ_ISP_UNITE_MODE_TWO_GRID,
+    RK_AIQ_ISP_UNITE_MODE_FOUR_GRID,
+} RkAiqIspUniteMode;
 
 #if defined(ISP_HW_V32_LITE)
 #define RK_AIQ_ISP_CIF_INPUT_MAX_SIZE 4224 * 3136

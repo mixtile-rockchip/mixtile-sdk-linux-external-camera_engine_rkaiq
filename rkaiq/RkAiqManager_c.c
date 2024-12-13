@@ -683,6 +683,8 @@ XCamReturn AiqManager_prepare(AiqManager_t* pAiqManager, uint32_t width, uint32_
     RKAIQMNG_CHECK_RET(ret, "getSensorModeData error %d", ret);
     AiqCore_notifyIspStreamMode(pAiqManager->mRkAiqAnalyzer,
 		AiqCamHw_getIspStreamMode(pAiqManager->mCamHw));
+    AiqCore_setTranslaterIspUniteMode(pAiqManager->mRkAiqAnalyzer,
+        AiqCamHw_getIspUniteMode(pAiqManager->mCamHw));
     ret = AiqCore_prepare(pAiqManager->mRkAiqAnalyzer, &sensor_des, working_mode_hw);
     RKAIQMNG_CHECK_RET(ret, "analyzer prepare error %d", ret);
 

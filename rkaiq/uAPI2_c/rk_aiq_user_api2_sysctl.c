@@ -23,6 +23,9 @@
 
 #define RKAIQ_DEFAULT_IQ_PATH "/etc/iqfiles/"
 
+#ifdef ANDROID_OS
+#include <cutils/properties.h>
+#endif
 #include <sys/file.h>
 #include <fcntl.h>
 #include "rk_aiq_user_api2_sysctl.h"

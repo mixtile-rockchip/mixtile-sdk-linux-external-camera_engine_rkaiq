@@ -10,6 +10,7 @@ func rkaiq_macro_switch(soc string) map[string]bool {
     var macros_map map[string]bool
     macros_map = make(map[string]bool)
 
+    macros_map["RKAIQ_ENABLE_SIMULATOR"] = false
     macros_map["RKAIQ_ENABLE_PARSER_V1"] = false
     macros_map["RKAIQ_ENABLE_CAMGROUP"] = true
     macros_map["RKAIQ_HAVE_FAKECAM"] = true
@@ -21,6 +22,7 @@ func rkaiq_macro_switch(soc string) map[string]bool {
     macros_map["RKAIQ_USE_RAWSTREAM_LIB"] = false
     macros_map["RKAIQ_IMPLEMENT_C"] = false
     if soc == "rk3562" {
+        macros_map["ISP_HW_V32_LITE"] = true
         macros_map["RKAIQ_HAVE_AWB_V20"] = false
         macros_map["RKAIQ_HAVE_AWB_V21"] = false
         macros_map["RKAIQ_HAVE_AWB_V32"] = true
@@ -101,6 +103,7 @@ func rkaiq_macro_switch(soc string) map[string]bool {
         macros_map["RKAIQ_HAVE_AIE_V10"] = true
         macros_map["RKAIQ_HAVE_ASD_V10"] = false
     } else if soc == "rv1106" {
+        macros_map["ISP_HW_V32"] = true
         macros_map["RKAIQ_HAVE_AWB_V20"] = false
         macros_map["RKAIQ_HAVE_AWB_V21"] = false
         macros_map["RKAIQ_HAVE_AWB_V32"] = true
@@ -184,6 +187,7 @@ func rkaiq_macro_switch(soc string) map[string]bool {
         macros_map["RKAIQ_HAVE_AIE_V10"] = true
         macros_map["RKAIQ_HAVE_ASD_V10"] = false
     } else if soc == "rk3588" {
+        macros_map["ISP_HW_V30"] = true
         macros_map["RKAIQ_ENABLE_CAMGROUP"] = true
         macros_map["RKAIQ_HAVE_THUMBNAILS"] = true
         macros_map["RKAIQ_HAVE_MULTIISP"] = true
@@ -245,7 +249,7 @@ func rkaiq_macro_switch(soc string) map[string]bool {
         macros_map["RKAIQ_HAVE_WDR_V1"] = true
         macros_map["RKAIQ_HAVE_LDCH_V21"] = false
         macros_map["RKAIQ_HAVE_LDCH_V10"] = true
-        macros_map["RKAIQ_HAVE_FEC_V10"] = false 
+        macros_map["RKAIQ_HAVE_FEC_V10"] = false
         macros_map["RKAIQ_HAVE_CSM_V1"] = true
         macros_map["RKAIQ_HAVE_CGC_V1"] = true
         macros_map["RKAIQ_HAVE_AE_V1"] = true
@@ -261,6 +265,7 @@ func rkaiq_macro_switch(soc string) map[string]bool {
         macros_map["RKAIQ_HAVE_AIE_V10"] = true
         macros_map["RKAIQ_HAVE_ASD_V10"] = false
     } else if soc == "rk356x" {
+        macros_map["ISP_HW_V21"] = true
         macros_map["RKAIQ_HAVE_AWB_V20"] =  false
         macros_map["RKAIQ_HAVE_AWB_V21"] = true
         macros_map["RKAIQ_HAVE_AWB_V32"] = false
@@ -336,6 +341,7 @@ func rkaiq_macro_switch(soc string) map[string]bool {
         macros_map["RKAIQ_HAVE_ASD_V10"] = false
         macros_map["RKAIQ_HAVE_DEGAMMA_V1"] = true
     } else if soc == "rk1109" {
+        macros_map["ISP_HW_V20"] = true
         macros_map["RKAIQ_HAVE_AWB_V20"] =  true
         macros_map["RKAIQ_HAVE_AWB_V21"] = false
         macros_map["RKAIQ_HAVE_AWB_V32"] = false
@@ -413,11 +419,13 @@ func rkaiq_macro_switch(soc string) map[string]bool {
     } else if soc == "rk3576" {
         macros_map["ISP_HW_V39"] = true
         macros_map["RKAIQ_NEWSTRUCT_TEST"] = true
+        macros_map["RKAIQ_IMPLEMENT_C"] = true
         macros_map["RKAIQ_HAVE_AWB_V20"] = false
         macros_map["RKAIQ_HAVE_AWB_V21"] = false
         macros_map["RKAIQ_HAVE_AWB_V32"] = false
         macros_map["RKAIQ_HAVE_AWB_V32LT"] = false
         macros_map["RKAIQ_HAVE_AWB_V39"] = true
+        macros_map["RKAIQ_HAVE_AWB_V33"] = false
         macros_map["RKAIQ_HAVE_GIC_V1"] = false
         macros_map["RKAIQ_HAVE_GIC_V2"] = true
         macros_map["RKAIQ_HAVE_ORB_V1"] = false
@@ -458,7 +466,7 @@ func rkaiq_macro_switch(soc string) map[string]bool {
         macros_map["RKAIQ_HAVE_BLC_V32"] = true
         macros_map["RKAIQ_HAVE_ANR_V1"] = false
         macros_map["RKAIQ_HAVE_AMD_V1"] = false
-        macros_map["RKAIQ_HAVE_YUVME_V1"] = true
+        macros_map["RKAIQ_HAVE_YUVME_V1"] = false
         macros_map["RKAIQ_HAVE_PDAF"] = true
         macros_map["RKAIQ_HAVE_AF_V20"] = false
         macros_map["RKAIQ_HAVE_AF_V30"] = false
@@ -488,7 +496,6 @@ func rkaiq_macro_switch(soc string) map[string]bool {
         macros_map["RKAIQ_HAVE_RGBIR_REMOSAIC_V10"] = true
         macros_map["RKAIQ_HAVE_TMO_V1"] = false
         macros_map["RKAIQ_HAVE_WDR_V1"] = true
-        macros_map["RKAIQ_HAVE_LDCH_V21"] = true
         macros_map["RKAIQ_HAVE_CSM_V1"] = true
         macros_map["RKAIQ_HAVE_CGC_V1"] = true
         macros_map["RKAIQ_HAVE_AE_V1"] = true
@@ -506,6 +513,9 @@ func rkaiq_macro_switch(soc string) map[string]bool {
         macros_map["RKAIQ_HAVE_ACP_V10"] = true
         macros_map["RKAIQ_HAVE_AIE_V10"] = true
         macros_map["RKAIQ_HAVE_ASD_V10"] = false
+        macros_map["RKAIQ_HAVE_LDCH_V21"] = false
+        macros_map["RKAIQ_HAVE_LDCH_V22"] = true
+        macros_map["RKAIQ_HAVE_LDCV_V22"] = true
     }  else if soc == "rv1103B" {
         macros_map["ISP_HW_V33"] = true
         macros_map["RKAIQ_NEWSTRUCT_TEST"] = true
@@ -514,6 +524,7 @@ func rkaiq_macro_switch(soc string) map[string]bool {
         macros_map["RKAIQ_HAVE_AWB_V32"] = false
         macros_map["RKAIQ_HAVE_AWB_V32LT"] = false
         macros_map["RKAIQ_HAVE_AWB_V39"] = true
+        macros_map["RKAIQ_HAVE_AWB_V33"] = true
         macros_map["RKAIQ_HAVE_GIC_V1"] = false
         macros_map["RKAIQ_HAVE_GIC_V2"] = false
         macros_map["RKAIQ_HAVE_ORB_V1"] = false
@@ -604,6 +615,124 @@ func rkaiq_macro_switch(soc string) map[string]bool {
         macros_map["RKAIQ_HAVE_AIE_V10"] = true
         macros_map["RKAIQ_HAVE_ASD_V10"] = false
     }
+
+    // get algos modules macros
+    rkaiq_algo_macro_switch(macros_map)
+
     // fmt.Printf("macros_map size: %d\n", len(macros_map))
     return macros_map
+}
+
+func rkaiq_algo_macro_switch(macros_map map[string]bool) {
+
+    isp20      := macros_map["ISP_HW_V20"]
+    isp21      := macros_map["ISP_HW_V21"]
+    isp30      := macros_map["ISP_HW_V30"]
+    isp32      := macros_map["ISP_HW_V32"]
+    isp32_lite := macros_map["ISP_HW_V32_LITE"]
+    isp39      := macros_map["ISP_HW_V39"]
+    isp33      := macros_map["ISP_HW_V33"]
+
+    af_en := macros_map["RKAIQ_ENABLE_AF"]
+    if af_en {
+        macros_map["RKAIQ_HAVE_AF"] = true
+    } else {
+        macros_map["RKAIQ_HAVE_AF"] = false
+    }
+
+    macros_map["RKAIQ_HAVE_AWB"]            = true
+    macros_map["RKAIQ_HAVE_GIC"]            = true
+    macros_map["RKAIQ_HAVE_CAC"]            = true
+    macros_map["RKAIQ_HAVE_YNR"]            = true
+    macros_map["RKAIQ_HAVE_CNR"]            = true
+    macros_map["RKAIQ_HAVE_SHARP"]          = true
+    macros_map["RKAIQ_HAVE_BAYERNR"]        = true
+    macros_map["RKAIQ_HAVE_BAYER2DNR"]      = true
+    macros_map["RKAIQ_HAVE_BAYERTNR"]       = true
+    macros_map["RKAIQ_HAVE_GAIN"]           = true
+    macros_map["RKAIQ_HAVE_BLC"]            = true
+    macros_map["RKAIQ_HAVE_3DLUT"]          = true
+    macros_map["RKAIQ_HAVE_CCM"]            = true
+    macros_map["RKAIQ_HAVE_GAMMA"]          = true
+    macros_map["RKAIQ_HAVE_MERGE"]          = true
+    macros_map["RKAIQ_HAVE_DRC"]            = true
+    macros_map["RKAIQ_HAVE_DEHAZE"]         = true
+    // macros_map["RKAIQ_HAVE_WDR"]         = true
+    macros_map["RKAIQ_HAVE_LDCH"]           = true
+    macros_map["RKAIQ_HAVE_CSM"]            = true
+    macros_map["RKAIQ_HAVE_CGC"]            = true
+    macros_map["RKAIQ_HAVE_AE"]             = true
+    macros_map["RKAIQ_HAVE_AFD"]            = true
+    macros_map["RKAIQ_HAVE_DEBAYER"]        = true
+    macros_map["RKAIQ_HAVE_LSC"]            = true
+    macros_map["RKAIQ_HAVE_DPCC"]           = true
+    macros_map["RKAIQ_HAVE_ACP"]            = true
+    macros_map["RKAIQ_HAVE_AIE"]            = true
+
+    macros_map["RKAIQ_HAVE_ASD"]            = false
+    macros_map["RKAIQ_HAVE_ORB"]            = false
+    macros_map["RKAIQ_HAVE_EIS"]            = false
+    macros_map["RKAIQ_HAVE_UVNR"]           = false
+    macros_map["RKAIQ_HAVE_MFNR"]           = false
+    macros_map["RKAIQ_HAVE_ANR"]            = false
+    macros_map["RKAIQ_HAVE_AMD"]            = false
+    macros_map["RKAIQ_HAVE_TMO"]            = false
+    macros_map["RKAIQ_HAVE_FEC"]            = false
+    macros_map["RKAIQ_HAVE_YUVME"]          = false
+    macros_map["RKAIQ_HAVE_RGBIR_REMOSAIC"] = false
+    macros_map["RKAIQ_HAVE_ENHANCE"]        = false
+    macros_map["RKAIQ_HAVE_HISTEQ"]         = false
+    macros_map["RKAIQ_HAVE_BAYER2DNR"]      = false
+
+    if isp33 {
+        macros_map["RKAIQ_HAVE_BAYERNR"]   = false
+        macros_map["RKAIQ_HAVE_BAYER2DNR"] = false
+        macros_map["RKAIQ_HAVE_DEHAZE"]    = false
+        macros_map["RKAIQ_HAVE_ENHANCE"]   = true
+        macros_map["RKAIQ_HAVE_HISTEQ"]    = true
+        macros_map["RKAIQ_HAVE_3DLUT"]     = false
+    } else if isp39 {
+        macros_map["RKAIQ_HAVE_BAYERNR"]        = false
+        macros_map["RKAIQ_HAVE_BAYER2DNR"]      = false
+        macros_map["RKAIQ_HAVE_YUVME"]          = false
+        macros_map["RKAIQ_HAVE_RGBIR_REMOSAIC"] = true
+    } else if isp32_lite {
+        macros_map["RKAIQ_HAVE_GIC"]       = false
+        macros_map["RKAIQ_HAVE_CAC"]       = false
+        macros_map["RKAIQ_HAVE_BAYERNR"]   = false
+        macros_map["RKAIQ_HAVE_BAYER2DNR"] = false
+        macros_map["RKAIQ_HAVE_AFD"]       = false
+    } else if isp32 {
+        macros_map["RKAIQ_HAVE_BAYERNR"] = false
+    } else if isp30 {
+        macros_map["RKAIQ_HAVE_BAYERNR"] = false
+    } else if isp21 {
+        macros_map["RKAIQ_HAVE_CAC"]       = false
+        macros_map["RKAIQ_HAVE_BAYER2DNR"] = false
+        macros_map["RKAIQ_HAVE_BAYERNR"]   = false
+        macros_map["RKAIQ_HAVE_GAIN"]      = false
+        macros_map["RKAIQ_HAVE_AFD"]       = false
+        macros_map["RKAIQ_HAVE_DEGAMMA"]   = true
+    } else if isp20 {
+        macros_map["RKAIQ_HAVE_CAC"]       = false
+        macros_map["RKAIQ_HAVE_YNR"]       = false
+        macros_map["RKAIQ_HAVE_CNR"]       = false
+        macros_map["RKAIQ_HAVE_BAYERNR"]   = false
+        macros_map["RKAIQ_HAVE_BAYER2DNR"] = false
+        macros_map["RKAIQ_HAVE_BAYERTNR"]  = false
+        macros_map["RKAIQ_HAVE_GAIN"]      = false
+        macros_map["RKAIQ_HAVE_DRC"]       = false
+        macros_map["RKAIQ_HAVE_DEGAMMA"]   = true
+        macros_map["RKAIQ_HAVE_CGC"]       = false
+        macros_map["RKAIQ_HAVE_AFD"]       = false
+        macros_map["RKAIQ_HAVE_ASD"]       = false
+        macros_map["RKAIQ_HAVE_ORB"]       = false
+        macros_map["RKAIQ_HAVE_EIS"]       = false
+        macros_map["RKAIQ_HAVE_UVNR"]      = false
+        macros_map["RKAIQ_HAVE_MFNR"]      = false
+        macros_map["RKAIQ_HAVE_ANR"]       = false
+        macros_map["RKAIQ_HAVE_AMD"]       = false
+        macros_map["RKAIQ_HAVE_TMO"]       = false
+        macros_map["RKAIQ_HAVE_FEC"]       = false
+    }
 }

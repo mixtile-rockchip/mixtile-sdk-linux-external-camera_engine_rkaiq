@@ -23,7 +23,7 @@
 #include "RkAiqBlcHandler.h"
 #include "RkAiqAfdHandler.h"
 #include "RkAiqAfHandler.h"
-#include "rk_aiq_uapi_ae_int.h"
+#include "ae/rk_aiq_uapi_ae_int.h"
 
 static void _handlerAe_deinit(AiqAlgoHandler_t* pHdl) {
     AiqAlgoHandler_deinit(pHdl);

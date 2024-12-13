@@ -94,3 +94,12 @@ const Splitter_Rectangle_t* AiqIspParamsSplitter_GetLeftIspRect(AiqIspParamsSpli
 const Splitter_Rectangle_t* AiqIspParamsSplitter_GetRightIspRect(AiqIspParamsSplitter_t* pSplit) {
     return &pSplit->right_isp_rect_;
 }
+
+int AiqIspParamsSplitter_GetIspUniteMode(AiqIspParamsSplitter_t* pSplit) {
+    return pSplit->isp_unite_mode_;
+}
+
+XCamReturn AiqIspParamsSplitter_SetIspUniteMode(AiqIspParamsSplitter_t* pSplit, int mode) {
+    pSplit->isp_unite_mode_ = mode;
+    return XCAM_RETURN_NO_ERROR;
+}

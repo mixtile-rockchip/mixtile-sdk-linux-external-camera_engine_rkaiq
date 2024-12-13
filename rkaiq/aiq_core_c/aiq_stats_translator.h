@@ -96,7 +96,7 @@ struct AiqStatsTranslator_s {
     Rectangle_t right_isp_rect_;
     Rectangle_t bottom_left_isp_rect_;
     Rectangle_t bottom_right_isp_rect_;
-    RkAiqIspUnitedMode mIspUnitedMode;
+    RkAiqIspUniteMode mIspUniteMode;
     AiqCamHwBase_t* mCamHw;
     AiqLensHw_t* mFocusLensHw;
     AiqLensHw_t* mIrishw;
@@ -127,7 +127,7 @@ XCamReturn AiqStatsTranslator_translatePdafStats(AiqStatsTranslator_t* pStatsTra
 AiqStatsTranslator_t* AiqStatsTranslator_SetMultiIspMode(AiqStatsTranslator_t* pStatsTrans,
                                                          bool isMultiIsp);
 AiqStatsTranslator_t* AiqStatsTranslator_SetIspUnitedMode(AiqStatsTranslator_t* pStatsTrans,
-                                                          RkAiqIspUnitedMode mode);
+                                                          RkAiqIspUniteMode mode);
 AiqStatsTranslator_t* AiqStatsTranslator_SetPicInfo(AiqStatsTranslator_t* pStatsTrans,
                                                     Rectangle_t* pic_rect);
 AiqStatsTranslator_t* AiqStatsTranslator_SetLeftIspRect(AiqStatsTranslator_t* pStatsTrans,
@@ -139,7 +139,7 @@ AiqStatsTranslator_t* AiqStatsTranslator_SetBottomLeftIspRect(AiqStatsTranslator
 AiqStatsTranslator_t* AiqStatsTranslator_SetBottomRightIspRect(AiqStatsTranslator_t* pStatsTrans,
                                                                Rectangle_t* right_isp_rect);
 bool AiqStatsTranslator_IsMultiIspMode(AiqStatsTranslator_t* pStatsTrans);
-RkAiqIspUnitedMode AiqStatsTranslator_GetIspUnitedMode(AiqStatsTranslator_t* pStatsTrans);
+RkAiqIspUniteMode AiqStatsTranslator_GetIspUnitedMode(AiqStatsTranslator_t* pStatsTrans);
 Rectangle_t AiqStatsTranslator_GetPicInfo(AiqStatsTranslator_t* pStatsTrans);
 Rectangle_t AiqStatsTranslator_GetLeftIspRect(AiqStatsTranslator_t* pStatsTrans);
 Rectangle_t AiqStatsTranslator_GetRightIspRect(AiqStatsTranslator_t* pStatsTrans);

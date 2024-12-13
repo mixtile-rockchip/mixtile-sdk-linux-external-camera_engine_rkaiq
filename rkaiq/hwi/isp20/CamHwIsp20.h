@@ -136,6 +136,9 @@ public:
     XCamReturn getFocusPosition(int& position) override;
     virtual void getShareMemOps(isp_drv_share_mem_ops_t** mem_ops) override;
     uint64_t getIspModuleEnState()  override;
+    RkAiqIspUniteMode getIspUniteMode() {
+        return mIspUniteMode;
+    };
 
     static rk_aiq_static_info_t* getStaticCamHwInfo(const char* sns_ent_name, uint16_t index = 0);
     static rk_aiq_static_info_t* getStaticCamHwInfoByPhyId(const char* sns_ent_name, uint16_t index = 0);
@@ -432,7 +435,7 @@ protected:
     uint32_t mAweekId{0};
     void* _skipped_params{NULL};
     void* _first_awb_param{NULL};
-    RkAiqIspUnitedMode mIspUnitedMode;
+    RkAiqIspUniteMode mIspUniteMode;
     bool mIsListenStrmEvt{true};
 
     bool use_aiisp;

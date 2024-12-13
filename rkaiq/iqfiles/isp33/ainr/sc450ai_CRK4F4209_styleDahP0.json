@@ -7804,7 +7804,7 @@
 							}
 						},
 						"ie":	{
-							"opMode":	"RK_AIQ_OP_MODE_MANUAL",
+							"opMode":	"RK_AIQ_OP_MODE_AUTO",
 							"en":	0,
 							"bypass":	0,
 							"stAuto":	{
@@ -24508,7 +24508,7 @@
 							}
 						},
 						"ie":	{
-							"opMode":	"RK_AIQ_OP_MODE_MANUAL",
+							"opMode":	"RK_AIQ_OP_MODE_AUTO",
 							"en":	1,
 							"bypass":	0,
 							"stAuto":	{

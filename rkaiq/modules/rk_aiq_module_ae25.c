@@ -50,10 +50,10 @@ static void convertAiqAeToIsp39Params(isp_params_t* isp_params, aeStats_cfg_t* a
         } else if (ae_meas->hw_aeCfg_entityGroup_mode == aeStats_entity03_indWk_mode || \
                    ae_meas->hw_aeCfg_entityGroup_mode == aeStats_entity0_wkOnly_mode) {
 
-            if(ae_meas->entityGroup.entities.entity0.hw_aeCfg_statsSrc_mode ==  aeStats_entity0_chl0Wb0Out_mode) {
+            if(ae_meas->entityGroup.entities.entity0.hw_aeCfg_statsSrc_mode ==  aeStats_entity0_chl0DpcOut_mode) {
                 isp_params->isp_cfg->meas.rawae0.rawae_sel = 0;
 
-            } else if(ae_meas->entityGroup.entities.entity0.hw_aeCfg_statsSrc_mode ==  aeStats_entity0_chl1Wb0Out_mode) {
+            } else if(ae_meas->entityGroup.entities.entity0.hw_aeCfg_statsSrc_mode ==  aeStats_entity0_chl1DpcOut_mode) {
                 isp_params->isp_cfg->meas.rawae0.rawae_sel = 1;
 
             } else if(ae_meas->entityGroup.entities.entity0.hw_aeCfg_statsSrc_mode ==  aeStats_btnrOutLow_mode) {
@@ -131,10 +131,10 @@ static void convertAiqAeToIsp39Params(isp_params_t* isp_params, aeStats_cfg_t* a
         } else if (ae_meas->hw_aeCfg_entityGroup_mode == aeStats_entity03_indWk_mode || \
                    ae_meas->hw_aeCfg_entityGroup_mode == aeStats_entity3_wkOnly_mode) {
 
-            if(ae_meas->entityGroup.entities.entity3.hw_aeCfg_statsSrc_mode ==  aeStats_entity3_chl0Wb0Out_mode) {
+            if(ae_meas->entityGroup.entities.entity3.hw_aeCfg_statsSrc_mode ==  aeStats_entity3_chl0DpcOut_mode) {
                 isp_params->isp_cfg->meas.rawae3.rawae_sel = 0;
 
-            } else if(ae_meas->entityGroup.entities.entity3.hw_aeCfg_statsSrc_mode ==  aeStats_entity3_chl1Wb0Out_mode) {
+            } else if(ae_meas->entityGroup.entities.entity3.hw_aeCfg_statsSrc_mode ==  aeStats_entity3_chl1DpcOut_mode) {
                 isp_params->isp_cfg->meas.rawae3.rawae_sel = 1;
 
             } else if(ae_meas->entityGroup.entities.entity3.hw_aeCfg_statsSrc_mode ==  aeStats_dmIn_mode) {

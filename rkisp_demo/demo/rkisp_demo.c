@@ -2209,6 +2209,43 @@ static long long findLastDigits(std::string & str)
 }
 #endif
 
+#if defined(ANDROID)
+#include <ctype.h>
+
+int strverscmp(const char *s1, const char *s2) {
+    while (*s1 && *s2) {
+        int diff = 0;
+        while (*s1 && *s2 && !diff) {
+            char c1 = tolower((unsigned char)*s1);
+            char c2 = tolower((unsigned char)*s2);
+            if (isdigit(c1) && isdigit(c2)) {
+                int num1 = 0;
+                int num2 = 0;
+                while (c1 && isdigit(c1)) {
+                    num1 = num1 * 10 + (c1 - '0');
+                    c1 = tolower((unsigned char)*++s1);
+                }
+                while (c2 && isdigit(c2)) {
+                    num2 = num2 * 10 + (c2 - '0');
+                    c2 = tolower((unsigned char)*++s2);
+                }
+                if (num1 != num2) {
+                    return num1 - num2;
+                }
+            } else {
+                diff = c1 - c2;
+                s1++;
+                s2++;
+            }
+        }
+        if (diff) {
+            return diff;
+        }
+    }
+    return *s1 - *s2;
+}
+#endif
+
 int compare_versions(const void *a, const void *b) {
     const char *version1 = *(const char **)a;
     const char *version2 = *(const char **)b;

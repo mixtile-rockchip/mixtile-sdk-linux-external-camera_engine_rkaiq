@@ -344,6 +344,7 @@ func rkaiq_getAlgosLib(macros_map map[string]bool) []string {
     if (flag0 || flag1 || flag2 || flag3 || flag4) {
         if useNewstruct {
             static_lib = append(static_lib, "librkaiq_dehaze")
+            static_lib = append(static_lib, "librkaiq_histeq")
         } else {
             static_lib = append(static_lib, "librkaiq_adehaze")
         }
@@ -366,6 +367,17 @@ func rkaiq_getAlgosLib(macros_map map[string]bool) []string {
         } else {
             static_lib = append(static_lib, "librkaiq_aldch")
         }
+    }
+
+    flag0 = macros_map["RKAIQ_ENABLE_SIMULATOR"]
+    flag1 = macros_map["RKAIQ_HAVE_LDCH_V22"]
+    flag2 = macros_map["RKAIQ_HAVE_LDCV_V22"]
+    if !flag0 && flag1 {
+        if flag2 {
+            static_lib = append(static_lib, "librkAlgoMapSeparate")
+        }
+        static_lib = append(static_lib, "librkAlgoGenMesh")
+        static_lib = append(static_lib, "librkaiq_aldc")
     }
 
     flag0 = macros_map["RKAIQ_HAVE_FEC_V10"]
@@ -460,6 +472,16 @@ func rkaiq_getAlgosLib(macros_map map[string]bool) []string {
         static_lib = append(static_lib, "librkaiq_adegamma")
     }
 
+    flag0 = macros_map["RKAIQ_ENABLE_SIMULATOR"]
+    flag1 = macros_map["RKAIQ_HAVE_LDCH_V10"]
+    flag2 = macros_map["RKAIQ_HAVE_LDCH_V21"]
+    flag3 = macros_map["RKAIQ_HAVE_LDCH_V22"]
+    if (!flag0 && !flag3) {
+        if flag1 || flag2 {
+            static_lib = append(static_lib, "libgenMeshLib")
+        }
+    }
+
     flag0 = macros_map["RKAIQ_HAVE_AF_V20"]
     flag1 = macros_map["RKAIQ_HAVE_AF_V30"]
     flag2 = macros_map["RKAIQ_HAVE_AF_V31"]
@@ -476,9 +498,9 @@ func rkaiq_getAlgosLib(macros_map map[string]bool) []string {
         static_lib = append(static_lib, "librkaiq_thirdaf")
     }
 
-    for i, v := range static_lib {
-        fmt.Printf("%d %s\n", i, v)
-    }
+    // for i, v := range static_lib {
+    //     fmt.Printf("%d %s\n", i, v)
+    // }
 
     fmt.Printf("static_lib size: %d\n", len(static_lib))
     return static_lib;

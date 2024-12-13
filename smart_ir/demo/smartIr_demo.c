@@ -293,18 +293,22 @@ static int rkaiq_stop()
 static void smartIr_cb(rk_smart_ir_result_t result)
 {
     if (result.status == RK_SMART_IR_STATUS_NIGHT) {
-        printf("SMART_IR: switch to Night\n");
+        if (result.is_status_change) {
+            printf("SMART_IR: switch to Night\n");
+            // 1) switch isp night params
+            rk_aiq_uapi2_sysctl_switch_scene(ctx->aiq_ctx, "normal", "night");
+            // 2) ir-cutter off
+            // TODO: user should define ir-cutter control func here
+        }
+        if (result.is_fill_change) {
+            // 3) manual/auto ir-led, set result.fill_value
+            // TODO: user should define led control func here
+        }
 
-        // 1) switch isp night params
-        rk_aiq_uapi2_sysctl_switch_scene(ctx->aiq_ctx, "normal", "night");
-        // 2) ir-cutter off
-        // 3) manual/auto ir-led, set result.fill_value
-        // TODO: user should define led control func here
-
-    } else if (result.status == RK_SMART_IR_STATUS_DAY) {
+    } else if (result.status == RK_SMART_IR_STATUS_DAY && result.is_status_change) {
         printf("SMART_IR: switch to Day\n");
-
         // 1) ir-cutter on
+        // TODO: user should define ir-cutter control func here
         // 2) ir-led off
         // TODO: user should define led control func here
         // 3) switch isp day params
@@ -315,6 +319,12 @@ static void smartIr_cb(rk_smart_ir_result_t result)
 static void smartIr_start()
 {
     ctx->smartIr_ctx = rk_smart_ir_init(ctx->aiq_ctx);
+    /* NOTE:
+     * The API `rk_smart_ir_iniCfg` reads configuration from an INI file located at the configured path.
+     * If the API `rk_smart_ir_setAttr` is called after `rk_smart_ir_iniCfg`, the configuration read from
+     * the INI file might be overwritten by the new settings.
+     */
+    rk_smart_ir_iniCfg(ctx->smartIr_ctx, "tmp/smart_ir.ini");
 
     rk_smart_ir_attr_t attr;
     //memset(&attr, 0, sizeof(attr));

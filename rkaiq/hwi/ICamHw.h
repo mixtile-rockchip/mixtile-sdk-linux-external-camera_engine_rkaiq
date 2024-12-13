@@ -152,6 +152,7 @@ public:
     virtual XCamReturn aiisp_processing(rk_aiq_aiisp_t* aiisp_evt) = 0;
     virtual void setRkAiqManager(RkAiqManager* rkAiqManager) = 0;
     virtual XCamReturn setUserOtpInfo(rk_aiq_user_otp_info_t otp_info) = 0;
+    virtual RkAiqIspUniteMode getIspUniteMode() = 0;
 private:
     XCAM_DEAD_COPY (ICamHw);
 };

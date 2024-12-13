@@ -200,12 +200,13 @@ static XCamReturn processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outp
         int delta_iso         = abs(iso - pMergeCtx->iso);
         outparams->cfg_update = false;
 
+#if 0
         if (inparams->u.proc.is_bw_sensor) {
             merge_attrib->en      = false;
             outparams->cfg_update = init ? true : false;
             return XCAM_RETURN_NO_ERROR;
         }
-
+#endif
         if (delta_iso > DEFAULT_RECALCULATE_DELTA_ISO) {
             pMergeCtx->isReCal_ = true;
         }

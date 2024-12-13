@@ -205,7 +205,7 @@ void rk_aiq_ynr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
     tmp = (pdyn->hiNr.epf.hw_ynrT_rgeWgt_negOff) * (1 << 10);
     pCfg->hi_spnr_filt_wgt_offset = CLIP(tmp, 0, 0x3ff);
     tmp = (pdyn->hiNr.epf.hw_ynrT_centerPix_wgt) * (1 << 12);
-    pCfg->hi_spnr_filt_center_wgt = CLIP(tmp, 0, 0x1fff);
+    pCfg->hi_spnr_filt_center_wgt = CLIP(tmp, 1, 0x1fff);
 
     {
         int coeff[6];
@@ -302,7 +302,7 @@ void rk_aiq_ynr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
     tmp = (pdyn->midLoNr.lf.epf.hw_ynrT_loNrOut_alpha) * (1 << 7);
     pCfg->lo_spnr_wgt = CLIP(tmp, 0, 0x80);
     tmp = (pdyn->midLoNr.lf.epf.hw_ynrT_centerPix_wgt) * (1 << 8) * 6;
-    pCfg->lo_spnr_filt_center_wgt = CLIP(tmp, 0, 0x1fff);
+    pCfg->lo_spnr_filt_center_wgt = CLIP(tmp, 1, 0x1fff);
 
     // REG: LO_TEXT_THRED
     tmp = (pdyn->midLoNr.lf.locYnrStrg_texRegion.hw_ynrT_flatRegion_maxThred) * (1023);

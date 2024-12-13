@@ -301,6 +301,11 @@ void AiqIspParamsCvt_getCommonCvtInfo(AiqIspParamsCvt_t* pCvt, AiqList_t* result
 XCamReturn AiqIspParamsCvt_merge_isp_results(AiqIspParamsCvt_t* pCvt, AiqList_t* results,
         void* isp_cfg, bool is_multi_isp, bool use_aiisp) {
     if (!results) return XCAM_RETURN_ERROR_PARAM;
+
+    int32_t pre_cvt_results[] = {
+        RESULT_TYPE_DRC_PARAM,
+        RESULT_TYPE_GIC_PARAM
+    };
 #if defined(ISP_HW_V39)
     pCvt->isp_params.isp_cfg = (struct isp39_isp_params_cfg*)isp_cfg;
 #elif defined(ISP_HW_V33)
@@ -312,18 +317,34 @@ XCamReturn AiqIspParamsCvt_merge_isp_results(AiqIspParamsCvt_t* pCvt, AiqList_t*
     AiqIspParamsCvt_getCommonCvtInfo(pCvt, results, use_aiisp);
 #endif
 
-    aiq_params_base_t* drc_params = AiqIspParamsCvt_get_3a_result(pCvt, results, RESULT_TYPE_DRC_PARAM);
-    if (drc_params)
-        pCvt->mIspParamsCvtOps.Convert3aResultsToIspCfg(pCvt, drc_params, isp_cfg, is_multi_isp);
+    int pre_cvt_results_len = sizeof(pre_cvt_results) / sizeof(int32_t);
 
     LOGD_CAMHW_SUBM(ISP20PARAM_SUBM, "%s, isp cam3a results size: %d\n", __FUNCTION__,
                     aiqList_size(results));
     AiqListItem_t* pItem = NULL;
     bool rm              = false;
+    // convert results in pre_cvt_results
     AIQ_LIST_FOREACH(results, pItem, rm) {
         aiq_params_base_t* params = *(aiq_params_base_t**)(pItem->_pData);
-        if (params->type != RESULT_TYPE_DRC_PARAM)
+        bool is_pre_cvt = false;
+        for (int k=0; k<pre_cvt_results_len; k++) {
+            if (pre_cvt_results[k] == params->type) {
+                is_pre_cvt = true;
+                break;
+            }
+        }
+        if (is_pre_cvt) {
             pCvt->mIspParamsCvtOps.Convert3aResultsToIspCfg(pCvt, params, isp_cfg, is_multi_isp);
+            pItem = aiqList_erase_item_locked(results, pItem);
+            rm    = true;
+            AIQ_REF_BASE_UNREF(&params->_ref_base);
+        }
+    }
+
+    // convert remain results
+    AIQ_LIST_FOREACH(results, pItem, rm) {
+        aiq_params_base_t* params = *(aiq_params_base_t**)(pItem->_pData);
+        pCvt->mIspParamsCvtOps.Convert3aResultsToIspCfg(pCvt, params, isp_cfg, is_multi_isp);
         pItem = aiqList_erase_item_locked(results, pItem);
         rm    = true;
         AIQ_REF_BASE_UNREF(&params->_ref_base);

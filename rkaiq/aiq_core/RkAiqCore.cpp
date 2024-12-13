@@ -574,9 +574,9 @@ RkAiqCore::prepare(const rk_aiq_exposure_sensor_descriptor* sensor_des,
         uint32_t extended_pixel = mHwInfo.multi_isp_extended_pixel;
         RkAiqResourceTranslatorV3x* translator = static_cast<RkAiqResourceTranslatorV3x*>(mTranslator.ptr());
         uint32_t size = sensor_des->isp_acq_width * sensor_des->isp_acq_height;
-        if (size > 2 * RK_AIQ_ISP_CIF_INPUT_MAX_SIZE) {
+        int isp_unite_mode = translator->GetIspUnitedMode();
+        if (isp_unite_mode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
             translator->SetMultiIspMode(true)
-            .SetIspUnitedMode(RK_AIQ_ISP_UNITED_MODE_FOUR_GRID)
             .SetPicInfo({0, 0, sensor_des->isp_acq_width, sensor_des->isp_acq_height})
             .SetLeftIspRect(
             {0, 0, sensor_des->isp_acq_width / 2 + extended_pixel, sensor_des->isp_acq_height / 2 + extended_pixel})
@@ -590,9 +590,8 @@ RkAiqCore::prepare(const rk_aiq_exposure_sensor_descriptor* sensor_des,
                                     sensor_des->isp_acq_height / 2 - extended_pixel,
                                     sensor_des->isp_acq_width / 2 + extended_pixel,
                                     sensor_des->isp_acq_height / 2 + extended_pixel});
-        } else if (size > RK_AIQ_ISP_CIF_INPUT_MAX_SIZE) {
+        } else if (isp_unite_mode == RK_AIQ_ISP_UNITE_MODE_TWO_GRID) {
             translator->SetMultiIspMode(true)
-            .SetIspUnitedMode(RK_AIQ_ISP_UNITED_MODE_TWO_GRID)
             .SetPicInfo({0, 0, sensor_des->isp_acq_width, sensor_des->isp_acq_height})
             .SetLeftIspRect(
             {0, 0, sensor_des->isp_acq_width / 2 + extended_pixel, sensor_des->isp_acq_height})
@@ -601,7 +600,6 @@ RkAiqCore::prepare(const rk_aiq_exposure_sensor_descriptor* sensor_des,
                               sensor_des->isp_acq_height});
         } else {
             translator->SetMultiIspMode(true)
-            .SetIspUnitedMode(RK_AIQ_ISP_UNITED_MODE_NORMAL)
             .SetPicInfo({0, 0, sensor_des->isp_acq_width, sensor_des->isp_acq_height})
             .SetLeftIspRect({0, 0, sensor_des->isp_acq_width, sensor_des->isp_acq_height})
             .SetRightIspRect({0, 0, sensor_des->isp_acq_width, sensor_des->isp_acq_height});
@@ -609,7 +607,7 @@ RkAiqCore::prepare(const rk_aiq_exposure_sensor_descriptor* sensor_des,
         RkAiqResourceTranslatorV3x::Rectangle f = translator->GetPicInfo();
         RkAiqResourceTranslatorV3x::Rectangle l = translator->GetLeftIspRect();
         RkAiqResourceTranslatorV3x::Rectangle r = translator->GetRightIspRect();
-        LOGD_ANALYZER(
+        LOGK_ANALYZER(
             "Set Multi-ISP mode Translator info :"
             " F: { %u, %u, %u, %u }"
             " L: { %u, %u, %u, %u }"
@@ -3990,6 +3988,18 @@ RkAiqCore::unregister3Aalgo(int algoType)
     mRkAiqCoreGroupManager->rmAlgoHandle(algoType);
 
     EXIT_ANALYZER_FUNCTION();
+
+    return XCAM_RETURN_NO_ERROR;
+}
+
+XCamReturn
+RkAiqCore::setTranslaterIspUniteMode(RkAiqIspUniteMode mode) {
+
+    if (mTranslator.ptr()) {
+        RkAiqResourceTranslatorV3x* translator =
+            static_cast<RkAiqResourceTranslatorV3x*>(mTranslator.ptr());
+        translator->SetIspUnitedMode(mode);
+    }
 
     return XCAM_RETURN_NO_ERROR;
 }

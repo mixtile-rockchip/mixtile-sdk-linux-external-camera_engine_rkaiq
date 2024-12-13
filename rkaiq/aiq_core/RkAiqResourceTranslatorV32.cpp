@@ -3166,7 +3166,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateAdehazeStats(const SmartPtr<Vide
     SmartPtr<RkAiqAdehazeStats> statsInt = to->data();
 
 #if defined(ISP_HW_V32) && defined(RKAIQ_HAVE_MULTIISP)
-    if (IsMultiIspMode()) {
+    if (IsMultiIspMode() && GetIspUnitedMode()) {
         return translateMultiAdehazeStats(from, to);
     }
 #endif
@@ -3889,7 +3889,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAecStatsV32Lite(const Smart
     AeSelMode              = isp_params->rawae3.rawae_sel;
     AfUseAeHW              = isp_params->rawaf.ae_mode;
     unsigned int meas_type = 0;
-    RkAiqIspUnitedMode ispUnitedMode = GetIspUnitedMode();
+    RkAiqIspUniteMode ispUniteMode = GetIspUnitedMode();
 
     WinSplitMode AeWinSplitMode[4] = {LEFT_AND_RIGHT_MODE}; //0:rawae0 1:rawae1 2:rawae3
     WinSplitMode HistWinSplitMode[4] = {LEFT_AND_RIGHT_MODE}; //0:rawhist0 1:rawhist1 2:rawhist3
@@ -3904,7 +3904,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAecStatsV32Lite(const Smart
     JudgeWinLocation32(&_ispParams.meas.rawhist1.win, HistWinSplitMode[1], GetLeftIspRect(), GetRightIspRect());
     JudgeWinLocation32(&_ispParams.meas.rawhist3.win, HistWinSplitMode[3], GetLeftIspRect(), GetRightIspRect());
 
-    if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID) {
+    if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
         JudgeWinLocationVertical32(&_ispParams.meas.rawae0.win, AeWinSplitModeV[0], GetLeftIspRect(), GetBottomLeftIspRect());
         JudgeWinLocationVertical32(&_ispParams.meas.rawae1.win, AeWinSplitModeV[1], GetLeftIspRect(), GetBottomLeftIspRect());
         JudgeWinLocationVertical32(&_ispParams.meas.rawae3.win, AeWinSplitModeV[3], GetLeftIspRect(), GetBottomLeftIspRect());
@@ -3912,7 +3912,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAecStatsV32Lite(const Smart
         JudgeWinLocationVertical32(&_ispParams.meas.rawhist0.win, HistWinSplitModeV[0], GetLeftIspRect(), GetBottomLeftIspRect());
         JudgeWinLocationVertical32(&_ispParams.meas.rawhist1.win, HistWinSplitModeV[1], GetLeftIspRect(), GetBottomLeftIspRect());
         JudgeWinLocationVertical32(&_ispParams.meas.rawhist3.win, HistWinSplitModeV[3], GetLeftIspRect(), GetBottomLeftIspRect());
-    } else if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_TWO_GRID) {
+    } else if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_TWO_GRID) {
         for (int i = 0; i < 4; i++) {
             AeWinSplitModeV[i] = TOP_MODE;
             HistWinSplitModeV[i] = TOP_MODE;
@@ -4009,7 +4009,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAecStatsV32Lite(const Smart
         return XCAM_RETURN_BYPASS;
     }
 
-    if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID) {
+    if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
         bottom_left_stats = (struct rkisp32_lite_stat_buffer*)(buf->get_v4l2_userptr()) + 2;
         if (bottom_left_stats == NULL) {
             LOGE("fail to get stats ,ignore\n");
@@ -4029,7 +4029,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAecStatsV32Lite(const Smart
     if(top_left_stats->frame_id != top_right_stats->frame_id || top_left_stats->meas_type != top_right_stats->meas_type ||
             bottom_left_stats->frame_id != bottom_right_stats->frame_id || bottom_left_stats->meas_type != bottom_right_stats->meas_type ||
             bottom_left_stats->frame_id != top_left_stats->frame_id || bottom_left_stats->meas_type != top_left_stats->meas_type) {
-        LOGE_ANALYZER("status params(frmid or meas_type) of left isp and right isp are different, ispUnitedMode %d", ispUnitedMode);
+        LOGE_ANALYZER("status params(frmid or meas_type) of left isp and right isp are different, ispUniteMode %d", ispUniteMode);
         LOGE_ANALYZER("top left id %d meas %llx left id %d meas %llx bottom left id %d meas %llx left id %d meas %llx mode %d",
                       top_left_stats->frame_id, top_left_stats->meas_type,
                       top_right_stats->frame_id, top_right_stats->meas_type,
@@ -4095,7 +4095,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAecStatsV32Lite(const Smart
                              bls1_ori_val, awb1_gain, is_hdr,
                              ISP32L_HIST_LITE_BIN_N_MAX);
 
-        if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID) {
+        if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
             MergeAecHistBinStats(bottom_left_stats->params.rawhist0.hist_bin,
                                  bottom_right_stats->params.rawhist0.hist_bin,
                                  bottom_stats,
@@ -4137,7 +4137,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAecStatsV32Lite(const Smart
                              bls1_ori_val, awb1_gain, is_hdr,
                              ISP32_HIST_BIN_N_MAX);
 
-        if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID) {
+        if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
             MergeAecHistBinStats(bottom_left_stats->params.rawhist3.hist_bin,
                                  bottom_right_stats->params.rawhist3.hist_bin,
                                  bottom_stats,
@@ -4224,7 +4224,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAecStatsV32Lite(const Smart
                                            &bottom_right_stats->params.rawae0,
                                            AeWinSplitMode[0]);
 
-            if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID)
+            if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID)
 
                 MergeAecWinLiteStatsVerticalV32Lite(&rawae_lite_top,
                                                     &rawae_lite_bottom,
@@ -4260,7 +4260,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAecStatsV32Lite(const Smart
             statsInt->aec_stats.ae_data.chn[AeSelMode].rawae_big.wndx_sumr[0] =
                 (u64)top_left_stats->params.rawae3.sumr + (u64)top_right_stats->params.rawae3.sumr;
 
-            if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID) {
+            if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
                 statsInt->aec_stats.ae_data.chn[AeSelMode].rawae_big.wndx_sumb[0] +=
                     (u64)bottom_left_stats->params.rawae3.sumb + (u64)bottom_right_stats->params.rawae3.sumb;
                 statsInt->aec_stats.ae_data.chn[AeSelMode].rawae_big.wndx_sumg[0] +=
@@ -4311,7 +4311,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAecStatsV32Lite(const Smart
             statsInt->aec_stats.ae_data.chn[AeSelMode].rawae_big.wndx_sumr[0] =
                 (u64)top_left_stats->params.rawae3.sumr + (u64)top_right_stats->params.rawae3.sumr;
 
-            if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID) {
+            if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
                 statsInt->aec_stats.ae_data.chn[AeSelMode].rawae_big.wndx_sumb[0] +=
                     (u64)bottom_left_stats->params.rawae3.sumb + (u64)bottom_right_stats->params.rawae3.sumb;
                 statsInt->aec_stats.ae_data.chn[AeSelMode].rawae_big.wndx_sumg[0] +=
@@ -4443,7 +4443,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAwbStatsV32Lite(const Smart
     top_left_stats = (struct rkisp32_lite_stat_buffer*)(buf->get_v4l2_userptr());
 #endif
 
-    RkAiqIspUnitedMode ispUnitedMode = GetIspUnitedMode();
+    RkAiqIspUniteMode ispUniteMode = GetIspUnitedMode();
     SmartPtr<RkAiqAwbStats> statsInt = to->data();
 
     if(top_left_stats == NULL) {
@@ -4457,7 +4457,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAwbStatsV32Lite(const Smart
         return XCAM_RETURN_BYPASS;
     }
 
-    if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID) {
+    if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
         bottom_left_stats = (struct rkisp32_lite_stat_buffer*)(buf->get_v4l2_userptr()) + 2;
         if(bottom_left_stats == NULL) {
             LOGE("fail to get right stats ,ignore\n");
@@ -4518,16 +4518,16 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAwbStatsV32Lite(const Smart
     ori_win.v_size = _ispParams.meas.rawawb.v_size;
 
     JudgeWinLocation32(&ori_win, AwbWinSplitMode, GetLeftIspRect(), GetRightIspRect());
-    if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID) {
+    if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
         JudgeWinLocationVertical32(&ori_win, AwbWinSplitModeV, GetLeftIspRect(), GetBottomLeftIspRect());
-    } else if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_TWO_GRID) {
+    } else if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_TWO_GRID) {
         AwbWinSplitModeV = TOP_MODE;
     } else {
-        LOGE_ANALYZER("%s ispUnitedMode is RK_AIQ_ISP_UNITED_MODE_NORMAL, run here error", __FUNCTION__);
+        LOGE_ANALYZER("%s ispUniteMode is RK_AIQ_ISP_UNITE_MODE_NORMAL, run here error", __FUNCTION__);
         return XCAM_RETURN_BYPASS;
     }
 
-    if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID) {
+    if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
         MergeAwbWinStats(top_stats->light, &top_left_stats->params.rawawb, &top_right_stats->params.rawawb,
                          statsInt->awb_stats_v32.awb_cfg_effect_v32.lightNum, AwbWinSplitMode);
         MergeAwbWinStats(bottom_stats->light, &bottom_left_stats->params.rawawb, &bottom_right_stats->params.rawawb,
@@ -4563,7 +4563,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAwbStatsV32Lite(const Smart
     bottom_right_win.v_offs = _ispParams.isp_params_v32[3].meas.rawawb.v_offs;
     bottom_right_win.v_size = _ispParams.isp_params_v32[3].meas.rawawb.v_size;
 
-    if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID) {
+    if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
         MergeAwbBlkStatsV32Lite(&ori_win, &top_left_win, &top_right_win, top_stats->blockResult, &top_left_stats->params.rawawb, &top_right_stats->params.rawawb, AwbWinSplitMode);
         MergeAwbBlkStatsV32Lite(&ori_win, &bottom_left_win, &bottom_right_win, bottom_stats->blockResult, &bottom_left_stats->params.rawawb, &bottom_right_stats->params.rawawb, AwbWinSplitMode);
         MergeAwbBlkStatsVerticalV32Lite(&ori_win, &top_left_win, &bottom_left_win, statsInt->awb_stats_v32.blockResult, top_stats->blockResult, bottom_stats->blockResult, AwbWinSplitModeV);
@@ -4696,7 +4696,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAfStatsV32Lite(const SmartP
 
     SmartPtr<RkAiqAfStats> statsInt = to->data();
     SmartPtr<RkAiqAfInfoProxy> afParams = buf->get_af_params();
-    RkAiqIspUnitedMode ispUnitedMode = GetIspUnitedMode();
+    RkAiqIspUniteMode ispUniteMode = GetIspUnitedMode();
 
     if(top_left_stats == NULL) {
         LOGE("fail to get left stats ,ignore\n");
@@ -4709,7 +4709,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAfStatsV32Lite(const SmartP
         return XCAM_RETURN_BYPASS;
     }
 
-    if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID) {
+    if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
         bottom_left_stats = (struct rkisp32_lite_stat_buffer*)(buf->get_v4l2_userptr()) + 2;
         if(bottom_left_stats == NULL) {
             LOGE("fail to get right stats ,ignore\n");
@@ -4917,7 +4917,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAfStatsV32Lite(const SmartP
         r_win_ed = l_win_ed;
     }
 
-    if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID) {
+    if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
         // judge vertical win mode
         memset(&af_split_info_v, 0, sizeof(af_split_info_v));
         ov_h = GetLeftIspRect().h + GetLeftIspRect().y - GetBottomLeftIspRect().y;
@@ -5115,7 +5115,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAfStatsV32Lite(const SmartP
                         t_af_stats.wina_highlit_cnt[dst_idx] =
                             ((top_left_stats->params.rawae0.data[l_idx].channelr_xy & 0x3FF) << 10) | (top_left_stats->params.rawae0.data[l_idx].channelb_xy & 0x3FF);
 
-                        if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID)
+                        if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID)
                             continue;
 
                         b_af_stats.wnda_fv_v1[dst_idx] = bottom_left_stats->params.rawaf.ramdata.viir_wnd_data[l_idx];
@@ -5136,7 +5136,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAfStatsV32Lite(const SmartP
                             top_left_stats->params.rawaf.ramdata.hiir_wnd_data[l_idx] + top_left_stats->params.rawaf.ramdata.hiir_wnd_data[l_idx + 1];
                         t_af_stats.wnda_fv_h2[dst_idx] = t_af_stats.wnda_fv_h1[dst_idx];
 
-                        if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID)
+                        if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID)
                             continue;
 
                         temp_luma = ((luma0[l_idx].channelg_xy + luma0[l_idx + 1].channelg_xy) >> 1);
@@ -5172,7 +5172,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAfStatsV32Lite(const SmartP
                         lht1 = ((top_right_stats->params.rawae0.data[r_idx + 1].channelr_xy & 0x3FF) << 10) | (top_right_stats->params.rawae0.data[r_idx + 1].channelb_xy & 0x3FF);
                         t_af_stats.wina_highlit_cnt[dst_idx] = lht0 + lht1;
 
-                        if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID)
+                        if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID)
                             continue;
 
                         b_af_stats.wnda_fv_v1[dst_idx] =
@@ -5206,7 +5206,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAfStatsV32Lite(const SmartP
                     t_af_stats.wina_highlit_cnt[dst_idx] =
                         ((top_left_stats->params.rawae0.data[l_idx].channelr_xy & 0x3FF) << 10) | (top_left_stats->params.rawae0.data[l_idx].channelb_xy & 0x3FF);
 
-                    if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID)
+                    if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID)
                         continue;
 
                     b_af_stats.wnda_fv_v1[dst_idx] = bottom_left_stats->params.rawaf.ramdata.viir_wnd_data[l_idx];
@@ -5235,7 +5235,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAfStatsV32Lite(const SmartP
                     t_af_stats.wina_highlit_cnt[dst_idx] =
                         ((top_right_stats->params.rawae0.data[r_idx].channelr_xy & 0x3FF) << 10) | (top_right_stats->params.rawae0.data[r_idx].channelb_xy & 0x3FF);
 
-                    if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID)
+                    if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID)
                         continue;
 
                     b_af_stats.wnda_fv_v1[dst_idx] = bottom_right_stats->params.rawaf.ramdata.viir_wnd_data[r_idx];
@@ -5270,7 +5270,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAfStatsV32Lite(const SmartP
                     lht1 = ((top_right_stats->params.rawae0.data[r_idx].channelr_xy & 0x3FF) << 10) | (top_right_stats->params.rawae0.data[r_idx].channelb_xy & 0x3FF);
                     t_af_stats.wina_highlit_cnt[dst_idx] = lht0 + lht1;
 
-                    if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID)
+                    if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID)
                         continue;
 
                     b_af_stats.wnda_fv_v1[dst_idx] =
@@ -5301,7 +5301,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAfStatsV32Lite(const SmartP
                 t_af_stats.wina_highlit_cnt[i] =
                     ((top_left_stats->params.rawae0.data[i].channelr_xy & 0x3FF) << 10) | (top_left_stats->params.rawae0.data[i].channelb_xy & 0x3FF);
 
-                if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID)
+                if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID)
                     continue;
 
                 b_af_stats.wnda_fv_v1[i] = bottom_left_stats->params.rawaf.ramdata.viir_wnd_data[i];
@@ -5326,7 +5326,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAfStatsV32Lite(const SmartP
                 t_af_stats.wina_highlit_cnt[i] =
                     ((top_right_stats->params.rawae0.data[i].channelr_xy & 0x3FF) << 10) | (top_right_stats->params.rawae0.data[i].channelb_xy & 0x3FF);
 
-                if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID)
+                if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID)
                     continue;
 
                 b_af_stats.wnda_fv_v1[i] = bottom_right_stats->params.rawaf.ramdata.viir_wnd_data[i];
@@ -5343,7 +5343,7 @@ XCamReturn RkAiqResourceTranslatorV32::translateMultiAfStatsV32Lite(const SmartP
     }
 
     // merge vertical af stats
-    if (ispUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID) {
+    if (ispUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
         if (af_split_info_v.winb_side_info == LEFT_AND_RIGHT_MODE) {
             statsInt->af_stats_v3x.wndb_luma = t_af_stats.wndb_luma * af_split_info_v.winb_l_ratio +
                                                b_af_stats.wndb_luma * af_split_info_v.winb_r_ratio;

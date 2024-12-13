@@ -492,6 +492,9 @@ public:
     void setAovMode(bool mode) {
         mIsAovMode = mode;
     }
+
+    XCamReturn setTranslaterIspUniteMode(RkAiqIspUniteMode mode);
+
 protected:
     // in analyzer thread
     XCamReturn analyze(const SmartPtr<VideoBuffer> &buffer);

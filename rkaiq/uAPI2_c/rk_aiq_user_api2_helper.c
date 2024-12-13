@@ -70,6 +70,8 @@ RKAIQ_BEGIN_DECLARE
 //
 
 __RKAIQUAPI_SET_WRAPPER(rk_aiq_user_api2_ae_setExpSwAttr, ae_api_expSwAttr_t);
+__RKAIQUAPI_SET_WRAPPER(rk_aiq_user_api2_ae_setAttr, ae_param_t);
+
 
 #if 0
 /*****************Add UAPI wrapper here if necessary*****************/
@@ -516,7 +518,9 @@ RkAiqUapiDesc_t rkaiq_uapidesc_list[] = {
 
 
 #if USE_NEWSTRUCT
-    __RKAIQUAPI_DESC_DEF("/uapi/0/ae_uapi/attr", ae_param_t, rk_aiq_user_api2_ae_setAttr, rk_aiq_user_api2_ae_getAttr),
+    __RKAIQUAPI_DESC_DEF("/uapi/0/awb_uapi/attr", awb_api_attrib_t, rk_aiq_user_api2_awb_SetAttrib,
+                         rk_aiq_user_api2_awb_GetAttrib),
+    __RKAIQUAPI_DESC_DEF("/uapi/0/ae_uapi/attr", ae_param_t, __RKAIQUAPI_SET_WRAPPER_NAME(rk_aiq_user_api2_ae_setAttr), rk_aiq_user_api2_ae_getAttr),
     __RKAIQUAPI_DESC_DEF("/uapi/0/ae_uapi/expSwAttr", ae_api_expSwAttr_t, __RKAIQUAPI_SET_WRAPPER_NAME(rk_aiq_user_api2_ae_setExpSwAttr), rk_aiq_user_api2_ae_getExpSwAttr),
     __RKAIQUAPI_DESC_DEF("/uapi/0/ae_uapi/queryExpInfo", ae_queryInfo_t, NULL, rk_aiq_user_api2_ae_queryExpResInfo),
     __RKAIQUAPI_DESC_DEF("/uapi/0/dm_uapi/attr", dm_api_attrib_t, rk_aiq_user_api2_dm_SetAttrib, rk_aiq_user_api2_dm_GetAttrib),
@@ -597,6 +601,21 @@ RkAiqUapiDesc_t rkaiq_uapidesc_list[] = {
     __RKAIQUAPI_DESC_DEF("/uapi/0/texEst_uapi/info", texEst_status_t, NULL, rk_aiq_user_api2_texEst_QueryStatus),
     __RKAIQUAPI_DESC_DEF("/uapi/0/postisp_uapi/attr", postisp_api_attrib_t, rk_aiq_user_api2_postisp_SetAttrib, rk_aiq_user_api2_postisp_GetAttrib),
     __RKAIQUAPI_DESC_DEF("/uapi/0/postisp_uapi/info", postisp_status_t, NULL, rk_aiq_user_api2_postisp_QueryStatus),
+#endif
+#if defined(ISP_HW_V20) || defined(ISP_HW_V21)
+    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/calib", CalibDbV2_AF_Tuning_Para_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
+#endif
+#if defined(ISP_HW_V30)
+    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/calib", CalibDbV2_AFV30_Tuning_Para_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
+#endif
+#if defined(ISP_HW_V32)
+    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/calib", CalibDbV2_AFV31_Tuning_Para_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
+#endif
+#if defined(ISP_HW_V32_LITE)
+    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/calib", CalibDbV2_AFV32_Tuning_Para_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
+#endif
+#if defined(ISP_HW_V39)
+    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/calib", CalibDbV2_AFV33_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
 #endif
 };
 /***********************END OF CUSTOM AREA**************************/

@@ -1745,7 +1745,7 @@ static void convertAiqGicToIsp33Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_
     }
 
     pCvt->isp_params.isp_cfg->others.gic_cfg.bypass_en = pBase->bypass;
-    rk_aiq_gic30_params_cvt(pBase->_data, &pCvt->isp_params.isp_cfg->others.gic_cfg);
+    rk_aiq_gic30_params_cvt(pBase->_data, &pCvt->isp_params.isp_cfg->others.gic_cfg, &pCvt->mBtnrInfo);
 }
 #endif
 

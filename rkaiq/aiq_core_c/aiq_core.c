@@ -1893,10 +1893,11 @@ XCamReturn AiqCore_prepare(AiqCore_t * pAiqCore,
 		//(sensor_des->isp_acq_height % 16 == 0));
 		uint32_t extended_pixel          = pAiqCore->mHwInfo.multi_isp_extended_pixel;
 		AiqStatsTranslator_t* translator = pAiqCore->mTranslator;
-		uint32_t size = sensor_des->isp_acq_width * sensor_des->isp_acq_height;
-		if (size > 2 * RK_AIQ_ISP_CIF_INPUT_MAX_SIZE) {
+		uint32_t size                    = sensor_des->isp_acq_width * sensor_des->isp_acq_height;
+		int isp_unite_mode               = translator->mIspUniteMode;
+        if (isp_unite_mode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
 			AiqStatsTranslator_SetMultiIspMode(translator, true);
-			AiqStatsTranslator_SetIspUnitedMode(translator, RK_AIQ_ISP_UNITED_MODE_FOUR_GRID);
+			AiqStatsTranslator_SetIspUnitedMode(translator, RK_AIQ_ISP_UNITE_MODE_FOUR_GRID);
 			Rectangle_t rect;
 			rect.x = 0;
 			rect.y = 0;
@@ -1923,9 +1924,9 @@ XCamReturn AiqCore_prepare(AiqCore_t * pAiqCore,
 			rect.w = sensor_des->isp_acq_width / 2 + extended_pixel;
 			rect.h = sensor_des->isp_acq_height / 2 + extended_pixel;
 			AiqStatsTranslator_SetBottomRightIspRect(translator, &rect);
-		} else if (size > RK_AIQ_ISP_CIF_INPUT_MAX_SIZE) {
+		} else if (isp_unite_mode == RK_AIQ_ISP_UNITE_MODE_TWO_GRID) {
 			AiqStatsTranslator_SetMultiIspMode(translator, true);
-			AiqStatsTranslator_SetIspUnitedMode(translator, RK_AIQ_ISP_UNITED_MODE_TWO_GRID);
+			AiqStatsTranslator_SetIspUnitedMode(translator, RK_AIQ_ISP_UNITE_MODE_TWO_GRID);
 			Rectangle_t rect;
 			rect.x = 0;
 			rect.y = 0;
@@ -1941,7 +1942,7 @@ XCamReturn AiqCore_prepare(AiqCore_t * pAiqCore,
 			AiqStatsTranslator_SetRightIspRect(translator, &rect);
 		} else {
 			AiqStatsTranslator_SetMultiIspMode(translator, true);
-			AiqStatsTranslator_SetIspUnitedMode(translator, RK_AIQ_ISP_UNITED_MODE_NORMAL);
+			AiqStatsTranslator_SetIspUnitedMode(translator, RK_AIQ_ISP_UNITE_MODE_NORMAL);
 			Rectangle_t rect;
 			rect.x = 0;
 			rect.y = 0;
@@ -3397,9 +3398,14 @@ static XCamReturn fixAiqParamsIsp(AiqCore_t* pAiqCore, AiqFullParams_t* aiqParam
 
     // TODO: TNR/SHARP need update HWI params for each frame now
     aiq_params_base_t* psharpBase = aiqParams->pParamsArray[RESULT_TYPE_SHARPEN_PARAM];
+    aiq_params_base_t* pGicBase   = aiqParams->pParamsArray[RESULT_TYPE_GIC_PARAM];
 
     if (psharpBase && !psharpBase->is_update) {
         psharpBase->is_update = true;
+    }
+
+    if (pGicBase && !pGicBase->is_update) {
+        pGicBase->is_update = true;
     }
 
     if (pBtnrBase && !pBtnrBase->is_update) {
@@ -3479,6 +3485,15 @@ AiqCore_unregister3Aalgo(AiqCore_t* pAiqCore, int algoType)
 
     return XCAM_RETURN_NO_ERROR;
 }
+
+XCamReturn AiqCore_setTranslaterIspUniteMode(AiqCore_t* pAiqCore, RkAiqIspUniteMode mode) {
+
+    if (pAiqCore->mTranslator)
+        pAiqCore->mTranslator->mIspUniteMode = mode;
+
+    return XCAM_RETURN_NO_ERROR;
+}
+
 
 #if RKAIQ_HAVE_DUMPSYS
 static int __dump(void* self, st_string* result, int argc, void* argv[]) {
@@ -3710,4 +3725,5 @@ static int AiqCore_algosDump(void* self, st_string* result, int argc, void* argv
 
     return true;
 }
+
 #endif

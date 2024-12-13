@@ -524,101 +524,81 @@ static void calcAecBigWinStatsV39(struct isp39_rawae_stat* stats_in, rawaebig_st
     }
 
     switch (stats_chn_sel) {
-        case RAWSTATS_CHN_Y_EN:
-            for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
-                stats_out->channely_xy[i] = CLIP(
-                    round(
-                        rcc * (float)((stats_in->blk_y[i / 15].blk_x[i % 15].r * awb1_gain.r / 256 -
-                                       bls1_val.r) >>
-                                      2) +
-                        gcc *
-                            (float)((stats_in->blk_y[i / 15].blk_x[i % 15].g * awb1_gain.gr / 256 -
-                                     bls1_val.gr) >>
-                                    4) +
-                        bcc * (float)((stats_in->blk_y[i / 15].blk_x[i % 15].b * awb1_gain.b / 256 -
-                                       bls1_val.b) >>
-                                      2) +
-                        off),
-                    0, MAX_8BITS);
-                sum_xy += (stats_out->channely_xy[i] * weight[i]);
-                sum_weight += weight[i];
-            }
-            *raw_mean = round(256.0f * (float)sum_xy / (float)sum_weight);
-            break;
+    case RAWSTATS_CHN_Y_EN:
+        for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
+            stats_out->channely_xy[i] = CLIP(round(
+                                                 rcc * (float)((stats_in->blk_y[i / 15].blk_x[i % 15].r * awb1_gain.r / 256 -
+                                                         bls1_val.r) >> 2) +
+                                                 gcc * (float)((stats_in->blk_y[i / 15].blk_x[i % 15].g * awb1_gain.gr / 256 -
+                                                         bls1_val.gr) >> 4) +
+                                                 bcc * (float)((stats_in->blk_y[i / 15].blk_x[i % 15].b * awb1_gain.b / 256 -
+                                                         bls1_val.b) >> 2) + off), 0, MAX_8BITS);
+            sum_xy += (stats_out->channely_xy[i] * weight[i]);
+            sum_weight += weight[i];
+        }
+        *raw_mean = round(256.0f * (float)sum_xy / (float)sum_weight);
+        break;
 
-        case RAWSTATS_CHN_R_EN:
-            for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
-                stats_out->channelr_xy[i] = CLIP(
-                    (int)(stats_in->blk_y[i / 15].blk_x[i % 15].r * awb1_gain.r / 256 - bls1_val.r),
-                    0, MAX_10BITS);
+    case RAWSTATS_CHN_R_EN:
+        for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
+            stats_out->channelr_xy[i] =
+                CLIP((int)(stats_in->blk_y[i / 15].blk_x[i % 15].r * awb1_gain.r / 256 - bls1_val.r), 0, MAX_10BITS);
 
-                sum_xy += ((stats_out->channelr_xy[i] >> 2) * weight[i]);
-                sum_weight += weight[i];
-            }
-            *raw_mean = round(256.0f * (float)sum_xy / (float)sum_weight);
-            break;
+            sum_xy += ((stats_out->channelr_xy[i] >> 2) * weight[i]);
+            sum_weight += weight[i];
+        }
+        *raw_mean = round(256.0f * (float)sum_xy / (float)sum_weight);
+        break;
 
-        case RAWSTATS_CHN_G_EN:
-            for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
-                stats_out->channelg_xy[i] =
-                    CLIP((int)(stats_in->blk_y[i / 15].blk_x[i % 15].g * awb1_gain.gr / 256 -
-                               bls1_val.gr),
-                         0, MAX_12BITS);
-                sum_xy += ((stats_out->channelg_xy[i] >> 4) * weight[i]);
-                sum_weight += weight[i];
-            }
-            *raw_mean = round(256.0f * (float)sum_xy / (float)sum_weight);
-            break;
+    case RAWSTATS_CHN_G_EN:
+        for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
+            stats_out->channelg_xy[i] =
+                CLIP((int)(stats_in->blk_y[i / 15].blk_x[i % 15].g * awb1_gain.gr / 256 - bls1_val.gr), 0, MAX_12BITS);
+            sum_xy += ((stats_out->channelg_xy[i] >> 4) * weight[i]);
+            sum_weight += weight[i];
+        }
+        *raw_mean = round(256.0f * (float)sum_xy / (float)sum_weight);
+        break;
 
-        case RAWSTATS_CHN_B_EN:
-            for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
-                stats_out->channelb_xy[i] =
-                    CLIP((int)(stats_in->blk_y[i / 15].blk_x[i % 15].b / 256 - bls1_val.b), 0,
-                         MAX_10BITS);
-                sum_xy += ((stats_out->channelb_xy[i] >> 2) * weight[i]);
-                sum_weight += weight[i];
-            }
-            *raw_mean = round(256.0f * (float)sum_xy / (float)sum_weight);
-            break;
+    case RAWSTATS_CHN_B_EN:
+        for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
+            stats_out->channelb_xy[i] =
+                CLIP((int)(stats_in->blk_y[i / 15].blk_x[i % 15].b * awb1_gain.b / 256 - bls1_val.b), 0, MAX_10BITS);
+            sum_xy += ((stats_out->channelb_xy[i] >> 2) * weight[i]);
+            sum_weight += weight[i];
+        }
+        *raw_mean = round(256.0f * (float)sum_xy / (float)sum_weight);
+        break;
 
-        case RAWSTATS_CHN_RGB_EN:
-            for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
-                stats_out->channelr_xy[i] = CLIP(
-                    (int)(stats_in->blk_y[i / 15].blk_x[i % 15].r * awb1_gain.r / 256 - bls1_val.r),
-                    0, MAX_10BITS);
-                stats_out->channelg_xy[i] =
-                    CLIP((int)(stats_in->blk_y[i / 15].blk_x[i % 15].g * awb1_gain.gr / 256 -
-                               bls1_val.gr),
-                         0, MAX_12BITS);
-                stats_out->channelb_xy[i] = CLIP(
-                    (int)(stats_in->blk_y[i / 15].blk_x[i % 15].b * awb1_gain.b / 256 - bls1_val.b),
-                    0, MAX_10BITS);
-            }
-            break;
+    case RAWSTATS_CHN_RGB_EN:
+        for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
+            stats_out->channelr_xy[i] =
+                CLIP((int)(stats_in->blk_y[i / 15].blk_x[i % 15].r * awb1_gain.r / 256 - bls1_val.r), 0, MAX_10BITS);
+            stats_out->channelg_xy[i] =
+                CLIP((int)(stats_in->blk_y[i / 15].blk_x[i % 15].g * awb1_gain.gr / 256 - bls1_val.gr), 0, MAX_12BITS);
+            stats_out->channelb_xy[i] =
+                CLIP((int)(stats_in->blk_y[i / 15].blk_x[i % 15].b * awb1_gain.b / 256 - bls1_val.b), 0, MAX_10BITS);
+        }
+        break;
 
-        case RAWSTATS_CHN_ALL_EN:
-        default:
-            for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
-                stats_out->channelr_xy[i] = CLIP(
-                    (int)(stats_in->blk_y[i / 15].blk_x[i % 15].r * awb1_gain.r / 256 - bls1_val.r),
-                    0, MAX_10BITS);
-                stats_out->channelg_xy[i] =
-                    CLIP((int)(stats_in->blk_y[i / 15].blk_x[i % 15].g * awb1_gain.gr / 256 -
-                               bls1_val.gr),
-                         0, MAX_12BITS);
-                stats_out->channelb_xy[i] = CLIP(
-                    (int)(stats_in->blk_y[i / 15].blk_x[i % 15].b * awb1_gain.b / 256 - bls1_val.b),
-                    0, MAX_10BITS);
-                stats_out->channely_xy[i] =
-                    CLIP(round(rcc * (float)(stats_out->channelr_xy[i] >> 2) +
-                               gcc * (float)(stats_out->channelg_xy[i] >> 4) +
-                               bcc * (float)(stats_out->channelb_xy[i] >> 2) + off),
-                         0, MAX_8BITS);
-                sum_xy += (stats_out->channely_xy[i] * weight[i]);
-                sum_weight += weight[i];
-            }
-            *raw_mean = round(256.0f * (float)sum_xy / (float)sum_weight);
-            break;
+    case RAWSTATS_CHN_ALL_EN:
+    default:
+        for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
+            stats_out->channelr_xy[i] =
+                CLIP((int)(stats_in->blk_y[i / 15].blk_x[i % 15].r * awb1_gain.r / 256 - bls1_val.r), 0, MAX_10BITS);
+            stats_out->channelg_xy[i] =
+                CLIP((int)(stats_in->blk_y[i / 15].blk_x[i % 15].g * awb1_gain.gr / 256 - bls1_val.gr), 0, MAX_12BITS);
+            stats_out->channelb_xy[i] =
+                CLIP((int)(stats_in->blk_y[i / 15].blk_x[i % 15].b * awb1_gain.b / 256 - bls1_val.b), 0, MAX_10BITS);
+            stats_out->channely_xy[i] =
+                CLIP(round(rcc * (float)(stats_out->channelr_xy[i] >> 2) +
+                           gcc * (float)(stats_out->channelg_xy[i] >> 4) +
+                           bcc * (float)(stats_out->channelb_xy[i] >> 2) + off), 0, MAX_8BITS);
+            sum_xy += (stats_out->channely_xy[i] * weight[i]);
+            sum_weight += weight[i];
+        }
+        *raw_mean = round(256.0f * (float)sum_xy / (float)sum_weight);
+        break;
     }
 
     // For isp39, no sub win
@@ -636,43 +616,41 @@ static void calcAecHistBinStatsV39(u32* hist_bin_in, u32* hist_bin_out, u8 hist_
         int tmp;
 
         switch (hist_mode) {
-            case 2:
-                ob_part    = ob_offset_rb >> 2;
-                bls1       = bls1_val.r >> 2;
-                awb_part   = awb1_gain.r;
-                bls_part   = (ob_part + bls1) * awb_part;
-                div_part   = 256;
-                round_part = 128;
-                break;
-            case 3:
-                ob_part    = ob_offset_g >> 4;
-                bls1       = bls1_val.gr >> 4;
-                awb_part   = awb1_gain.gr;
-                bls_part   = (ob_part + bls1) * awb_part;
-                div_part   = 256;
-                round_part = 128;
-                break;
-            case 4:
-                ob_part    = ob_offset_rb >> 2;
-                bls1       = bls1_val.b >> 2;
-                awb_part   = awb1_gain.b;
-                bls_part   = (ob_part + bls1) * awb_part;
-                div_part   = 256;
-                round_part = 128;
-                break;
-            case 5:
-            default:
-                ob_part = (u16)((ob_offset_g >> 4) * 587 + (ob_offset_rb >> 2) * 299 +
-                                (ob_offset_rb >> 2) * 114 + 500) /
-                          1000;
-                bls1 = (s16)((bls1_val.gr >> 4) * 587 + (bls1_val.r >> 2) * 299 +
-                             (bls1_val.b >> 2) * 114 + 500) /
-                       1000;
-                awb_part   = 100;
-                bls_part   = (ob_part + bls1) * awb_part;
-                div_part   = 7655 / awb1_gain.r + 15027 / awb1_gain.gr + 2919 / awb1_gain.b;
-                round_part = div_part / 2;
-                break;
+        case 2:
+            ob_part    = ob_offset_rb >> 2;
+            bls1       = bls1_val.r >> 2;
+            awb_part   = awb1_gain.r;
+            bls_part   = (ob_part + bls1) * awb_part;
+            div_part   = 256;
+            round_part = 128;
+            break;
+        case 3:
+            ob_part    = ob_offset_g >> 4;
+            bls1       = bls1_val.gr >> 4;
+            awb_part   = awb1_gain.gr;
+            bls_part   = (ob_part + bls1) * awb_part;
+            div_part   = 256;
+            round_part = 128;
+            break;
+        case 4:
+            ob_part    = ob_offset_rb >> 2;
+            bls1       = bls1_val.b >> 2;
+            awb_part   = awb1_gain.b;
+            bls_part   = (ob_part + bls1) * awb_part;
+            div_part   = 256;
+            round_part = 128;
+            break;
+        case 5:
+        default:
+            ob_part = (u16)((ob_offset_g >> 4) * 587 + (ob_offset_rb >> 2) * 299 +
+                            (ob_offset_rb >> 2) * 114 + 500) / 1000;
+            bls1 = (s16)((bls1_val.gr >> 4) * 587 + (bls1_val.r >> 2) * 299 +
+                         (bls1_val.b >> 2) * 114 + 500) / 1000;
+            awb_part   = 100;
+            bls_part   = (ob_part + bls1) * awb_part;
+            div_part   = 7655 / awb1_gain.r + 15027 / awb1_gain.gr + 2919 / awb1_gain.b;
+            round_part = div_part / 2;
+            break;
         }
 
         for (int i = 0; i < ISP39_HIST_BIN_N_MAX; i++) {
@@ -770,8 +748,8 @@ XCamReturn translateAecStatsV39(AiqStatsTranslator_t* pStatsTrans, const aiq_Vid
     AiqIrisInfoWrapper_t irisParamsTmp;
     AiqIrisInfoWrapper_t* irisParams = NULL;
     if (pStatsTrans->mIrishw) {
-       XCamReturn ret = AiqLensHw_getIrisInfoParams(pStatsTrans->mIrishw, stats->frame_id, &irisParamsTmp);
-       if (ret == XCAM_RETURN_NO_ERROR) irisParams = &irisParamsTmp;
+        XCamReturn ret = AiqLensHw_getIrisInfoParams(pStatsTrans->mIrishw, stats->frame_id, &irisParamsTmp);
+        if (ret == XCAM_RETURN_NO_ERROR) irisParams = &irisParamsTmp;
     }
     // ae stats v3.9
     to->frame_id = stats->frame_id;
@@ -827,49 +805,49 @@ XCamReturn translateAecStatsV39(AiqStatsTranslator_t* pStatsTrans, const aiq_Vid
         if (Bnr20bitEn > 0) AeSelMode = AEC_RAWSEL_MODE_TMO;
 
         switch (AeSelMode) {
-            case AEC_RAWSEL_MODE_CHN_0:
-            case AEC_RAWSEL_MODE_CHN_1:
+        case AEC_RAWSEL_MODE_CHN_0:
+        case AEC_RAWSEL_MODE_CHN_1:
 
-                // RAWAE3 BIG-MODE
-                calcAecBigWinStatsV39(&stats->stat.rawae3,
-                                      &statsInt->aec_stats.ae_data.chn[AeSelMode].rawae_big,
-                                      &statsInt->aec_stats.ae_data.raw_mean[AeSelMode],
-                                      pStatsTrans->_aeAlgoStatsCfg.BigWeight,
-                                      pStatsTrans->_aeAlgoStatsCfg.RawStatsChnSel,
-                                      pStatsTrans->_aeAlgoStatsCfg.YRangeMode, bls1_val, awb1_gain);
-                // RAWHIST3 BIG-MODE
-                calcAecHistBinStatsV39(stats->stat.rawhist3.bin,
-                                       statsInt->aec_stats.ae_data.chn[AeSelMode].rawhist_big.bins,
-                                       rawhist_mode, isp_ob_offset_rb, isp_ob_offset_g,
-                                       bls1_ori_val, awb1_gain, is_hdr);
-                break;
-            case AEC_RAWSEL_MODE_TMO:
+            // RAWAE3 BIG-MODE
+            calcAecBigWinStatsV39(&stats->stat.rawae3,
+                                  &statsInt->aec_stats.ae_data.chn[AeSelMode].rawae_big,
+                                  &statsInt->aec_stats.ae_data.raw_mean[AeSelMode],
+                                  pStatsTrans->_aeAlgoStatsCfg.BigWeight,
+                                  pStatsTrans->_aeAlgoStatsCfg.RawStatsChnSel,
+                                  pStatsTrans->_aeAlgoStatsCfg.YRangeMode, bls1_val, awb1_gain);
+            // RAWHIST3 BIG-MODE
+            calcAecHistBinStatsV39(stats->stat.rawhist3.bin,
+                                   statsInt->aec_stats.ae_data.chn[AeSelMode].rawhist_big.bins,
+                                   rawhist_mode, isp_ob_offset_rb, isp_ob_offset_g,
+                                   bls1_ori_val, awb1_gain, is_hdr);
+            break;
+        case AEC_RAWSEL_MODE_TMO:
 
-                bls1_val.r  = 0;
-                bls1_val.gr = 0;
-                bls1_val.gb = 0;
-                bls1_val.b  = 0;
+            bls1_val.r  = 0;
+            bls1_val.gr = 0;
+            bls1_val.gb = 0;
+            bls1_val.b  = 0;
 
-                awb1_gain.r  = 256;
-                awb1_gain.gr = 256;
-                awb1_gain.gb = 256;
-                awb1_gain.b  = 256;
+            awb1_gain.r  = 256;
+            awb1_gain.gr = 256;
+            awb1_gain.gb = 256;
+            awb1_gain.b  = 256;
 
-                calcAecBigWinStatsV39(&stats->stat.rawae3,
-                                      &statsInt->aec_stats.ae_data.extra.rawae_big,
-                                      &statsInt->aec_stats.ae_data.raw_mean[AeSelMode],
-                                      pStatsTrans->_aeAlgoStatsCfg.BigWeight,
-                                      pStatsTrans->_aeAlgoStatsCfg.RawStatsChnSel,
-                                      pStatsTrans->_aeAlgoStatsCfg.YRangeMode, bls1_val, awb1_gain);
+            calcAecBigWinStatsV39(&stats->stat.rawae3,
+                                  &statsInt->aec_stats.ae_data.extra.rawae_big,
+                                  &statsInt->aec_stats.ae_data.raw_mean[AeSelMode],
+                                  pStatsTrans->_aeAlgoStatsCfg.BigWeight,
+                                  pStatsTrans->_aeAlgoStatsCfg.RawStatsChnSel,
+                                  pStatsTrans->_aeAlgoStatsCfg.YRangeMode, bls1_val, awb1_gain);
 
-                memcpy(statsInt->aec_stats.ae_data.extra.rawhist_big.bins, stats->stat.rawhist3.bin,
-                       ISP39_HIST_BIN_N_MAX * sizeof(u32));
+            memcpy(statsInt->aec_stats.ae_data.extra.rawhist_big.bins, stats->stat.rawhist3.bin,
+                   ISP39_HIST_BIN_N_MAX * sizeof(u32));
 
-                break;
+            break;
 
-            default:
-                LOGE("wrong AeSelMode=%d\n", AeSelMode);
-                return XCAM_RETURN_ERROR_PARAM;
+        default:
+            LOGE("wrong AeSelMode=%d\n", AeSelMode);
+            return XCAM_RETURN_ERROR_PARAM;
         }
         pStatsTrans->_lastAeStats = statsInt->aec_stats.ae_data;
     } else {
@@ -942,72 +920,63 @@ XCamReturn translateAecStatsV39(AiqStatsTranslator_t* pStatsTrans, const aiq_Vid
         }
 
         switch (pStatsTrans->_aeAlgoStatsCfg.RawStatsChnSel) {
-            case RAWSTATS_CHN_R_EN:
-                Aec20BitGirdClip(statsInt->aec_stats.ae_data.chn[0].rawae_big.channelr_xy,
-                                 statsInt->aec_stats.ae_data.extra.rawae_big.channelr_xy, 10);
-                for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
-                    sum_xy += ((statsInt->aec_stats.ae_data.chn[0].rawae_big.channelr_xy[i] >> 2) *
-                               pStatsTrans->_aeAlgoStatsCfg.BigWeight[i]);
-                    sum_weight += pStatsTrans->_aeAlgoStatsCfg.BigWeight[i];
-                }
-                statsInt->aec_stats.ae_data.raw_mean[0] =
-                    round(256.0f * (float)sum_xy / (float)sum_weight);
-                break;
+        case RAWSTATS_CHN_R_EN:
+            Aec20BitGirdClip(statsInt->aec_stats.ae_data.chn[0].rawae_big.channelr_xy,
+                             statsInt->aec_stats.ae_data.extra.rawae_big.channelr_xy, 10);
+            for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
+                sum_xy += ((statsInt->aec_stats.ae_data.chn[0].rawae_big.channelr_xy[i] >> 2) *
+                           pStatsTrans->_aeAlgoStatsCfg.BigWeight[i]);
+                sum_weight += pStatsTrans->_aeAlgoStatsCfg.BigWeight[i];
+            }
+            statsInt->aec_stats.ae_data.raw_mean[0] =
+                round(256.0f * (float)sum_xy / (float)sum_weight);
+            break;
 
-            case RAWSTATS_CHN_G_EN:
-                Aec20BitGirdClip(statsInt->aec_stats.ae_data.chn[0].rawae_big.channelg_xy,
-                                 statsInt->aec_stats.ae_data.extra.rawae_big.channelg_xy, 12);
-                for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
-                    sum_xy += ((statsInt->aec_stats.ae_data.chn[0].rawae_big.channelg_xy[i] >> 4) *
-                               pStatsTrans->_aeAlgoStatsCfg.BigWeight[i]);
-                    sum_weight += pStatsTrans->_aeAlgoStatsCfg.BigWeight[i];
-                }
-                statsInt->aec_stats.ae_data.raw_mean[0] =
-                    round(256.0f * (float)sum_xy / (float)sum_weight);
-                break;
+        case RAWSTATS_CHN_G_EN:
+            Aec20BitGirdClip(statsInt->aec_stats.ae_data.chn[0].rawae_big.channelg_xy,
+                             statsInt->aec_stats.ae_data.extra.rawae_big.channelg_xy, 12);
+            for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
+                sum_xy += ((statsInt->aec_stats.ae_data.chn[0].rawae_big.channelg_xy[i] >> 4) *
+                           pStatsTrans->_aeAlgoStatsCfg.BigWeight[i]);
+                sum_weight += pStatsTrans->_aeAlgoStatsCfg.BigWeight[i];
+            }
+            statsInt->aec_stats.ae_data.raw_mean[0] =
+                round(256.0f * (float)sum_xy / (float)sum_weight);
+            break;
 
-            case RAWSTATS_CHN_B_EN:
-                Aec20BitGirdClip(statsInt->aec_stats.ae_data.chn[0].rawae_big.channelb_xy,
-                                 statsInt->aec_stats.ae_data.extra.rawae_big.channelb_xy, 10);
-                for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
-                    sum_xy += ((statsInt->aec_stats.ae_data.chn[0].rawae_big.channelb_xy[i] >> 2) *
-                               pStatsTrans->_aeAlgoStatsCfg.BigWeight[i]);
-                    sum_weight += pStatsTrans->_aeAlgoStatsCfg.BigWeight[i];
-                }
-                statsInt->aec_stats.ae_data.raw_mean[0] =
-                    round(256.0f * (float)sum_xy / (float)sum_weight);
-                break;
+        case RAWSTATS_CHN_B_EN:
+            Aec20BitGirdClip(statsInt->aec_stats.ae_data.chn[0].rawae_big.channelb_xy,
+                             statsInt->aec_stats.ae_data.extra.rawae_big.channelb_xy, 10);
+            for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
+                sum_xy += ((statsInt->aec_stats.ae_data.chn[0].rawae_big.channelb_xy[i] >> 2) *
+                           pStatsTrans->_aeAlgoStatsCfg.BigWeight[i]);
+                sum_weight += pStatsTrans->_aeAlgoStatsCfg.BigWeight[i];
+            }
+            statsInt->aec_stats.ae_data.raw_mean[0] =
+                round(256.0f * (float)sum_xy / (float)sum_weight);
+            break;
 
-            case RAWSTATS_CHN_RGB_EN:
-            case RAWSTATS_CHN_ALL_EN:
-            case RAWSTATS_CHN_Y_EN:
-            default:
-                Aec20BitGirdClip(statsInt->aec_stats.ae_data.chn[0].rawae_big.channelr_xy,
-                                 statsInt->aec_stats.ae_data.extra.rawae_big.channelr_xy, 10);
-                Aec20BitGirdClip(statsInt->aec_stats.ae_data.chn[0].rawae_big.channelg_xy,
-                                 statsInt->aec_stats.ae_data.extra.rawae_big.channelg_xy, 12);
-                Aec20BitGirdClip(statsInt->aec_stats.ae_data.chn[0].rawae_big.channelb_xy,
-                                 statsInt->aec_stats.ae_data.extra.rawae_big.channelb_xy, 10);
-                for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
-                    statsInt->aec_stats.ae_data.chn[0].rawae_big.channely_xy[i] =
-                        CLIP(round(rcc * (float)(statsInt->aec_stats.ae_data.chn[0]
-                                                     .rawae_big.channelr_xy[i] >>
-                                                 2) +
-                                   gcc * (float)(statsInt->aec_stats.ae_data.chn[0]
-                                                     .rawae_big.channelg_xy[i] >>
-                                                 4) +
-                                   bcc * (float)(statsInt->aec_stats.ae_data.chn[0]
-                                                     .rawae_big.channelb_xy[i] >>
-                                                 2) +
-                                   off),
-                             0, MAX_8BITS);
-                    sum_xy += (statsInt->aec_stats.ae_data.chn[0].rawae_big.channely_xy[i] *
-                               pStatsTrans->_aeAlgoStatsCfg.BigWeight[i]);
-                    sum_weight += pStatsTrans->_aeAlgoStatsCfg.BigWeight[i];
-                }
-                statsInt->aec_stats.ae_data.raw_mean[0] =
-                    round(256.0f * (float)sum_xy / (float)sum_weight);
-                break;
+        case RAWSTATS_CHN_RGB_EN:
+        case RAWSTATS_CHN_ALL_EN:
+        case RAWSTATS_CHN_Y_EN:
+        default:
+            Aec20BitGirdClip(statsInt->aec_stats.ae_data.chn[0].rawae_big.channelr_xy,
+                             statsInt->aec_stats.ae_data.extra.rawae_big.channelr_xy, 10);
+            Aec20BitGirdClip(statsInt->aec_stats.ae_data.chn[0].rawae_big.channelg_xy,
+                             statsInt->aec_stats.ae_data.extra.rawae_big.channelg_xy, 12);
+            Aec20BitGirdClip(statsInt->aec_stats.ae_data.chn[0].rawae_big.channelb_xy,
+                             statsInt->aec_stats.ae_data.extra.rawae_big.channelb_xy, 10);
+            for (int i = 0; i < ISP32_RAWAEBIG_MEAN_NUM; i++) {
+                statsInt->aec_stats.ae_data.chn[0].rawae_big.channely_xy[i] =
+                    CLIP(round(rcc * (float)(statsInt->aec_stats.ae_data.chn[0].rawae_big.channelr_xy[i] >> 2) +
+                               gcc * (float)(statsInt->aec_stats.ae_data.chn[0].rawae_big.channelg_xy[i] >> 4) +
+                               bcc * (float)(statsInt->aec_stats.ae_data.chn[0].rawae_big.channelb_xy[i] >> 2) +
+                               off), 0, MAX_8BITS);
+                sum_xy += (statsInt->aec_stats.ae_data.chn[0].rawae_big.channely_xy[i] * pStatsTrans->_aeAlgoStatsCfg.BigWeight[i]);
+                sum_weight += pStatsTrans->_aeAlgoStatsCfg.BigWeight[i];
+            }
+            statsInt->aec_stats.ae_data.raw_mean[0] = round(256.0f * (float)sum_xy / (float)sum_weight);
+            break;
         }
 
         uint32_t sumpixel = 0;
@@ -1111,7 +1080,7 @@ XCamReturn translateAwbStatsV39(AiqStatsTranslator_t* pStatsTrans, const aiq_Vid
         statsInt->awb_stats_v39.dbginfo_fd = -1;
     }
     statsInt->awb_stats_v39.awb_cfg_effect.blkMeasureMode =
-		pStatsTrans->_ispParams->awb_cfg_v39.com.pixEngine.hw_awbCfg_zoneStatsSrc_mode>awbStats_pixAll_mode;
+        pStatsTrans->_ispParams->awb_cfg_v39.com.pixEngine.hw_awbCfg_zoneStatsSrc_mode > awbStats_pixAll_mode;
     statsInt->awb_stats_v39.awb_cfg_effect.mode = pStatsTrans->_ispParams->awb_cfg_v39.mode;
     statsInt->awb_stats_v39.awb_cfg_effect.lightNum = pStatsTrans->_ispParams->awb_cfg_v39.com.wpEngine.hw_awbCfg_lightSrcNum_val;
     statsInt->awb_stats_v39.awb_cfg_effect.groupIllIndxCurrent = pStatsTrans->_ispParams->awb_cfg_v39.groupIllIndxCurrent;
@@ -1119,25 +1088,25 @@ XCamReturn translateAwbStatsV39(AiqStatsTranslator_t* pStatsTrans, const aiq_Vid
            sizeof(statsInt->awb_stats_v39.awb_cfg_effect.IllIndxSetCurrent));
     memcpy(statsInt->awb_stats_v39.awb_cfg_effect.timeSign, pStatsTrans->_ispParams->awb_cfg_v39.timeSign,
            sizeof(statsInt->awb_stats_v39.awb_cfg_effect.timeSign));
-    memcpy(statsInt->awb_stats_v39.awb_cfg_effect.preWbgainSw,pStatsTrans->_ispParams->awb_cfg_v39.preWbgainSw,
-        sizeof(pStatsTrans->_ispParams->awb_cfg_v39.preWbgainSw));
+    memcpy(statsInt->awb_stats_v39.awb_cfg_effect.preWbgainSw, pStatsTrans->_ispParams->awb_cfg_v39.preWbgainSw,
+           sizeof(pStatsTrans->_ispParams->awb_cfg_v39.preWbgainSw));
     statsInt->awb_cfg_effect_valid = true;
     to->frame_id             = stats->frame_id;
 
-    awbStats_stats_t *awb_stats_v39 =&statsInt->awb_stats_v39.com ;
+    awbStats_stats_t *awb_stats_v39 = &statsInt->awb_stats_v39.com ;
 
     for(int i = 0; i < statsInt->awb_stats_v39.awb_cfg_effect.lightNum; i++) {
         awb_stats_v39->wpEngine.norWp[i].hw_awbCfg_rGainSum_val =
             stats->stat.rawawb.sum[i].rgain_nor;
         awb_stats_v39->wpEngine.norWp[i].hw_awbCfg_bGainSum_val =
             stats->stat.rawawb.sum[i].bgain_nor;
-        awb_stats_v39->wpEngine.norWp[i].hw_awbCfg_statsWp_count=
+        awb_stats_v39->wpEngine.norWp[i].hw_awbCfg_statsWp_count =
             stats->stat.rawawb.sum[i].wp_num_nor;
         awb_stats_v39->wpEngine.bigWp[i].hw_awbCfg_rGainSum_val =
             stats->stat.rawawb.sum[i].rgain_big;
         awb_stats_v39->wpEngine.bigWp[i].hw_awbCfg_bGainSum_val =
             stats->stat.rawawb.sum[i].bgain_big;
-        awb_stats_v39->wpEngine.bigWp[i].hw_awbCfg_statsWp_count=
+        awb_stats_v39->wpEngine.bigWp[i].hw_awbCfg_statsWp_count =
             stats->stat.rawawb.sum[i].wp_num_big;
     }
     memset(&statsInt->awb_stats_v39.sumBlkRGB, 0, sizeof(statsInt->awb_stats_v39.sumBlkRGB));
@@ -1147,7 +1116,7 @@ XCamReturn translateAwbStatsV39(AiqStatsTranslator_t* pStatsTrans, const aiq_Vid
             awb_stats_v39->pixEngine.zonePix[index].hw_awbCfg_rSum_val = stats->stat.rawawb.ramdata_blk_y[i].ramdata_blk_x[j].r;
             awb_stats_v39->pixEngine.zonePix[index].hw_awbCfg_gSum_val = stats->stat.rawawb.ramdata_blk_y[i].ramdata_blk_x[j].g;
             awb_stats_v39->pixEngine.zonePix[index].hw_awbCfg_bSum_val = stats->stat.rawawb.ramdata_blk_y[i].ramdata_blk_x[j].b;
-            awb_stats_v39->pixEngine.zonePix[index].hw_awbCfg_statsPix_count= stats->stat.rawawb.ramdata_blk_y[i].ramdata_blk_x[j].wp;
+            awb_stats_v39->pixEngine.zonePix[index].hw_awbCfg_statsPix_count = stats->stat.rawawb.ramdata_blk_y[i].ramdata_blk_x[j].wp;
             statsInt->awb_stats_v39.sumBlkRGB.hw_awbCfg_rSum_val += awb_stats_v39->pixEngine.zonePix[index].hw_awbCfg_rSum_val;
             statsInt->awb_stats_v39.sumBlkRGB.hw_awbCfg_gSum_val += awb_stats_v39->pixEngine.zonePix[index].hw_awbCfg_gSum_val;
             statsInt->awb_stats_v39.sumBlkRGB.hw_awbCfg_bSum_val += awb_stats_v39->pixEngine.zonePix[index].hw_awbCfg_bSum_val;
@@ -1156,7 +1125,7 @@ XCamReturn translateAwbStatsV39(AiqStatsTranslator_t* pStatsTrans, const aiq_Vid
     }
 
     for(int i = 0; i < RK_AIQ_AWB_WP_HIST_BIN_NUM; i++) {
-        awb_stats_v39->wpEngine.hw_awb_wpHistBin_val[i]= stats->stat.rawawb.yhist[i];
+        awb_stats_v39->wpEngine.hw_awb_wpHistBin_val[i] = stats->stat.rawawb.yhist[i];
         // move the shift code here to make WpNoHist merged by several cameras easily
         if( stats->stat.rawawb.yhist[i]  & 0x8000 ) {
             awb_stats_v39->wpEngine.hw_awb_wpHistBin_val[i] = stats->stat.rawawb.yhist[i] & 0x7FFF;
@@ -1165,12 +1134,12 @@ XCamReturn translateAwbStatsV39(AiqStatsTranslator_t* pStatsTrans, const aiq_Vid
     }
 
     for(int i = 0; i < statsInt->awb_stats_v39.awb_cfg_effect.lightNum; i++) {
-        awb_stats_v39->wpEngine.hw_awbCfg_wpXyUvSpcRaw_cnt[i]=  stats->stat.rawawb.sum[i].wp_num2;
+        awb_stats_v39->wpEngine.hw_awbCfg_wpXyUvSpcRaw_cnt[i] =  stats->stat.rawawb.sum[i].wp_num2;
     }
     for(int i = 0; i < RK_AIQ_AWB_STAT_WP_RANGE_NUM_V201; i++) {
-        awb_stats_v39->wpFltOutFullEngine.fltPix[i].hw_awbCfg_rGainSum_val= stats->stat.rawawb.sum_exc[i].rgain_exc;
+        awb_stats_v39->wpFltOutFullEngine.fltPix[i].hw_awbCfg_rGainSum_val = stats->stat.rawawb.sum_exc[i].rgain_exc;
         awb_stats_v39->wpFltOutFullEngine.fltPix[i].hw_awbCfg_bGainSum_val = stats->stat.rawawb.sum_exc[i].bgain_exc;
-        awb_stats_v39->wpFltOutFullEngine.fltPix[i].hw_awbCfg_statsWp_count=    stats->stat.rawawb.sum_exc[i].wp_num_exc;
+        awb_stats_v39->wpFltOutFullEngine.fltPix[i].hw_awbCfg_statsWp_count =    stats->stat.rawawb.sum_exc[i].wp_num_exc;
 
     }
     to->frame_id = stats->frame_id;
@@ -1304,7 +1273,7 @@ XCamReturn translateAfStatsV39(AiqStatsTranslator_t* pStatsTrans, const aiq_Vide
 
 #if RKAIQ_HAVE_DEHAZE_V14
 XCamReturn translateAdehazeStatsV14(AiqStatsTranslator_t* pStatsTrans,
-                                         const aiq_VideoBuffer_t* from, aiq_stats_base_t* to) {
+                                    const aiq_VideoBuffer_t* from, aiq_stats_base_t* to) {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
 
     rkisp_adehaze_stats_t* statsInt = (rkisp_adehaze_stats_t*)to->_data;
@@ -1395,9 +1364,9 @@ XCamReturn AiqStatsTranslator_init(AiqStatsTranslator_t* pStatsTrans) {
     pStatsTrans->translateAecStats          = translateAecStatsV39;
     pStatsTrans->translateAwbStats          = translateAwbStatsV39;
     pStatsTrans->translateAfStats           = translateAfStatsV39;
-    #if RKAIQ_HAVE_DEHAZE_V14
+#if RKAIQ_HAVE_DEHAZE_V14
     pStatsTrans->translateAdehazeStats      = translateAdehazeStatsV14;
-    #endif
+#endif
     pStatsTrans->translateAgainStats        = NULL;
 #if RKAIQ_HAVE_PDAF
     pStatsTrans->translatePdafStats         = AiqStatsTranslator_translatePdafStats;
@@ -1411,9 +1380,11 @@ XCamReturn AiqStatsTranslator_init(AiqStatsTranslator_t* pStatsTrans) {
     pStatsTrans->translateMultiAfStats      = NULL;
     pStatsTrans->translateMultiAdehazeStats = NULL;
 #endif
-	return XCAM_RETURN_NO_ERROR;
+    return XCAM_RETURN_NO_ERROR;
 }
 
-void AiqStatsTranslator_deinit(AiqStatsTranslator_t* pStatsTrans) { return; }
+void AiqStatsTranslator_deinit(AiqStatsTranslator_t* pStatsTrans) {
+    return;
+}
 
 #endif

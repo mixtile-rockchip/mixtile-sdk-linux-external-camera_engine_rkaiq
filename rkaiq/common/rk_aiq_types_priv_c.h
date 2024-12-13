@@ -510,11 +510,11 @@ typedef struct AiqFullParams_s {
     aiq_params_base_t* pParamsArray[RESULT_TYPE_MAX_PARAM];
 } AiqFullParams_t;
 
-typedef enum _RkAiqIspUnitedMode {
-    RK_AIQ_ISP_UNITED_MODE_NORMAL = 0,
-    RK_AIQ_ISP_UNITED_MODE_TWO_GRID,
-    RK_AIQ_ISP_UNITED_MODE_FOUR_GRID,
-} RkAiqIspUnitedMode;
+typedef enum _RkAiqIspUniteMode {
+    RK_AIQ_ISP_UNITE_MODE_NORMAL    = 0,
+    RK_AIQ_ISP_UNITE_MODE_TWO_GRID  = 1,
+    RK_AIQ_ISP_UNITE_MODE_FOUR_GRID = 2,
+} RkAiqIspUniteMode;
 
 #if defined(ISP_HW_V32_LITE)
 #define RK_AIQ_ISP_CIF_INPUT_MAX_SIZE 4224 * 3136

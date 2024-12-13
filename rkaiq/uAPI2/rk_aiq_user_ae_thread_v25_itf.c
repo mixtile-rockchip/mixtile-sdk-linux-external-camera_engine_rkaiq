@@ -188,10 +188,10 @@ static XCamReturn initAeStatsCfg(rk_aiq_ae_algo_config_t* pConfig)
         pConfig->aeStatsCfg.entityGroup.entities.entity3.hw_aeCfg_statsSrc_mode = aeStats_btnrOutHigh_mode;
     } else {
         if(pConfig->isHdr) {
-            pConfig->aeStatsCfg.entityGroup.entities.entity0.hw_aeCfg_statsSrc_mode = aeStats_entity0_chl0Wb0Out_mode;
-            pConfig->aeStatsCfg.entityGroup.entities.entity3.hw_aeCfg_statsSrc_mode = aeStats_entity3_chl1Wb0Out_mode;
+            pConfig->aeStatsCfg.entityGroup.entities.entity0.hw_aeCfg_statsSrc_mode = aeStats_entity0_chl0DpcOut_mode;
+            pConfig->aeStatsCfg.entityGroup.entities.entity3.hw_aeCfg_statsSrc_mode = aeStats_entity3_chl1DpcOut_mode;
         } else {
-            pConfig->aeStatsCfg.entityGroup.entities.entity0.hw_aeCfg_statsSrc_mode = aeStats_entity0_chl0Wb0Out_mode;
+            pConfig->aeStatsCfg.entityGroup.entities.entity0.hw_aeCfg_statsSrc_mode = aeStats_entity0_chl0DpcOut_mode;
             pConfig->aeStatsCfg.entityGroup.entities.entity3.hw_aeCfg_statsSrc_mode = aeStats_dmIn_mode;
         }
     }

@@ -149,6 +149,30 @@ func rkaiqPrebuiltStaticLibrary (ctx android.LoadHookContext) {
     ctx.AppendProperties(p)
 }
 
+func rkaiqVersionDefaults(ctx android.LoadHookContext) {
+    type props struct {
+        Target struct {
+            Android struct {
+                Cflags  []string
+                Enabled *bool
+            }
+            Host struct {
+                Enabled *bool
+            }
+            Not_windows struct {
+                Cflags []string
+            }
+        }
+        Cflags []string
+    }
+    p := &props{}
+
+    //p.Cflags = deviceFlags(ctx)
+
+    p.Target.Android.Cflags = rkaiqFlags(ctx)
+    ctx.AppendProperties(p)
+}
+
 /* This is called from the boot strap process
  * We register a module here
 */
@@ -157,6 +181,7 @@ func init() {
     android.RegisterModuleType("cc_rkaiq_library_shared", cc_rkaiq_library_sharedFactory)
     android.RegisterModuleType("cc_rkaiq_library_static", cc_rkaiq_library_staticFactory)
     android.RegisterModuleType("cc_rkaiq_prebuilt_library_static", cc_rkaiq_prebuilt_library_staticFactory)
+    android.RegisterModuleType("rkaiq_version_defaults", rkaiqVersionDefaultFactory)
 }
 
 func rkaiqDefaultFactory() android.Module {
@@ -183,5 +208,11 @@ func cc_rkaiq_prebuilt_library_staticFactory() (android.Module) {
 
     // Add Hook for PrebuiltSharedLibraryFactory
     android.AddLoadHook(module, rkaiqPrebuiltStaticLibrary)
+    return module
+}
+
+func rkaiqVersionDefaultFactory() android.Module {
+    module := cc.DefaultsFactory()
+    android.AddLoadHook(module, rkaiqVersionDefaults)
     return module
 }

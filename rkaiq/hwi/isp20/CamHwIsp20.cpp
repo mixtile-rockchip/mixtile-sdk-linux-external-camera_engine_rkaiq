@@ -132,7 +132,7 @@ CamHwIsp20::CamHwIsp20()
     use_aiisp = false;
     xcam_mem_clear(mRawStreamInfo);
     mRawStreamInfo.mode = RK_ISP_RKRAWSTREAM_MODE_INVALID;
-    mIspUnitedMode = RK_AIQ_ISP_UNITED_MODE_NORMAL;
+    mIspUniteMode = RK_AIQ_ISP_UNITE_MODE_NORMAL;
 }
 
 CamHwIsp20::~CamHwIsp20()
@@ -2925,13 +2925,15 @@ CamHwIsp20::prepare(uint32_t width, uint32_t height, int mode, int t_delay, int 
         return ret;
     }
 
-    if (mIsGroupMode) {
-        ret = sensorHw->set_sync_mode(mIsMain ? INTERNAL_MASTER_MODE : EXTERNAL_MASTER_MODE);
-        if (ret) {
-            LOGW_CAMHW_SUBM(ISP20HW_SUBM, "set sensor group mode error !\n");
+    if (!mTbInfo.is_fastboot) {
+        if (mIsGroupMode) {
+            ret = sensorHw->set_sync_mode(mIsMain ? INTERNAL_MASTER_MODE : EXTERNAL_MASTER_MODE);
+            if (ret) {
+                LOGW_CAMHW_SUBM(ISP20HW_SUBM, "set sensor group mode error !\n");
+            }
+        } else {
+            sensorHw->set_sync_mode(NO_SYNC_MODE);
         }
-    } else {
-        sensorHw->set_sync_mode(NO_SYNC_MODE);
     }
 
     if (!use_rkrawstream) {
@@ -2967,20 +2969,29 @@ CamHwIsp20::prepare(uint32_t width, uint32_t height, int mode, int t_delay, int 
         uint32_t width = isp_src_fmt.format.width;
         uint32_t height = isp_src_fmt.format.height;
         mParamsSplitter        = new IspParamsSplitter();
-        if ((width * height) > 2 * RK_AIQ_ISP_CIF_INPUT_MAX_SIZE) {
-            mIspUnitedMode = RK_AIQ_ISP_UNITED_MODE_FOUR_GRID;
+
+        struct rkisp_isp_info isp_act_info;
+        memset(&isp_act_info, 0, sizeof(isp_act_info));
+        if (mIspCoreDev->io_control(RKISP_CMD_GET_ISP_INFO, &isp_act_info) != 0) {
+            LOGE_CAMHW("%s:%d can't get act isp info", __FUNCTION__, __LINE__);
+        }
+
+        if (isp_act_info.act_width  == width / 2 + extended_pixel &&
+            isp_act_info.act_height == height / 2 + extended_pixel) {
+            mIspUniteMode = RK_AIQ_ISP_UNITE_MODE_FOUR_GRID;
             mParamsSplitter->SetPicInfo({0, 0, width, height})
             .SetLeftIspRect({0, 0, width / 2 + extended_pixel, height / 2 + extended_pixel})
             .SetRightIspRect({width / 2 - extended_pixel, 0, width / 2 + extended_pixel, height / 2 + extended_pixel})
             .SetBottomLeftIspRect({0, height / 2 - extended_pixel, width / 2 + extended_pixel, height / 2 + extended_pixel})
             .SetBottomRightIspRect({width / 2 - extended_pixel, height / 2 - extended_pixel, width / 2 + extended_pixel, height / 2 + extended_pixel});
-        } else if ((width * height) > RK_AIQ_ISP_CIF_INPUT_MAX_SIZE) {
-            mIspUnitedMode = RK_AIQ_ISP_UNITED_MODE_TWO_GRID;
+        } else if (isp_act_info.act_width  == width / 2 + extended_pixel &&
+                   isp_act_info.act_height == height) {
+            mIspUniteMode = RK_AIQ_ISP_UNITE_MODE_TWO_GRID;
             mParamsSplitter->SetPicInfo({0, 0, width, height})
             .SetLeftIspRect({0, 0, width / 2 + extended_pixel, height})
             .SetRightIspRect({width / 2 - extended_pixel, 0, width / 2 + extended_pixel, height});
         } else {
-            mIspUnitedMode = RK_AIQ_ISP_UNITED_MODE_NORMAL;
+            mIspUniteMode = RK_AIQ_ISP_UNITE_MODE_NORMAL;
             mParamsSplitter->SetPicInfo({0, 0, width, height})
             .SetLeftIspRect({0, 0, width, height})
             .SetRightIspRect({0, 0, width, height});
@@ -2989,17 +3000,17 @@ CamHwIsp20::prepare(uint32_t width, uint32_t height, int mode, int t_delay, int 
         IspParamsSplitter::Rectangle f = mParamsSplitter->GetPicInfo();
         IspParamsSplitter::Rectangle l = mParamsSplitter->GetLeftIspRect();
         IspParamsSplitter::Rectangle r = mParamsSplitter->GetRightIspRect();
-        LOGD_ANALYZER(
+        LOGK_CAMHW(
             "Set Multi-ISP Mode ParamSplitter:\n"
-            "mIspUnitedMode: %s\n"
+            "mIspUniteMode: %s\n"
             " Extended Pixel%d\n"
             " F : { %u, %u, %u, %u }\n"
             " L : { %u, %u, %u, %u }\n"
             " R : { %u, %u, %u, %u }\n",
-            mIspUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID ? 
-            "RK_AIQ_ISP_UNITED_MODE_FOUR_GRID" :
-            mIspUnitedMode == RK_AIQ_ISP_UNITED_MODE_TWO_GRID ?
-            "RK_AIQ_ISP_UNITED_MODE_TWO_GRID" : "RK_AIQ_ISP_UNITED_MODE_NORMAL",
+            mIspUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID ? 
+            "RK_AIQ_ISP_UNITE_MODE_FOUR_GRID" :
+            mIspUniteMode == RK_AIQ_ISP_UNITE_MODE_TWO_GRID ?
+            "RK_AIQ_ISP_UNITE_MODE_TWO_GRID" : "RK_AIQ_ISP_UNITE_MODE_NORMAL",
             extended_pixel,
             f.x, f.y, f.w, f.h,
             l.x, l.y, l.w, l.h,
@@ -6165,7 +6176,7 @@ CamHwIsp20::setIspConfig(cam3aResultList* result_list)
 
 #if defined(RKAIQ_HAVE_MULTIISP) && defined(ISP_HW_V30)
         struct isp3x_isp_params_cfg ori_params;
-        if (mIsMultiIspMode && mIsMultiIspMode == RK_AIQ_ISP_UNITED_MODE_TWO_GRID) {
+        if (mIsMultiIspMode && mIspUniteMode == RK_AIQ_ISP_UNITE_MODE_TWO_GRID) {
             ori_params = *isp_params;
             mParamsSplitter->SplitIspParams(&ori_params, isp_params);
             dynamic_cast<Isp3xParams*>(this)->fixedAwbOveflowToIsp3xParams((void*)isp_params, mIsMultiIspMode);
@@ -6176,9 +6187,9 @@ CamHwIsp20::setIspConfig(cam3aResultList* result_list)
         struct isp32_isp_params_cfg ori_params;
         if (mIsMultiIspMode) {
             ori_params = *isp_params;
-            if (mIspUnitedMode == RK_AIQ_ISP_UNITED_MODE_FOUR_GRID) {
+            if (mIspUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
                 mParamsSplitter->SplitIspParamsVertical(&ori_params, isp_params);
-            } else if (mIspUnitedMode == RK_AIQ_ISP_UNITED_MODE_TWO_GRID) {
+            } else if (mIspUniteMode == RK_AIQ_ISP_UNITE_MODE_TWO_GRID) {
                 mParamsSplitter->SplitIspParams(&ori_params, isp_params);
             }
         }

@@ -41,7 +41,6 @@
 #include "iq_parser_v2/aie_uapi_head.h"
 #include "iq_parser_v2/acp_uapi_head.h"
 #include "iq_parser_v2/alsc_uapi_head.h"
-#include "iq_parser_v2/af_uapi_head.h"
 
 #if defined(ISP_HW_V39) || defined(ISP_HW_V32) || defined(ISP_HW_V30)
 #include "iq_parser_v2/gain_uapi_head_v2.h"
@@ -90,7 +89,7 @@ typedef struct __ae_uapi {
        M4_ALIAS(attr),
        M4_TYPE(struct),
        M4_UI_MODULE(tuning_param),
-       M4_REF(/ae)) */
+       M4_REF(/ae_calib)) */
     ae_param_t attr;
     // M4_STRUCT_DESC("expswAttr", "normal_ui_style")
     ae_api_expSwAttr_t expSwAttr;
@@ -476,10 +475,18 @@ typedef struct __ae_uapi {
 #endif
 
 typedef struct __awb_uapi {
+#if defined(ISP_HW_V39) || defined(ISP_HW_V33)
+    /* M4_GENERIC_DESC(
+       M4_ALIAS(attr),
+       M4_TYPE(struct),
+       M4_UI_MODULE(tuning_param),
+       M4_REF(/wb)) */
+    awb_api_attrib_t attr;
     // M4_STRUCT_DESC("mode", "normal_ui_style")
     uapi_wb_mode_t mode;
     // M4_STRUCT_DESC("wbgain", "normal_ui_style")
     uapi_wb_gain_t wbgain;
+#endif
 } awb_uapi_t;
 
 typedef struct __amerge_uapi {
@@ -933,11 +940,6 @@ typedef struct __acgc_uapi {
     // M4_STRUCT_DESC("manual", "normal_ui_style")
     Cgc_Param_t manual;
 } acgc_uapi_t;
-typedef struct __custom_af_uapi {
-    // M4_STRUCT_DESC("custom_af_res", "normal_ui_style")
-    rk_tool_customAf_res_t custom_af_res;
-} custom_af_uapi_t;
-
 
 typedef struct __a3dlut_uapi {
     // M4_STRUCT_DESC("mode", "normal_ui_style")
@@ -979,13 +981,36 @@ typedef struct __camgroup_uapi {
     uint8_t current_index;
 } camgroup_uapi_t;
 
+#if defined(ISP_HW_V20) || defined(ISP_HW_V21) || defined(ISP_HW_V30) || defined(ISP_HW_V32) || defined(ISP_HW_V32_LITE) || defined(ISP_HW_V39)
+typedef struct __af_uapi {
+#if defined(ISP_HW_V20) || defined(ISP_HW_V21)
+    // M4_STRUCT_DESC("calib", "normal_ui_style")
+    CalibDbV2_AF_Tuning_Para_t calib;
+#endif
+#if defined(ISP_HW_V30)
+    // M4_STRUCT_DESC("calib", "normal_ui_style")
+    CalibDbV2_AFV30_Tuning_Para_t calib;
+#endif
+#if defined(ISP_HW_V32)
+    // M4_STRUCT_DESC("calib", "normal_ui_style")
+    CalibDbV2_AFV31_Tuning_Para_t calib;
+#endif
+#if defined(ISP_HW_V32_LITE)
+    // M4_STRUCT_DESC("calib", "normal_ui_style")
+    CalibDbV2_AFV32_Tuning_Para_t calib;
+#endif
+#if defined(ISP_HW_V39)
+    // M4_STRUCT_DESC("calib", "normal_ui_style")
+    CalibDbV2_AFV33_t calib;
+#endif
+} af_uapi_t;
+#endif
+
 typedef struct __aiq_uapi_t {
 #if (USE_NEWSTRUCT == 0)
     // M4_STRUCT_DESC("ae_uapi", "normal_ui_style")
     ae_uapi_t ae_uapi;
 #endif
-    // M4_STRUCT_DESC("awb_uapi", "normal_ui_style")
-    awb_uapi_t awb_uapi;
 #if defined(ISP_HW_V20)
     // M4_STRUCT_DESC("atmo_uapi", "normal_ui_style")
     atmo_uapi_t atmo_uapi;
@@ -1024,8 +1049,6 @@ typedef struct __aiq_uapi_t {
     // M4_STRUCT_DESC("alsc_uapi", "normal_ui_style")
     alsc_uapi_t alsc_uapi;
 #endif
-    // M4_STRUCT_DESC("custom_af_uapi", "normal_ui_style")
-    custom_af_uapi_t custom_af_uapi;
 #if defined(ISP_HW_V30)
     // M4_STRUCT_DESC("camgroup_uapi", "normal_ui_style", M4_HIDE(1))
     camgroup_uapi_t camgroup_uapi;
@@ -1072,6 +1095,8 @@ typedef struct __aiq_uapi_t {
 #if USE_NEWSTRUCT
     // M4_STRUCT_DESC("ae_uapi", "normal_ui_style")
     ae_uapi_t ae_uapi;
+    // M4_STRUCT_DESC("awb_uapi", "normal_ui_style")
+    awb_uapi_t awb_uapi;
     // M4_STRUCT_DESC("dm_uapi", "iso_list_template")
     dm_uapi_t dm_uapi;
     // M4_STRUCT_DESC("btnr_uapi", "iso_list_template")
@@ -1146,6 +1171,9 @@ typedef struct __aiq_uapi_t {
     // M4_STRUCT_DESC("postisp_uapi", "iso_list_template")
     postisp_uapi_t postisp_uapi;
 #endif
+#endif
+#if defined(ISP_HW_V20) || defined(ISP_HW_V21) || defined(ISP_HW_V30) || defined(ISP_HW_V32) || defined(ISP_HW_V32_LITE) || defined(ISP_HW_V39)
+    af_uapi_t af_uapi;
 #endif
 } RkaiqUapi_t;
 

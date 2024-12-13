@@ -189,6 +189,9 @@ public:
     virtual XCamReturn setUserOtpInfo(rk_aiq_user_otp_info_t otp_info) {
         return XCAM_RETURN_ERROR_FAILED;
     }
+    virtual RkAiqIspUniteMode getIspUniteMode() {
+        return RK_AIQ_ISP_UNITE_MODE_NORMAL;
+    };
     HwResListener* mHwResLintener;
 
 protected:
