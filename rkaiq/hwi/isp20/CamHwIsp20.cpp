@@ -6072,6 +6072,62 @@ bool CamHwIsp20::getParamsForEffMap(uint32_t frameId)
     return true;
 }
 
+#if defined(ISP_HW_V30)
+void CamHwIsp20::_setIspExp(struct sensor_exposure_cfg* pExpCfg, RkAiqSensorExpParamsProxy* exp)
+{
+    SensorHw* mSensorSubdev = mSensorDev.get_cast_ptr<SensorHw>();
+    rk_aiq_exposure_sensor_descriptor* pSnsDes = &mSensorSubdev->_sensor_desc;
+
+    rk_aiq_sensor_exp_info_t* ae_exp = exp->data().ptr();
+
+    uint64_t nano_seconds_per_second = 1000000000ULL;
+    uint32_t rolling_shutter_skew =
+            pSnsDes->line_length_pck * nano_seconds_per_second /
+            pSnsDes->vt_pix_clk_freq_hz * pSnsDes->sensor_output_height / 1000;
+    if (RK_AIQ_HDR_GET_WORKING_MODE(_hdr_mode) == RK_AIQ_WORKING_MODE_NORMAL) {
+        pExpCfg->linear_exp.fine_integration_time = 0;
+        pExpCfg->linear_exp.coarse_integration_time = ae_exp->aecExpInfo.LinearExp.exp_real_params.integration_time * 1000 * 1000; // us
+        pExpCfg->linear_exp.analog_gain_code_global = ae_exp->aecExpInfo.LinearExp.exp_real_params.analog_gain * 1000;
+        pExpCfg->linear_exp.digital_gain_global = ae_exp->aecExpInfo.LinearExp.exp_real_params.digital_gain * 1000;;
+        pExpCfg->linear_exp.isp_digital_gain = ae_exp->aecExpInfo.LinearExp.exp_real_params.isp_dgain * 1000;
+        pExpCfg->linear_exp.rolling_shutter_skew = rolling_shutter_skew;
+    } else if (RK_AIQ_HDR_GET_WORKING_MODE(_hdr_mode) == RK_AIQ_WORKING_MODE_ISP_HDR2) {
+        pExpCfg->hdr_exp[0].fine_integration_time = 0;
+        pExpCfg->hdr_exp[0].coarse_integration_time = ae_exp->aecExpInfo.HdrExp[0].exp_real_params.integration_time * 1000 * 1000; // us
+        pExpCfg->hdr_exp[0].analog_gain_code_global = ae_exp->aecExpInfo.HdrExp[0].exp_real_params.analog_gain * 1000;
+        pExpCfg->hdr_exp[0].digital_gain_global = ae_exp->aecExpInfo.HdrExp[0].exp_real_params.digital_gain * 1000;;
+        pExpCfg->hdr_exp[0].isp_digital_gain = ae_exp->aecExpInfo.HdrExp[0].exp_real_params.isp_dgain * 1000;
+        pExpCfg->hdr_exp[0].rolling_shutter_skew = rolling_shutter_skew;
+        pExpCfg->hdr_exp[1].fine_integration_time = 0;
+        pExpCfg->hdr_exp[1].coarse_integration_time = ae_exp->aecExpInfo.HdrExp[1].exp_real_params.integration_time * 1000 * 1000; // us
+        pExpCfg->hdr_exp[1].analog_gain_code_global = ae_exp->aecExpInfo.HdrExp[1].exp_real_params.analog_gain * 1000;
+        pExpCfg->hdr_exp[1].digital_gain_global = ae_exp->aecExpInfo.HdrExp[1].exp_real_params.digital_gain * 1000;;
+        pExpCfg->hdr_exp[1].isp_digital_gain = ae_exp->aecExpInfo.HdrExp[1].exp_real_params.isp_dgain * 1000;
+        pExpCfg->hdr_exp[1].rolling_shutter_skew = rolling_shutter_skew;
+    } else if (RK_AIQ_HDR_GET_WORKING_MODE(_hdr_mode) == RK_AIQ_WORKING_MODE_ISP_HDR3) {
+        pExpCfg->hdr_exp[0].fine_integration_time = 0;
+        pExpCfg->hdr_exp[0].coarse_integration_time = ae_exp->aecExpInfo.HdrExp[0].exp_real_params.integration_time * 1000 * 1000; // us
+        pExpCfg->hdr_exp[0].analog_gain_code_global = ae_exp->aecExpInfo.HdrExp[0].exp_real_params.analog_gain * 1000;
+        pExpCfg->hdr_exp[0].digital_gain_global = ae_exp->aecExpInfo.HdrExp[0].exp_real_params.digital_gain * 1000;;
+        pExpCfg->hdr_exp[0].isp_digital_gain = ae_exp->aecExpInfo.HdrExp[0].exp_real_params.isp_dgain * 1000;
+        pExpCfg->hdr_exp[0].rolling_shutter_skew = rolling_shutter_skew;
+        pExpCfg->hdr_exp[1].fine_integration_time = 0;
+        pExpCfg->hdr_exp[1].coarse_integration_time = ae_exp->aecExpInfo.HdrExp[1].exp_real_params.integration_time * 1000 * 1000; // us
+        pExpCfg->hdr_exp[1].analog_gain_code_global = ae_exp->aecExpInfo.HdrExp[1].exp_real_params.analog_gain * 1000;
+        pExpCfg->hdr_exp[1].digital_gain_global = ae_exp->aecExpInfo.HdrExp[1].exp_real_params.digital_gain * 1000;;
+        pExpCfg->hdr_exp[1].isp_digital_gain = ae_exp->aecExpInfo.HdrExp[1].exp_real_params.isp_dgain * 1000;
+        pExpCfg->hdr_exp[1].rolling_shutter_skew = rolling_shutter_skew;
+        pExpCfg->hdr_exp[2].fine_integration_time = 0;
+        pExpCfg->hdr_exp[2].coarse_integration_time = ae_exp->aecExpInfo.HdrExp[2].exp_real_params.integration_time * 1000 * 1000; // us
+        pExpCfg->hdr_exp[2].analog_gain_code_global = ae_exp->aecExpInfo.HdrExp[2].exp_real_params.analog_gain * 1000;
+        pExpCfg->hdr_exp[2].digital_gain_global = ae_exp->aecExpInfo.HdrExp[2].exp_real_params.digital_gain * 1000;;
+        pExpCfg->hdr_exp[2].isp_digital_gain = ae_exp->aecExpInfo.HdrExp[2].exp_real_params.isp_dgain * 1000;
+        pExpCfg->hdr_exp[2].rolling_shutter_skew = rolling_shutter_skew;
+    }
+
+}
+#endif
+
 XCamReturn
 CamHwIsp20::setIspConfig(cam3aResultList* result_list)
 {
@@ -6114,8 +6170,8 @@ CamHwIsp20::setIspConfig(cam3aResultList* result_list)
 
     // add isp dgain results to ready results
     SensorHw* mSensorSubdev = mSensorDev.get_cast_ptr<SensorHw>();
+    SmartPtr<RkAiqSensorExpParamsProxy> expParam = nullptr;
     if (mSensorSubdev) {
-        SmartPtr<RkAiqSensorExpParamsProxy> expParam;
 
         if (mSensorSubdev->getEffectiveExpParams(expParam, frameId) < 0) {
             LOGE_CAMHW_SUBM(ISP20HW_SUBM, "frame_id(%d), get exposure failed!!!\n", frameId);
@@ -6145,6 +6201,11 @@ CamHwIsp20::setIspConfig(cam3aResultList* result_list)
         int buf_index      = v4l2buf->get_buf().index;
         bool isMultiIsp    = mIsMultiIspMode;
         bool extened_pixel = mMultiIspExtendedPixel;
+
+#if defined(ISP_HW_V30)
+        if (expParam.ptr() && expParam->data().ptr())
+            _setIspExp(&isp_params->exposure, expParam.ptr());
+#endif
 
         isp_params->module_en_update  = 0;
         isp_params->module_cfg_update = 0;

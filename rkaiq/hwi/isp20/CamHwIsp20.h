@@ -213,6 +213,9 @@ public:
 private:
     using V4l2Device::start;
 
+#if defined(ISP_HW_V30)
+    void _setIspExp(struct sensor_exposure_cfg* pExpCfg, RkAiqSensorExpParamsProxy* ae_exp);
+#endif
 #if defined(ISP_HW_V20)
     XCamReturn handlePpReslut(SmartPtr<cam3aResult> &result);
     XCamReturn setPpConfig(SmartPtr<cam3aResult> &result);
