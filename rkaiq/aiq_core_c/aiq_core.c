@@ -1078,6 +1078,9 @@ fail:
 XCamReturn AiqCore_deinit(AiqCore_t* pAiqCore) {
     ENTER_ANALYZER_FUNCTION();
 
+    if (!pAiqCore)
+        return XCAM_RETURN_ERROR_FAILED;
+
     if (pAiqCore->mState == RK_AIQ_CORE_STATE_STARTED ||
         pAiqCore->mState == RK_AIQ_CORE_STATE_RUNNING) {
         LOGE_ANALYZER("wrong state %d\n", pAiqCore->mState);
