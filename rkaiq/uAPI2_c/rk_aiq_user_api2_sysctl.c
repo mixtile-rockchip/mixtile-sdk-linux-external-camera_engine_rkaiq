@@ -2244,15 +2244,15 @@ static XCamReturn rk_aiq_aiisp_defaut_cb(rk_aiq_aiisp_t* aiisp_evt, void* ctx) {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
     rk_aiq_sys_ctx_t* aiisp_ctx= (rk_aiq_sys_ctx_t *)ctx;
     aiisp_ctx->_wr_linecnt_now += aiisp_evt->height;
-    if (aiisp_ctx->_wr_linecnt_now >= aiisp_ctx->_camHw->aiisp_param->rawHgt) {
+    if (true || aiisp_ctx->_wr_linecnt_now >= aiisp_ctx->_camHw->aiisp_param->rawHgt) {
         aiisp_ctx->_wr_linecnt_now = 0;
         aiisp_ctx->_camHw->aiisp_processing(aiisp_ctx->_camHw, aiisp_evt);
-        ret = rk_aiq_uapi2_sysctl_ReadAiisp(aiisp_ctx);
+        ret = rk_aiq_uapi2_sysctl_ReadAiisp(aiisp_ctx, aiisp_evt);
     }
     return ret;
 }
 
-XCamReturn rk_aiq_uapi2_sysctl_initAiisp(rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_aiisp_cfg_t* aiisp_cfg,
+XCamReturn rk_aiq_uapi2_sysctl_initAiisp(rk_aiq_sys_ctx_t* sys_ctx, struct rkisp_aiisp_cfg* aiisp_cfg,
                                          rk_aiq_aiisp_cb aiisp_cb)
 {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
@@ -2261,23 +2261,13 @@ XCamReturn rk_aiq_uapi2_sysctl_initAiisp(rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_aiisp
         return XCAM_RETURN_ERROR_PARAM;
 
     if (aiisp_cfg == NULL) {
-        rk_aiq_aiisp_cfg_t aiisp_cfg_tmp;
+        struct rkisp_aiisp_cfg aiisp_cfg_tmp;
         rk_aiq_exposure_sensor_descriptor sensor_des;
         AiqCamHw_getSensorModeData(sys_ctx->_camHw, sys_ctx->_sensor_entity_name, &sensor_des);
         uint32_t height = sensor_des.isp_acq_height;
-#if 1 // oee frame mode
-        aiisp_cfg_tmp.wr_mode = 0; // 0: one frame mode 1: part of frame mode
-        aiisp_cfg_tmp.rd_mode = 0;
-        // set 3/4 frame as whole frame to decrease frame delay, may cause frame
-        // corruption
-        aiisp_cfg_tmp.wr_linecnt = height - 1 ;
-        aiisp_cfg_tmp.rd_linecnt = 0;
-#else // half frame mode, not support now
-        aiisp_cfg_tmp.wr_mode = 1;
-        aiisp_cfg_tmp.rd_mode = 1;
-        aiisp_cfg_tmp.wr_linecnt = height / 2;
-        aiisp_cfg_tmp.rd_linecnt = height / 2;
-#endif
+        aiisp_cfg_tmp.mode = 1; 
+        aiisp_cfg_tmp.wr_linecnt = height;
+        aiisp_cfg_tmp.rd_linecnt = height;
         ret                      = sys_ctx->_camHw->setAiispMode(sys_ctx->_camHw, &aiisp_cfg_tmp);
     }
     else {
@@ -2326,12 +2316,12 @@ XCamReturn rk_aiq_uapi2_sysctl_initAiisp(rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_aiisp
     return ret;
 }
 
-XCamReturn rk_aiq_uapi2_sysctl_ReadAiisp(rk_aiq_sys_ctx_t* sys_ctx)
+XCamReturn rk_aiq_uapi2_sysctl_ReadAiisp(rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_aiisp_t* aiisp_evt)
 {
     if (!sys_ctx)
         return XCAM_RETURN_ERROR_PARAM;
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
-    ret            = sys_ctx->_camHw->read_aiisp_result(sys_ctx->_camHw);
+    ret            = sys_ctx->_camHw->read_aiisp_result(sys_ctx->_camHw, aiisp_evt);
     LOGD("start to read AIISP result");
     return ret;
 }

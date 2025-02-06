@@ -245,6 +245,14 @@ typedef struct AiqCamHwBase_s {
     AiqPollCallback_t mPollCb;
     bool mIsFake;
     AiqManager_t* rkAiqManager;
+    // bay3d fuf
+    struct {
+        struct rkisp_bnr_buf_info _bay3dbuf;
+        void* iir_address[RKISP_BUFFER_MAX];
+        void* gain_address[RKISP_BUFFER_MAX];
+        void* aiisp_address[RKISP_BUFFER_MAX];
+        bool _init;
+    } _bnrDrvBuf;
     XCamReturn (*prepare)(AiqCamHwBase_t* pCamHw, uint32_t width, uint32_t height, int mode,
                           int t_delay, int g_delay);
     // internal override
@@ -256,12 +264,11 @@ typedef struct AiqCamHwBase_s {
     // AIISP
     bool use_aiisp;
     AiqAiIspStream_t* mIspAiispStream;
-    rk_aiq_aiisp_cfg_t mAiisp_cfg;
+    struct rkisp_aiisp_cfg mAiisp_cfg;
     rk_aiisp_param* aiisp_param;
     struct AiispLibrary lib_aiisp_;
-    XCamReturn (*setAiispMode)(AiqCamHwBase_t* pCamHw, rk_aiq_aiisp_cfg_t* aiisp_cfg);
-    XCamReturn (*read_aiisp_result)(AiqCamHwBase_t* pCamHw);
-    XCamReturn (*get_aiisp_bay3dbuf)(AiqCamHwBase_t* pCamHw);
+    XCamReturn (*setAiispMode)(AiqCamHwBase_t* pCamHw, struct rkisp_aiisp_cfg* aiisp_cfg);
+    XCamReturn (*read_aiisp_result)(AiqCamHwBase_t* pCamHw, rk_aiq_aiisp_t* aiisp_evt);
     XCamReturn (*aiisp_processing)(AiqCamHwBase_t* pCamHw, rk_aiq_aiisp_t* aiisp_evt);
 
     // dumpsys

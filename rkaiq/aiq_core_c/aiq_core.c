@@ -2479,6 +2479,44 @@ static XCamReturn handleVicapScaleBufs(AiqCore_t* pAiqCore, aiq_VideoBuffer_t* b
     return ret;
 }
 
+typedef enum AIQ_STATS_TYPE_e {
+    AIQ_STATS_TYPE_AEC,
+    AIQ_STATS_TYPE_AWB,
+    AIQ_STATS_TYPE_AF,
+    AIQ_STATS_TYPE_DHAZ,
+    AIQ_STATS_TYPE_BAY3D,
+} AIQ_STATS_TYPE_t;
+
+static bool _check_stats_valid(aiq_VideoBuffer_t* buffer, AIQ_STATS_TYPE_t check_type)
+{
+#if defined(ISP_HW_V39)
+    struct rkisp39_stat_buffer* stats =
+        (struct rkisp39_stat_buffer*)(AiqV4l2Buffer_getExpbufUsrptr((AiqV4l2Buffer_t*)buffer));
+#elif defined(ISP_HW_V33)
+    struct rkisp33_stat_buffer* stats =
+        (struct rkisp33_stat_buffer*)(AiqV4l2Buffer_getExpbufUsrptr((AiqV4l2Buffer_t*)buffer));
+#elif defined(ISP_HW_V35)
+    struct rkisp35_stat_buffer* stats =
+        (struct rkisp35_stat_buffer*)(AiqV4l2Buffer_getExpbufUsrptr((AiqV4l2Buffer_t*)buffer));
+#else
+#error "wrong plateform !"
+#endif
+    uint32_t meas_type = stats->meas_type;
+    LOGD_ANALYZER("sequence(%d), meas_type:0x%x",
+                  AiqVideoBuffer_getSequence(buffer), meas_type);
+    if (AIQ_STATS_TYPE_AEC == check_type)
+        return (!!(meas_type & ISP2X_STAT_RAWAE0) && !!(meas_type & ISP2X_STAT_RAWHST0));
+    if (AIQ_STATS_TYPE_DHAZ == check_type)
+        return !!(meas_type & ISP2X_STAT_DHAZ);
+    if (AIQ_STATS_TYPE_AWB == check_type)
+        return !!(meas_type & ISP2X_STAT_RAWAWB);
+    if (AIQ_STATS_TYPE_AF == check_type)
+        return !!(meas_type & ISP2X_STAT_RAWAF);
+    if (AIQ_STATS_TYPE_BAY3D == check_type)
+        return !!(meas_type & ISP39_STAT_BAY3D);
+    return false;
+}
+
 static XCamReturn RkAiqCore_analyze(AiqCore_t * pAiqCore, AiqHwEvt_t * evt) {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
 
@@ -2506,16 +2544,29 @@ static XCamReturn RkAiqCore_analyze(AiqCore_t * pAiqCore, AiqHwEvt_t * evt) {
 			AiqStatsTranslator_releaseParams(pAiqCore->mTranslator);
 			return ret;
 		}
-        handleAecStats(pAiqCore, buffer);
-        handleAwbStats(pAiqCore, buffer);
-        handleAfStats(pAiqCore, buffer);
-        handleAdehazeStats(pAiqCore, buffer);
+        if (_check_stats_valid(buffer, AIQ_STATS_TYPE_AEC)) {
+            LOGD_ANALYZER("new aec stats: camId:%d, sequence(%d), ts: %lld, buf:%p",
+                          pAiqCore->mAlogsComSharedParams.mCamPhyId,
+                          AiqVideoBuffer_getSequence(buffer), AiqVideoBuffer_getTimestamp(buffer), buffer);
+            handleAecStats(pAiqCore, buffer);
+        }
+        if (_check_stats_valid(buffer, AIQ_STATS_TYPE_AWB)) {
+            LOGD_ANALYZER("new awb stats: camId:%d, sequence(%d), ts: %lld, buf:%p",
+                          pAiqCore->mAlogsComSharedParams.mCamPhyId,
+                          AiqVideoBuffer_getSequence(buffer), AiqVideoBuffer_getTimestamp(buffer), buffer);
+            handleAwbStats(pAiqCore, buffer);
+        }
+        if (_check_stats_valid(buffer, AIQ_STATS_TYPE_AF))
+            handleAfStats(pAiqCore, buffer);
+        if (_check_stats_valid(buffer, AIQ_STATS_TYPE_DHAZ))
+            handleAdehazeStats(pAiqCore, buffer);
 #if RK_GAIN_V2_ENABLE_GAIN2DDR && defined(ISP_HW_V32)
         handleAgainStats(pAiqCore, buffer);
 #endif
 #if defined(RKAIQ_HAVE_BAYERTNR_V30)
 #if (USE_NEWSTRUCT == 0)
-        handleBay3dStats(pAiqCore, buffer);
+        if (_check_stats_valid(buffer, AIQ_STATS_TYPE_BAY3D))
+            handleBay3dStats(pAiqCore, buffer);
 #endif
 #endif
         aiqCond_broadcast(&pAiqCore->mIspStatsCond);
@@ -2591,26 +2642,29 @@ XCamReturn AiqCore_pushStats(AiqCore_t * pAiqCore, AiqHwEvt_t * evt) {
 
     aiq_VideoBuffer_t* buffer = evt->vb;
     if (buffer && buffer->_buf_type == ISP_POLL_3A_STATS) {
-        uint32_t seq     = AiqVideoBuffer_getSequence(buffer);
-        int32_t delta    = seq - pAiqCore->mLatestEvtsId;
-        int32_t interval = seq - pAiqCore->mLatestStatsId;
+        // just check awb stats now, may add aec stats to check later
+        if (_check_stats_valid(buffer, AIQ_STATS_TYPE_AWB)) {
+            uint32_t seq     = AiqVideoBuffer_getSequence(buffer);
+            int32_t delta    = seq - pAiqCore->mLatestEvtsId;
+            int32_t interval = seq - pAiqCore->mLatestStatsId;
 
-        if (interval == 1) {
-            // do nothing
-        } else if ((interval == 0 && (pAiqCore->mLatestStatsId != 0)) || (interval < 0)) {
-            LOGE_ANALYZER("stats disorder, latest:%u, new:%u", pAiqCore->mLatestStatsId, seq);
-            return XCAM_RETURN_NO_ERROR;
-        } else if (interval > 1) {
-            LOGW_ANALYZER("stats not continuous, latest:%u, new:%u", pAiqCore->mLatestStatsId, seq);
-        }
+            if (interval == 1) {
+                // do nothing
+            } else if ((interval == 0 && (pAiqCore->mLatestStatsId != 0)) || (interval < 0)) {
+                LOGE_ANALYZER("stats disorder, latest:%u, new:%u", pAiqCore->mLatestStatsId, seq);
+                return XCAM_RETURN_NO_ERROR;
+            } else if (interval > 1) {
+                LOGW_ANALYZER("stats not continuous, latest:%u, new:%u", pAiqCore->mLatestStatsId, seq);
+            }
 
 #if RKAIQ_HAVE_DUMPSYS
-        pAiqCore->mStatsLoss += seq > 1 ? seq - pAiqCore->mLatestStatsId - 1 : 0;
+            pAiqCore->mStatsLoss += seq > 1 ? seq - pAiqCore->mLatestStatsId - 1 : 0;
 #endif
-        pAiqCore->mLatestStatsId = seq;
-        if (delta > 3) {
-            LOGW_ANALYZER("stats delta: %d, skip stats %u", delta, seq);
-            return XCAM_RETURN_NO_ERROR;
+            pAiqCore->mLatestStatsId = seq;
+            if (delta > 3) {
+                LOGW_ANALYZER("stats delta: %d, skip stats %u", delta, seq);
+                return XCAM_RETURN_NO_ERROR;
+            }
         }
     }
     XCamReturn ret = RkAiqCore_analyze(pAiqCore, evt);

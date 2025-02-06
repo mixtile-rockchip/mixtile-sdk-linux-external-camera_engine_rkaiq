@@ -163,14 +163,17 @@ typedef rkisp_isp2x_stat_buffer rkisp_isp_stat_buffer;
             aiisp_evt.rd_linecnt = pAiqManager->mCamHw->mAiisp_cfg.rd_linecnt;
             aiisp_evt.height = aiisp_data->_height;
             aiisp_evt.sequence = aiisp_data->_base.frame_id;
-            aiisp_evt.bay3dbuf = aiisp_data->bay3dbuf;
-            aiisp_evt.iir_address = aiisp_data->iir_address;
-            aiisp_evt.gain_address = aiisp_data->gain_address;
-            aiisp_evt.aiisp_address = aiisp_data->aiisp_address;
-            LOGD_ANALYZER("aiisp params: wr_linecnt %d rd_linecnt %d _height %d _frameid %d bay3dbuf.iir_fd  %d bay3dbuf.iir_size %d",
-                          aiisp_evt.wr_linecnt, aiisp_evt.rd_linecnt, aiisp_evt.height, aiisp_evt.sequence, aiisp_evt.bay3dbuf.iir_fd,
-                          aiisp_evt.bay3dbuf.iir_size);
-            LOGD_ANALYZER("bay3dbuf.aiisp_fd  %d bay3dbuf.aiisp_size %d", aiisp_evt.bay3dbuf.u.v39.aiisp_fd, aiisp_evt.bay3dbuf.u.v39.aiisp_size);
+            aiisp_evt.timestamp = aiisp_data->_base.mTimestamp;
+            aiisp_evt.bay3dbuf = &pAiqManager->mCamHw->_bnrDrvBuf._bay3dbuf;
+            aiisp_evt.iir_address = pAiqManager->mCamHw->_bnrDrvBuf.iir_address[aiisp_data->iir_index];
+            aiisp_evt.gain_address = pAiqManager->mCamHw->_bnrDrvBuf.gain_address[aiisp_data->gain_index];
+            aiisp_evt.aiisp_address = pAiqManager->mCamHw->_bnrDrvBuf.aiisp_address[aiisp_data->aiisp_index];
+            aiisp_evt.iir_index = aiisp_data->iir_index;
+            aiisp_evt.gain_index = aiisp_data->gain_index;
+            aiisp_evt.aiisp_index = aiisp_data->aiisp_index;
+            LOGD_ANALYZER("aiisp params: wr_linecnt %d rd_linecnt %d _height %d _frameid %d bay3dbuf.iir.buf_cnt  %d bay3dbuf.iir_size %d",
+                          aiisp_evt.wr_linecnt, aiisp_evt.rd_linecnt, aiisp_evt.height, aiisp_evt.sequence, aiisp_evt.bay3dbuf->iir.buf_cnt,
+                          aiisp_evt.bay3dbuf->iir.buf_size);
             (*pAiqManager->mAiispCtx.mAiispEvtcb)(&aiisp_evt, pAiqManager->mAiispCtx.ctx);
         }
         else {
@@ -699,7 +702,6 @@ XCamReturn AiqManager_prepare(AiqManager_t* pAiqManager, uint32_t width, uint32_
     }
 #endif
 
-    pAiqManager->mCamHw->get_aiisp_bay3dbuf(pAiqManager->mCamHw);
     pAiqManager->mWorkingMode = mode;
     pAiqManager->mOldWkModeForGray = RK_AIQ_WORKING_MODE_NORMAL;
     pAiqManager->mWidth = width;

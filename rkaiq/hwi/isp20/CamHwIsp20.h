@@ -37,7 +37,6 @@
 #endif
 #include "thumbnails.h"
 #include "CifScaleStream.h"
-#include "algos/aiisp/rk_aiisp.h"
 
 #include <unordered_map>
 
@@ -68,7 +67,6 @@ struct media_device;
 namespace RkCam {
 
 class IspParamsSplitter;
-class AiispLibrary;
 
 #define ISP20HW_SUBM (0x1)
 
@@ -293,9 +291,6 @@ public:
     static rk_aiq_cif_hw_info_t mCifHwInfos;
     static std::unordered_map<std::string, SmartPtr<rk_sensor_full_info_t>> mSensorHwInfos;
     static std::unordered_map<std::string, std::string> mFakeCameraName;
-    rk_aiq_aiisp_cfg_t mAiisp_cfg;
-    virtual XCamReturn read_aiisp_result() override;
-    virtual XCamReturn get_aiisp_bay3dbuf() override;
 protected:
     static bool mIsMultiIspMode;
     static uint16_t mMultiIspExtendedPixel;
@@ -330,11 +325,6 @@ protected:
     XCamReturn init_pp(rk_sensor_full_info_t *s_info);
 #endif
     virtual bool isOnlineByWorkingMode();
-    virtual XCamReturn setAiispMode(rk_aiq_aiisp_cfg_t* aiisp_cfg) override;
-#if defined(ISP_HW_V39)
-    virtual XCamReturn process_restriction(struct isp39_isp_params_cfg* isp_params);
-    virtual XCamReturn aiisp_processing(rk_aiq_aiisp_t* aiisp_evt) override;
-#endif
     enum mipi_stream_idx {
         MIPI_STREAM_IDX_0   = 1,
         MIPI_STREAM_IDX_1   = 2,
@@ -385,7 +375,6 @@ protected:
     SmartPtr<RKStatsStream>     mIspStatsStream;
     SmartPtr<RKStream>          mIspParamStream;
     SmartPtr<RKSofEventStream>  mIspSofStream;
-    SmartPtr<RKAiispEventStream>  mIspAiispStream;
 #if defined(RKAIQ_ENABLE_SPSTREAM)
     SmartPtr<SPStreamProcUnit> mSpStreamUnit;
 #endif
@@ -441,34 +430,6 @@ protected:
     RkAiqIspUniteMode mIspUniteMode;
     bool mIsListenStrmEvt{true};
 
-    bool use_aiisp;
-    rk_aiisp_param* aiisp_param;
-    std::shared_ptr<AiispLibrary> lib_aiisp_;
-};
-
-using rk_aiisp_init = int (*)(rk_aiisp_param* param);
-using rk_aiisp_proc = int (*)(rk_aiisp_param* param);
-using rk_aiisp_deinit = int (*)(rk_aiisp_param* param);
-
-struct AiispOps {
-    rk_aiisp_init aiisp_init;
-    rk_aiisp_proc aiisp_proc;
-    rk_aiisp_deinit aiisp_deinit;
-};
-
-class AiispLibrary {
-public:
-    AiispLibrary() = default;
-    virtual ~AiispLibrary();
-
-    bool Init();
-    bool LoadSymbols();
-
-    AiispOps* GetOps();
-
-private:
-    void* handle_;
-    AiispOps ops_;
 };
 
 }

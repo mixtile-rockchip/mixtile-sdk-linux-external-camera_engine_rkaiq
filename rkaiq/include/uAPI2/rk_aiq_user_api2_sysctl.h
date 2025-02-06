@@ -24,6 +24,7 @@
 #include "algos/anr/rkpostisp.h"
 #include "uAPI2/rk_aiq_user_api_common.h"
 // #include "rk_aiq_user_api_sysctl.h"
+#include "common/rkisp2-config.h"
 
 RKAIQ_BEGIN_DECLARE
 
@@ -580,10 +581,10 @@ void
 rk_aiq_uapi2_sysctl_setListenStrmStatus(rk_aiq_sys_ctx_t* sys_ctx, bool isListen);
 
 XCamReturn
-rk_aiq_uapi2_sysctl_initAiisp(rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_aiisp_cfg_t* aiisp_cfg,
+rk_aiq_uapi2_sysctl_initAiisp(rk_aiq_sys_ctx_t* sys_ctx, struct rkisp_aiisp_cfg* aiisp_cfg,
                                 rk_aiq_aiisp_cb aiisp_cb);
 XCamReturn
-rk_aiq_uapi2_sysctl_ReadAiisp(rk_aiq_sys_ctx_t* sys_ctx);
+rk_aiq_uapi2_sysctl_ReadAiisp(rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_aiisp_t* aiisp_evt);
 
 XCamReturn
 rk_aiq_uapi2_sysctl_register3Aalgo(const rk_aiq_sys_ctx_t* ctx,

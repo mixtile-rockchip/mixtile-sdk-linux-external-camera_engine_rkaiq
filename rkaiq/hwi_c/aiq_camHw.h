@@ -262,10 +262,9 @@ typedef struct AiqHwStatsEvt_s {
 typedef struct AiqHwAiispEvt_s {
     AiqHwEvt_t _base;
     int32_t _height;
-    rkisp_bay3dbuf_info_t bay3dbuf;
-    void* iir_address;
-    void* gain_address;
-    void* aiisp_address;
+	int iir_index;
+	int gain_index;
+	int aiisp_index;
 } AiqHwAiispEvt_t;
 
 typedef struct AiqHwResListener_s {

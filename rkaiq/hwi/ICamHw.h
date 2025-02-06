@@ -146,10 +146,6 @@ public:
     virtual XCamReturn rawReproc_genIspParams (uint32_t sequence, rk_aiq_frame_info_t *offline_finfo, int mode) = 0;
     virtual XCamReturn rawReProc_prepare (uint32_t sequence, rk_aiq_frame_info_t *offline_finfo) = 0;
     virtual void setRawStreamInfo(rk_aiq_rkrawstream_info_t *info) = 0;
-    virtual XCamReturn setAiispMode(rk_aiq_aiisp_cfg_t *aiisp_cfg) = 0;
-    virtual XCamReturn read_aiisp_result() = 0;
-    virtual XCamReturn get_aiisp_bay3dbuf() = 0;
-    virtual XCamReturn aiisp_processing(rk_aiq_aiisp_t* aiisp_evt) = 0;
     virtual void setRkAiqManager(RkAiqManager* rkAiqManager) = 0;
     virtual XCamReturn setUserOtpInfo(rk_aiq_user_otp_info_t otp_info) = 0;
     virtual RkAiqIspUniteMode getIspUniteMode() = 0;

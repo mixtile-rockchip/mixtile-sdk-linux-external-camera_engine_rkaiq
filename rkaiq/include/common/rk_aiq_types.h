@@ -678,42 +678,6 @@ typedef struct {
     rk_aiq_rkrawstream_mode_t mode;
 } rk_aiq_rkrawstream_info_t;
 
-typedef struct {
-    char wr_mode;
-    char rd_mode;
-    uint16_t wr_linecnt;
-    uint16_t rd_linecnt;
-} __attribute__((packed)) rk_aiq_aiisp_cfg_t;
-
-typedef struct rkisp_bay3dbuf_info_s {
-    int iir_fd;
-    int iir_size;
-    union {
-        struct {
-            int cur_fd;
-            int cur_size;
-            int ds_fd;
-            int ds_size;
-        } v30;
-        struct {
-            int ds_fd;
-            int ds_size;
-        } v32;
-        struct {
-			int ds_fd;
-			int ds_size;
-			int gain_fd;
-			int gain_size;
-		} v33;
-        struct {
-            int gain_fd;
-            int gain_size;
-            int aiisp_fd;
-            int aiisp_size;
-        } v39;
-    } u;
-} __attribute__((packed)) rkisp_bay3dbuf_info_t;
-
 #define RK_AIQ_CAM_GROUP_MAX_CAMS (8)
 
 #endif

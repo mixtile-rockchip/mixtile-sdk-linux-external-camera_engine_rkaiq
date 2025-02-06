@@ -166,22 +166,6 @@ public:
     virtual void setRawStreamInfo(rk_aiq_rkrawstream_info_t *info) {
         mRawStreamInfo = *info;
     }
-    virtual XCamReturn setAiispMode(rk_aiq_aiisp_cfg_t *aiisp_cfg)
-    {
-        return XCAM_RETURN_ERROR_FAILED;
-    }
-    virtual XCamReturn read_aiisp_result()
-    {
-        return XCAM_RETURN_ERROR_FAILED;
-    }
-    virtual XCamReturn get_aiisp_bay3dbuf()
-    {
-        return XCAM_RETURN_ERROR_FAILED;
-    }
-    virtual XCamReturn aiisp_processing(rk_aiq_aiisp_t* aiisp_evt)
-    {
-        return XCAM_RETURN_ERROR_FAILED;
-    }
     virtual void setRkAiqManager(RkAiqManager *rkAiqManager)
     {
         this->rkAiqManager = rkAiqManager;

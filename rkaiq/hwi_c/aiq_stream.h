@@ -131,14 +131,14 @@ void AiqStatsStream_deinit(AiqStatsStream_t* pStream);
 
 typedef struct AiqAiIspStream_s {
     AiqStream_t _base;
-    rkisp_bay3dbuf_info_t bay3dbuf;
-    void* iir_address;
-    void* gain_address;
-    void* aiisp_address;
+    //rkisp_bay3dbuf_info_t bay3dbuf;
+    struct rkisp_bnr_buf_info bay3dbuf;
+    void* iir_address[RKISP_BUFFER_MAX];
+    void* gain_address[RKISP_BUFFER_MAX];
+    void* aiisp_address[RKISP_BUFFER_MAX];
 
-    XCamReturn (*set_aiisp_linecnt)(AiqAiIspStream_t* pStream, rk_aiq_aiisp_cfg_t aiisp_cfg);
-    XCamReturn (*get_aiisp_bay3dbuf)(AiqAiIspStream_t* pStream);
-    XCamReturn (*call_aiisp_rd_start)(AiqAiIspStream_t* pStream);
+    XCamReturn (*set_aiisp_linecnt)(AiqAiIspStream_t* pStream, struct rkisp_aiisp_cfg* aiisp_cfg);
+    XCamReturn (*call_aiisp_rd_start)(AiqAiIspStream_t* pStream, struct rkisp_aiisp_st* pAiispDrvParams);
     XCamReturn (*close_aiisp)(AiqAiIspStream_t* pStream);
     void (*start)(AiqAiIspStream_t* pStream);
     void (*stop)(AiqAiIspStream_t* pStream);
