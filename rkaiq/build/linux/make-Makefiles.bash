@@ -4,6 +4,12 @@
 export AIQ_BUILD_HOST_DIR=/data/project_codes/gcc-arm-8.3-2019.03-x86_64-arm-linux-gnueabihf
 export AIQ_BUILD_TOOLCHAIN_TRIPLE=arm-linux-gnueabihf
 export AIQ_BUILD_SYSROOT=libc
+if [ "${RKAIQ_TARGET_SOC}" == "rv1126b" ];then
+	export AIQ_BUILD_HOST_DIR=/data/project_codes/arm-rockchip1240-linux-gnueabihf
+	echo "${AIQ_BUILD_HOST_DIR}"
+export AIQ_BUILD_TOOLCHAIN_TRIPLE=arm-rockchip1240-linux-gnueabihf
+export AIQ_BUILD_SYSROOT=sysroot
+fi
 export AIQ_BUILD_ARCH=arm
 TOOLCHAIN_FILE=$(pwd)/../../cmake/toolchains/gcc.cmake
 OUTPUT=$(pwd)/output/${AIQ_BUILD_ARCH}
@@ -21,7 +27,6 @@ cmake -G "Ninja" \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=YES \
     -DISP_HW_VERSION=${ISP_HW_VERSION} \
     -DCMAKE_INSTALL_PREFIX="installed" \
-    -DRKAIQ_USE_RAWSTREAM_LIB=OFF \
     $SOURCE_PATH \
 && ninja -j$(nproc) \
 && ninja install

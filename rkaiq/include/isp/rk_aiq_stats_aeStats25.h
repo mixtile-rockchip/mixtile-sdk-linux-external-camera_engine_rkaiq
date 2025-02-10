@@ -317,7 +317,11 @@ typedef enum aeStats_srcEntity0_mode_e {    // Domain,        linear
     /*
     reg: (sw_bnr2ae0_sel == 1) && (sw_rawae_from_vicap == 0)
     */
-    aeStats_btnrOutLow_mode = 3                  //Raw20[9:0],    Y
+    aeStats_btnrOutLow_mode = 3,                  //Raw20[9:0],    Y
+    /*
+    reg: (sw_bnr2ae0_sel == 1) && (sw_aemeas_brn_be_sel == 1)
+    */
+    aeStats_btnrBeOutLow_mode = 4                 //Raw20[9:0],    Y
 } aeStats_srcEntity0_mode_t;
 
 typedef struct aeStats_entity0_s {
@@ -380,7 +384,11 @@ typedef enum aeStats_srcEntity3_mode_e {    // Domain,        linear
     /*
     reg: (sw_bnr2aebig_sel == 1)
     */
-    aeStats_btnrOutHigh_mode = 3                 //Raw20bit[10:19],    Y
+    aeStats_btnrOutHigh_mode = 3,                 //Raw20bit[10:19],    Y
+    /*
+    reg: (sw_bnr2ae0_sel == 1) && (sw_aemeas_brn_be_sel == 1)
+    */
+    aeStats_btnrBeOutHigh_mode = 4               //Raw20bit[10:19],    Y
 } aeStats_srcEntity3_mode_t;
 
 typedef struct aeStats_entity3_s {
@@ -427,8 +435,9 @@ typedef struct aeStats_entity3_s {
     aeStats_hist_t hist;
 } aeStats_entity3_t;
 
-typedef enum aeStats_srcCoWkEnt03_mode_e {    // Domain,           linear
-    aeStats_btnrOut_mode = 0,                         //Raw20[19:10],  Y
+typedef enum aeStats_srcCoWkEnt03_mode_e {
+    aeStats_btnrOut_mode = 0,
+    aeStats_btnrBeOut_mode = 1
 } aeStats_srcCoWkEnt03_mode_t;
 
 typedef struct aeStats_coWkEntity03_s {

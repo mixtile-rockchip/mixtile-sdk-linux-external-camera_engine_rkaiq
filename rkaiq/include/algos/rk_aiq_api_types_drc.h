@@ -20,7 +20,11 @@
 #include "common/rk_aiq_comm.h"
 
 #define DRC_ISO_STEP_MAX 13
+#if ISP_HW_V35
+#include "isp/rk_aiq_isp_drc41.h"
+#else
 #include "isp/rk_aiq_isp_drc40.h"
+#endif
 
 RKAIQ_BEGIN_DECLARE
 
@@ -335,7 +339,7 @@ typedef struct adrc_params_dyn_s {
 } adrc_params_dyn_t;
 
 typedef struct drc_param_auto_s {
-#if ISP_HW_V33
+#if defined(ISP_HW_V33)
     /* M4_GENERIC_DESC(
     M4_ALIAS(sta),
     M4_TYPE(struct),

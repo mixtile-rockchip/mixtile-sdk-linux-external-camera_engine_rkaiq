@@ -20,6 +20,7 @@
 #include <sys/mman.h>
 
 #include "common/rk_aiq_types_priv_c.h"
+
 #include "hwi_c/aiq_camHw.h"
 #include "xcore_c/aiq_v4l2_device.h"
 
@@ -37,6 +38,8 @@ typedef struct AiqThread_s AiqThread_t;
 typedef struct AiqSensorHw_s AiqSensorHw_t;
 typedef struct AiqStatsStream_s AiqStatsStream_t;
 typedef struct AiqAiIspStream_s AiqAiIspStream_t;
+typedef struct AiqAinrIspStream_s AiqAinrIspStream_t;
+typedef struct AiqAinrAiispStream_s AiqAinrAiispStream_t;
 
 typedef struct AiqStream_s AiqStream_t;
 typedef struct AiqPollThread_s AiqPollThread_t;
@@ -128,6 +131,30 @@ typedef struct AiqStatsStream_s {
 
 XCamReturn AiqStatsStream_init(AiqStatsStream_t* pStream, AiqV4l2Device_t* pDev, int type);
 void AiqStatsStream_deinit(AiqStatsStream_t* pStream);
+
+#if RKAIQ_HAVE_AINR
+typedef struct AiqAinrIspStream_s {
+    AiqStream_t _base;
+
+    XCamReturn (*set_aiisp_linecnt)(AiqAinrIspStream_t* pIspPartStrm, struct rkisp_aiisp_cfg aiisp_cfg);
+    XCamReturn (*start_ispbe_hdl)(AiqAinrIspStream_t* pIspPartStrm, struct rkisp_aiisp_st *aiisp_st);
+    XCamReturn (*close_aiisp)(AiqAinrIspStream_t* pIspPartStrm);
+    void (*start)(AiqAinrIspStream_t* pIspPartStrm);
+    void (*stop)(AiqAinrIspStream_t* pIspPartStrm);
+} AiqAinrIspStream_t;
+
+typedef struct AiqAinrAiispStream_s {
+    AiqStream_t _base;
+
+    void (*start)(AiqAinrAiispStream_t* pStream);
+    void (*stop)(AiqAinrAiispStream_t* pStream);
+} AiqAinrAiispStream_t;
+
+XCamReturn AiqAinr_IspStream_init(AiqAinrIspStream_t* pStream, AiqV4l2Device_t* pDev, int32_t type);
+XCamReturn AiqAinr_AiispStream_init(AiqAinrAiispStream_t* pStream, AiqV4l2Device_t* pDev, int32_t type);
+void AiqAinr_IspStream_deinit(AiqAinrIspStream_t* pStream);
+void AiqAinr_AiispStream_deinit(AiqAinrAiispStream_t* pStream);
+#endif
 
 typedef struct AiqAiIspStream_s {
     AiqStream_t _base;

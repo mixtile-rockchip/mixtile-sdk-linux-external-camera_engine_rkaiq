@@ -643,7 +643,7 @@ typedef struct drc_params_dyn_s {
 } drc_params_dyn_t;
 
 typedef struct drc_param_s {
-#if ISP_HW_V33
+#if defined(ISP_HW_V33)
     /* M4_GENERIC_DESC(
     M4_ALIAS(sta),
     M4_TYPE(struct),

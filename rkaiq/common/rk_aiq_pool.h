@@ -177,6 +177,7 @@ static const char* Cam3aResultType2Str[RESULT_TYPE_MAX_PARAM] = {
     [RESULT_TYPE_TEXEST_PARAM]   = "TEXEST",
     [RESULT_TYPE_HSV_PARAM]      = "HSV",
     [RESULT_TYPE_POSTISP_PARAM]  = "POSTISP",
+    [RESULT_TYPE_AINR_PARAM]     = "AINR",
 };
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop

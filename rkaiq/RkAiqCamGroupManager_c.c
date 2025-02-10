@@ -396,7 +396,7 @@ static XCamReturn AiqCamGroupManager_reProcess(AiqCamGroupManager_t* pCamGrpMan,
             scam_3a_res->sharp =
 				(rk_aiq_isp_sharp_params_t*)(aiqParams->pParamsArray[RESULT_TYPE_SHARPEN_PARAM]->_data);
 #endif
-#if RKAIQ_HAVE_SHARP_V40
+#if defined(RKAIQ_HAVE_SHARP_V40)  || defined(RKAIQ_HAVE_SHARP_V41)
             if (!aiqParams->pParamsArray[RESULT_TYPE_TEXEST_PARAM])
                 RET_FAILED();
             scam_3a_res->texEst =
@@ -423,6 +423,13 @@ static XCamReturn AiqCamGroupManager_reProcess(AiqCamGroupManager_t* pCamGrpMan,
                 RET_FAILED();
             scam_3a_res->gain =
 				(rk_aiq_isp_gain_params_t*)(aiqParams->pParamsArray[RESULT_TYPE_GAIN_PARAM]->_data);
+#endif
+
+#if RKAIQ_HAVE_AINR
+            if (!aiqParams->pParamsArray[RESULT_TYPE_AINR_PARAM])
+                RET_FAILED();
+            scam_3a_res->isp_ainr_params =
+                (rk_aiq_isp_ainr_params_t*)(aiqParams->pParamsArray[RESULT_TYPE_AINR_PARAM]->_data);
 #endif
 
             // copy otp info
@@ -1134,7 +1141,7 @@ void AiqCamGroupManager_RelayAiqCoreResults(AiqCamGroupManager_t* pCamGrpMan, Ai
 #endif
 #if USE_NEWSTRUCT
     SET_TO_CAMGROUP(Sharp, SHARPEN);
-#if RKAIQ_HAVE_SHARP_V40
+#if defined(RKAIQ_HAVE_SHARP_V40)  || defined(RKAIQ_HAVE_SHARP_V41)
     SET_TO_CAMGROUP(Textest, TEXEST);
 #endif
     SET_TO_CAMGROUP(Btnr, TNR);
@@ -1142,6 +1149,9 @@ void AiqCamGroupManager_RelayAiqCoreResults(AiqCamGroupManager_t* pCamGrpMan, Ai
     SET_TO_CAMGROUP(Gamma, AGAMMA);
     SET_TO_CAMGROUP(Yme, MOTION);
     SET_TO_CAMGROUP(AeStats, AESTATS);
+#endif
+#if RKAIQ_HAVE_AINR
+    SET_TO_CAMGROUP(Ainr, AINR);
 #endif
 	AiqCamGroupManager_putGroupCamResult(pCamGrpMan, camGroupRes);
 }

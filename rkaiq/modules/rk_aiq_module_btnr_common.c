@@ -325,12 +325,68 @@ void bayertnr_save_stats(void *stats_buffer, btnr_cvt_info_t *pBtnrInfo)
 #endif
         }
     }
+#elif RKAIQ_HAVE_BAYERTNR_V42
+    {
+        struct rkisp35_stat_buffer* stats = stats_buffer;
+        if (stats->meas_type & ISP35_STAT_BAY3D) {
+            uint8_t min_idx = 0;
+            for (uint8_t i = 0; i < RK_AIQ_BTNR_STATS_CNT; i++) {
+                if (pBtnrInfo->mBtnrStats[min_idx].id > pBtnrInfo->mBtnrStats[i].id)
+                    min_idx = i;
+            }
+            btnr_stats_t *btnr_stats = &pBtnrInfo->mBtnrStats[min_idx];
+            btnr_stats->id = stats->frame_id;
+            btnr_stats->sigma_num = stats->stat.bay3d.sigma_num;
+            for (uint8_t i = 0; i < 20; i++) {
+                btnr_stats->sigma_y[i] = stats->stat.bay3d.sigma_y[i];
+            }
+#if 0
+            printf("btnr sigma stats [%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d]\n",
+                   btnr_stats->sigma_y[0],
+                   btnr_stats->sigma_y[1],
+                   btnr_stats->sigma_y[2],
+                   btnr_stats->sigma_y[3],
+                   btnr_stats->sigma_y[4],
+                   btnr_stats->sigma_y[5],
+                   btnr_stats->sigma_y[6],
+                   btnr_stats->sigma_y[7],
+                   btnr_stats->sigma_y[8],
+                   btnr_stats->sigma_y[9],
+                   btnr_stats->sigma_y[10],
+                   btnr_stats->sigma_y[11],
+                   btnr_stats->sigma_y[12],
+                   btnr_stats->sigma_y[13],
+                   btnr_stats->sigma_y[14],
+                   btnr_stats->sigma_y[15],
+                   btnr_stats->sigma_y[16],
+                   btnr_stats->sigma_y[17],
+                   btnr_stats->sigma_y[18],
+                   btnr_stats->sigma_y[19]);
+#endif
+        }
+    }
 #endif
 
-#if RKAIQ_HAVE_SHARP_V40
+#if defined(RKAIQ_HAVE_SHARP_V40)
     {
         struct rkisp33_stat_buffer* stats = stats_buffer;
         if (stats->meas_type & ISP33_STAT_SHARP) {
+            uint8_t min_idx = 0;
+            for (uint8_t i = 0; i < RK_AIQ_BTNR_STATS_CNT; i++) {
+                if (pBtnrInfo->mSharpStats[min_idx].id > pBtnrInfo->mSharpStats[i].id)
+                    min_idx = i;
+            }
+            sharp_stats_t *sharp_stats = &pBtnrInfo->mSharpStats[min_idx];
+            sharp_stats->id = stats->frame_id;
+            for (uint8_t i = 0; i < 17; i++) {
+                sharp_stats->noise_curve[i] = stats->stat.sharp.noise_curve[i];
+            }
+        }
+    }
+#elif defined(RKAIQ_HAVE_SHARP_V41)
+    {
+        struct rkisp35_stat_buffer* stats = stats_buffer;
+        if (stats->meas_type & ISP35_STAT_SHARP) {
             uint8_t min_idx = 0;
             for (uint8_t i = 0; i < RK_AIQ_BTNR_STATS_CNT; i++) {
                 if (pBtnrInfo->mSharpStats[min_idx].id > pBtnrInfo->mSharpStats[i].id)
@@ -358,7 +414,7 @@ btnr_stats_t *bayertnr_get_stats(btnr_cvt_info_t *pBtnrInfo, uint32_t frameId)
     }
     return &pBtnrInfo->mBtnrStats[idx];
 }
-#if RKAIQ_HAVE_SHARP_V40
+#if defined(RKAIQ_HAVE_SHARP_V40) || defined(RKAIQ_HAVE_SHARP_V41)
 sharp_stats_t *sharp_get_stats(btnr_cvt_info_t *pBtnrInfo, uint32_t frameId)
 {
     uint8_t idx = 0;

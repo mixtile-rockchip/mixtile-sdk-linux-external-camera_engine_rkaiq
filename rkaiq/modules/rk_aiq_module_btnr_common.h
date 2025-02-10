@@ -62,7 +62,7 @@ typedef struct {
 
 typedef struct {
     btnr_stats_t mBtnrStats[RK_AIQ_BTNR_STATS_CNT];
-#if RKAIQ_HAVE_SHARP_V40
+#if defined(RKAIQ_HAVE_SHARP_V40) || defined(RKAIQ_HAVE_SHARP_V41)
     sharp_stats_t mSharpStats[RK_AIQ_BTNR_STATS_CNT];
     uint16_t sharp_noise_curve_pre[17];
 #endif

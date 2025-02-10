@@ -560,6 +560,7 @@ typedef struct rk_aiq_pdaf_algo_meas_s {
     unsigned char pdLRInDiffLine;
     unsigned short pdWidth;
     unsigned short pdHeight;
+    unsigned int bytesperline;
     struct rkmodule_pdaf_inf *otp_pdaf;
 } rk_aiq_pdaf_algo_meas_t;
 

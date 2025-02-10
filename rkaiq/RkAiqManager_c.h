@@ -21,6 +21,8 @@
 #include "hwi_c/aiq_CamHwBase.h"
 #include "aiq_core_c/aiq_core.h"
 #include "RkAiqGlobalParamsManager_c.h"
+#include "RkAinrManager.h"
+#include "RknnManager.h"
 
 RKAIQ_BEGIN_DECLARE
 
@@ -69,6 +71,10 @@ typedef struct AiqManager_s {
     GlobalParamsManager_t mGlobalParamsManager;
     /* aiq_params_base_t* */
     AiqList_t* mParamsList;
+#if RKAIQ_HAVE_AINR
+    AinrManager_t mAinrManager;
+#endif
+    RknnManager_t mRknnManager;
 
 #if RKAIQ_HAVE_DUMPSYS
     int (*dump_mods)(void* self, st_string* result, int argc, void* argv[]);

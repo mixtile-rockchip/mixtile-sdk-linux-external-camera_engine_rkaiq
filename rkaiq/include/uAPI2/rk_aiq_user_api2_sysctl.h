@@ -516,18 +516,16 @@ void rk_aiq_uapi2_sysctl_rawReproc_genIspParams (rk_aiq_sys_ctx_t* sys_ctx,
                                                  int mode);
 
 /**
- * @brief set isp driver work mode to all offline
+ * @brief set aiq cis/isp param and raw controler working mode with isp driver name
  *
  * @param isp_driver          isp driver module name(such as rkisp0-vir0)
  * use media-clt to print rkisp driver media info and get isp driver module name from the info printed
- * @param offline_sns_name    new sensor name
- * @param two_frm_exp_info[2] an array which include first frame and seond frame exp info
+ * @param ctrl_info           aiq cis/isp param and raw controler working mode
  * @return sns_ent_name
  */
 const char*
 rk_aiq_uapi2_sysctl_rawReproc_preInit(const char* isp_driver,
-                                      const char* offline_sns_name,
-                                      rk_aiq_frame_info_t two_frm_exp_info[2]);
+                                      rk_aiq_control_preinit_t ctrl_info);
 /**
  * @brief set user delay counts of params related to stats
  *
@@ -537,10 +535,6 @@ rk_aiq_uapi2_sysctl_rawReproc_preInit(const char* isp_driver,
  */
 
 void rk_aiq_uapi2_sysctl_setIspParamsDelayCnts(const rk_aiq_sys_ctx_t* sys_ctx, int8_t delay_cnts);
-
-XCamReturn
-rk_aiq_uapi2_sysctl_preInit_rkrawstream_info(const char* sns_ent_name,
-                           const rk_aiq_rkrawstream_info_t* info);
 
 XCamReturn
 rk_aiq_uapi2_sysctl_setCrop(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_rect_t rect);
@@ -602,6 +596,24 @@ rk_aiq_uapi2_sysctl_unRegister3Aalgo(const rk_aiq_sys_ctx_t* ctx,
  */
 XCamReturn
 rk_aiq_uapi2_sysctl_setSnsSyncMode(const rk_aiq_sys_ctx_t* ctx, enum rkmodule_sync_mode sync_mode);
+
+/**
+ * @brief set sensor sync mode
+ *
+ * \param[in] sys_ctx             the context returned by \ref rk_aiq_uapi2_sysctl_init
+ * \note should be called after rk_aiq_uapi2_sysctl_prepare
+ */
+XCamReturn
+rk_aiq_uapi2_sysctl_setReadBackMode(rk_aiq_sys_ctx_t* ctx, bool on);
+
+/**
+ * @brief set sensor sync mode
+ *
+ * \param[in] sys_ctx             the context returned by \ref rk_aiq_uapi2_sysctl_init
+ * \note should be called after rk_aiq_uapi2_sysctl_prepare
+ */
+XCamReturn
+rk_aiq_uapi2_setRawBufNum(rk_aiq_sys_ctx_t* ctx, uint16_t buf_num);
 
 RKAIQ_END_DECLARE
 

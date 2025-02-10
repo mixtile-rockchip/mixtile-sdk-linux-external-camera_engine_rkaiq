@@ -28,6 +28,7 @@
 #include "hwi_c/aiq_rawStreamProcUnit.h"
 #include "hwi_c/isp39/aiq_CamHwIsp39.h"
 #include "hwi_c/isp33/aiq_CamHwIsp33.h"
+#include "hwi_c/isp35/aiq_CamHwIsp35.h"
 #include "include/common/mediactl/mediactl.h"
 
 #ifndef FAKECAM_SUBM
@@ -752,6 +753,19 @@ static XCamReturn FakeCamHwIsp20_prepare(AiqCamHwBase_t* pCamHw, uint32_t width,
     if (!pCamHw->use_rkrawstream) {
         setupOffLineLink(pFakeCamHw, isp_index, true);
         prepare_mipi_devices(pFakeCamHw);
+    } else {
+        struct v4l2_subdev_format isp_sink_fmt;
+
+        memset(&isp_sink_fmt, 0, sizeof(isp_sink_fmt));
+        isp_sink_fmt.pad = 0;
+        isp_sink_fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+        ret = pCamHw->mIspCoreDev->getFormat(pCamHw->mIspCoreDev, &isp_sink_fmt);
+        if (ret) {
+            LOGE_CAMHW_SUBM(ISP20HW_SUBM, "get mIspCoreDev fmt failed to set fake sensor!\n");
+        }
+        AiqFakeSensorHw_t* fakeSensorHw = (AiqFakeSensorHw_t*)pCamHw->_mSensorDev;
+        fakeSensorHw->set_fake_sensor_format(fakeSensorHw, isp_sink_fmt.format.width,
+                                             isp_sink_fmt.format.height, isp_sink_fmt.format.code);
     }
 
     ret = AiqCamHw_prepare(pCamHw, width, height, mode, t_delay, g_delay);
@@ -796,6 +810,8 @@ XCamReturn AiqCamHwFake_init(AiqCamHwFake_t* pFakeCamHw, const char* sns_ent_nam
     ret = AiqCamHwIsp39_init(pCamBase, sns_ent_name);
 #elif defined(ISP_HW_V33)
     ret = AiqCamHwIsp33_init(pCamBase, sns_ent_name);
+#elif defined(ISP_HW_V35)
+    ret = AiqCamHwIsp35_init(pCamBase, sns_ent_name);
 #else
     XCAM_ASSERT(0);
 #endif
@@ -862,25 +878,6 @@ XCamReturn AiqCamHwFake_init(AiqCamHwFake_t* pFakeCamHw, const char* sns_ent_nam
         AiqRawStreamCapUnit_set_tx_devices(pCamBase->mRawCapUnit, pFakeCamHw->_mipi_tx_devs);
         AiqRawStreamProcUnit_set_rx_devices(pCamBase->mRawProcUnit, pFakeCamHw->_mipi_rx_devs);
         AiqRawStreamProcUnit_setPollCallback(pCamBase->mRawProcUnit, &pFakeCamHw->mPollCb);
-    } else {
-        rk_aiq_raw_prop_t prop;
-        memset(&prop, 0, sizeof(rk_aiq_raw_prop_t));
-        if (pCamBase->mRawStreamInfo.width) {
-            prop.frame_width = pCamBase->mRawStreamInfo.width;
-        } else {
-            LOGE_CAMHW("fake sensor width no set, will cause ae to error");
-        }
-        if (pCamBase->mRawStreamInfo.height) {
-            prop.frame_height = pCamBase->mRawStreamInfo.height;
-        } else {
-            LOGE_CAMHW("fake sensor height no set, will cause ae to error");
-        }
-        if (pCamBase->mRawStreamInfo.format) {
-            prop.format = pCamBase->mRawStreamInfo.format;
-        } else {
-            LOGE_CAMHW("fake sensor format no set, will cause ae to error");
-        }
-        fakeSensorHw->prepare(pCamBase->_mSensorDev, &prop);
     }
 
     return ret;

@@ -151,6 +151,7 @@ xcore_cam_log_module_info_t g_xcore_log_infos[XCORE_LOG_MODULE_MAX] = {
     {"ALDC", XCORE_LOG_LEVEL_ERR, 0xff},       // XCORE_LOG_MODULE_ALDC
     {"AHISTEQ", XCORE_LOG_LEVEL_ERR, 0xff},    // XCORE_LOG_MODULE_HISTEQ
     {"AHSV", XCORE_LOG_LEVEL_ERR, 0xff},     // XCORE_LOG_MODULE_AHSV
+    {"AINR", XCORE_LOG_LEVEL_ERR, 0xff},     // XCORE_LOG_MODULE_AINR
 };
 
 bool xcam_get_enviroment_value(const char* variable, unsigned long long* value)
@@ -468,6 +469,8 @@ int xcam_dump_log(st_string* result, int argc, void* argv[]) {
                 BIT_ULL(XCORE_LOG_MODULE_AHSV), 0),
         OPT_BIT('F', "csm", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ACSM].module_name, NULL,
                 BIT_ULL(XCORE_LOG_MODULE_ACSM), 0),
+        OPT_BIT('G', "ainr", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_AINR].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_AINR), 0),
         OPT_BOOLEAN('\0', "help", NULL, "show this help message and exit", dbg_help_cb, 0,
                     OPT_NONEG),
         OPT_END(),

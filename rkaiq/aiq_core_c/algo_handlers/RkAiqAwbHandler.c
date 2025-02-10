@@ -51,6 +51,11 @@ static XCamReturn _handlerAwb_prepare(AiqAlgoHandler_t* pAlgoHandler) {
     ret = AiqAlgoHandler_prepare(pAlgoHandler);
     RKAIQCORE_CHECK_RET(ret, "ae handle prepare failed");
 
+    RkAiqAlgosGroupShared_t* shared =
+        (RkAiqAlgosGroupShared_t*)(pAlgoHandler->mAlogsGroupSharedParams);
+    RkAiqAlgosComShared_t* sharedCom = &pAlgoHandler->mAiqCore->mAlogsComSharedParams;
+    pAlgoHandler->mConfig->reserverd = (void*)(sharedCom->gray_mode);
+
     RkAiqAlgoConfigAwb* awb_config_int = (RkAiqAlgoConfigAwb*)pAlgoHandler->mConfig;
 
     awb_config_int->mem_ops_ptr   = pAlgoHandler->mAiqCore->mShareMemOps;
@@ -94,7 +99,7 @@ static XCamReturn _handlerAwb_processing(AiqAlgoHandler_t* pAlgoHandler) {
 	awb_proc_int->awb_statsBuf_v39 = NULL;
 #endif
 
-#if !defined(ISP_HW_V39) || !defined(ISP_HW_V33)
+#if !defined(ISP_HW_V39) || !defined(ISP_HW_V33) || !defined(ISP_HW_V35)
     if (shared->aecStatsBuf) {
 		aiq_ae_stats_wrapper_t* pAeStatsWrap = (aiq_ae_stats_wrapper_t*)shared->aecStatsBuf->_data;
         awb_proc_int->aecStatsBuf = &pAeStatsWrap->aec_stats;
@@ -154,7 +159,7 @@ static XCamReturn _handlerAwb_processing(AiqAlgoHandler_t* pAlgoHandler) {
     // for otp awb
     awb_proc_int->awb_otp = &sharedCom->snsDes.otp_awb;
 
-#if defined(ISP_HW_V39) || defined(ISP_HW_V33)
+#if defined(ISP_HW_V39) || defined(ISP_HW_V33) || defined(ISP_HW_V35)
 	aiq_params_base_t* pBase = shared->fullParams->pParamsArray[RESULT_TYPE_AWB_PARAM];
 	if (pBase)
 		awb_proc_res_int->awb_hw_cfg_priv = (rk_aiq_isp_awb_params_t*)pBase->_data;

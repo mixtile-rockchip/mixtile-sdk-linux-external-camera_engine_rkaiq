@@ -179,7 +179,7 @@ static void init_device()
     if (-1 == xioctl(ctx->fd, VIDIOC_S_FMT, &fmt))
         printf("%s: VIDIOC_S_FMT error\n", ctx->sns_name);
 
-    init_mmap(ctx);
+    init_mmap();
 }
 
 static void deInit_device()
@@ -259,7 +259,7 @@ static void stop_capturing()
 static int rkaiq_start()
 {
     setlinebuf(stdout);
-    if (ctx->iqpath == NULL) {
+    if (strlen(ctx->iqpath) == 0) {
         printf("%s not start\n", __func__);
         ctx->aiq_ctx = NULL;
         return 0;
@@ -275,7 +275,7 @@ static int rkaiq_start()
 
     rk_aiq_uapi2_sysctl_preInit_scene(sensor_name, "normal", "day");
     ctx->aiq_ctx = rk_aiq_uapi2_sysctl_init(sensor_name, ctx->iqpath, NULL, NULL);
-    rk_aiq_uapi2_sysctl_prepare(ctx->aiq_ctx, 0, 0, ctx->hdr_mode);
+    rk_aiq_uapi2_sysctl_prepare(ctx->aiq_ctx, 0, 0, (rk_aiq_working_mode_t)ctx->hdr_mode);
     rk_aiq_uapi2_sysctl_start(ctx->aiq_ctx);
 
     return 0;
@@ -352,7 +352,54 @@ static void smartIr_stop()
     ctx->smartIr_ctx = NULL;
 }
 
-static char optstr[] = "?:h:d:a:t:";
+static void smartIr_calib()
+{
+    ctx->smartIr_ctx = rk_smart_ir_init(ctx->aiq_ctx);
+    rk_smart_ir_calib_t calib_cfg;
+    calib_cfg.calib_en = true;
+
+    /* calib d2n_envL_th
+     * 1. Switch to ISP day mode
+     * 2. Enable IR-cutter, disable IR-LED
+     * 3. Adjust brightness threshold for day-to-night switch
+     */
+    calib_cfg.calib_mode = RK_SMART_IR_CALIB_MODE_D2N;
+    calib_cfg.calib_params.d2n_envL_th = 0.04f; //need cfg
+    rk_smart_ir_calib(ctx->smartIr_ctx, &calib_cfg);
+
+    /* calib n2d_envL_th
+     * 1. Switch to ISP night mode
+     * 2. Disable IR-cutter, enable IR-LED
+     * 3. Adjust brightness threshold for night-to-day switch
+     */
+    calib_cfg.calib_mode = RK_SMART_IR_CALIB_MODE_N2D;
+    calib_cfg.calib_params.n2d_envL_th = 0.2f; //need cfg
+    rk_smart_ir_calib(ctx->smartIr_ctx, &calib_cfg);
+
+    /* calib awbgain base
+     * 1. Switch to ISP night mode
+     * 2. Disable IR-cutter, enable IR-LED
+     * 3. Ensure no visible light
+     */
+    calib_cfg.calib_mode = RK_SMART_IR_CALIB_MODE_BASE;
+    rk_smart_ir_calib(ctx->smartIr_ctx, &calib_cfg);
+
+    /* tune awbgain dis
+     * 1. Switch to ISP night mode
+     * 2. Disable IR-cutter, enable IR-LED
+     * 3. Test various scenarios and get the maximum value
+     */
+    calib_cfg.calib_mode = RK_SMART_IR_CALIB_MODE_DIS;
+    calib_cfg.calib_params.rggain_base = 1.00f; //need cfg
+    calib_cfg.calib_params.bggain_base = 1.00f; //need cfg
+    calib_cfg.calib_params.awbgain_rad = 0.10f; //need cfg
+    rk_smart_ir_calib(ctx->smartIr_ctx, &calib_cfg);
+
+    rk_smart_ir_deInit(ctx->smartIr_ctx);
+    ctx->smartIr_ctx = NULL;
+}
+
+static char optstr[] = "?:h:d:a:t:c:";
 
 static void print_usage(const char* name)
 {
@@ -360,6 +407,7 @@ static void print_usage(const char* name)
     printf("\t-d | --device: required, main path of video device\n");
     printf("\t-a | --aiq: iq file path, default: /etc/iqfiles\n");
     printf("\t-t | --time: run time, default: -1 seconds\n");
+    printf("\t-c | --calib: calib params, default: 0 disable\n");
 }
 
 int main(int argc, char* argv[])
@@ -399,6 +447,10 @@ int main(int argc, char* argv[])
             if (optarg)
                 strcpy(ctx->dev_name, optarg);
             break;
+        case 'c':
+            if (optarg)
+                ctx->en_calib = atoi(optarg);
+            break;
         case '?':
         case 'h':
         default:
@@ -407,7 +459,8 @@ int main(int argc, char* argv[])
         }
     }
 
-    printf("iq file path: %s, device name: %s, run time: %d\n\n", ctx->iqpath, ctx->dev_name, ctx->run_time);
+    printf("iq file path: %s, device name: %s, run time: %d, en calib: %d\n\n",
+            ctx->iqpath, ctx->dev_name, ctx->run_time, ctx->en_calib);
 
     signal(SIGINT, sigterm_handler);
 
@@ -415,13 +468,20 @@ int main(int argc, char* argv[])
     rkaiq_start();
     init_device();
     start_capturing();
-    smartIr_start();
+
+    if (!ctx->en_calib)
+        smartIr_start();
 
     while (!g_quit && ((ctx->run_time == -1) || (ctx->run_time-- > 0))) {
         usleep(1000 * 1000);
+
+        if (ctx->en_calib)
+            smartIr_calib();
     }
 
-    smartIr_stop();
+    if (!ctx->en_calib)
+        smartIr_stop();
+
     stop_capturing();
     rkaiq_stop();
     deInit_device();

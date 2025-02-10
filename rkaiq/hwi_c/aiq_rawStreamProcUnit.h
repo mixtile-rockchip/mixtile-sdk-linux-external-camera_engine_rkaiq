@@ -123,6 +123,7 @@ void AiqRawStreamProcUnit_setPollCallback(AiqRawStreamProcUnit_t* pRawStrProcUni
                                           AiqPollCallback_t* cb);
 
 XCamReturn setIspInfoToDump(AiqRawStreamProcUnit_t* pRawStrProcUnit);
+void AiqRawStreamProcUnit_setRxBufferCnt(AiqRawStreamProcUnit_t* pRawStrProcUnit, uint16_t buf_num);
 
 #if RKAIQ_HAVE_DUMPSYS
 int AiqRawStreamProcUnit_dump(void* dumper, st_string* result, int argc, void* argv[]);

@@ -42,7 +42,7 @@ public:
     virtual ~RkAiqResourceTranslatorV3x () = default;
 
     RkAiqResourceTranslatorV3x& SetMultiIspMode(bool isMultiIsp);
-    RkAiqResourceTranslatorV3x& SetIspUnitedMode(RkAiqIspUniteMode mode);
+    RkAiqResourceTranslatorV3x& SetIspUniteMode(RkAiqIspUniteMode mode);
     RkAiqResourceTranslatorV3x& SetPicInfo(RkAiqResourceTranslatorV3x::Rectangle& pic_rect);
     RkAiqResourceTranslatorV3x& SetLeftIspRect(RkAiqResourceTranslatorV3x::Rectangle& left_isp_rect);
     RkAiqResourceTranslatorV3x& SetRightIspRect(RkAiqResourceTranslatorV3x::Rectangle& right_isp_rect);
@@ -54,7 +54,7 @@ public:
     RkAiqResourceTranslatorV3x& SetBottomLeftIspRect(RkAiqResourceTranslatorV3x::Rectangle& left_isp_rect);
     RkAiqResourceTranslatorV3x& SetBottomRightIspRect(RkAiqResourceTranslatorV3x::Rectangle& right_isp_rect);
     bool IsMultiIspMode() const;
-    RkAiqIspUniteMode GetIspUnitedMode();
+    RkAiqIspUniteMode GetIspUniteMode();
     RkAiqResourceTranslatorV3x::Rectangle GetPicInfo();
     RkAiqResourceTranslatorV3x::Rectangle GetLeftIspRect();
     RkAiqResourceTranslatorV3x::Rectangle GetRightIspRect();

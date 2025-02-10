@@ -6,16 +6,19 @@
 #include "include/common/rk-camera-module.h"
 #include "include/common/rk_aiq_comm.h"
 #include "include/common/rkisp32-config.h"
+#include "include/common/rk-isp33-config.h"
+#include "include/common/rk-isp35-config.h"
 #include "rk_aiq_isp_blc30.h"
 #if RKAIQ_HAVE_DEHAZE_V14
 #include "rk_aiq_isp_histeq23.h"
 #elif RKAIQ_HAVE_HISTEQ_V10
 #include "rk_aiq_isp_histeq30.h"
 #endif
-#if RKAIQ_HAVE_SHARP_V40
+#if defined(RKAIQ_HAVE_SHARP_V40) || defined(RKAIQ_HAVE_SHARP_V41)
 #include "rk_aiq_isp_texEst40.h"
 #endif
 #include "rk_aiq_isp_gain20.h"
+#include "rk_aiq_types.h"
 
 typedef struct RKAiqAecExpInfo_s RKAiqAecExpInfo_t;
 
@@ -56,7 +59,10 @@ typedef struct {
     struct rkmodule_awb_inf otp_awb;
     struct rkmodule_lsc_inf *otp_lsc;
     struct rkmodule_af_inf *otp_af;
-	struct rkmodule_pdaf_inf *otp_pdaf;
+    struct rkmodule_pdaf_inf *otp_pdaf;
+#if RKAIQ_HAVE_AINR
+    RkAiqAinrModelBuf_t ainrModel;
+#endif
     RKAiqAecExpInfo_t *ae_exp;
     blc_res_cvt_t blc_res;
     bool use_aiisp;
@@ -72,18 +78,23 @@ typedef struct {
     uint8_t cmps_offsetbit;
     bool dehaze_en;
     bool histeq_en;
-#if defined(ISP_HW_V33)
-    texEst_param_t texEst_param;
-#endif
     bool btnr_en;
     int btnrCfg_pixDomain_mode;
-#if defined(ISP_HW_V33)
+    bool btnrT_predgainWkArd_en;
+    int btnrT_predgain_mode;
+    float btnrT_predgain_curve;
+    int btnrCfg_trans_mode;
+    int btnrCfg_trans_offset;
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
+    texEst_param_t texEst_param;
     int sw_btnrT_outFrmBase_mode;
 #endif
     int drc_warning_count;
     int blc_warning_count;
     int btnr_warning_count;
     void* pBlcInfo;
+    float offset2Blc1;
+    int blc0_diff;
 } common_cvt_info_t;
 
 typedef struct {
@@ -91,6 +102,8 @@ typedef struct {
     struct isp39_isp_params_cfg* isp_cfg;
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* isp_cfg;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* isp_cfg;
 #endif
 } isp_params_t;
 

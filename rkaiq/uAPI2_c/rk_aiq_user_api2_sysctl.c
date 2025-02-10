@@ -77,9 +77,8 @@ struct rk_aiq_sys_preinit_cfg_s {
     void* calib_proj;
     rk_aiq_iq_buffer_info_t iq_buffer;
     dev_buf_cfg_t* dev_buf_cnt_map;
-    rk_aiq_frame_info_t frame_exp_info[2];
-    bool isValidExp;
-    rk_aiq_rkrawstream_info_t rawstream_info;
+    rk_aiq_control_preinit_t ctrl_info;
+    bool is_use_as_fake;
 	rk_aiq_sys_preinit_cfg_t* next;
 };
 
@@ -295,9 +294,16 @@ static void rk_aiq_init_lib(void)
             g_rkaiq_isp_hw_ver = 33;
         else if (s_info->isp_hw_ver == 10)
             g_rkaiq_isp_hw_ver = 39;
+        else if (s_info->isp_hw_ver == 11)
+            g_rkaiq_isp_hw_ver = 35;
         else
             LOGE("do not support isp hw ver %d now !", s_info->isp_hw_ver);
     }
+
+// // ydb: for test on 1103b
+// #if defined(ISP_HW_V35)
+//     g_rkaiq_isp_hw_ver = 35;
+// #endif
     LOGK("%s, ISP HW ver: %d", __func__, g_rkaiq_isp_hw_ver);
 
 #if defined(ISP_HW_V20)
@@ -314,6 +320,8 @@ static void rk_aiq_init_lib(void)
     assert(g_rkaiq_isp_hw_ver == 39);
 #elif defined(ISP_HW_V33)
     assert(g_rkaiq_isp_hw_ver == 33);
+#elif defined(ISP_HW_V35)
+    assert(g_rkaiq_isp_hw_ver == 35);
 #else
 #error "WRONG ISP_HW_VERSION, ONLY SUPPORT V20 AND V21 NOW !"
 #endif
@@ -333,28 +341,45 @@ static void rk_aiq_deinit_lib(void)
 
 const char*
 rk_aiq_uapi2_sysctl_rawReproc_preInit(const char* isp_driver,
-                                           const char* offline_sns_name,
-                                           rk_aiq_frame_info_t two_frm_exp_info[2])
+                                      rk_aiq_control_preinit_t ctrl_info)
 {
     if (!g_rk_aiq_init_lib) {
         rk_aiq_init_lib();
         g_rk_aiq_init_lib = true;
     }
+
+    if (!isp_driver) {
+        LOGE("%s: input isp driver name is NULL, please check input", __FUNCTION__);
+        return NULL;
+    }
+
     const char* sns_name = NULL;
-    sns_name = AiqCamHw_rawReproc_preInit(isp_driver, offline_sns_name);
+    sns_name = AiqCamHw_rawReproc_preInit(isp_driver);
     if (sns_name) {
-        rk_aiq_frame_info_t exp_finfo = two_frm_exp_info[0];
-        LOGD("exp_finfo %d, %d, %f, %f\n",
-               exp_finfo.normal_gain_reg,
-               exp_finfo.normal_exp_reg,
-               exp_finfo.normal_exp,
-               exp_finfo.normal_gain);
-		rk_aiq_sys_preinit_cfg_t* pPreinitCfg = getPreinitCfgs(sns_name);
+
+        if (ctrl_info.mode != RK_AIQ_CONTROL_CIS_ISP_PARAM &&
+            ctrl_info.mode != RK_AIQ_CONTROL_ISP_PARAM_ONLY) {
+            LOGK("%s limit mode to RK_AIQ_CONTROL_CIS_ISP_PARAM or RK_AIQ_CONTROL_ISP_PARAM_ONLY, "
+                 "no support to set mode to %d", __FUNCTION__, ctrl_info.mode);
+            return sns_name;
+        }
+
+        rk_aiq_sys_preinit_cfg_t* pPreinitCfg = getPreinitCfgs(sns_name);
 
 		XCAM_ASSERT(pPreinitCfg);
 
-        memcpy(pPreinitCfg->frame_exp_info, two_frm_exp_info, sizeof(pPreinitCfg->frame_exp_info));
-        pPreinitCfg->isValidExp = true;
+        pPreinitCfg->ctrl_info = ctrl_info;
+        if (ctrl_info.mode == RK_AIQ_CONTROL_ISP_PARAM_ONLY) {
+            rk_aiq_frame_info_t exp_finfo = ctrl_info.isp_param_only_info.first_exp_info;
+            LOGD("exp_finfo %d, %d, %f, %f\n",
+                 exp_finfo.normal_gain_reg,
+                 exp_finfo.normal_exp_reg,
+                 exp_finfo.normal_exp,
+                 exp_finfo.normal_gain);
+            pPreinitCfg->is_use_as_fake = true;
+        } else if (ctrl_info.mode == RK_AIQ_CONTROL_ISP_PARAM_AND_RAW) {
+            pPreinitCfg->is_use_as_fake = true;
+        }
     }
 
     return sns_name;
@@ -375,13 +400,13 @@ rk_aiq_uapi_sysctl_rawReproc_setInitExpInfo(const rk_aiq_sys_ctx_t* ctx,
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
 
 	rk_aiq_sys_preinit_cfg_t* pPreinitCfg = findPreinitCfgs(ctx->_sensor_entity_name);
-	if (pPreinitCfg && pPreinitCfg->isValidExp ) {
-        rk_aiq_frame_info_t* _finfo = &pPreinitCfg->frame_exp_info[0];
-        LOGD("_finfo %d, %d, %f, %f\n",
-            _finfo[0].normal_gain_reg,
-            _finfo[0].normal_exp_reg,
-            _finfo[0].normal_exp,
-            _finfo[0].normal_gain);
+	if (pPreinitCfg && pPreinitCfg->ctrl_info.mode == RK_AIQ_CONTROL_ISP_PARAM_ONLY) {
+        rk_aiq_frame_info_t* _finfo = &pPreinitCfg->ctrl_info.isp_param_only_info.first_exp_info;
+        LOGK("_finfo %d, %d, %f, %f\n",
+            _finfo->normal_gain_reg,
+            _finfo->normal_exp_reg,
+            _finfo->normal_exp,
+            _finfo->normal_gain);
 
 #ifndef USE_NEWSTRUCT
         if (mode == RK_AIQ_WORKING_MODE_NORMAL) {
@@ -390,8 +415,8 @@ rk_aiq_uapi_sysctl_rawReproc_setInitExpInfo(const rk_aiq_sys_ctx_t* ctx,
 
             LinExpAttr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
             LinExpAttr.sync.done = false;
-            LinExpAttr.Params.InitExp.InitTimeValue = (float)_finfo[0].normal_exp;
-            LinExpAttr.Params.InitExp.InitGainValue = (float)_finfo[0].normal_gain;
+            LinExpAttr.Params.InitExp.InitTimeValue = (float)_finfo->normal_exp;
+            LinExpAttr.Params.InitExp.InitGainValue = (float)_finfo->normal_gain;
 
             ret = rk_aiq_user_api2_ae_setLinExpAttr(ctx, LinExpAttr);
             if (ret == XCAM_RETURN_NO_ERROR) {
@@ -404,12 +429,12 @@ rk_aiq_uapi_sysctl_rawReproc_setInitExpInfo(const rk_aiq_sys_ctx_t* ctx,
 
             HdrExpAttr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
             HdrExpAttr.sync.done = false;
-            HdrExpAttr.Params.InitExp.InitTimeValue[0] = (float)_finfo[0].hdr_exp_s;
-            HdrExpAttr.Params.InitExp.InitGainValue[0] = (float)_finfo[0].hdr_gain_s;
-            HdrExpAttr.Params.InitExp.InitTimeValue[1] = (float)_finfo[0].hdr_exp_m;
-            HdrExpAttr.Params.InitExp.InitGainValue[1] = (float)_finfo[0].hdr_gain_m;
-            HdrExpAttr.Params.InitExp.InitTimeValue[2] = (float)_finfo[0].hdr_exp_l;
-            HdrExpAttr.Params.InitExp.InitGainValue[2] = (float)_finfo[0].hdr_gain_l;
+            HdrExpAttr.Params.InitExp.InitTimeValue[0] = (float)_finfo->hdr_exp_s;
+            HdrExpAttr.Params.InitExp.InitGainValue[0] = (float)_finfo->hdr_gain_s;
+            HdrExpAttr.Params.InitExp.InitTimeValue[1] = (float)_finfo->hdr_exp_m;
+            HdrExpAttr.Params.InitExp.InitGainValue[1] = (float)_finfo->hdr_gain_m;
+            HdrExpAttr.Params.InitExp.InitTimeValue[2] = (float)_finfo->hdr_exp_l;
+            HdrExpAttr.Params.InitExp.InitGainValue[2] = (float)_finfo->hdr_gain_l;
 
             ret = rk_aiq_user_api2_ae_setHdrExpAttr(ctx, HdrExpAttr);
             if (ret == XCAM_RETURN_NO_ERROR) {
@@ -421,8 +446,8 @@ rk_aiq_uapi_sysctl_rawReproc_setInitExpInfo(const rk_aiq_sys_ctx_t* ctx,
             ae_api_linExpAttr_t LinExpAttr;
             ret = rk_aiq_user_api2_ae_getLinExpAttr(ctx, &LinExpAttr);
 
-            LinExpAttr.initExp.sw_aeT_initTime_val = (float)_finfo[0].normal_exp;
-            LinExpAttr.initExp.sw_aeT_initGain_val = (float)_finfo[0].normal_gain;
+            LinExpAttr.initExp.sw_aeT_initTime_val = (float)_finfo->normal_exp;
+            LinExpAttr.initExp.sw_aeT_initGain_val = (float)_finfo->normal_gain;
 
             ret = rk_aiq_user_api2_ae_setLinExpAttr(ctx, LinExpAttr);
             if (ret == XCAM_RETURN_NO_ERROR) {
@@ -432,12 +457,12 @@ rk_aiq_uapi_sysctl_rawReproc_setInitExpInfo(const rk_aiq_sys_ctx_t* ctx,
             ae_api_hdrExpAttr_t HdrExpAttr;
             ret = rk_aiq_user_api2_ae_getHdrExpAttr(ctx, &HdrExpAttr);
 
-            HdrExpAttr.initExp.sw_aeT_initTime_val[0] = (float)_finfo[0].hdr_exp_s;
-            HdrExpAttr.initExp.sw_aeT_initGain_val[0] = (float)_finfo[0].hdr_gain_s;
-            HdrExpAttr.initExp.sw_aeT_initTime_val[1] = (float)_finfo[0].hdr_exp_m;
-            HdrExpAttr.initExp.sw_aeT_initGain_val[1] = (float)_finfo[0].hdr_gain_m;
-            HdrExpAttr.initExp.sw_aeT_initTime_val[2] = (float)_finfo[0].hdr_exp_l;
-            HdrExpAttr.initExp.sw_aeT_initGain_val[2] = (float)_finfo[0].hdr_gain_l;
+            HdrExpAttr.initExp.sw_aeT_initTime_val[0] = (float)_finfo->hdr_exp_s;
+            HdrExpAttr.initExp.sw_aeT_initGain_val[0] = (float)_finfo->hdr_gain_s;
+            HdrExpAttr.initExp.sw_aeT_initTime_val[1] = (float)_finfo->hdr_exp_m;
+            HdrExpAttr.initExp.sw_aeT_initGain_val[1] = (float)_finfo->hdr_gain_m;
+            HdrExpAttr.initExp.sw_aeT_initTime_val[2] = (float)_finfo->hdr_exp_l;
+            HdrExpAttr.initExp.sw_aeT_initGain_val[2] = (float)_finfo->hdr_gain_l;
 
             ret = rk_aiq_user_api2_ae_setHdrExpAttr(ctx, HdrExpAttr);
             if (ret == XCAM_RETURN_NO_ERROR) {
@@ -446,40 +471,20 @@ rk_aiq_uapi_sysctl_rawReproc_setInitExpInfo(const rk_aiq_sys_ctx_t* ctx,
         }
 #endif
 
-        AiqCamHw_rawReProc_prepare(ctx->_camHw, 0, _finfo);
+        AiqCamHw_rawReProc_prepare(ctx->_camHw, 0);
     }
+
     return ret;
 }
 
-
-
-XCamReturn
-rk_aiq_uapi2_sysctl_preInit_rkrawstream_info(const char* sns_ent_name,
-                           const rk_aiq_rkrawstream_info_t* info)
-{
-    XCamReturn ret = XCAM_RETURN_NO_ERROR;
-
-    if (!sns_ent_name || !info) {
-        LOGE("Invalid input parameter");
-        return XCAM_RETURN_ERROR_PARAM;
-    }
-
-	rk_aiq_sys_preinit_cfg_t* pPreinitCfg = getPreinitCfgs(sns_ent_name);
-
-	XCAM_ASSERT(pPreinitCfg);
-	pPreinitCfg->rawstream_info = *info;
-
-    return (ret);
-}
-
-static int rk_aiq_rkrawstream_init(rk_aiq_sys_ctx_t* ctx)
+static int rk_aiq_rawReproc_init(rk_aiq_sys_ctx_t* ctx)
 {
 	rk_aiq_sys_preinit_cfg_t* pPreinitCfg = findPreinitCfgs(ctx->_sensor_entity_name);
 	if (pPreinitCfg) {
-        rk_aiq_rkrawstream_info_t* info = &pPreinitCfg->rawstream_info;
-        if (info->mode != RK_ISP_RKRAWSTREAM_MODE_INVALID) {
-            ctx->_use_rkrawstream = true;
-            ctx->_rawstream_info = info;
+        rk_aiq_control_preinit_t* info = &pPreinitCfg->ctrl_info;
+        ctx->_ctrlPreinit_info = info;
+        if (info->mode == RK_AIQ_CONTROL_ISP_PARAM_ONLY) {
+            ctx->_use_fakecam      = true;
         }
 	}
 
@@ -868,10 +873,6 @@ rk_aiq_uapi2_sysctl_init(const char* sns_ent_name,
 		*(char*)(sns_ent_name + lens - 2) = '\0';
 	}
 
-    char* forceSameIqParams = getenv("AIQ_FORCE_SAME_IQ_PARAMS");
-    if (forceSameIqParams && atoi(forceSameIqParams) != 0)
-        is_group_mode = true;
-
     bool is_ent_name = true;
     if (sns_ent_name[0] != 'm' || sns_ent_name[3] != '_')
         is_ent_name = false;
@@ -898,9 +899,9 @@ rk_aiq_uapi2_sysctl_init(const char* sns_ent_name,
     ctx->_camPhyId = s_info->sensor_info.phyId;
 
     rk_aiq_offline_init(ctx);
-    rk_aiq_rkrawstream_init(ctx);
+    rk_aiq_rawReproc_init(ctx);
 	ctx->_analyzer = (AiqCore_t*)aiq_mallocz(sizeof(AiqCore_t));
-    if (strstr(sns_ent_name, "FakeCamera") || ctx->_use_fakecam || strstr(sns_ent_name, "_s_")) {
+    if (strstr(sns_ent_name, "FakeCamera") || ctx->_use_fakecam) {
         //ctx->_camHw = new FakeCamHwIsp20();
         ctx->_use_fakecam = true;
 		ctx->_camHw = (AiqCamHwBase_t*)aiq_mallocz(sizeof(AiqCamHwFake_t));
@@ -948,6 +949,13 @@ rk_aiq_uapi2_sysctl_init(const char* sns_ent_name,
             XCAM_ASSERT(0);
 #endif
         }
+        else if (s_info->isp_hw_ver == 11) {
+#if defined(ISP_HW_V35)
+			ctx->_analyzer->mIspHwVer = 5;
+#else
+            XCAM_ASSERT(0);
+#endif
+        }
         else {
             LOGE("do not support this isp hw version %d !", s_info->isp_hw_ver);
             goto error;
@@ -985,7 +993,7 @@ rk_aiq_uapi2_sysctl_init(const char* sns_ent_name,
 #endif
         }
         else if (s_info->isp_hw_ver == 9) {
-#if defined(ISP_HW_V33)
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
             ctx->_analyzer->mIspHwVer = 5;
 #else
             XCAM_ASSERT(0);
@@ -998,14 +1006,21 @@ rk_aiq_uapi2_sysctl_init(const char* sns_ent_name,
             XCAM_ASSERT(0);
 #endif
         }
+        else if (s_info->isp_hw_ver == 11) {
+#if defined(ISP_HW_V35)
+			ctx->_analyzer->mIspHwVer = 5;
+#else
+            XCAM_ASSERT(0);
+#endif
+        }
         else {
             LOGE("do not support this isp hw version %d !", s_info->isp_hw_ver);
             goto error;
         }
     }
 
-    if (ctx->_use_rkrawstream) {
-		AiqCamHw_setRawStreamInfo(ctx->_camHw, ctx->_rawstream_info);
+    if (ctx->_ctrlPreinit_info) {
+	    AiqCamHw_setAiqPreCtrlInfo(ctx->_camHw, ctx->_ctrlPreinit_info);
     }
 
     // use user defined iq file
@@ -1670,11 +1685,11 @@ rk_aiq_uapi2_sysctl_setMulCamConc(const rk_aiq_sys_ctx_t* ctx, bool cc)
 {
     ENTER_XCORE_FUNCTION();
     RKAIQ_API_SMART_LOCK(ctx);
-#ifndef ISP_HW_V33
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
+    LOGK("cid[%d] %s: ignore !", ctx->_camPhyId, __func__, cc);
+#else
     AiqManager_setMulCamConc(ctx->_rkAiqManager, cc);
     LOGK("cid[%d] %s: cc:%d", ctx->_camPhyId, __func__, cc);
-#else
-    LOGK("cid[%d] %s: ignore !", ctx->_camPhyId, __func__, cc);
 #endif
     EXIT_XCORE_FUNCTION();
 }
@@ -1921,7 +1936,7 @@ char* rk_aiq_uapi2_sysctl_readiq(const rk_aiq_sys_ctx_t* sys_ctx, char* param)
     return ret_str;
 }
 
-#if defined(ISP_HW_V33)
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
 static XCamReturn _get_fast_aewb_from_drv(const char* sensor_name, struct rkisp33_thunderboot_resmem_head* fastAeAwbInfo)
 #else
 static XCamReturn _get_fast_aewb_from_drv(const char* sensor_name, struct rkisp32_thunderboot_resmem_head* fastAeAwbInfo)
@@ -1940,7 +1955,7 @@ static XCamReturn _get_fast_aewb_from_drv(const char* sensor_name, struct rkisp3
 	ret = AiqV4l2SubDevice_init(&IspCoreDev, s_info->isp_info->isp_dev_path);
 	if (!ret) {
 		IspCoreDev._v4l_base.open(&IspCoreDev._v4l_base, false);
-#if defined(ISP_HW_V33)
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
         if (IspCoreDev._v4l_base.io_control(&IspCoreDev._v4l_base, RKISP_CMD_GET_TB_HEAD_V33, fastAeAwbInfo) < 0)
 #else
         if (IspCoreDev._v4l_base.io_control(&IspCoreDev._v4l_base, RKISP_CMD_GET_TB_HEAD_V32, fastAeAwbInfo) < 0)
@@ -1955,7 +1970,7 @@ static XCamReturn _get_fast_aewb_from_drv(const char* sensor_name, struct rkisp3
 
 static void _set_fast_aewb_as_init(const rk_aiq_sys_ctx_t* ctx, rk_aiq_working_mode_t mode)
 {
-#if defined(ISP_HW_V33)
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     struct rkisp33_thunderboot_resmem_head fastAeAwbInfo;
 #else
     struct rkisp32_thunderboot_resmem_head fastAeAwbInfo;
@@ -2116,7 +2131,7 @@ XCamReturn rk_aiq_uapi2_sysctl_resume(rk_aiq_sys_ctx_t* sys_ctx)
     return AiqManager_setVicapStreamMode(sys_ctx->_rkAiqManager, 1, false);
 }
 
-#if defined(ISP_HW_V33)
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
 XCamReturn
 rk_aiq_user_api2_postisp_GetAttrib(const rk_aiq_sys_ctx_t* sys_ctx, postisp_api_attrib_t* attr);
 #endif
@@ -2150,7 +2165,7 @@ rk_aiq_uapi2_sysctl_getAinrParams(const rk_aiq_sys_ctx_t* sys_ctx, rk_ainr_param
         para->RawMeanluma = queryInfo.hdrExpInfo.frm1Luma;
     }
 
-#if defined(ISP_HW_V33)
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     postisp_api_attrib_t postisp_attrib = {0};
     ret = rk_aiq_user_api2_postisp_GetAttrib(sys_ctx, &postisp_attrib);
     if (ret != XCAM_RETURN_NO_ERROR)
@@ -2390,6 +2405,28 @@ void rk_aiq_uapi2_get_aiqversion_info(const rk_aiq_sys_ctx_t* ctx, rk_aiq_versio
     strcpy(vers->aiq_ver, start);
 }
 
+XCamReturn
+rk_aiq_uapi2_sysctl_setReadBackMode(rk_aiq_sys_ctx_t* ctx, bool on)
+{
+    ENTER_XCORE_FUNCTION();
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    ret = AiqCamHw_setNoReadbackMode(ctx->_camHw, on);
+    EXIT_XCORE_FUNCTION();
+
+    return ret;
+}
+
+XCamReturn
+rk_aiq_uapi2_setRawBufNum(rk_aiq_sys_ctx_t* ctx, uint16_t buf_num)
+{
+    ENTER_XCORE_FUNCTION();
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    ret = AiqCamHw_setRawBufNum(ctx->_camHw, buf_num);
+    EXIT_XCORE_FUNCTION();
+
+    return ret;
+}
+
 #ifdef USE_IMPLEMENT_C
 void rk_aiq_uapi2_get_version_info(rk_aiq_ver_info_t* vers)
 {
@@ -2515,12 +2552,18 @@ rk_aiq_uapi2_sysctl_setSnsSyncMode(const rk_aiq_sys_ctx_t* ctx, enum rkmodule_sy
 #include "rk_aiq_user_api2_af.c"
 #include "rk_aiq_user_api2_ldc.c"
 #endif
-#if defined(ISP_HW_V33)
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
 #include "rk_aiq_user_api2_enh.c"
 #include "rk_aiq_user_api2_hsv.c"
 #include "rk_aiq_user_api2_texEst.c"
 #include "rk_aiq_user_api2_ldc.c"
 #include "rk_aiq_user_api2_postisp.c"
+#endif
+#if defined(ISP_HW_V35)
+#if RKAIQ_HAVE_RGBIR_REMOSAIC
+#include "rk_aiq_user_api2_rgbir.c"
+#endif
+#include "rk_aiq_user_api2_af.c"
 #endif
 #include "rk_aiq_user_api2_aeMeas.c"
 #include "rk_aiq_user_api2_blc.c"
@@ -2553,4 +2596,5 @@ rk_aiq_uapi2_sysctl_setSnsSyncMode(const rk_aiq_sys_ctx_t* ctx, enum rkmodule_sy
 #include "../uAPI2/rk_aiq_user_ae_thread_v25_itf.c"
 #include "../uAPI2/rk_aiq_user_api2_custom2_awb.c"
 #include "rk_aiq_user_api2_deprecated.c"
+#include "rk_aiq_user_api2_ainr.c"
 #endif

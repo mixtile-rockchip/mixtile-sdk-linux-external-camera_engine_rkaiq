@@ -76,6 +76,7 @@
 
 #endif
 
+#include "common/rk_aiq_offline_raw.h"
 #include "common/rk_aiq_types_v20.h"
 #include "common/rk_aiq_types_v21.h"
 #include "common/rk_aiq_types_v3x.h" /*< v3x types */
@@ -85,6 +86,8 @@
 #if ISP_HW_V39
 #include "isp/rk_aiq_stats_awb39.h"
 #elif ISP_HW_V33
+#include "isp/rk_aiq_stats_awb33.h"
+#elif ISP_HW_V35
 #include "isp/rk_aiq_stats_awb33.h"
 #endif
 
@@ -411,6 +414,11 @@ typedef struct {
     int max_pos;
 } rk_aiq_af_focusrange;
 
+typedef struct RkAiqAinrModelBuf_s {
+    char model_file[13][64];
+    char *model_buf[13];
+} RkAiqAinrModelBuf_t;
+
 // sensor
 typedef struct {
     unsigned short line_periods_vertical_blanking;
@@ -666,17 +674,23 @@ typedef struct {
 } rk_aiq_user_otp_info_t;
 
 typedef enum {
-    RK_ISP_RKRAWSTREAM_MODE_INVALID = 0,
-    RK_ISP_RKRAWSTREAM_MODE_HALF_ONLINE,
-    RK_ISP_RKRAWSTREAM_MODE_OFFLINE,
-} rk_aiq_rkrawstream_mode_t;
+    // CIS/ISP: param  RAW: raw tream
+    RK_AIQ_CONTROL_DEFAULT,
+    RK_AIQ_CONTROL_CIS_ISP_PARAM = 1,
+    RK_AIQ_CONTROL_CIS_ISP_PARAM_AND_RAW,
+    RK_AIQ_CONTROL_ISP_PARAM_AND_RAW,
+    RK_AIQ_CONTROL_ISP_PARAM_ONLY,
+} rk_aiq_control_mode_t;
 
-typedef struct {
-    int width;
-    int height;
-    rk_aiq_format_t format;
-    rk_aiq_rkrawstream_mode_t mode;
-} rk_aiq_rkrawstream_info_t;
+typedef struct rk_aiq_ispParamOnlyCrtl_info_s {
+    rk_aiq_frame_info_t first_exp_info;
+    rk_aiq_frame_info_t second_exp_info;
+} rk_aiq_ispParamOnlyCrtl_info_t;
+
+typedef struct rk_aiq_control_preinit_s {
+    rk_aiq_control_mode_t mode;
+    rk_aiq_ispParamOnlyCrtl_info_t isp_param_only_info;
+} rk_aiq_control_preinit_t;
 
 #define RK_AIQ_CAM_GROUP_MAX_CAMS (8)
 

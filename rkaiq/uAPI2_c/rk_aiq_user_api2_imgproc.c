@@ -26,6 +26,8 @@
 #include "rk_aiq_user_api2_isp33.h"
 #elif  defined(ISP_HW_V32)
 #include "rk_aiq_user_api2_isp32.h"
+#elif  defined(ISP_HW_V35)
+#include "rk_aiq_user_api2_isp35.h"
 #endif
 #endif
 
@@ -3637,7 +3639,7 @@ XCamReturn rk_aiq_uapi2_getAwbV21AllAttrib(const rk_aiq_sys_ctx_t* ctx, rk_aiq_u
 * Focus & Zoom
 **********************************************************
 */
-#ifdef ISP_HW_V33
+#if defined(ISP_HW_V33)
 XCamReturn rk_aiq_uapi2_setFocusMode(const rk_aiq_sys_ctx_t* ctx, opMode_t mode)
 {
     LOGE("not support to call %s for current chip", __FUNCTION__);
@@ -5320,7 +5322,7 @@ XCamReturn rk_aiq_uapi2_setColorSpace(const rk_aiq_sys_ctx_t* ctx, int Cspace)
     csm_attrib.opMode = RK_AIQ_OP_MODE_MANUAL;
     cgc_attrib.opMode = RK_AIQ_OP_MODE_MANUAL;
     switch (Cspace) {
-    case 0:
+    case CSPACE_MODE_BT601_FULL:
         csm_attrib.stMan.sta.hw_csmT_full_range = true;
         csm_attrib.stMan.sta.hw_csmT_y_offset = 0;
         csm_attrib.stMan.sta.hw_csmT_c_offset = 0;
@@ -5336,7 +5338,7 @@ XCamReturn rk_aiq_uapi2_setColorSpace(const rk_aiq_sys_ctx_t* ctx, int Cspace)
         cgc_attrib.stMan.sta.cgc_ratio_en = 0;
         cgc_attrib.stMan.sta.cgc_yuv_limit = 0;
         break;
-    case 1:
+    case CSPACE_MODE_BT601_LIMIT:
         csm_attrib.stMan.sta.hw_csmT_full_range = true;
         csm_attrib.stMan.sta.hw_csmT_y_offset = 0;
         csm_attrib.stMan.sta.hw_csmT_c_offset = 0;
@@ -5352,7 +5354,7 @@ XCamReturn rk_aiq_uapi2_setColorSpace(const rk_aiq_sys_ctx_t* ctx, int Cspace)
         cgc_attrib.stMan.sta.cgc_ratio_en = 0;
         cgc_attrib.stMan.sta.cgc_yuv_limit = 1;
         break;
-    case 2:
+    case CSPACE_MODE_BT709_FULL:
         csm_attrib.stMan.sta.hw_csmT_full_range = true;
         csm_attrib.stMan.sta.hw_csmT_y_offset = 0;
         csm_attrib.stMan.sta.hw_csmT_c_offset = 0;
@@ -5368,7 +5370,7 @@ XCamReturn rk_aiq_uapi2_setColorSpace(const rk_aiq_sys_ctx_t* ctx, int Cspace)
         cgc_attrib.stMan.sta.cgc_ratio_en = 0;
         cgc_attrib.stMan.sta.cgc_yuv_limit = 0;
         break;
-    case 3:
+    case CSPACE_MODE_BT709_LIMIT:
         csm_attrib.stMan.sta.hw_csmT_full_range = true;
         csm_attrib.stMan.sta.hw_csmT_y_offset = 0;
         csm_attrib.stMan.sta.hw_csmT_c_offset = 0;
@@ -5384,11 +5386,15 @@ XCamReturn rk_aiq_uapi2_setColorSpace(const rk_aiq_sys_ctx_t* ctx, int Cspace)
         cgc_attrib.stMan.sta.cgc_ratio_en = 0;
         cgc_attrib.stMan.sta.cgc_yuv_limit = 1;
         break;
-    case 253:
+    case CSPACE_MODE_OTHER_FULL:
         csm_attrib.stMan.sta.hw_csmT_full_range = true;
+        cgc_attrib.stMan.sta.cgc_ratio_en = 0;
+        cgc_attrib.stMan.sta.cgc_yuv_limit = 0;
         break;
-    case 254:
-        csm_attrib.stMan.sta.hw_csmT_full_range = false;
+    case CSPACE_MODE_OTHER_LIMIT:
+        csm_attrib.stMan.sta.hw_csmT_full_range = true;
+        cgc_attrib.stMan.sta.cgc_ratio_en = 0;
+        cgc_attrib.stMan.sta.cgc_yuv_limit = 1;
         break;
     default:
         break;
@@ -5489,20 +5495,20 @@ XCamReturn rk_aiq_uapi2_getColorSpace(const rk_aiq_sys_ctx_t* ctx, int *Cspace)
     };
     if (cgc_attrib.stMan.sta.cgc_yuv_limit == true) {
         if (!memcmp(&csm_attrib.stMan.sta, &g_csm_601l_def, sizeof(g_csm_601l_def)))
-            *Cspace = 1;
+            *Cspace = CSPACE_MODE_BT601_LIMIT;
         else if (!memcmp(&csm_attrib.stMan.sta, &g_csm_709l_def, sizeof(g_csm_709l_def)))
-            *Cspace = 3;
+            *Cspace = CSPACE_MODE_BT709_LIMIT;
         else
-            *Cspace = 255;
+            *Cspace = CSPACE_MODE_OTHER_LIMIT;
     } else {
         if (!memcmp(&csm_attrib.stMan.sta, &g_csm_601fa_def, sizeof(g_csm_601fa_def)) ||
                 !memcmp(&csm_attrib.stMan.sta, &g_csm_601fm_def, sizeof(g_csm_601fm_def)))
-            *Cspace = 0;
+            *Cspace = CSPACE_MODE_BT601_FULL;
         else if (!memcmp(&csm_attrib.stMan.sta, &g_csm_709fa_def, sizeof(g_csm_709fa_def)) ||
                  !memcmp(&csm_attrib.stMan.sta, &g_csm_709fm_def, sizeof(g_csm_709fm_def)))
-            *Cspace = 2;
+            *Cspace = CSPACE_MODE_BT709_FULL;
         else
-            *Cspace = 255;
+            *Cspace = CSPACE_MODE_OTHER_FULL;
     }
 
     IMGPROC_FUNC_EXIT

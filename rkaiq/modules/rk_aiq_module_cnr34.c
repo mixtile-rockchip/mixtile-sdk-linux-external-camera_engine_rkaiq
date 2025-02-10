@@ -91,6 +91,8 @@ void rk_aiq_cnr34_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
     struct isp39_cnr_cfg *pFix = &isp_params->isp_cfg->others.cnr_cfg;
 #elif RKAIQ_HAVE_CNR_V35
     struct isp33_cnr_cfg *pFix = &isp_params->isp_cfg->others.cnr_cfg;
+#elif RKAIQ_HAVE_CNR_V36
+    struct isp35_cnr_cfg *pFix = &isp_params->isp_cfg->others.cnr_cfg;
 #endif
     cnr_param_t *cnr_param = (cnr_param_t *) attr;
     cnr_params_dyn_t* pdyn = &cnr_param->dyn;
@@ -106,7 +108,7 @@ void rk_aiq_cnr34_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
     pFix->yuv422_mode = 0;
     // pFix->exgain_bypass = pSelect->hw_cnrT_exgain_bypass;
     pFix->hiflt_wgt0_mode = pdyn->hiNr_bifilt.hw_cnrT_filtWgtZero_mode;
-#if RKAIQ_HAVE_CNR_V35
+#if defined(RKAIQ_HAVE_CNR_V35) || defined(RKAIQ_HAVE_CNR_V36)
     pFix->local_alpha_dis = !pdyn->hiNr_locFiltAlpha.hw_cnrT_locFiltAlpha_en;
 #endif
     pFix->loflt_coeff = (pdyn->loNrGuide_iirFilt.hw_cnrT_filtSpatial_wgt[0] & 0x01 << 0)
@@ -286,12 +288,30 @@ void rk_aiq_cnr34_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
         pFix->sgm_ratio[i] = CLIP(tmp, 0, 0xff);
     }
 
+#if RKAIQ_HAVE_CNR_V36
+    /* CNR_IIR_GLOBAL_GAIN */
+    // mode0 : global, cnr_glbSgmRatio_only_mode; mode1 : global, local, cnr_glbSgmRat_locSgmStrg_mode; mode2 : local, cnr_locSgmStrg2SgmRat_mode;	
+    if(pdyn->loNrGuide_iirFilt.sw_cnrT_rgeSgmRatio_mode == cnr_glbSgmRatio_only_mode)
+    {
+        pFix->loflt_global_sgm_ratio_alpha= 1.0 * (1 << RKCNR_V31_G_GAIN_ALPHA_FIX_BITS);
+    }
+    else if(pdyn->loNrGuide_iirFilt.sw_cnrT_rgeSgmRatio_mode == cnr_locSgmStrg2SgmRat_mode)
+    {
+        pFix->loflt_global_sgm_ratio_alpha= 0.0 * (1 << RKCNR_V31_G_GAIN_ALPHA_FIX_BITS);
+    }
+    else
+    {
+        tmp = pdyn->loNrGuide_iirFilt.hw_cnrT_glbSgmRatio_alpha * (1 << RKCNR_V31_G_GAIN_ALPHA_FIX_BITS);
+        pFix->loflt_global_sgm_ratio_alpha = CLIP(tmp, 0, 0x8);
+    }
+#else
     /* CNR_IIR_GLOBAL_GAIN */
     // ic not support iir local gain, the value is always 0x8.
     pFix->loflt_global_sgm_ratio_alpha = 0x8;
+#endif
     tmp = pdyn->loNrGuide_iirFilt.hw_cnrT_glbSgm_ratio * (1 << RKCNR_V31_sgmRatio);
     pFix->loflt_global_sgm_ratio = CLIP(tmp, 0, 0xff);
-#if RKAIQ_HAVE_CNR_V35
+#if defined(RKAIQ_HAVE_CNR_V35) || defined(RKAIQ_HAVE_CNR_V36)
     tmp = ROUND_F((1.0 - pdyn->hiNr_locFiltAlpha.hw_cnrT_locFiltAlpha_minLimit) * (1 << RKCNR_V32_FIX_BIT_GLOBAL_ALPHA));
     pFix->bf_alpha_max_limit = CLIP(tmp, 0, 0x7ff);
     tmp = ROUND_F((1.0 / sqrt(pdyn->hiNr_locFiltAlpha.hw_cnrT_locFiltAlpha_maxLimit) * (1 << 14)));
@@ -311,5 +331,11 @@ void rk_aiq_cnr34_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
         tmp = log2e / (pdyn->hw_cnrC_luma2HiNrSgm_curve.val[i] * scale);
         pFix->hiflt_vsigma[i] = CLIP(tmp, 0, 0x3fff);
     }
+#if RKAIQ_HAVE_CNR_V36
+    for (int i = 0; i < 13; i++) {
+        tmp = ROUND_F(pdyn->loNrGuide_iirFilt_locSgmRat.hw_cnrT_locSgmStrg2SgmRat_val[i] * (1 << RKCNR_V31_sgmRatio));
+        pFix->lo_flt_vsigma[i] = CLIP(tmp, 0, 0xff);
+    }
+#endif
     return;
 }

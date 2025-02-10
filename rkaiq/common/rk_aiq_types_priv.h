@@ -471,6 +471,8 @@ enum cam_thread_type_e {
     VICAP_WITH_RK1608_RESET_EVT,
     VICAP_POLL_SCL,
     ISP_POLL_AIISP,
+    ISP_POLL_AINR_DONE,
+    ISP_POLL_RKNN_DONE,
     ISP_POLL_POST_MAX,
 };
 
@@ -501,6 +503,7 @@ enum cam_thread_type_e {
 #define VIPCAP_TX_BUF_NUM_1608 6    // For mount 3 sensor, is mount 4 sensor, is 7
 
 typedef struct {
+    char driver[16];
     int  model_idx;
     int  logic_id;
     int  phy_id; // physical isp id
@@ -923,7 +926,7 @@ typedef struct _RkAiqBay3dStat {
     struct isp39_bay3d_stat stat;
 } RkAiqBay3dStat;
 
-typedef enum _RkAiqIspUnitedMode {
+typedef enum _RkAiqIspUniteMode {
     RK_AIQ_ISP_UNITE_MODE_NORMAL = 0,
     RK_AIQ_ISP_UNITE_MODE_TWO_GRID,
     RK_AIQ_ISP_UNITE_MODE_FOUR_GRID,

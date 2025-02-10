@@ -313,7 +313,7 @@ XCamReturn YnrApplyStrength
 }
 #endif
 
-#if RKAIQ_HAVE_YNR_V40
+#if defined(RKAIQ_HAVE_YNR_V40) || defined(RKAIQ_HAVE_YNR_V41)
 XCamReturn YnrSelectParam
 (
     YnrContext_t *pYnrCtx,
@@ -399,10 +399,18 @@ XCamReturn YnrSelectParam
     out->dyn.midLoNr.mf.sw_ynrT_filtCfg_mode = paut->dyn[inear].midLoNr.mf.sw_ynrT_filtCfg_mode;
     out->dyn.midLoNr.mf.sw_ynr_filtSpatial_strg = interpolation_f32(
                 paut->dyn[ilow].midLoNr.mf.sw_ynr_filtSpatial_strg, paut->dyn[ihigh].midLoNr.mf.sw_ynr_filtSpatial_strg, ratio);
+#if defined(RKAIQ_HAVE_YNR_V40)
     for (i = 0; i < 3; i++) {
         out->dyn.midLoNr.mf.sw_ynr_filtSpatial_wgt[i] = interpolation_f32(
                     paut->dyn[ilow].midLoNr.mf.sw_ynr_filtSpatial_wgt[i], paut->dyn[ihigh].midLoNr.mf.sw_ynr_filtSpatial_wgt[i], ratio);
     }
+#endif
+#if defined(RKAIQ_HAVE_YNR_V41)
+    for (i = 0; i < 5; i++) {
+        out->dyn.midLoNr.mf.sw_ynr_filtSpatial_wgt[i] = interpolation_f32(
+                    paut->dyn[ilow].midLoNr.mf.sw_ynr_filtSpatial_wgt[i], paut->dyn[ihigh].midLoNr.mf.sw_ynr_filtSpatial_wgt[i], ratio);
+    }
+#endif
     out->dyn.midLoNr.mf.sw_ynr_rgeSgm_scale = interpolation_f32(
                 paut->dyn[ilow].midLoNr.mf.sw_ynr_rgeSgm_scale, paut->dyn[ihigh].midLoNr.mf.sw_ynr_rgeSgm_scale, ratio);
     out->dyn.midLoNr.mf.sw_ynr_centerPix_wgt = interpolation_f32(
@@ -443,6 +451,30 @@ XCamReturn YnrSelectParam
         out->dyn.midLoNr.locNrStrg.hw_ynrT_locSgmStrg2NrOut_alpha[i] = interpolation_f32(
                     paut->dyn[ilow].midLoNr.locNrStrg.hw_ynrT_locSgmStrg2NrOut_alpha[i], paut->dyn[ihigh].midLoNr.locNrStrg.hw_ynrT_locSgmStrg2NrOut_alpha[i], ratio);
     }
+
+#if defined(RKAIQ_HAVE_YNR_V41)
+    out->dyn.midLoNr.hw_ynrT_tex2NrOutAlpha_en = paut->dyn[inear].midLoNr.hw_ynrT_tex2NrOutAlpha_en;
+    for (i = 0; i < 9; i++) {
+        out->dyn.midLoNr.mf.tex2NrOutAlpha[i] = interpolation_f32(
+                    paut->dyn[ilow].midLoNr.mf.tex2NrOutAlpha[i], paut->dyn[ihigh].midLoNr.mf.tex2NrOutAlpha[i], ratio);
+    }
+    for (i = 0; i < 9; i++) {
+        out->dyn.midLoNr.lf.epf.tex2NrOutAlpha[i] = interpolation_f32(
+                    paut->dyn[ilow].midLoNr.lf.epf.tex2NrOutAlpha[i], paut->dyn[ihigh].midLoNr.lf.epf.tex2NrOutAlpha[i], ratio);
+    }
+    out->dyn.midLoNr.lf.epf.hw_ynrT_alphaLfTex_scale = interpolation_f32(
+                paut->dyn[ilow].midLoNr.lf.epf.hw_ynrT_alphaLfTex_scale, paut->dyn[ihigh].midLoNr.lf.epf.hw_ynrT_alphaLfTex_scale, ratio);
+
+    out->dyn.midLoNr.lf.dsFlt.hw_ynrT_dsFlt_en = paut->dyn[inear].midLoNr.lf.dsFlt.hw_ynrT_dsFlt_en;
+    out->dyn.midLoNr.lf.dsFlt.hw_ynrT_dsFlt_strg = interpolation_f32(
+                paut->dyn[ilow].midLoNr.lf.dsFlt.hw_ynrT_dsFlt_strg, paut->dyn[ihigh].midLoNr.lf.dsFlt.hw_ynrT_dsFlt_strg, ratio);
+    out->dyn.midLoNr.lf.dsFlt.hw_ynrT_diff_offset = interpolation_f32(
+                paut->dyn[ilow].midLoNr.lf.dsFlt.hw_ynrT_diff_offset, paut->dyn[ihigh].midLoNr.lf.dsFlt.hw_ynrT_diff_offset, ratio);
+    out->dyn.midLoNr.lf.dsFlt.hw_ynrT_centerPix_wgt = interpolation_f32(
+                paut->dyn[ilow].midLoNr.lf.dsFlt.hw_ynrT_centerPix_wgt, paut->dyn[ihigh].midLoNr.lf.dsFlt.hw_ynrT_centerPix_wgt, ratio);
+
+#endif
+
     return XCAM_RETURN_NO_ERROR;
 }
 
@@ -637,7 +669,7 @@ XCamReturn Aynr_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
 #if RKAIQ_HAVE_YNR_V24
         ynr_init_params_json_V24(pYnrCtx->ynr_attrib);
 #endif
-#if RKAIQ_HAVE_YNR_V40
+#if defined(RKAIQ_HAVE_YNR_V40) || defined(RKAIQ_HAVE_YNR_V41)
         ynr_init_params_json_V40(pYnrCtx->ynr_attrib);
 #endif
         pYnrCtx->init_json = false;
@@ -656,7 +688,7 @@ XCamReturn Aynr_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
         YnrSelectParam(pYnrCtx, ynr_res, iso);
         YnrApplyStrength(pYnrCtx, ynr_res);
 #endif
-#if RKAIQ_HAVE_YNR_V40
+#if defined(RKAIQ_HAVE_YNR_V40) || defined(RKAIQ_HAVE_YNR_V41)
         YnrSelectParam(pYnrCtx, ynr_res, iso);
         YnrApplyStrength(pYnrCtx, ynr_res);
 #endif

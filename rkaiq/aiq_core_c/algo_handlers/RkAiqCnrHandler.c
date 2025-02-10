@@ -64,7 +64,7 @@ static XCamReturn _handlerCnr_processing(AiqAlgoHandler_t* pAlgoHandler) {
         RKAIQCORE_CHECK_RET(ret, "cnr handle processing failed");
     }
 
-#if defined(ISP_HW_V39) || defined(ISP_HW_V33)
+#if defined(ISP_HW_V39) || defined(ISP_HW_V33) || defined(ISP_HW_V35)
     RkAiqAlgoProcCnr* cnr_proc_param = (RkAiqAlgoProcCnr*)pAlgoHandler->mProcInParam;
     cnr_proc_param->blc_ob_predgain = 1.0;
 #else

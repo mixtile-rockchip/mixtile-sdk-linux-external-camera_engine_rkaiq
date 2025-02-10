@@ -588,7 +588,7 @@ void rk_aiq_btnr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
             uint16_t* pLowX = btnr_attrib->stAuto.dyn[ilow].sigmaEnv.hw_btnrC_mdSigma_curve.idx;
             uint16_t* pHighX = btnr_attrib->stAuto.dyn[ihigh].sigmaEnv.hw_btnrC_mdSigma_curve.idx;
             uint16_t* pSigmaX = pFix->tnr_luma_sigma_x;
-            uint16_t* pSigmaY = pFix->tnr_luma_sigma_y;
+            uint16_t* pSigmaY = pTransParams->tnr_luma_sigma_y;
             bayertnr_sigmaY_interpolate(pSigmaX, pSigmaY, pLowX, pHighX, pLowY, pHighY, sigbins, iso_ratio);
         }
     } else {

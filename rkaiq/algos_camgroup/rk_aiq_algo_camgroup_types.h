@@ -204,7 +204,7 @@ typedef struct rk_aiq_singlecam_3a_result_s {
 
 #if USE_NEWSTRUCT
     sharp_param_t* sharp;
-#if RKAIQ_HAVE_SHARP_V40
+#if defined(RKAIQ_HAVE_SHARP_V40)  || defined(RKAIQ_HAVE_SHARP_V41)
     texEst_param_t* texEst;
 #endif
 #else
@@ -231,6 +231,9 @@ typedef struct rk_aiq_singlecam_3a_result_s {
             RK_YUVME_Fix_V1_t*  _ayuvme_procRes_v1;
         };
     } ayuvme;
+#if RKAIQ_HAVE_AINR
+    rk_aiq_isp_ainr_params_t *isp_ainr_params;
+#endif
 
     //otp info
     struct rkmodule_awb_inf _otp_awb;

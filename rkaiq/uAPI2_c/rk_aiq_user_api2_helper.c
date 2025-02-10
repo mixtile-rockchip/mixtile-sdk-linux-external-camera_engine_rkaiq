@@ -37,6 +37,8 @@
 #include "rk_aiq_user_api2_isp32.h"
 #elif  defined(ISP_HW_V33)
 #include "rk_aiq_user_api2_isp33.h"
+#elif  defined(ISP_HW_V35)
+#include "rk_aiq_user_api2_isp35.h"
 #endif
 
 #include "socket_client.h"
@@ -596,7 +598,7 @@ RkAiqUapiDesc_t rkaiq_uapidesc_list[] = {
     __RKAIQUAPI_DESC_DEF("/uapi/0/ccm_uapi/calibdb", accm_ccmCalib_t, rk_aiq_user_api2_ccm_SetCalib, rk_aiq_user_api2_ccm_GetCalib),
     __RKAIQUAPI_DESC_DEF("/uapi/0/ccm_uapi/info", ccm_status_t, NULL, rk_aiq_user_api2_ccm_QueryStatus),
 #endif
-#if defined(ISP_HW_V33)
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     __RKAIQUAPI_DESC_DEF("/uapi/0/texEst_uapi/attr", texEst_api_attrib_t, rk_aiq_user_api2_texEst_SetAttrib, rk_aiq_user_api2_texEst_GetAttrib),
     __RKAIQUAPI_DESC_DEF("/uapi/0/texEst_uapi/info", texEst_status_t, NULL, rk_aiq_user_api2_texEst_QueryStatus),
     __RKAIQUAPI_DESC_DEF("/uapi/0/postisp_uapi/attr", postisp_api_attrib_t, rk_aiq_user_api2_postisp_SetAttrib, rk_aiq_user_api2_postisp_GetAttrib),
@@ -614,8 +616,12 @@ RkAiqUapiDesc_t rkaiq_uapidesc_list[] = {
 #if defined(ISP_HW_V32_LITE)
     __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/calib", CalibDbV2_AFV32_Tuning_Para_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
 #endif
-#if defined(ISP_HW_V39)
+#if defined(ISP_HW_V39) || defined(ISP_HW_V35)
     __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/calib", CalibDbV2_AFV33_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
+#endif
+#if RKAIQ_HAVE_AINR
+    __RKAIQUAPI_DESC_DEF("/uapi/0/ainr_uapi/attr", ainr_api_attrib_t, rk_aiq_user_api2_ainr_SetAttrib, rk_aiq_user_api2_ainr_GetAttrib),
+    __RKAIQUAPI_DESC_DEF("/uapi/0/ainr_uapi/info", ainr_status_t, NULL, rk_aiq_user_api2_ainr_QueryStatus),
 #endif
 };
 /***********************END OF CUSTOM AREA**************************/

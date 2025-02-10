@@ -156,6 +156,8 @@ XCamReturn BtnrSelectParam
     else
         inear = ilow;
 
+    out->sta.debug.predgainWkArd.hw_btnrT_predgain_curve[0] = interpolation_f32(
+                paut->sta.debug.predgainWkArd.hw_btnrT_predgain_curve[ilow], paut->sta.debug.predgainWkArd.hw_btnrT_predgain_curve[ihigh], ratio);
     {
         out->dyn.sigmaEnv.hw_btnrT_statsPixAlpha_thred = interpolation_f32(
                     paut->dyn[ilow].sigmaEnv.hw_btnrT_statsPixAlpha_thred, paut->dyn[ihigh].sigmaEnv.hw_btnrT_statsPixAlpha_thred, ratio);
@@ -356,7 +358,7 @@ XCamReturn BtnrApplyStrength
 }
 #endif
 
-#if RKAIQ_HAVE_BAYERTNR_V41
+#if defined(RKAIQ_HAVE_BAYERTNR_V41) || defined(RKAIQ_HAVE_BAYERTNR_V42)
 XCamReturn BtnrSelectParam
 (
     BtnrContext_t *pBtnrCtx,
@@ -385,6 +387,8 @@ XCamReturn BtnrSelectParam
         inear = ilow;
 
     out->sta = paut->sta;
+    out->sta.debug.predgainWkArd.hw_btnrT_predgain_curve[0] = interpolation_f32(
+                paut->sta.debug.predgainWkArd.hw_btnrT_predgain_curve[ilow], paut->sta.debug.predgainWkArd.hw_btnrT_predgain_curve[ihigh], ratio);
     out->mdMeDyn = paut->mdMeDyn[inear];
     out->spNrDyn = paut->spNrDyn[inear];
 
@@ -392,10 +396,108 @@ XCamReturn BtnrSelectParam
                 paut->mdMeDyn[ilow].mdSigma.hw_btnrT_sigma_scale, paut->mdMeDyn[ihigh].mdSigma.hw_btnrT_sigma_scale, ratio);
     out->mdMeDyn.mdSigma.hw_btnrT_sigmaHdrS_scale = interpolation_f32(
                 paut->mdMeDyn[ilow].mdSigma.hw_btnrT_sigmaHdrS_scale, paut->mdMeDyn[ihigh].mdSigma.hw_btnrT_sigmaHdrS_scale, ratio);
-    out->spNrDyn.preSpNr.sigma.hw_btnrT_sigma_scale = interpolation_f32(
-                paut->spNrDyn[ilow].preSpNr.sigma.hw_btnrT_sigma_scale, paut->spNrDyn[ihigh].preSpNr.sigma.hw_btnrT_sigma_scale, ratio);
-    out->spNrDyn.preSpNr.sigma.hw_btnrT_sigmaHdrS_scale = interpolation_f32(
-                paut->spNrDyn[ilow].preSpNr.sigma.hw_btnrT_sigmaHdrS_scale, paut->spNrDyn[ihigh].preSpNr.sigma.hw_btnrT_sigmaHdrS_scale, ratio);
+    out->mdMeDyn.mdSigma.hw_btnrT_sigmaIdxFilt_strg = interpolation_f32(
+                paut->mdMeDyn[ilow].mdSigma.hw_btnrT_sigmaIdxFilt_strg, paut->mdMeDyn[ihigh].mdSigma.hw_btnrT_sigmaIdxFilt_strg, ratio);
+
+    out->mdMeDyn.subLoMd0.diffCh.hw_btnrT_vIIRFstLn_scale = interpolation_f32(
+                paut->mdMeDyn[ilow].subLoMd0.diffCh.hw_btnrT_vIIRFstLn_scale, paut->mdMeDyn[ihigh].subLoMd0.diffCh.hw_btnrT_vIIRFstLn_scale, ratio);
+    out->mdMeDyn.subLoMd0.diffCh.hw_btnrT_vIIRFilt_strg = interpolation_f32(
+                paut->mdMeDyn[ilow].subLoMd0.diffCh.hw_btnrT_vIIRFilt_strg, paut->mdMeDyn[ihigh].subLoMd0.diffCh.hw_btnrT_vIIRFilt_strg, ratio);
+    out->mdMeDyn.subLoMd0.diffCh.hw_btnrT_vIIRWgt_scale = interpolation_f32(
+                paut->mdMeDyn[ilow].subLoMd0.diffCh.hw_btnrT_vIIRWgt_scale, paut->mdMeDyn[ihigh].subLoMd0.diffCh.hw_btnrT_vIIRWgt_scale, ratio);
+    out->mdMeDyn.subLoMd0.diffCh.hw_btnrT_vIIRWgt_offset = interpolation_f32(
+                paut->mdMeDyn[ilow].subLoMd0.diffCh.hw_btnrT_vIIRWgt_offset, paut->mdMeDyn[ihigh].subLoMd0.diffCh.hw_btnrT_vIIRWgt_offset, ratio);
+    out->mdMeDyn.subLoMd0.sgmCh.hw_btnrT_vIIRFstLn_scale = interpolation_f32(
+                paut->mdMeDyn[ilow].subLoMd0.sgmCh.hw_btnrT_vIIRFstLn_scale, paut->mdMeDyn[ihigh].subLoMd0.sgmCh.hw_btnrT_vIIRFstLn_scale, ratio);
+    out->mdMeDyn.subLoMd0.wgtOpt.hw_btnrT_mdWgt_negOff = interpolation_f32(
+                paut->mdMeDyn[ilow].subLoMd0.wgtOpt.hw_btnrT_mdWgt_negOff, paut->mdMeDyn[ihigh].subLoMd0.wgtOpt.hw_btnrT_mdWgt_negOff, ratio);
+    out->mdMeDyn.subLoMd0.wgtOpt.hw_btnrT_mdWgt_scale = interpolation_f32(
+                paut->mdMeDyn[ilow].subLoMd0.wgtOpt.hw_btnrT_mdWgt_scale, paut->mdMeDyn[ihigh].subLoMd0.wgtOpt.hw_btnrT_mdWgt_scale, ratio);
+
+    out->mdMeDyn.subLoMd1.sw_btnrT_lpf_strg = interpolation_f32(
+                paut->mdMeDyn[ilow].subLoMd1.sw_btnrT_lpf_strg, paut->mdMeDyn[ihigh].subLoMd1.sw_btnrT_lpf_strg, ratio);
+    out->mdMeDyn.subLoMd1.hw_btnrT_mdWgt_maxLimit = interpolation_f32(
+                paut->mdMeDyn[ilow].subLoMd1.hw_btnrT_mdWgt_maxLimit, paut->mdMeDyn[ihigh].subLoMd1.hw_btnrT_mdWgt_maxLimit, ratio);
+    out->mdMeDyn.subLoMd1.hw_btnrT_mdWgt_negOff = interpolation_f32(
+                paut->mdMeDyn[ilow].subLoMd1.hw_btnrT_mdWgt_negOff, paut->mdMeDyn[ihigh].subLoMd1.hw_btnrT_mdWgt_negOff, ratio);
+    out->mdMeDyn.subLoMd1.hw_btnrT_mdWgtFstLn_negOff = interpolation_f32(
+                paut->mdMeDyn[ilow].subLoMd1.hw_btnrT_mdWgtFstLn_negOff, paut->mdMeDyn[ihigh].subLoMd1.hw_btnrT_mdWgtFstLn_negOff, ratio);
+    out->mdMeDyn.subLoMd1.hw_btnrT_mdWgt_scale = interpolation_f32(
+                paut->mdMeDyn[ilow].subLoMd1.hw_btnrT_mdWgt_scale, paut->mdMeDyn[ihigh].subLoMd1.hw_btnrT_mdWgt_scale, ratio);
+    out->mdMeDyn.subLoMd1.hw_btnrT_vIIRFilt_strg = interpolation_f32(
+                paut->mdMeDyn[ilow].subLoMd1.hw_btnrT_vIIRFilt_strg, paut->mdMeDyn[ihigh].subLoMd1.hw_btnrT_vIIRFilt_strg, ratio);
+    out->mdMeDyn.subLoMd1.hw_btnrT_vIIRWgt_scale = interpolation_f32(
+                paut->mdMeDyn[ilow].subLoMd1.hw_btnrT_vIIRWgt_scale, paut->mdMeDyn[ihigh].subLoMd1.hw_btnrT_vIIRWgt_scale, ratio);
+    out->mdMeDyn.subLoMd1.hw_btnrT_vIIRWgt_offset = interpolation_f32(
+                paut->mdMeDyn[ilow].subLoMd1.hw_btnrT_vIIRWgt_offset, paut->mdMeDyn[ihigh].subLoMd1.hw_btnrT_vIIRWgt_offset, ratio);
+
+    out->mdMeDyn.subDeepLoMd.hw_btnrT_wgt_scale = interpolation_f32(
+                paut->mdMeDyn[ilow].subDeepLoMd.hw_btnrT_wgt_scale, paut->mdMeDyn[ihigh].subDeepLoMd.hw_btnrT_wgt_scale, ratio);
+    out->mdMeDyn.subDeepLoMd.hw_btnrT_wgt_offset = interpolation_f32(
+                paut->mdMeDyn[ilow].subDeepLoMd.hw_btnrT_wgt_offset, paut->mdMeDyn[ihigh].subDeepLoMd.hw_btnrT_wgt_offset, ratio);
+    out->mdMeDyn.subDeepLoMd.sw_btnrT_wgt2FusionLmt_negOff = interpolation_f32(
+                paut->mdMeDyn[ilow].subDeepLoMd.sw_btnrT_wgt2FusionLmt_negOff, paut->mdMeDyn[ihigh].subDeepLoMd.sw_btnrT_wgt2FusionLmt_negOff, ratio);
+    out->mdMeDyn.subDeepLoMd.sw_btnrT_wgt2FusionLmt_scale = interpolation_f32(
+                paut->mdMeDyn[ilow].subDeepLoMd.sw_btnrT_wgt2FusionLmt_scale, paut->mdMeDyn[ihigh].subDeepLoMd.sw_btnrT_wgt2FusionLmt_scale, ratio);
+    out->mdMeDyn.subDeepLoMd.hw_btnrT_wgt2FussionLmt_offset = interpolation_f32(
+                paut->mdMeDyn[ilow].subDeepLoMd.hw_btnrT_wgt2FussionLmt_offset, paut->mdMeDyn[ihigh].subDeepLoMd.hw_btnrT_wgt2FussionLmt_offset, ratio);
+
+    out->mdMeDyn.loMd.hw_btnrT_preWgtMge_scale = interpolation_f32(
+                paut->mdMeDyn[ilow].loMd.hw_btnrT_preWgtMge_scale, paut->mdMeDyn[ihigh].loMd.hw_btnrT_preWgtMge_scale, ratio);
+    out->mdMeDyn.loMd.hw_btnrT_preWgtMge_offset = interpolation_f32(
+                paut->mdMeDyn[ilow].loMd.hw_btnrT_preWgtMge_offset, paut->mdMeDyn[ihigh].loMd.hw_btnrT_preWgtMge_offset, ratio);
+
+    out->mdMeDyn.loAsRatio_hiMd0.sw_btnrT_hfLpf_strg = interpolation_f32(
+                paut->mdMeDyn[ilow].loAsRatio_hiMd0.sw_btnrT_hfLpf_strg, paut->mdMeDyn[ihigh].loAsRatio_hiMd0.sw_btnrT_hfLpf_strg, ratio);
+    out->mdMeDyn.loAsRatio_hiMd0.hw_btnrT_loWgtStat_scale = interpolation_f32(
+                paut->mdMeDyn[ilow].loAsRatio_hiMd0.hw_btnrT_loWgtStat_scale, paut->mdMeDyn[ihigh].loAsRatio_hiMd0.hw_btnrT_loWgtStat_scale, ratio);
+    out->mdMeDyn.loAsRatio_hiMd0.hw_btnrT_loWgtStatHdrS_scale = interpolation_f32(
+                paut->mdMeDyn[ilow].loAsRatio_hiMd0.hw_btnrT_loWgtStatHdrS_scale, paut->mdMeDyn[ihigh].loAsRatio_hiMd0.hw_btnrT_loWgtStatHdrS_scale, ratio);
+    out->mdMeDyn.loAsRatio_hiMd0.hw_btnrT_hiNsBase_ratio = interpolation_f32(
+                paut->mdMeDyn[ilow].loAsRatio_hiMd0.hw_btnrT_hiNsBase_ratio, paut->mdMeDyn[ihigh].loAsRatio_hiMd0.hw_btnrT_hiNsBase_ratio, ratio);
+    out->mdMeDyn.loAsRatio_hiMd0.hw_btnrT_mdWgt_maxLimit = interpolation_f32(
+                paut->mdMeDyn[ilow].loAsRatio_hiMd0.hw_btnrT_mdWgt_maxLimit, paut->mdMeDyn[ihigh].loAsRatio_hiMd0.hw_btnrT_mdWgt_maxLimit, ratio);
+
+    out->mdMeDyn.mdWgtFilt.hw_btnrT_mdWgt_offset = interpolation_f32(
+                paut->mdMeDyn[ilow].mdWgtFilt.hw_btnrT_mdWgt_offset, paut->mdMeDyn[ihigh].mdWgtFilt.hw_btnrT_mdWgt_offset, ratio);
+
+    out->mdMeDyn.loAsBias_hiMd1.hw_btnrT_loWgtStat_scale = interpolation_f32(
+                paut->mdMeDyn[ilow].loAsBias_hiMd1.hw_btnrT_loWgtStat_scale, paut->mdMeDyn[ihigh].loAsBias_hiMd1.hw_btnrT_loWgtStat_scale, ratio);
+    out->mdMeDyn.loAsBias_hiMd1.hw_btnrT_loWgtStatHdrS_scale = interpolation_f32(
+                paut->mdMeDyn[ilow].loAsBias_hiMd1.hw_btnrT_loWgtStatHdrS_scale, paut->mdMeDyn[ihigh].loAsBias_hiMd1.hw_btnrT_loWgtStatHdrS_scale, ratio);
+    out->mdMeDyn.loAsBias_hiMd1.hw_btnrT_loWgtStat_negOff = interpolation_f32(
+                paut->mdMeDyn[ilow].loAsBias_hiMd1.hw_btnrT_loWgtStat_negOff, paut->mdMeDyn[ihigh].loAsBias_hiMd1.hw_btnrT_loWgtStat_negOff, ratio);
+    out->mdMeDyn.loAsBias_hiMd1.hw_btnrT_loWgtStatHdrS_negOff = interpolation_f32(
+                paut->mdMeDyn[ilow].loAsBias_hiMd1.hw_btnrT_loWgtStatHdrS_negOff, paut->mdMeDyn[ihigh].loAsBias_hiMd1.hw_btnrT_loWgtStatHdrS_negOff, ratio);
+    out->mdMeDyn.loAsBias_hiMd1.hw_btnrT_mdWgt_offset = interpolation_f32(
+                paut->mdMeDyn[ilow].loAsBias_hiMd1.hw_btnrT_mdWgt_offset, paut->mdMeDyn[ihigh].loAsBias_hiMd1.hw_btnrT_mdWgt_offset, ratio);
+    out->mdMeDyn.loAsBias_hiMd1.hw_btnrT_mdWgt_minLimit = interpolation_f32(
+                paut->mdMeDyn[ilow].loAsBias_hiMd1.hw_btnrT_mdWgt_minLimit, paut->mdMeDyn[ihigh].loAsBias_hiMd1.hw_btnrT_mdWgt_minLimit, ratio);
+    out->mdMeDyn.loAsBias_hiMd1.hw_btnrT_mdWgt_maxLimit = interpolation_f32(
+                paut->mdMeDyn[ilow].loAsBias_hiMd1.hw_btnrT_mdWgt_maxLimit, paut->mdMeDyn[ihigh].loAsBias_hiMd1.hw_btnrT_mdWgt_maxLimit, ratio);
+    out->mdMeDyn.loAsBias_hiMd1.hw_btnrT_mdWgt_scale = interpolation_f32(
+                paut->mdMeDyn[ilow].loAsBias_hiMd1.hw_btnrT_mdWgt_scale, paut->mdMeDyn[ihigh].loAsBias_hiMd1.hw_btnrT_mdWgt_scale, ratio);
+    out->mdMeDyn.loAsBias_hiMd1.hw_btnrT_mdWgtHdrS_scale = interpolation_f32(
+                paut->mdMeDyn[ilow].loAsBias_hiMd1.hw_btnrT_mdWgtHdrS_scale, paut->mdMeDyn[ihigh].loAsBias_hiMd1.hw_btnrT_mdWgtHdrS_scale, ratio);
+
+    out->mdMeDyn.frmFusion.hw_btnrT_loFusion_minLimit = interpolation_f32(
+                paut->mdMeDyn[ilow].frmFusion.hw_btnrT_loFusion_minLimit, paut->mdMeDyn[ihigh].frmFusion.hw_btnrT_loFusion_minLimit, ratio);
+    out->mdMeDyn.frmFusion.hw_btnrT_loMotion_maxLimit = interpolation_f32(
+                paut->mdMeDyn[ilow].frmFusion.hw_btnrT_loMotion_maxLimit, paut->mdMeDyn[ihigh].frmFusion.hw_btnrT_loMotion_maxLimit, ratio);
+    out->mdMeDyn.frmFusion.hw_btnrT_loFusion_maxLimit = interpolation_f32(
+                paut->mdMeDyn[ilow].frmFusion.hw_btnrT_loFusion_maxLimit, paut->mdMeDyn[ihigh].frmFusion.hw_btnrT_loFusion_maxLimit, ratio);
+    out->mdMeDyn.frmFusion.hw_btnrT_loFusionHdrS_minLimit = interpolation_f32(
+                paut->mdMeDyn[ilow].frmFusion.hw_btnrT_loFusionHdrS_minLimit, paut->mdMeDyn[ihigh].frmFusion.hw_btnrT_loFusionHdrS_minLimit, ratio);
+    out->mdMeDyn.frmFusion.hw_btnrT_loFusionHdrS_maxLimit = interpolation_f32(
+                paut->mdMeDyn[ilow].frmFusion.hw_btnrT_loFusionHdrS_maxLimit, paut->mdMeDyn[ihigh].frmFusion.hw_btnrT_loFusionHdrS_maxLimit, ratio);
+    out->mdMeDyn.frmFusion.hw_btnrT_loRbSoftThd_scale = interpolation_f32(
+                paut->mdMeDyn[ilow].frmFusion.hw_btnrT_loRbSoftThd_scale, paut->mdMeDyn[ihigh].frmFusion.hw_btnrT_loRbSoftThd_scale, ratio);
+    out->mdMeDyn.frmFusion.hw_btnrT_loGgSoftThd_scale = interpolation_f32(
+                paut->mdMeDyn[ilow].frmFusion.hw_btnrT_loGgSoftThd_scale, paut->mdMeDyn[ihigh].frmFusion.hw_btnrT_loGgSoftThd_scale, ratio);
+    out->mdMeDyn.frmFusion.hw_btnrT_loSoftThd_minLimit = interpolation_f32(
+                paut->mdMeDyn[ilow].frmFusion.hw_btnrT_loSoftThd_minLimit, paut->mdMeDyn[ihigh].frmFusion.hw_btnrT_loSoftThd_minLimit, ratio);
+    out->mdMeDyn.frmFusion.hw_btnrT_loSoftThd_maxLimit = interpolation_f32(
+                paut->mdMeDyn[ilow].frmFusion.hw_btnrT_loSoftThd_maxLimit, paut->mdMeDyn[ihigh].frmFusion.hw_btnrT_loSoftThd_maxLimit, ratio);
 
     out->spNrDyn.sigmaEnv.sw_btnrT_autoSgmIIR_alpha = interpolation_f32(
                 paut->spNrDyn[ilow].sigmaEnv.sw_btnrT_autoSgmIIR_alpha, paut->spNrDyn[ihigh].sigmaEnv.sw_btnrT_autoSgmIIR_alpha, ratio);
@@ -410,6 +512,118 @@ XCamReturn BtnrSelectParam
         out->spNrDyn.sigmaEnv.hw_btnrC_preSpNrSgm_curve.val[i] = interpolation_f32(
                     paut->spNrDyn[ilow].sigmaEnv.hw_btnrC_preSpNrSgm_curve.val[i], paut->spNrDyn[ihigh].sigmaEnv.hw_btnrC_preSpNrSgm_curve.val[i], ratio);
     }
+
+    out->spNrDyn.curSpNr.sw_btnrT_filtSpatial_strg = interpolation_f32(
+                paut->spNrDyn[ilow].curSpNr.sw_btnrT_filtSpatial_strg, paut->spNrDyn[ihigh].curSpNr.sw_btnrT_filtSpatial_strg, ratio);
+
+    out->spNrDyn.preSpNr.sigma.hw_btnrT_preSigma_scale = interpolation_f32(
+                paut->spNrDyn[ilow].preSpNr.sigma.hw_btnrT_preSigma_scale, paut->spNrDyn[ihigh].preSpNr.sigma.hw_btnrT_preSigma_scale, ratio);
+    out->spNrDyn.preSpNr.sigma.hw_btnrT_sigma_scale = interpolation_f32(
+                paut->spNrDyn[ilow].preSpNr.sigma.hw_btnrT_sigma_scale, paut->spNrDyn[ihigh].preSpNr.sigma.hw_btnrT_sigma_scale, ratio);
+    out->spNrDyn.preSpNr.sigma.hw_btnrT_sigmaHdrS_scale = interpolation_f32(
+                paut->spNrDyn[ilow].preSpNr.sigma.hw_btnrT_sigmaHdrS_scale, paut->spNrDyn[ihigh].preSpNr.sigma.hw_btnrT_sigmaHdrS_scale, ratio);
+    out->spNrDyn.preSpNr.sigma.hw_btnrT_sigma_offset = interpolation_f32(
+                paut->spNrDyn[ilow].preSpNr.sigma.hw_btnrT_sigma_offset, paut->spNrDyn[ihigh].preSpNr.sigma.hw_btnrT_sigma_offset, ratio);
+    out->spNrDyn.preSpNr.sigma.hw_btnrT_sigmaHdrS_offset = interpolation_f32(
+                paut->spNrDyn[ilow].preSpNr.sigma.hw_btnrT_sigmaHdrS_offset, paut->spNrDyn[ihigh].preSpNr.sigma.hw_btnrT_sigmaHdrS_offset, ratio);
+
+    out->spNrDyn.preSpNr.hiNr.hw_btnrT_guideLpf3_alpha = interpolation_f32(
+                paut->spNrDyn[ilow].preSpNr.hiNr.hw_btnrT_guideLpf3_alpha, paut->spNrDyn[ihigh].preSpNr.hiNr.hw_btnrT_guideLpf3_alpha, ratio);
+    out->spNrDyn.preSpNr.hiNr.hw_btnrT_guideNsCtrl_scale = interpolation_f32(
+                paut->spNrDyn[ilow].preSpNr.hiNr.hw_btnrT_guideNsCtrl_scale, paut->spNrDyn[ihigh].preSpNr.hiNr.hw_btnrT_guideNsCtrl_scale, ratio);
+    out->spNrDyn.preSpNr.hiNr.hw_btnrT_guideNsCtrl_offset = interpolation_f32(
+                paut->spNrDyn[ilow].preSpNr.hiNr.hw_btnrT_guideNsCtrl_offset, paut->spNrDyn[ihigh].preSpNr.hiNr.hw_btnrT_guideNsCtrl_offset, ratio);
+    out->spNrDyn.preSpNr.hiNr.sw_btnrT_filtSpatial_strg = interpolation_f32(
+                paut->spNrDyn[ilow].preSpNr.hiNr.sw_btnrT_filtSpatial_strg, paut->spNrDyn[ihigh].preSpNr.hiNr.sw_btnrT_filtSpatial_strg, ratio);
+    out->spNrDyn.preSpNr.hiNr.hw_btnrT_rgeSgm_scale = interpolation_f32(
+                paut->spNrDyn[ilow].preSpNr.hiNr.hw_btnrT_rgeSgm_scale, paut->spNrDyn[ihigh].preSpNr.hiNr.hw_btnrT_rgeSgm_scale, ratio);
+    out->spNrDyn.preSpNr.hiNr.hw_btnrT_diffSgmRatio_scale = interpolation_f32(
+                paut->spNrDyn[ilow].preSpNr.hiNr.hw_btnrT_diffSgmRatio_scale, paut->spNrDyn[ihigh].preSpNr.hiNr.hw_btnrT_diffSgmRatio_scale, ratio);
+
+    out->spNrDyn.preSpNr.loNr.hw_btnrT_rgeSgm_scale = interpolation_f32(
+                paut->spNrDyn[ilow].preSpNr.loNr.hw_btnrT_rgeSgm_scale, paut->spNrDyn[ihigh].preSpNr.loNr.hw_btnrT_rgeSgm_scale, ratio);
+    out->spNrDyn.preSpNr.loNr.hw_btnrT_rgeWgt_scale = interpolation_f32(
+                paut->spNrDyn[ilow].preSpNr.loNr.hw_btnrT_rgeWgt_scale, paut->spNrDyn[ihigh].preSpNr.loNr.hw_btnrT_rgeWgt_scale, ratio);
+    out->spNrDyn.preSpNr.loNr.hw_btnrT_loNrOut_alpha = interpolation_f32(
+                paut->spNrDyn[ilow].preSpNr.loNr.hw_btnrT_loNrOut_alpha, paut->spNrDyn[ihigh].preSpNr.loNr.hw_btnrT_loNrOut_alpha, ratio);
+#if defined(RKAIQ_HAVE_BAYERTNR_V41)
+    out->spNrDyn.noiseBal_curBaseOut.hw_btnrT_curHiOrg_alpha = interpolation_f32(
+                paut->spNrDyn[ilow].noiseBal_curBaseOut.hw_btnrT_curHiOrg_alpha, paut->spNrDyn[ihigh].noiseBal_curBaseOut.hw_btnrT_curHiOrg_alpha, ratio);
+    out->spNrDyn.noiseBal_curBaseOut.hw_btnrT_iirHiOrg_alpha = interpolation_f32(
+                paut->spNrDyn[ilow].noiseBal_curBaseOut.hw_btnrT_iirHiOrg_alpha, paut->spNrDyn[ihigh].noiseBal_curBaseOut.hw_btnrT_iirHiOrg_alpha, ratio);
+    out->spNrDyn.noiseBal_curBaseOut.hw_btnrT_hiNoiseBal_strg = interpolation_f32(
+                paut->spNrDyn[ilow].noiseBal_curBaseOut.hw_btnrT_hiNoiseBal_strg, paut->spNrDyn[ihigh].noiseBal_curBaseOut.hw_btnrT_hiNoiseBal_strg, ratio);
+    out->spNrDyn.noiseBal_curBaseOut.hw_btnrT_midNoiseBal_strg = interpolation_f32(
+                paut->spNrDyn[ilow].noiseBal_curBaseOut.hw_btnrT_midNoiseBal_strg, paut->spNrDyn[ihigh].noiseBal_curBaseOut.hw_btnrT_midNoiseBal_strg, ratio);
+
+    out->spNrDyn.noiseBal_preBaseOut.hw_btnrT_hiNoiseBal_strg = interpolation_f32(
+                paut->spNrDyn[ilow].noiseBal_preBaseOut.hw_btnrT_hiNoiseBal_strg, paut->spNrDyn[ihigh].noiseBal_preBaseOut.hw_btnrT_hiNoiseBal_strg, ratio);
+    out->spNrDyn.noiseBal_preBaseOut.hw_btnrT_midNoiseBal_strg = interpolation_f32(
+                paut->spNrDyn[ilow].noiseBal_preBaseOut.hw_btnrT_midNoiseBal_strg, paut->spNrDyn[ihigh].noiseBal_preBaseOut.hw_btnrT_midNoiseBal_strg, ratio);
+#endif
+
+#if defined(RKAIQ_HAVE_BAYERTNR_V42)
+    out->spNrDyn.outFrmFusion.noiseBal_curBaseOut.hw_btnrT_curHiOrg_alpha = interpolation_f32(
+                paut->spNrDyn[ilow].outFrmFusion.noiseBal_curBaseOut.hw_btnrT_curHiOrg_alpha, paut->spNrDyn[ihigh].outFrmFusion.noiseBal_curBaseOut.hw_btnrT_curHiOrg_alpha, ratio);
+    out->spNrDyn.outFrmFusion.noiseBal_curBaseOut.hw_btnrT_iirHiOrg_alpha = interpolation_f32(
+                paut->spNrDyn[ilow].outFrmFusion.noiseBal_curBaseOut.hw_btnrT_iirHiOrg_alpha, paut->spNrDyn[ihigh].outFrmFusion.noiseBal_curBaseOut.hw_btnrT_iirHiOrg_alpha, ratio);
+    out->spNrDyn.outFrmFusion.noiseBal_curBaseOut.hw_btnrT_hiNoiseBal_strg = interpolation_f32(
+                paut->spNrDyn[ilow].outFrmFusion.noiseBal_curBaseOut.hw_btnrT_hiNoiseBal_strg, paut->spNrDyn[ihigh].outFrmFusion.noiseBal_curBaseOut.hw_btnrT_hiNoiseBal_strg, ratio);
+    out->spNrDyn.outFrmFusion.noiseBal_curBaseOut.hw_btnrT_midNoiseBal_strg = interpolation_f32(
+                paut->spNrDyn[ilow].outFrmFusion.noiseBal_curBaseOut.hw_btnrT_midNoiseBal_strg, paut->spNrDyn[ihigh].outFrmFusion.noiseBal_curBaseOut.hw_btnrT_midNoiseBal_strg, ratio);
+
+    out->spNrDyn.outFrmFusion.noiseBal_preBaseOut.hw_btnrT_hiNoiseBal_strg = interpolation_f32(
+                paut->spNrDyn[ilow].outFrmFusion.noiseBal_preBaseOut.hw_btnrT_hiNoiseBal_strg, paut->spNrDyn[ihigh].outFrmFusion.noiseBal_preBaseOut.hw_btnrT_hiNoiseBal_strg, ratio);
+    out->spNrDyn.outFrmFusion.noiseBal_preBaseOut.hw_btnrT_midNoiseBal_strg = interpolation_f32(
+        paut->spNrDyn[ilow].outFrmFusion.noiseBal_preBaseOut.hw_btnrT_midNoiseBal_strg, paut->spNrDyn[ihigh].outFrmFusion.noiseBal_preBaseOut.hw_btnrT_midNoiseBal_strg, ratio);
+    
+    out->mdMeDyn.subLoMd0.diffCh.hw_btnrT_hFilt_strg = interpolation_f32(
+                paut->mdMeDyn[ilow].subLoMd0.diffCh.hw_btnrT_hFilt_strg, paut->mdMeDyn[ihigh].subLoMd0.diffCh.hw_btnrT_hFilt_strg, ratio);
+    out->mdMeDyn.subLoMd0.sgmCh.hw_btnrT_hFilt_strg = interpolation_f32(
+                paut->mdMeDyn[ilow].subLoMd0.sgmCh.hw_btnrT_hFilt_strg, paut->mdMeDyn[ihigh].subLoMd0.sgmCh.hw_btnrT_hFilt_strg, ratio);
+    out->mdMeDyn.subLoMd1.hw_btnrT_hFilt_strg = interpolation_f32(
+                paut->mdMeDyn[ilow].subLoMd1.hw_btnrT_hFilt_strg, paut->mdMeDyn[ihigh].subLoMd1.hw_btnrT_hFilt_strg, ratio);
+
+    out->spNrDyn.outFrmFusion.noiseBal_preBaseOut.hw_btnrT_hiNoiseBalNr_off = interpolation_f32(
+                paut->spNrDyn[ilow].outFrmFusion.noiseBal_preBaseOut.hw_btnrT_hiNoiseBalNr_off, paut->spNrDyn[ihigh].outFrmFusion.noiseBal_preBaseOut.hw_btnrT_hiNoiseBalNr_off, ratio);
+    out->spNrDyn.outFrmFusion.noiseBal_preBaseOut.hw_btnrT_midNoiseBalNr_off = interpolation_f32(
+                paut->spNrDyn[ilow].outFrmFusion.noiseBal_preBaseOut.hw_btnrT_midNoiseBalNr_off, paut->spNrDyn[ihigh].outFrmFusion.noiseBal_preBaseOut.hw_btnrT_midNoiseBalNr_off, ratio);
+    out->spNrDyn.outFrmFusion.noiseBal_preBaseOut.sw_btnrT_hiNoiseBalNr_scale = interpolation_f32(
+                paut->spNrDyn[ilow].outFrmFusion.noiseBal_preBaseOut.sw_btnrT_hiNoiseBalNr_scale, paut->spNrDyn[ihigh].outFrmFusion.noiseBal_preBaseOut.sw_btnrT_hiNoiseBalNr_scale, ratio);
+    out->spNrDyn.outFrmFusion.noiseBal_preBaseOut.sw_btnrT_midNoiseBalNr_scale = interpolation_f32(
+                paut->spNrDyn[ilow].outFrmFusion.noiseBal_preBaseOut.sw_btnrT_midNoiseBalNr_scale, paut->spNrDyn[ihigh].outFrmFusion.noiseBal_preBaseOut.sw_btnrT_midNoiseBalNr_scale, ratio);
+
+
+    out->spNrDyn.outFrmFusion.noiseBal_curBaseOut.hw_btnrT_hiNoiseBalNr_off = interpolation_f32(
+                paut->spNrDyn[ilow].outFrmFusion.noiseBal_curBaseOut.hw_btnrT_hiNoiseBalNr_off, paut->spNrDyn[ihigh].outFrmFusion.noiseBal_curBaseOut.hw_btnrT_hiNoiseBalNr_off, ratio);
+    out->spNrDyn.outFrmFusion.noiseBal_curBaseOut.sw_btnrT_hiNoiseBalNr_scale = interpolation_f32(
+                paut->spNrDyn[ilow].outFrmFusion.noiseBal_curBaseOut.sw_btnrT_hiNoiseBalNr_scale, paut->spNrDyn[ihigh].outFrmFusion.noiseBal_curBaseOut.sw_btnrT_hiNoiseBalNr_scale, ratio);
+    out->spNrDyn.outFrmFusion.noiseBal_curBaseOut.hw_btnrT_midNoiseBalNr_off = interpolation_f32(
+                paut->spNrDyn[ilow].outFrmFusion.noiseBal_curBaseOut.hw_btnrT_midNoiseBalNr_off, paut->spNrDyn[ihigh].outFrmFusion.noiseBal_curBaseOut.hw_btnrT_midNoiseBalNr_off, ratio);
+    out->spNrDyn.outFrmFusion.noiseBal_curBaseOut.sw_btnrT_midNoiseBalNr_scale = interpolation_f32(
+                paut->spNrDyn[ilow].outFrmFusion.noiseBal_curBaseOut.sw_btnrT_midNoiseBalNr_scale, paut->spNrDyn[ihigh].outFrmFusion.noiseBal_curBaseOut.sw_btnrT_midNoiseBalNr_scale, ratio);
+
+    out->spNrDyn.preDpc.dpc_nsBalSfThd.hw_btnrT_dpc_strg = interpolation_f32(
+                paut->spNrDyn[ilow].preDpc.dpc_nsBalSfThd.hw_btnrT_dpc_strg, paut->spNrDyn[ihigh].preDpc.dpc_nsBalSfThd.hw_btnrT_dpc_strg, ratio);
+    out->spNrDyn.preDpc.dpc_nsBalSfThd.hw_btnrT_preWgt_scale = interpolation_f32(
+                paut->spNrDyn[ilow].preDpc.dpc_nsBalSfThd.hw_btnrT_preWgt_scale, paut->spNrDyn[ihigh].preDpc.dpc_nsBalSfThd.hw_btnrT_preWgt_scale, ratio);
+    out->spNrDyn.preDpc.dpc_nsBalSfThd.hw_btnrT_preWgt_offset = interpolation_f32(
+                paut->spNrDyn[ilow].preDpc.dpc_nsBalSfThd.hw_btnrT_preWgt_offset, paut->spNrDyn[ihigh].preDpc.dpc_nsBalSfThd.hw_btnrT_preWgt_offset, ratio);
+    out->spNrDyn.preDpc.dpc_nsBalSfThd.hw_btnrT_softThd_scale = interpolation_f32(
+                paut->spNrDyn[ilow].preDpc.dpc_nsBalSfThd.hw_btnrT_softThd_scale, paut->spNrDyn[ihigh].preDpc.dpc_nsBalSfThd.hw_btnrT_softThd_scale, ratio);
+
+    out->spNrDyn.preDpc.dpc_nsBalNsStrg.hw_btnrT_preWgt_scale = interpolation_f32(
+                paut->spNrDyn[ilow].preDpc.dpc_nsBalNsStrg.hw_btnrT_preWgt_scale, paut->spNrDyn[ihigh].preDpc.dpc_nsBalNsStrg.hw_btnrT_preWgt_scale, ratio);
+    out->spNrDyn.preDpc.dpc_nsBalNsStrg.hw_btnrT_preWgt_offset = interpolation_f32(
+                paut->spNrDyn[ilow].preDpc.dpc_nsBalNsStrg.hw_btnrT_preWgt_offset, paut->spNrDyn[ihigh].preDpc.dpc_nsBalNsStrg.hw_btnrT_preWgt_offset, ratio);
+    out->spNrDyn.preDpc.dpc_nsBalNsStrg.hw_btnrT_noiseBal_strg = interpolation_f32(
+                paut->spNrDyn[ilow].preDpc.dpc_nsBalNsStrg.hw_btnrT_noiseBal_strg, paut->spNrDyn[ihigh].preDpc.dpc_nsBalNsStrg.hw_btnrT_noiseBal_strg, ratio);
+    out->spNrDyn.preDpc.dpc_nsBalNsStrg.hw_btnrT_brightDpc_strg = interpolation_f32(
+                paut->spNrDyn[ilow].preDpc.dpc_nsBalNsStrg.hw_btnrT_brightDpc_strg, paut->spNrDyn[ihigh].preDpc.dpc_nsBalNsStrg.hw_btnrT_brightDpc_strg, ratio);
+    out->spNrDyn.preDpc.dpc_nsBalNsStrg.hw_btnrT_darkDpc_strg = interpolation_f32(
+                paut->spNrDyn[ilow].preDpc.dpc_nsBalNsStrg.hw_btnrT_darkDpc_strg, paut->spNrDyn[ihigh].preDpc.dpc_nsBalNsStrg.hw_btnrT_darkDpc_strg, ratio);
+
+#endif
 
     return XCAM_RETURN_NO_ERROR;
 }
@@ -547,7 +761,7 @@ XCamReturn Abtnr_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpa
         BtnrSelectParam(pBtnrCtx, btnr_res, iso);
         BtnrApplyStrength(pBtnrCtx, btnr_res);
 #endif
-#if RKAIQ_HAVE_BAYERTNR_V41
+#if defined(RKAIQ_HAVE_BAYERTNR_V41) || defined(RKAIQ_HAVE_BAYERTNR_V42)
         BtnrSelectParam(pBtnrCtx, btnr_res, iso);
         BtnrApplyStrength(pBtnrCtx, btnr_res);
 #endif

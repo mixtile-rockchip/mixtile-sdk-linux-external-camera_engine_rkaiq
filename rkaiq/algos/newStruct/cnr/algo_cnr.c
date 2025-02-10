@@ -185,7 +185,7 @@ XCamReturn CnrApplyStrength
 }
 #endif
 
-#if RKAIQ_HAVE_CNR_V35
+#if defined(RKAIQ_HAVE_CNR_V35) || defined(RKAIQ_HAVE_CNR_V36)
 XCamReturn CnrSelectParam
 (
     CnrContext_t *pCnrCtx,
@@ -286,6 +286,16 @@ XCamReturn CnrSelectParam
                 paut->dyn[ilow].hiNr_locFiltAlpha.hw_cnrT_locFiltAlpha_maxLimit, paut->dyn[ihigh].hiNr_locFiltAlpha.hw_cnrT_locFiltAlpha_maxLimit, ratio);
     out->dyn.hiNr_locFiltAlpha.hw_cnrT_locFiltAlpha_minLimit = interpolation_f32(
                 paut->dyn[ilow].hiNr_locFiltAlpha.hw_cnrT_locFiltAlpha_minLimit, paut->dyn[ihigh].hiNr_locFiltAlpha.hw_cnrT_locFiltAlpha_minLimit, ratio);
+#if RKAIQ_HAVE_CNR_V36
+    for(i =0;i<13;i++){
+        out->dyn.loNrGuide_iirFilt_locSgmRat.hw_cnrT_locSgmStrg2SgmRat_val[i] = interpolation_f32(
+                    paut->dyn[ilow].loNrGuide_iirFilt_locSgmRat.hw_cnrT_locSgmStrg2SgmRat_val[i],
+                    paut->dyn[ihigh].loNrGuide_iirFilt_locSgmRat.hw_cnrT_locSgmStrg2SgmRat_val[i], ratio);
+    }
+    out->dyn.loNrGuide_iirFilt.sw_cnrT_rgeSgmRatio_mode = paut->dyn[inear].loNrGuide_iirFilt.sw_cnrT_rgeSgmRatio_mode;
+    out->dyn.loNrGuide_iirFilt.hw_cnrT_glbSgmRatio_alpha = interpolation_f32(
+        paut->dyn[ilow].loNrGuide_iirFilt.hw_cnrT_glbSgmRatio_alpha, paut->dyn[ihigh].loNrGuide_iirFilt.hw_cnrT_glbSgmRatio_alpha, ratio);
+#endif
     return XCAM_RETURN_NO_ERROR;
 }
 
@@ -426,7 +436,7 @@ XCamReturn Acnr_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
         CnrSelectParam(pCnrCtx, cnr_res, iso);
         CnrApplyStrength(pCnrCtx, cnr_res);
 #endif
-#if RKAIQ_HAVE_CNR_V35
+#if defined(RKAIQ_HAVE_CNR_V35) || defined(RKAIQ_HAVE_CNR_V36)
         CnrSelectParam(pCnrCtx, cnr_res, iso);
         CnrApplyStrength(pCnrCtx, cnr_res);
 #endif

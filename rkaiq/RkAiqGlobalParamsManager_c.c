@@ -183,7 +183,7 @@ static void init_withCalib(GlobalParamsManager_t* pMan)
         LOGE("no sharp calib !");
     }
 
-#if RKAIQ_HAVE_SHARP_V40
+#if defined(RKAIQ_HAVE_SHARP_V40)  || defined(RKAIQ_HAVE_SHARP_V41)
     wrap_ptr = &pMan->mGlobalParams[RESULT_TYPE_TEXEST_PARAM];
     texEst_api_attrib_t* texEst_calib = (texEst_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(
                 (void*)(pMan->mCalibDb), texEst));
@@ -624,7 +624,7 @@ static void init_withCalib(GlobalParamsManager_t* pMan)
     } else {
         LOGE("no ccm calib !");
     }
-#if ISP_HW_V33
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     wrap_ptr = &pMan->mGlobalParams[RESULT_TYPE_POSTISP_PARAM];
     postisp_api_attrib_t* postisp_calib = (postisp_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(
                 (void*)(pMan->mCalibDb), postisp));
@@ -642,6 +642,26 @@ static void init_withCalib(GlobalParamsManager_t* pMan)
              *wrap_ptr->opMode, *wrap_ptr->en, *wrap_ptr->bypass, wrap_ptr->man_param_ptr);
     } else {
         LOGE("no postisp calib !");
+    }
+#endif
+#if RKAIQ_HAVE_AINR
+    wrap_ptr = &pMan->mGlobalParams[RESULT_TYPE_AINR_PARAM];
+    ainr_api_attrib_t* ainr_calib = (ainr_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(
+                (void*)(pMan->mCalibDb), ainr));
+    if (ainr_calib) {
+        wrap_ptr->opMode = &ainr_calib->opMode;
+        wrap_ptr->en = &ainr_calib->en;
+        wrap_ptr->bypass = &ainr_calib->bypass;
+        wrap_ptr->man_param_ptr = &ainr_calib->stMan;
+        wrap_ptr->aut_param_ptr = &ainr_calib->stAuto;
+        pMan->mIsGlobalModulesUpdateBits |= ((uint64_t)1) << RESULT_TYPE_AINR_PARAM;
+        if (ainr_calib->opMode == RK_AIQ_OP_MODE_INVALID) {
+            ainr_calib->opMode = RK_AIQ_OP_MODE_MANUAL;
+        }
+        LOGK("Module ainr: opMode:%d,en:%d,bypass:%d,man_ptr:%p",
+             *wrap_ptr->opMode, *wrap_ptr->en, *wrap_ptr->bypass, wrap_ptr->man_param_ptr);
+    } else {
+        LOGE("no ainr calib !");
     }
 #endif
 #endif
@@ -728,13 +748,14 @@ switchCalibDbCheck(GlobalParamsManager_t* pMan, CamCalibDbV2Context_t* calibDb) 
         (void*)(calibDb), ynr));
     sharp_api_attrib_t* sharp_calib = (sharp_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(
         (void*)(calibDb), sharp));
-#if ISP_HW_V39
+#if defined(ISP_HW_V39)
     if (!(cnr_calib->en == ynr_calib->en && ynr_calib->en == sharp_calib->en)) {
         LOGW("ynr, cnr and sharp should be on or off in the same time, "
             "please use rk_aiq_uapi2_sysctl_setModuleEn to set them");
         return XCAM_RETURN_BYPASS;
     }
-#elif ISP_HW_V33
+#endif
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     enh_api_attrib_t* enh_calib = (enh_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(
         (void*)(calibDb), enh));
     if (!(cnr_calib->en == ynr_calib->en && ynr_calib->en == sharp_calib->en && sharp_calib->en == enh_calib->en)) {
@@ -767,7 +788,7 @@ checkAlgoEnableInit(GlobalParamsManager_t* pMan) {
     bool cnr_en = *pMan->mGlobalParams[RESULT_TYPE_UVNR_PARAM].en;
     bool ynr_en = *pMan->mGlobalParams[RESULT_TYPE_YNR_PARAM].en;
     bool sharp_en = *pMan->mGlobalParams[RESULT_TYPE_SHARPEN_PARAM].en;
-#if ISP_HW_V39
+#if defined(ISP_HW_V39)
     if (!(ynr_en == cnr_en && cnr_en == sharp_en)) {
         *pMan->mGlobalParams[RESULT_TYPE_UVNR_PARAM].en = 1;
         *pMan->mGlobalParams[RESULT_TYPE_YNR_PARAM].bypass =
@@ -782,7 +803,8 @@ checkAlgoEnableInit(GlobalParamsManager_t* pMan) {
     else {
         *pMan->mGlobalParams[RESULT_TYPE_GAIN_PARAM].en = cnr_en;
     }
-#elif ISP_HW_V33
+#endif
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     bool enh_en = *pMan->mGlobalParams[RESULT_TYPE_ENH_PARAM].en;
     if (!(ynr_en == cnr_en && cnr_en == sharp_en && sharp_en == enh_en)) {
         *pMan->mGlobalParams[RESULT_TYPE_UVNR_PARAM].en = 1;
@@ -1255,7 +1277,7 @@ XCamReturn GlobalParamsManager_checkAlgoEnableBypass(GlobalParamsManager_t* pMan
         }
     }
 
-#ifdef ISP_HW_V33
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     if (type == RESULT_TYPE_ENH_PARAM) {
         if (*pMan->mGlobalParams[type].en != *en || *pMan->mGlobalParams[type].bypass != *bypass) {
             if (*pMan->mGlobalParams[type].en != *en && *en == 1) {
@@ -1368,7 +1390,7 @@ XCamReturn GlobalParamsManager_checkAlgoEnableBypass(GlobalParamsManager_t* pMan
             }
         }
 #endif
-#ifdef ISP_HW_V33
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
         if (*pMan->mGlobalParams[type].en != *en && *en == 1) {
             if (!*pMan->mGlobalParams[RESULT_TYPE_DEBAYER_PARAM].en || !*pMan->mGlobalParams[RESULT_TYPE_CAC_PARAM].en) {
                 LOGW("DRC relies on the resources of the DEBAYER and CAC,"
@@ -1406,7 +1428,7 @@ XCamReturn GlobalParamsManager_checkAlgoEnableBypass(GlobalParamsManager_t* pMan
         }
     }
 #endif
-#ifdef ISP_HW_V33
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     if (type == RESULT_TYPE_DEBAYER_PARAM || type == RESULT_TYPE_CAC_PARAM) {
         if (*en == 0 && *pMan->mGlobalParams[RESULT_TYPE_DRC_PARAM].en) {
             *en = 1;
@@ -1440,31 +1462,46 @@ static bool checkAlgoParams(GlobalParamsManager_t* pMan, rk_aiq_global_params_wr
         (state != AIQ_STATE_INITED && state != AIQ_STATE_STOPED)) {
         btnr_api_attrib_t attr;
         btnr_api_attrib_t old_attr;
-        btnr_pixDomain_mode_t newmode;
-        btnr_pixDomain_mode_t oldmode;
+        memcpy(&attr.stAuto, param->aut_param_ptr, param->aut_param_size);
+        memcpy(&attr.stMan, param->man_param_ptr, param->man_param_size);
+        memcpy(&old_attr.stAuto, pMan->mGlobalParams[param->type].aut_param_ptr, param->aut_param_size);
+        memcpy(&old_attr.stMan, pMan->mGlobalParams[param->type].man_param_ptr, param->man_param_size);
+        btnr_pixDomain_mode_t newpixmode;
+        btnr_pixDomain_mode_t oldpixmode;
         if (param->opMode == RK_AIQ_OP_MODE_AUTO) {
-            memcpy(&attr.stAuto, param->aut_param_ptr, param->aut_param_size);
-            newmode = attr.stAuto.sta.hw_btnrCfg_pixDomain_mode;
+            newpixmode = attr.stAuto.sta.hw_btnrCfg_pixDomain_mode;
         }
         else {
-            memcpy(&attr.stMan, param->man_param_ptr, param->man_param_size);
-            newmode = attr.stMan.sta.hw_btnrCfg_pixDomain_mode;
+            newpixmode = attr.stMan.sta.hw_btnrCfg_pixDomain_mode;
         }
         if (*pMan->mGlobalParams[param->type].opMode == RK_AIQ_OP_MODE_AUTO) {
-            memcpy(&old_attr.stAuto, pMan->mGlobalParams[param->type].aut_param_ptr, param->aut_param_size);
-            oldmode = old_attr.stAuto.sta.hw_btnrCfg_pixDomain_mode;
+            oldpixmode = old_attr.stAuto.sta.hw_btnrCfg_pixDomain_mode;
         }
         else{
-            memcpy(&old_attr.stMan, pMan->mGlobalParams[param->type].man_param_ptr, param->man_param_size);
-            oldmode = old_attr.stMan.sta.hw_btnrCfg_pixDomain_mode;
+            oldpixmode = old_attr.stMan.sta.hw_btnrCfg_pixDomain_mode;
         }
-        if (newmode != oldmode) {
-            pMan->mBtnrPixDomainMode = newmode;
+        if (newpixmode != oldpixmode) {
+            pMan->mBtnrPixDomainMode = newpixmode;
             pMan->mIsGlobalModulesUpdateBits |= ((uint64_t)1) << RESULT_TYPE_DRC_PARAM;
             LOGE("During the runtime of btnr, it is not allowed to change the pixDomain_mode. Please configure during the initialization.");
             socket_client_setNote(pMan->_socket, IPC_RET_UAPI_ERROR, "During the runtime of btnr, it is not allowed to change the pixDomain_mode. Please configure during the initialization.\n");
             return true;
         }
+        bool predgain_update = false;
+        predgain_update |= attr.stAuto.sta.debug.predgainWkArd.sw_btnrT_predgainWkArd_en != old_attr.stAuto.sta.debug.predgainWkArd.sw_btnrT_predgainWkArd_en;
+        predgain_update |= attr.stAuto.sta.debug.predgainWkArd.sw_btnrT_predgain_mode != old_attr.stAuto.sta.debug.predgainWkArd.sw_btnrT_predgain_mode;
+        predgain_update |= attr.stMan.sta.debug.predgainWkArd.sw_btnrT_predgain_mode != old_attr.stMan.sta.debug.predgainWkArd.sw_btnrT_predgain_mode;
+        predgain_update |= attr.stMan.sta.debug.predgainWkArd.sw_btnrT_predgainWkArd_en != old_attr.stMan.sta.debug.predgainWkArd.sw_btnrT_predgainWkArd_en;
+        for (int i = 0;i < BTNR_ISO_SEGMENT_MAX;i++) {
+            predgain_update |= attr.stAuto.sta.debug.predgainWkArd.hw_btnrT_predgain_curve[i] != old_attr.stAuto.sta.debug.predgainWkArd.hw_btnrT_predgain_curve[i];
+        }
+        predgain_update |= attr.stMan.sta.debug.predgainWkArd.hw_btnrT_predgain_curve != old_attr.stMan.sta.debug.predgainWkArd.hw_btnrT_predgain_curve;
+
+        if (predgain_update) {
+            pMan->mIsGlobalModulesUpdateBits |= ((uint64_t)1) << RESULT_TYPE_DRC_PARAM;
+            return true;
+        }
+
     }
 
     if (param->type == RESULT_TYPE_BLC_PARAM) {

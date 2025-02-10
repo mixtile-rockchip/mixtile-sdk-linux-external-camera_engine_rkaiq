@@ -264,7 +264,7 @@ static XCamReturn _setExposureParams(AiqSensorHw_t* pBaseSns, AiqAecExpInfoWrapp
 
     ENTER_CAMHW_FUNCTION();
 
-    if (pBaseSns->_first) {
+    if (pBaseSns->_first && !pFakeSnsHw->use_rkrawstream) {
         AiqAecExpInfoWrapper_t* aec_exp = expPar;
         AiqSensorExpInfo_t* pSnsExp     = NULL;
         if (aec_exp->ae_proc_res_rk.exp_set_cnt > 0) {
@@ -755,6 +755,18 @@ static XCamReturn _set_mipi_tx_devs(AiqFakeSensorHw_t* pFakeSns, AiqV4l2Device_t
     return XCAM_RETURN_NO_ERROR;
 }
 
+static XCamReturn
+_set_fake_sensor_format(AiqFakeSensorHw_t* pFakeSns,
+                    int width, int height, uint32_t fmt_core)
+{
+    ENTER_CAMHW_FUNCTION();
+    pFakeSns->_width = width;
+    pFakeSns->_height = height;
+    pFakeSns->_fmt_code = fmt_core;
+    EXIT_CAMHW_FUNCTION();
+    return XCAM_RETURN_NO_ERROR;
+}
+
 void AiqFakeSensorHw_init(AiqFakeSensorHw_t* pFakeSnsHw, const char* name, int cid) {
     aiq_memset(pFakeSnsHw, 0, sizeof(AiqFakeSensorHw_t));
     AiqSensorHw_t* pSnsHw   = (AiqSensorHw_t*)pFakeSnsHw;
@@ -788,6 +800,7 @@ void AiqFakeSensorHw_init(AiqFakeSensorHw_t* pFakeSnsHw, const char* name, int c
     pFakeSnsHw->set_mipi_tx_devs          = _set_mipi_tx_devs;
     pFakeSnsHw->enqueue_rawbuffer         = _enqueue_rawbuffer;
     pFakeSnsHw->on_dqueue                 = _on_dqueue;
+    pFakeSnsHw->set_fake_sensor_format    = _set_fake_sensor_format;
     pFakeSnsHw->register_rawdata_callback = _register_rawdata_callback;
 #if RKAIQ_HAVE_DUMPSYS
     pSnsHw->dump = NULL;

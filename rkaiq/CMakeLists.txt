@@ -708,7 +708,7 @@ if (RKAIQ_HAVE_GAMMA_V10 OR RKAIQ_HAVE_GAMMA_V11)
     endif()
 endif()
 
-if (RKAIQ_HAVE_MERGE_V10 OR RKAIQ_HAVE_MERGE_V11 OR RKAIQ_HAVE_MERGE_V12)
+if (RKAIQ_HAVE_MERGE_V10 OR RKAIQ_HAVE_MERGE_V11 OR RKAIQ_HAVE_MERGE_V12 OR RKAIQ_HAVE_MERGE_V13)
     if (RKAIQ_HAVE_MERGE_V10)
         add_compile_options(-DRKAIQ_HAVE_MERGE_V10=1)
     endif()
@@ -718,6 +718,9 @@ if (RKAIQ_HAVE_MERGE_V10 OR RKAIQ_HAVE_MERGE_V11 OR RKAIQ_HAVE_MERGE_V12)
     if (RKAIQ_HAVE_MERGE_V12)
         add_compile_options(-DRKAIQ_HAVE_MERGE_V12=1)
     endif()
+    if (RKAIQ_HAVE_MERGE_V13)
+        add_compile_options(-DRKAIQ_HAVE_MERGE_V13=1)
+    endif()
     if (RKAIQ_NEWSTRUCT_TEST)
         list(APPEND ALGO_HANDLE_SRC aiq_core/algo_handlers/newStruct/RkAiqMergeHandler.cpp)
     else()
@@ -725,7 +728,7 @@ if (RKAIQ_HAVE_MERGE_V10 OR RKAIQ_HAVE_MERGE_V11 OR RKAIQ_HAVE_MERGE_V12)
     endif()
 endif()
 
-if (RKAIQ_HAVE_DRC_V10 OR RKAIQ_HAVE_DRC_V11 OR RKAIQ_HAVE_DRC_V12 OR RKAIQ_HAVE_DRC_V12_LITE OR RKAIQ_HAVE_DRC_V20)
+if (RKAIQ_HAVE_DRC_V10 OR RKAIQ_HAVE_DRC_V11 OR RKAIQ_HAVE_DRC_V12 OR RKAIQ_HAVE_DRC_V12_LITE OR RKAIQ_HAVE_DRC_V20  OR RKAIQ_HAVE_DRC_V21)
     if (RKAIQ_HAVE_DRC_V10)
         add_compile_options(-DRKAIQ_HAVE_DRC_V10=1)
     endif()
@@ -740,6 +743,9 @@ if (RKAIQ_HAVE_DRC_V10 OR RKAIQ_HAVE_DRC_V11 OR RKAIQ_HAVE_DRC_V12 OR RKAIQ_HAVE
     endif()
     if (RKAIQ_HAVE_DRC_V20)
         add_compile_options(-DRKAIQ_HAVE_DRC_V20=1)
+    endif()
+    if (RKAIQ_HAVE_DRC_V21)
+        add_compile_options(-DRKAIQ_HAVE_DRC_V21=1)
     endif()
     if (RKAIQ_NEWSTRUCT_TEST)
         list(APPEND ALGO_HANDLE_SRC aiq_core/algo_handlers/newStruct/RkAiqDrcHandler.cpp)
@@ -954,16 +960,32 @@ if (RKAIQ_HAVE_BAYERTNR_V41)
     add_compile_options(-DRKAIQ_HAVE_BAYERTNR_V41=1)
 endif()
 
+if (RKAIQ_HAVE_BAYERTNR_V42)
+    add_compile_options(-DRKAIQ_HAVE_BAYERTNR_V42=1)
+endif()
+
 if (RKAIQ_HAVE_YNR_V40)
     add_compile_options(-DRKAIQ_HAVE_YNR_V40=1)
+endif()
+
+if (RKAIQ_HAVE_YNR_V41)
+    add_compile_options(-DRKAIQ_HAVE_YNR_V41=1)
 endif()
 
 if (RKAIQ_HAVE_SHARP_V40)
     add_compile_options(-DRKAIQ_HAVE_SHARP_V40=1)
 endif()
 
+if (RKAIQ_HAVE_SHARP_V41)
+    add_compile_options(-DRKAIQ_HAVE_SHARP_V41=1)
+endif()
+
 if (RKAIQ_HAVE_CNR_V35)
     add_compile_options(-DRKAIQ_HAVE_CNR_V35=1)
+endif()
+
+if (RKAIQ_HAVE_CNR_V36)
+    add_compile_options(-DRKAIQ_HAVE_CNR_V36=1)
 endif()
 
 if (RKAIQ_HAVE_GIC_V3)
@@ -972,6 +994,10 @@ endif()
 
 if (RKAIQ_HAVE_CAC_V30)
     add_compile_options(-DRKAIQ_HAVE_CAC_V30=1)
+endif()
+
+if (RKAIQ_HAVE_AINR)
+    add_compile_options(-DRKAIQ_HAVE_AINR=1)
 endif()
 
 set(AIQ_CORE_SRC
@@ -1033,6 +1059,9 @@ if (RKAIQ_ISP_VERSION STREQUAL "39")
 endif()
 if (RKAIQ_ISP_VERSION STREQUAL "33")
     list(APPEND MODULES_SRC modules/rk_aiq_isp33_modules.c)
+endif()
+if (RKAIQ_ISP_VERSION STREQUAL "35")
+    list(APPEND MODULES_SRC modules/rk_aiq_isp35_modules.c)
 endif()
 
 if(RKAIQ_ENABLE_SIMULATOR)
@@ -1254,6 +1283,7 @@ endif()
 if (RKAIQ_ISP_VERSION STREQUAL "39")
     list(APPEND HWI_C_SRC hwi_c/isp39/aiq_CamHwIsp39.c)
     list(APPEND HWI_C_SRC hwi_c/isp39/aiq_isp39ParamsCvt.c)
+    list(APPEND HWI_C_SRC hwi_c/isp39/aiq_isp39ParamsSplitter.c)
 endif()
 
 if (RKAIQ_ISP_VERSION STREQUAL "33")
@@ -1263,6 +1293,13 @@ if (RKAIQ_ISP_VERSION STREQUAL "33")
 if (RKAIQ_HAVE_MULTIISP)
     list(APPEND HWI_C_SRC hwi_c/isp33/aiq_isp33ParamsSplitter.c)
 endif()
+endif()
+
+if (RKAIQ_ISP_VERSION STREQUAL "35")
+    list(APPEND HWI_C_SRC hwi_c/isp35/aiq_CamHwIsp35.c)
+    list(APPEND HWI_C_SRC hwi_c/isp39/aiq_isp39ParamsCvt.c)
+    list(APPEND HWI_C_SRC hwi_c/isp35/aiq_isp35ParamsCvt.c)
+    list(APPEND HWI_C_SRC hwi_c/isp35/aiq_isp35ParamsSplitter.c)
 endif()
 
 set (CORE_C_SRC
@@ -1296,6 +1333,10 @@ set (CORE_C_SRC
 
 if (RKAIQ_ISP_VERSION STREQUAL "33")
     list(APPEND CORE_C_SRC aiq_core_c/aiq_stats_translator_v33.c)
+endif()
+
+if (RKAIQ_ISP_VERSION STREQUAL "35")
+    list(APPEND CORE_C_SRC aiq_core_c/aiq_stats_translator_v35.c)
 endif()
 
 if (RKAIQ_ISP_VERSION STREQUAL "39")
@@ -1337,6 +1378,9 @@ if (RKAIQ_HAVE_HSV)
     if(RKAIQ_HAVE_HSV_V10)
         add_compile_options(-DRKAIQ_HAVE_HSV_V10=1)
     endif()
+    if(RKAIQ_HAVE_HSV_V11)
+        add_compile_options(-DRKAIQ_HAVE_HSV_V11=1)
+    endif()
     list(APPEND CORE_C_SRC aiq_core_c/algo_handlers/RkAiqHsvHandler.c)
 endif()
 
@@ -1347,6 +1391,11 @@ endif()
 if (RKAIQ_HAVE_LDCH_V22)
     list(APPEND CORE_C_SRC aiq_core_c/algo_handlers/RkAiqLdcHandler.c)
 endif()
+
+if (RKAIQ_HAVE_AINR)
+    list(APPEND CORE_C_SRC aiq_core_c/algo_handlers/RkAiqAinrHandler.c)
+endif()
+
 
 if (RKAIQ_ENABLE_CAMGROUP)
     list(APPEND CORE_C_SRC
@@ -1361,6 +1410,13 @@ set (UAPI2_C_SRC
 	uAPI2_c/rk_aiq_user_api2_sysctl.c
 )
 
+if(RKAIQ_ISP_VERSION STREQUAL "35")
+set (UAPI2_C_SRC
+    ${UAPI2_C_SRC}
+	uAPI2_c/rk_aiq_user_api_sysctl.c
+)
+endif()
+
 set (AIQ_C_SRC
     ${XCORE_C_SRC}
     ${HWI_C_SRC}
@@ -1368,6 +1424,8 @@ set (AIQ_C_SRC
 	${UAPI2_C_SRC}
 	RkAiqGlobalParamsManager_c.c
 	RkAiqManager_c.c
+	RkAinrManager.c
+	RknnManager.c
 )
 if (RKAIQ_ENABLE_CAMGROUP)
     list(APPEND AIQ_C_SRC
@@ -1634,7 +1692,7 @@ if (RKAIQ_HAVE_YNR_V22)
     endif()
 endif()
 
-if (RKAIQ_HAVE_YNR_V24 OR RKAIQ_HAVE_YNR_V40)
+if (RKAIQ_HAVE_YNR_V24 OR RKAIQ_HAVE_YNR_V40 OR RKAIQ_HAVE_YNR_V41)
 	if (RKAIQ_NEWSTRUCT_TEST)
 		target_link_libraries(rkaiq
 			PRIVATE
@@ -1730,7 +1788,7 @@ if (RKAIQ_HAVE_SHARP_V33 OR RKAIQ_HAVE_SHARP_V33_LITE)
     endif()
 endif()
 
-if (RKAIQ_HAVE_SHARP_V34 OR RKAIQ_HAVE_SHARP_V40)
+if (RKAIQ_HAVE_SHARP_V34 OR RKAIQ_HAVE_SHARP_V40 OR RKAIQ_HAVE_SHARP_V41)
 	if (RKAIQ_NEWSTRUCT_TEST)
 		target_link_libraries(rkaiq
 			PRIVATE
@@ -1812,7 +1870,7 @@ if (RKAIQ_HAVE_BAYERTNR_V23 OR RKAIQ_HAVE_BAYERTNR_V23_LITE)
 endif()
 
 
-if (RKAIQ_HAVE_BAYERTNR_V30 OR RKAIQ_HAVE_BAYERTNR_V41)
+if (RKAIQ_HAVE_BAYERTNR_V30 OR RKAIQ_HAVE_BAYERTNR_V41 OR RKAIQ_HAVE_BAYERTNR_V42)
 	if (RKAIQ_NEWSTRUCT_TEST)
 		target_link_libraries(rkaiq
 			PRIVATE
@@ -1955,7 +2013,7 @@ if (RKAIQ_HAVE_GAMMA_V10 OR RKAIQ_HAVE_GAMMA_V11)
     endif()
 endif()
 
-if (RKAIQ_HAVE_MERGE_V10 OR RKAIQ_HAVE_MERGE_V11 OR RKAIQ_HAVE_MERGE_V12)
+if (RKAIQ_HAVE_MERGE_V10 OR RKAIQ_HAVE_MERGE_V11 OR RKAIQ_HAVE_MERGE_V12 OR RKAIQ_HAVE_MERGE_V13)
         if (RKAIQ_NEWSTRUCT_TEST)
             target_link_libraries(rkaiq
                 PRIVATE
@@ -1972,7 +2030,7 @@ if (RKAIQ_HAVE_MERGE_V10 OR RKAIQ_HAVE_MERGE_V11 OR RKAIQ_HAVE_MERGE_V12)
 endif()
 
 if (RKAIQ_HAVE_DRC_V10 OR RKAIQ_HAVE_DRC_V11 OR RKAIQ_HAVE_DRC_V12 OR
-RKAIQ_HAVE_DRC_V12_LITE OR RKAIQ_HAVE_DRC_V20)
+RKAIQ_HAVE_DRC_V12_LITE OR RKAIQ_HAVE_DRC_V20 OR RKAIQ_HAVE_DRC_V21)
     if (RKAIQ_NEWSTRUCT_TEST)
     target_link_libraries(rkaiq
         PRIVATE
@@ -2042,7 +2100,7 @@ if (RKAIQ_HAVE_ENHANCE_V10)
     list(APPEND RK_AIQ_STATIC_LIB_ARS ${STATIC_LIB_PREFIX}rkaiq_enh${STATIC_LIB_SUFFIX})
 endif()
 
-if (RKAIQ_HAVE_HSV_V10)
+if (RKAIQ_HAVE_HSV)
     target_link_libraries(rkaiq
         PRIVATE
         rkaiq_hsv
@@ -2107,6 +2165,14 @@ if (RKAIQ_HAVE_LDC)
         ${LDC_GENMESH_MAP_SEPARATE}
         )
     list(APPEND RK_AIQ_STATIC_LIB_ARS ${STATIC_LIB_PREFIX}rkaiq_aldc${STATIC_LIB_SUFFIX})
+endif()
+
+if (RKAIQ_HAVE_AINR)
+target_link_libraries(rkaiq
+    PRIVATE
+    rkaiq_ainr
+    )
+list(APPEND RK_AIQ_STATIC_LIB_ARS ${STATIC_LIB_PREFIX}rkaiq_ainr${STATIC_LIB_SUFFIX})
 endif()
 
 if(RKAIQ_ISP_VERSION STREQUAL "33")
@@ -2288,7 +2354,7 @@ if (RKAIQ_HAVE_YUVME_V1)
     endif()
 endif()
 
-if (RKAIQ_HAVE_CNR_V31 OR RKAIQ_HAVE_CNR_V35)
+if (RKAIQ_HAVE_CNR_V31 OR RKAIQ_HAVE_CNR_V35 OR RKAIQ_HAVE_CNR_V36)
 	if (RKAIQ_NEWSTRUCT_TEST)
 		target_link_libraries(rkaiq
 			PRIVATE
@@ -2395,6 +2461,11 @@ if (RKAIQ_ISP_VERSION STREQUAL "39")
 elseif(RKAIQ_ISP_VERSION STREQUAL "33")
 install(FILES include/uAPI2/rk_aiq_user_api2_isp33.h
     DESTINATION include/rkaiq/uAPI2 RENAME rk_aiq_user_api2_isp.h)
+elseif(RKAIQ_ISP_VERSION STREQUAL "35")
+install(FILES include/uAPI2/rk_aiq_user_api2_isp35.h
+    DESTINATION include/rkaiq/uAPI2 RENAME rk_aiq_user_api2_isp.h)
+install(FILES uAPI/include/rk_aiq_user_api_sysctl.h
+    DESTINATION include/rkaiq/uAPI2)
 endif()
 
 install(TARGETS rkaiq

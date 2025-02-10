@@ -314,6 +314,11 @@ func rkaiq_getAlgosMacros(macros_map map[string]bool) []string {
         cflags = append(cflags, "-DRKAIQ_HAVE_MERGE_V12=1")
         cflags = append(cflags, "-DRKAIQ_HAVE_MERGE=1")
     }
+    flag0 = macros_map["RKAIQ_HAVE_MERGE_V13"]
+    if (flag0) {
+        cflags = append(cflags, "-DRKAIQ_HAVE_MERGE_V13=1")
+        cflags = append(cflags, "-DRKAIQ_HAVE_MERGE=1")
+    }
     flag0 = macros_map["RKAIQ_HAVE_DRC_V10"]
     if (flag0) {
         cflags = append(cflags, "-DRKAIQ_HAVE_DRC_V10=1")
@@ -332,6 +337,11 @@ func rkaiq_getAlgosMacros(macros_map map[string]bool) []string {
     flag0 = macros_map["RKAIQ_HAVE_DRC_V20"]
     if (flag0) {
         cflags = append(cflags, "-DRKAIQ_HAVE_DRC_V20=1")
+        cflags = append(cflags, "-DRKAIQ_HAVE_DRC=1")
+    }
+    flag0 = macros_map["RKAIQ_HAVE_DRC_V21"]
+    if (flag0) {
+        cflags = append(cflags, "-DRKAIQ_HAVE_DRC_V21=1")
         cflags = append(cflags, "-DRKAIQ_HAVE_DRC=1")
     }
     flag0 = macros_map["RKAIQ_HAVE_DEHAZE_V10"]

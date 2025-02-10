@@ -23,6 +23,8 @@
 #include "xcore/base/xcam_common.h"
 #include "common/rk_aiq_comm.h"
 
+#define RK_AIQ_ISO_STEP_MAX  13
+
 /*
  * This file is used to define all the algos interfaces, eg. including ae, awb
  * af, anr and etc. . The typical call routine by user is as follow:
@@ -109,6 +111,7 @@ typedef enum RkAiqAlgoType_e {
     RK_AIQ_ALGO_TYPE_AENH,
     RK_AIQ_ALGO_TYPE_ALDC,
     RK_AIQ_ALGO_TYPE_AHSV,
+    RK_AIQ_ALGO_TYPE_AINR,
     RK_AIQ_ALGO_TYPE_MAX
 } RkAiqAlgoType_t;
 

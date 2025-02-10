@@ -27,7 +27,6 @@
 #include "rk_aiq_user_api_sysctl.h"
 #include "uAPI2/rk_aiq_user_api2_ae.h"
 #include "uAPI2/rk_aiq_user_api2_imgproc.h"
-#include "uAPI/include/rk_aiq_user_api_sysctl.h"
 #include "uAPI2/rk_aiq_user_api2_acsm.h"
 #include "uAPI2/rk_aiq_user_api2_acgc.h"
 #include "uAPI2/rk_aiq_user_api2_ablc_v32.h"
@@ -706,20 +705,20 @@ XCamReturn rk_aiq_get_accm_v2_manual_attr(const rk_aiq_sys_ctx_t* sys_ctx,
 }
 
 XCamReturn rk_aiq_set_tool_3dlut_mode(rk_aiq_sys_ctx_t *ctx, uapi_wb_mode_t *mode) {
-#ifndef ISP_HW_V33
-    return rk_aiq_uapi2_setLut3dMode(ctx, mode->mode);
-#else
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     LOGW("rv1103b not support 3dlut\n");
     return XCAM_RETURN_NO_ERROR;
+#else
+    return rk_aiq_uapi2_setLut3dMode(ctx, mode->mode);
 #endif
 }
 
 XCamReturn rk_aiq_get_a3dlut_mode(rk_aiq_sys_ctx_t* ctx, uapi_wb_mode_t* mode) {
-#ifndef ISP_HW_V33
-    return rk_aiq_uapi2_getLut3dMode(ctx, &mode->mode);
-#else
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     LOGW("rv1103b not support 3dlut\n");
     return XCAM_RETURN_NO_ERROR;
+#else
+    return rk_aiq_uapi2_getLut3dMode(ctx, &mode->mode);
 #endif
 }
 

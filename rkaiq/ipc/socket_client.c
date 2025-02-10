@@ -255,8 +255,12 @@ void socket_client_setNote(SocketClientCtx_t *ctx, uint32_t ret, char *str)
         rec->ret = ret;
 
     if (rec->note[0] == 0) {
-        if (str)
-            strncpy(rec->note, str, 128);
+        if (str) {
+            strncpy(rec->note, str, 127);
+            if (strlen(str) > 127) {
+                LOGW_IPC("note info more len 127 byte, cut of 127 char");
+            }
+        }
     }
 }
 

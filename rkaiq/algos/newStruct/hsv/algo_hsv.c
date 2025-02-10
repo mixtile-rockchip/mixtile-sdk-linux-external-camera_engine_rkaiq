@@ -132,14 +132,18 @@ static void array_weight_sum(int16_t* in, int16_t* out, int32_t wei0, int32_t nu
     for (int i = 0; i < num; i++) {
         out[i] =
             (int16_t)((wei0 * (int32_t) out[i] + wei1 * (int32_t)in[i])>>bit);
-        
-        *sum += abs(out[i]); 
+
+        *sum += abs(out[i]);
     }
 }
-static void Damping(HsvContext_t* pHsvCtx, float damp) 
+static void Damping(HsvContext_t* pHsvCtx, float damp)
 {
     int32_t f1 = (int32_t)(damp * 128.0f);
-    int32_t lutSum[3] = {0};
+#if RKAIQ_HAVE_HSV_V10
+    int32_t lutSum[3] = { 0 };
+#elif RKAIQ_HAVE_HSV_V11
+    int32_t lutSum[5] = { 0 };
+#endif
 
     hsv_meshGain_t *pDamped = &pHsvCtx->damped_lut;
     hsv_meshGain_t *pUndamped = &pHsvCtx->undamped_lut;
@@ -150,37 +154,37 @@ static void Damping(HsvContext_t* pHsvCtx, float damp)
     if (sta->hsvCfg.hw_hsvT_lut1d0_en) {
         array_weight_sum(pUndamped->lut0, pDamped->lut0, f1, 
                          HSV_1DLUT_NUM, 7, &lutSum[0]);
-        LOGD_AHSV("lut0: Damping %f, lutsum0 %d -> %d\n", 
+        LOGD_AHSV("lut0: Damping %f, lutsum0 %d -> %d\n",
                   damp, lutSum[0], pHsvCtx->pre_lutSum[0]);
     } else {
         array_weight_sum(pUndamped->lut0, pDamped->lut0, 128, 
                          HSV_1DLUT_NUM, 7, &lutSum[0]);
-        LOGD_AHSV("lut1: Damping 0, lutsum0 %d -> %d\n", 
+        LOGD_AHSV("lut1: Damping 0, lutsum0 %d -> %d\n",
                   lutSum[0], pHsvCtx->pre_lutSum[0]);
     }
     if (sta->hsvCfg.hw_hsvT_lut1d1_en) {
         array_weight_sum(pUndamped->lut1, pDamped->lut1, f1, 
                          HSV_1DLUT_NUM, 7, &lutSum[1]);
-        LOGD_AHSV("lut1: Damping %f, lutsum1 %d -> %d\n", 
+        LOGD_AHSV("lut1: Damping %f, lutsum1 %d -> %d\n",
                   damp, lutSum[1], pHsvCtx->pre_lutSum[1]);
     } else {
         array_weight_sum(pUndamped->lut1, pDamped->lut1, 128, 
                          HSV_1DLUT_NUM, 7, &lutSum[1]);
-        LOGD_AHSV("lut1: Damping 0, lutsum1 %d -> %d\n", 
+        LOGD_AHSV("lut1: Damping 0, lutsum1 %d -> %d\n",
                   lutSum[1], pHsvCtx->pre_lutSum[1]);
     }
     if (sta->hsvCfg.hw_hsvT_lut2d_en) {
         array_weight_sum(pUndamped->lut2, pDamped->lut2, f1, 
                          HSV_2DLUT_NUM, 7, &lutSum[2]);
-        LOGD_AHSV("lut2: Damping %f, lutsum2 %d -> %d\n", 
+        LOGD_AHSV("lut2: Damping %f, lutsum2 %d -> %d\n",
                   damp, lutSum[2], pHsvCtx->pre_lutSum[2]);
     } else {
         array_weight_sum(pUndamped->lut2, pDamped->lut2, 128, 
                          HSV_2DLUT_NUM, 7, &lutSum[2]);
-        LOGD_AHSV("lut2: Damping 0, lutsum2 %d -> %d\n", 
+        LOGD_AHSV("lut2: Damping 0, lutsum2 %d -> %d\n",
                   lutSum[2], pHsvCtx->pre_lutSum[2]);
     }
-
+#if RKAIQ_HAVE_HSV_V10
     pHsvCtx->damp_converged = !((lutSum[0] - pHsvCtx->pre_lutSum[0]) > 0 ||
                                   (lutSum[1] - pHsvCtx->pre_lutSum[1]) > 0 ||
                                   (lutSum[2] - pHsvCtx->pre_lutSum[2]) > 0);
@@ -188,6 +192,42 @@ static void Damping(HsvContext_t* pHsvCtx, float damp)
     pHsvCtx->pre_lutSum[0] = lutSum[0];
     pHsvCtx->pre_lutSum[1] = lutSum[1];
     pHsvCtx->pre_lutSum[2] = lutSum[2];
+#elif RKAIQ_HAVE_HSV_V11
+    if (sta->hsvCfg.hw_hsvT_lut2d1_en) {
+        array_weight_sum(pDamped->lut2d1, pUndamped->lut2d1, f1,
+                         HSV_2DLUT_NUM, 7, &lutSum[3]);
+        LOGD_AHSV("lut2d1: Damping %f, lutsum2 %d -> %d\n",
+                  damp, lutSum[3], pHsvCtx->pre_lutSum[3]);
+    } else {
+        array_weight_sum(pDamped->lut2d1, pUndamped->lut2d1, 128,
+                         HSV_2DLUT_NUM, 7, &lutSum[3]);
+        LOGD_AHSV("lut2d1: Damping 0, lutsum2 %d -> %d\n",
+                  lutSum[3], pHsvCtx->pre_lutSum[3]);
+        }
+    if (sta->hsvCfg.hw_hsvT_lut2d_en) {
+        array_weight_sum(pDamped->lut2d2, pUndamped->lut2d2, f1,
+                         HSV_2DLUT_NUM, 7, &lutSum[4]);
+        LOGD_AHSV("lut2d2: Damping %f, lutsum2 %d -> %d\n",
+                  damp, lutSum[4], pHsvCtx->pre_lutSum[4]);
+    } else {
+        array_weight_sum(pDamped->lut2d2, pUndamped->lut2d2, 128,
+                         HSV_2DLUT_NUM, 7, &lutSum[4]);
+        LOGD_AHSV("lut2d2: Damping 0, lutsum2 %d -> %d\n",
+                  lutSum[4], pHsvCtx->pre_lutSum[4]);
+    }
+    pHsvCtx->damp_converged = !((lutSum[0] - pHsvCtx->pre_lutSum[0]) > 0 ||
+                                  (lutSum[1] - pHsvCtx->pre_lutSum[1]) > 0 ||
+                                  (lutSum[2] - pHsvCtx->pre_lutSum[2]) > 0 ||
+                                  (lutSum[3] - pHsvCtx->pre_lutSum[3]) > 0 ||
+                                  (lutSum[4] - pHsvCtx->pre_lutSum[4]) > 0);
+    LOGD_AHSV("lut converged %d \n", pHsvCtx->damp_converged);
+    pHsvCtx->pre_lutSum[0] = lutSum[0];
+    pHsvCtx->pre_lutSum[1] = lutSum[1];
+    pHsvCtx->pre_lutSum[2] = lutSum[2];
+    pHsvCtx->pre_lutSum[3] = lutSum[3];
+    pHsvCtx->pre_lutSum[4] = lutSum[4];
+#endif
+
 }
 
 XCamReturn Ahsv_prepare(RkAiqAlgoCom* params)
@@ -288,35 +328,66 @@ XCamReturn Ahsv_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
         if (tunning->stAuto.sta.hsvCfg.hw_hsvT_lut1d0_en)
             interpolate_lut1d_alpha(alpha, &pHsvCtx->calib_lut->lut1d0, pHsvCtx->undamped_lut.lut0);
         else
-            memcpy(pHsvCtx->undamped_lut.lut0, 
+            memcpy(pHsvCtx->undamped_lut.lut0,
                    pHsvCtx->calib_lut->lut1d0.hw_hsvT_lut1d_val,
                    sizeof(pHsvCtx->calib_lut->lut1d0.hw_hsvT_lut1d_val));
         if (tunning->stAuto.sta.hsvCfg.hw_hsvT_lut1d1_en)
             interpolate_lut1d_alpha(alpha, &pHsvCtx->calib_lut->lut1d1, pHsvCtx->undamped_lut.lut1);
         else
-            memcpy(pHsvCtx->undamped_lut.lut1, 
+            memcpy(pHsvCtx->undamped_lut.lut1,
                    pHsvCtx->calib_lut->lut1d1.hw_hsvT_lut1d_val,
                    sizeof(pHsvCtx->calib_lut->lut1d1.hw_hsvT_lut1d_val));
-        if (tunning->stAuto.sta.hsvCfg.hw_hsvT_lut2d_en)
+        if (tunning->stAuto.sta.hsvCfg.hw_hsvT_lut2d_en) {
             interpolate_lut2d_alpha(alpha, &pHsvCtx->calib_lut->lut2d, pHsvCtx->undamped_lut.lut2);
-        else
-            memcpy(pHsvCtx->undamped_lut.lut2, 
+#if RKAIQ_HAVE_HSV_V11
+            interpolate_lut2d_alpha(alpha, &pHsvCtx->calib_lut->lut2d1, pHsvCtx->undamped_lut.lut2d1);
+            interpolate_lut2d_alpha(alpha, &pHsvCtx->calib_lut->lut2d2, pHsvCtx->undamped_lut.lut2d2);
+#endif
+        }
+        else {
+            memcpy(pHsvCtx->undamped_lut.lut2,
                    pHsvCtx->calib_lut->lut2d.hw_hsvT_lut2d_val,
                    sizeof(pHsvCtx->calib_lut->lut2d.hw_hsvT_lut2d_val));
+#if RKAIQ_HAVE_HSV_V11
+            memcpy(pHsvCtx->undamped_lut.lut2d1,
+                   pHsvCtx->calib_lut->lut2d1.hw_hsvT_lut2d_val,
+                   sizeof(pHsvCtx->calib_lut->lut2d1.hw_hsvT_lut2d_val));
+            memcpy(pHsvCtx->undamped_lut.lut2d2,
+                   pHsvCtx->calib_lut->lut2d2.hw_hsvT_lut2d_val,
+                   sizeof(pHsvCtx->calib_lut->lut2d2.hw_hsvT_lut2d_val));
+#endif
+        }
     }
 
     //(4) damp
-    bool mode_keep = 
+#if RKAIQ_HAVE_HSV_V10
+    bool mode_keep =
             (pHsvCtx->calib_lut->lut1d0.hw_hsvT_lut1d_mode == pHsvCtx->pre_mode[0]) &&
-            (pHsvCtx->calib_lut->lut1d1.hw_hsvT_lut1d_mode == pHsvCtx->pre_mode[1]) && 
+            (pHsvCtx->calib_lut->lut1d1.hw_hsvT_lut1d_mode == pHsvCtx->pre_mode[1]) &&
             (pHsvCtx->calib_lut->lut2d.hw_hsvT_lut2d_mode == pHsvCtx->pre_mode[2]);
-    
+
     if (!mode_keep) {
         pHsvCtx->pre_mode[0] = pHsvCtx->calib_lut->lut1d0.hw_hsvT_lut1d_mode;
         pHsvCtx->pre_mode[1] = pHsvCtx->calib_lut->lut1d1.hw_hsvT_lut1d_mode;
         pHsvCtx->pre_mode[2] = pHsvCtx->calib_lut->lut2d.hw_hsvT_lut2d_mode;
     }
+#endif
+#if RKAIQ_HAVE_HSV_V11
+    bool mode_keep =
+            (pHsvCtx->calib_lut->lut1d0.hw_hsvT_lut1d_mode == pHsvCtx->pre_mode[0]) &&
+            (pHsvCtx->calib_lut->lut1d1.hw_hsvT_lut1d_mode == pHsvCtx->pre_mode[1]) &&
+            (pHsvCtx->calib_lut->lut2d.hw_hsvT_lut2d_mode == pHsvCtx->pre_mode[2]) &&
+            (pHsvCtx->calib_lut->lut2d1.hw_hsvT_lut2d_mode == pHsvCtx->pre_mode[3]) &&
+            (pHsvCtx->calib_lut->lut2d2.hw_hsvT_lut2d_mode == pHsvCtx->pre_mode[4]);
 
+    if (!mode_keep) {
+        pHsvCtx->pre_mode[0] = pHsvCtx->calib_lut->lut1d0.hw_hsvT_lut1d_mode;
+        pHsvCtx->pre_mode[1] = pHsvCtx->calib_lut->lut1d1.hw_hsvT_lut1d_mode;
+        pHsvCtx->pre_mode[2] = pHsvCtx->calib_lut->lut2d.hw_hsvT_lut2d_mode;
+        pHsvCtx->pre_mode[3] = pHsvCtx->calib_lut->lut2d1.hw_hsvT_lut2d_mode;
+        pHsvCtx->pre_mode[4] = pHsvCtx->calib_lut->lut2d2.hw_hsvT_lut2d_mode;
+}
+#endif
     bool damp_en = tunning->stAuto.sta.sw_hsvT_damp_en && mode_keep;
     if (damp_en) {
         if (need_recal || !pHsvCtx->damp_converged) {
@@ -334,28 +405,49 @@ XCamReturn Ahsv_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
         hsvRes->dyn.lut1d0.hw_hsvT_lut1d_mode = pHsvCtx->calib_lut->lut1d0.hw_hsvT_lut1d_mode;
         hsvRes->dyn.lut1d1.hw_hsvT_lut1d_mode = pHsvCtx->calib_lut->lut1d1.hw_hsvT_lut1d_mode;
         hsvRes->dyn.lut2d.hw_hsvT_lut2d_mode = pHsvCtx->calib_lut->lut2d.hw_hsvT_lut2d_mode;
+#if RKAIQ_HAVE_HSV_V11
+        hsvRes->dyn.lut2d1.hw_hsvT_lut2d_mode = pHsvCtx->calib_lut->lut2d1.hw_hsvT_lut2d_mode;
+        hsvRes->dyn.lut2d2.hw_hsvT_lut2d_mode = pHsvCtx->calib_lut->lut2d2.hw_hsvT_lut2d_mode;
+#endif
 
         if (damp_en) {
-            memcpy(hsvRes->dyn.lut1d0.hw_hsvT_lut1d_val, 
-                   pHsvCtx->damped_lut.lut0, 
+            memcpy(hsvRes->dyn.lut1d0.hw_hsvT_lut1d_val,
+                   pHsvCtx->damped_lut.lut0,
                    sizeof(pHsvCtx->damped_lut.lut0));
-            memcpy(hsvRes->dyn.lut1d1.hw_hsvT_lut1d_val, 
-                   pHsvCtx->damped_lut.lut1, 
+            memcpy(hsvRes->dyn.lut1d1.hw_hsvT_lut1d_val,
+                   pHsvCtx->damped_lut.lut1,
                    sizeof(pHsvCtx->damped_lut.lut1));
-            memcpy(hsvRes->dyn.lut2d.hw_hsvT_lut2d_val, 
-                   pHsvCtx->damped_lut.lut2, 
+            memcpy(hsvRes->dyn.lut2d.hw_hsvT_lut2d_val,
+                   pHsvCtx->damped_lut.lut2,
                    sizeof(pHsvCtx->damped_lut.lut2));
-        } else {
-            memcpy(hsvRes->dyn.lut1d0.hw_hsvT_lut1d_val, 
-                   pHsvCtx->undamped_lut.lut0, 
+#if RKAIQ_HAVE_HSV_V11
+            memcpy(hsvRes->dyn.lut2d1.hw_hsvT_lut2d_val,
+                   pHsvCtx->damped_lut.lut2d1,
+                   sizeof(pHsvCtx->damped_lut.lut2d1));
+            memcpy(hsvRes->dyn.lut2d2.hw_hsvT_lut2d_val,
+                   pHsvCtx->damped_lut.lut2d2,
+                   sizeof(pHsvCtx->damped_lut.lut2d2));
+#endif
+        }
+        else {
+            memcpy(hsvRes->dyn.lut1d0.hw_hsvT_lut1d_val,
+                   pHsvCtx->undamped_lut.lut0,
                    sizeof(pHsvCtx->undamped_lut.lut0));
-            memcpy(hsvRes->dyn.lut1d1.hw_hsvT_lut1d_val, 
-                   pHsvCtx->undamped_lut.lut1, 
+            memcpy(hsvRes->dyn.lut1d1.hw_hsvT_lut1d_val,
+                   pHsvCtx->undamped_lut.lut1,
                    sizeof(pHsvCtx->undamped_lut.lut1));
-            memcpy(hsvRes->dyn.lut2d.hw_hsvT_lut2d_val, 
-                   pHsvCtx->undamped_lut.lut2, 
+            memcpy(hsvRes->dyn.lut2d.hw_hsvT_lut2d_val,
+                   pHsvCtx->undamped_lut.lut2,
                    sizeof(pHsvCtx->undamped_lut.lut2));
             pHsvCtx->damped_lut = pHsvCtx->undamped_lut;
+#if RKAIQ_HAVE_HSV_V11
+            memcpy(hsvRes->dyn.lut2d1.hw_hsvT_lut2d_val,
+                   pHsvCtx->undamped_lut.lut2d1,
+                   sizeof(pHsvCtx->undamped_lut.lut2d1));
+            memcpy(hsvRes->dyn.lut2d2.hw_hsvT_lut2d_val,
+                   pHsvCtx->undamped_lut.lut2d2,
+                   sizeof(pHsvCtx->undamped_lut.lut2d2));
+#endif
         }
 
         outparams->cfg_update = true;

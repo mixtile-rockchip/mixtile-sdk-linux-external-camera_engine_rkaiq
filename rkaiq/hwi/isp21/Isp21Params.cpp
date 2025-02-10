@@ -1223,6 +1223,7 @@ void Isp21Params::convertAiqExpIspDgainToIspParams(void* isp_cfg_, RKAiqAecExpIn
             rk_aiq_isp_blc_v21_t& blc = blc_proxy->data()->result;
 
             if (isRecalc) {
+                convertAiqBlcToIsp21Params(*isp_cfg, blc);
                 tmp = (uint16_t)(blc.v0.blc1_r * cfg->gain0_red / base_wb_gain + 0.5);
                 if(tmp > 0x1fff)
                     tmp = 0x1fff;

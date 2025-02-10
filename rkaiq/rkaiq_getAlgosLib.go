@@ -306,7 +306,8 @@ func rkaiq_getAlgosLib(macros_map map[string]bool) []string {
     flag0 = macros_map["RKAIQ_HAVE_MERGE_V10"]
     flag1 = macros_map["RKAIQ_HAVE_MERGE_V11"]
     flag2 = macros_map["RKAIQ_HAVE_MERGE_V12"]
-    if (flag0 || flag1 ||flag2) {
+    flag3 = macros_map["RKAIQ_HAVE_MERGE_V13"]
+    if (flag0 || flag1 ||flag2 || flag3) {
         if useNewstruct && flag2 {
             static_lib = append(static_lib, "librkaiq_merge")
         } else {
@@ -319,7 +320,8 @@ func rkaiq_getAlgosLib(macros_map map[string]bool) []string {
     flag2 = macros_map["RKAIQ_HAVE_DRC_V12"]
     flag3 = macros_map["RKAIQ_HAVE_DRC_V12_LITE"]
     flag4 = macros_map["RKAIQ_HAVE_DRC_V20"]
-    if (flag0 || flag1 || flag2 || flag3 || flag4) {
+    flag5 = macros_map["RKAIQ_HAVE_DRC_V21"]
+    if (flag0 || flag1 || flag2 || flag3 || flag4 || flag5) {
         if useNewstruct {
             static_lib = append(static_lib, "librkaiq_drc")
         } else {

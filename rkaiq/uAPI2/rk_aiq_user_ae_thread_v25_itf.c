@@ -1239,6 +1239,9 @@ rk_aiq_uapi2_ae_register(const rk_aiq_sys_ctx_t* ctx, rk_aiq_pfnAe_t* cbs)
 #if defined(ISP_HW_V33)
         { &desc->common, RK_AIQ_CORE_ANALYZE_AE, 0,  6,  0, aeGrpCondsV3x},
 #endif
+#if defined(ISP_HW_V35)
+        { &desc->common, RK_AIQ_CORE_ANALYZE_AE, 0,  7,  0, aeGrpCondsV3x},
+#endif
         { NULL, RK_AIQ_CORE_ANALYZE_ALL, 0,  0,  0, {0, 0} },
     };
 
@@ -1311,6 +1314,9 @@ rk_aiq_uapi2_ae_register(const rk_aiq_sys_ctx_t* ctx, rk_aiq_pfnAe_t* cbs)
             { &desc->common, RK_AIQ_CORE_ANALYZE_AE, 0,  5,  0,  {0, 0}},
 #endif
 #if defined(ISP_HW_V33)
+            { &desc->common, RK_AIQ_CORE_ANALYZE_AE, 0,  6,  0,  {0, 0}},
+#endif
+#if defined(ISP_HW_V35)
             { &desc->common, RK_AIQ_CORE_ANALYZE_AE, 0,  6,  0,  {0, 0}},
 #endif
             { NULL, RK_AIQ_CORE_ANALYZE_ALL, 0,  0,  0, {0, 0} },

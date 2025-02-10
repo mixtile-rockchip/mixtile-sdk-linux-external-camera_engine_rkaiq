@@ -268,7 +268,7 @@ static XCamReturn newAiqParamPool(AiqCore_t* pAiqCore, int type) {
             NEW_PARAMS_POOL(RESULT_TYPE_ENH_PARAM, rk_aiq_isp_enh_params_t);
             break;
 #endif
-#if RKAIQ_HAVE_HSV_V10
+#if RKAIQ_HAVE_HSV
         case RK_AIQ_ALGO_TYPE_AHSV:
             NEW_PARAMS_POOL(RESULT_TYPE_HSV_PARAM, rk_aiq_isp_hsv_params_t);
             break;
@@ -372,7 +372,7 @@ static XCamReturn newAiqParamPool(AiqCore_t* pAiqCore, int type) {
             NEW_PARAMS_POOL(RESULT_TYPE_SHARPEN_PARAM, rk_aiq_isp_sharpen_params_t);
 #endif
 
-#if RKAIQ_HAVE_SHARP_V40
+#if defined(RKAIQ_HAVE_SHARP_V40) || defined(RKAIQ_HAVE_SHARP_V41)
             NEW_PARAMS_POOL(RESULT_TYPE_TEXEST_PARAM, rk_aiq_isp_texEst_params_t);
 #endif
             break;
@@ -401,6 +401,11 @@ static XCamReturn newAiqParamPool(AiqCore_t* pAiqCore, int type) {
             NEW_PARAMS_POOL(RESULT_TYPE_LDC_PARAM, rk_aiq_isp_ldc_params_t);
 #endif
             break;
+#if RKAIQ_HAVE_AINR
+        case RK_AIQ_ALGO_TYPE_AINR:
+            NEW_PARAMS_POOL(RESULT_TYPE_AINR_PARAM, rk_aiq_isp_ainr_params_t);
+            break;
+#endif
         default:
             break;
     }
@@ -692,6 +697,11 @@ static uint64_t getReqAlgoResMask(AiqCore_t* pAiqCore, int algoType) {
 		case RK_AIQ_ALGO_TYPE_ALDC:
             tmp |= 1ULL << RESULT_TYPE_LDC_PARAM;
 			break;
+		#if RKAIQ_HAVE_AINR
+        case RK_AIQ_ALGO_TYPE_AINR:
+            tmp |= 1ULL << RESULT_TYPE_AINR_PARAM;
+            break;
+		#endif
         default:
             break;
     }
@@ -1077,9 +1087,6 @@ fail:
 
 XCamReturn AiqCore_deinit(AiqCore_t* pAiqCore) {
     ENTER_ANALYZER_FUNCTION();
-
-    if (!pAiqCore)
-        return XCAM_RETURN_ERROR_FAILED;
 
     if (pAiqCore->mState == RK_AIQ_CORE_STATE_STARTED ||
         pAiqCore->mState == RK_AIQ_CORE_STATE_RUNNING) {
@@ -1561,7 +1568,7 @@ static XCamReturn getAiqParamsBuffer(AiqCore_t* pAiqCore, AiqFullParams_t* aiqPa
             break;
         case RK_AIQ_ALGO_TYPE_ASHARP:
             NEW_PARAMS_BUFFER(SHARPEN);
-#if RKAIQ_HAVE_SHARP_V40
+#if defined(RKAIQ_HAVE_SHARP_V40) || defined(RKAIQ_HAVE_SHARP_V41)
             NEW_PARAMS_BUFFER(TEXEST);
 #endif
             break;
@@ -1597,6 +1604,11 @@ static XCamReturn getAiqParamsBuffer(AiqCore_t* pAiqCore, AiqFullParams_t* aiqPa
             NEW_PARAMS_BUFFER(LDC);
 #endif
 			break;
+        case RK_AIQ_ALGO_TYPE_AINR:
+#if RKAIQ_HAVE_AINR
+            NEW_PARAMS_BUFFER(AINR);
+#endif
+            break;
         default:
             break;
     }
@@ -1900,7 +1912,7 @@ XCamReturn AiqCore_prepare(AiqCore_t * pAiqCore,
 		int isp_unite_mode               = translator->mIspUniteMode;
         if (isp_unite_mode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
 			AiqStatsTranslator_SetMultiIspMode(translator, true);
-			AiqStatsTranslator_SetIspUnitedMode(translator, RK_AIQ_ISP_UNITE_MODE_FOUR_GRID);
+			AiqStatsTranslator_SetIspUniteMode(translator, RK_AIQ_ISP_UNITE_MODE_FOUR_GRID);
 			Rectangle_t rect;
 			rect.x = 0;
 			rect.y = 0;
@@ -1929,7 +1941,7 @@ XCamReturn AiqCore_prepare(AiqCore_t * pAiqCore,
 			AiqStatsTranslator_SetBottomRightIspRect(translator, &rect);
 		} else if (isp_unite_mode == RK_AIQ_ISP_UNITE_MODE_TWO_GRID) {
 			AiqStatsTranslator_SetMultiIspMode(translator, true);
-			AiqStatsTranslator_SetIspUnitedMode(translator, RK_AIQ_ISP_UNITE_MODE_TWO_GRID);
+			AiqStatsTranslator_SetIspUniteMode(translator, RK_AIQ_ISP_UNITE_MODE_TWO_GRID);
 			Rectangle_t rect;
 			rect.x = 0;
 			rect.y = 0;
@@ -1945,7 +1957,7 @@ XCamReturn AiqCore_prepare(AiqCore_t * pAiqCore,
 			AiqStatsTranslator_SetRightIspRect(translator, &rect);
 		} else {
 			AiqStatsTranslator_SetMultiIspMode(translator, true);
-			AiqStatsTranslator_SetIspUnitedMode(translator, RK_AIQ_ISP_UNITE_MODE_NORMAL);
+			AiqStatsTranslator_SetIspUniteMode(translator, RK_AIQ_ISP_UNITE_MODE_NORMAL);
 			Rectangle_t rect;
 			rect.x = 0;
 			rect.y = 0;
@@ -3013,6 +3025,7 @@ static struct iqModStrToAlgoMap_s iqModuleStrToAlgoEnumMap[] = {
 	{"argbir", RK_AIQ_ALGO_TYPE_ARGBIR},
 	{"rgbir", RK_AIQ_ALGO_TYPE_ARGBIR},
 	{"ldc", RK_AIQ_ALGO_TYPE_ALDC},
+    {"ainr", RK_AIQ_ALGO_TYPE_AINR},
 };
 
 static void mapModStrListToEnum(AiqCore_t* pAiqCore, TuningCalib* change_name_list) {
@@ -3749,6 +3762,8 @@ static int AiqCore_algosDump(void* self, st_string* result, int argc, void* argv
             OPT_BOOLEAN('T', "texest", &dump_args[AIQ_NOTIFIER_MATCH_TEXEST],
                         "dump texest module info ", NULL, 0, 0),
             OPT_BOOLEAN('U', "hsv", &dump_args[AIQ_NOTIFIER_MATCH_HSV], "dump hsv module info",
+                        NULL, 0, 0),
+            OPT_BOOLEAN('V', "ainr", &dump_args[AIQ_NOTIFIER_MATCH_AINR], "dump ainr module info",
                         NULL, 0, 0),
             OPT_BOOLEAN('\0', "help", NULL, "show this help message and exit", dbg_help_cb, 0,
                         OPT_NONEG),

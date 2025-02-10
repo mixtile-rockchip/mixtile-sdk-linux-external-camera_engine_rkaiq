@@ -364,6 +364,12 @@ static XCamReturn _handlerDrc_processing(AiqAlgoHandler_t* pAlgoHandler) {
         pAlgoHandler->mProcOutParam->cfg_update = true;
         LOGD_ATMO("trans params update");
     }
+    rk_aiq_isp_drc_v39_t* blcRes = (rk_aiq_isp_drc_params_t*)pBase->_data;
+    AiqDrcHandler_t* pdrcHandler = (AiqDrcHandler_t*)pAlgoHandler;
+    blcRes->damping = &pdrcHandler->damping;
+    if (pdrcHandler->damping) {
+        pAlgoHandler->mProcOutParam->cfg_update = true;
+    }
 
     RKAIQCORE_CHECK_RET(ret, "drc algo processing failed");
 

@@ -47,7 +47,6 @@
 #include "newStruct/3dlut/include/3dlut_algo_api.h"
 #include "newStruct/dehaze/include/dehaze_algo_api.h"
 #include "newStruct/ldc/include/ldc_algo_api.h"
-#include "newStruct/rgbir/include/rgbir_algo_api.h"
 #if RKAIQ_HAVE_YUVME
 #include "newStruct/yme/include/yme_algo_api.h"
 #endif
@@ -56,6 +55,13 @@
 #include "newStruct/hsv/include/hsv_algo_api.h"
 #include "newStruct/ldc/include/ldc_algo_api.h"
 #endif
+#ifdef ISP_HW_V35
+#include "newStruct/hsv/include/hsv_algo_api.h"
+#include "newStruct/ldc/include/ldc_algo_api.h"
+#endif
+#if RKAIQ_HAVE_RGBIR_REMOSAIC
+#include "newStruct/rgbir/include/rgbir_algo_api.h"
+#endif
 #endif
 
 #include "rk_aiq_types.h"
@@ -63,6 +69,8 @@
 #include "algos/ae/rk_aiq_types_ae_algo_int.h"
 #include "algos/afd/rk_aiq_types_afd_algo_int.h"
 #include "awb/rk_aiq_types_awb_algo_int.h"
+
+#include "newStruct/ainr/include/ainr_algo_api.h"
 
 
 typedef struct Aynr_ProcResult_V3_s Aynr_ProcResult_V3_t;
@@ -135,6 +143,7 @@ typedef struct _RkAiqAlgoPreResAe {
 typedef struct _RkAiqSetStatsCfg  {
     bool isUpdate;              /* config update flag */
     bool UpdateStats;           /* stats update flag */
+    bool UseSubWinStats;
     int8_t RawStatsChnSel;      /* RawStatsChnEn_t */
     int8_t YRangeMode;          /* CalibDb_CamYRangeModeV2_t */
     unsigned char* BigWeight;
@@ -288,6 +297,9 @@ typedef struct _RkAiqAlgoProcResAwb {
 #else
     rk_aiq_wb_gain_t* awb_gain_algo;
 #endif
+#if !USE_IMPLEMENT_C
+    rk_aiq_wb_gain_t awb_gain_algo_golden;
+#endif
     color_tempture_info_t cctGloabl;
     color_tempture_info_t cctFirst[4];
     float awb_smooth_factor;
@@ -315,6 +327,7 @@ typedef struct rk_aiq_isp_drc_v39_s {
     trans_api_attrib_t trans_attr;
     float L2S_Ratio;
     unsigned char compr_bit;
+    bool *damping;
 } rk_aiq_isp_drc_v39_t;
 
 typedef struct rk_aiq_isp_blc_v33_s {
@@ -645,5 +658,23 @@ typedef struct _RkAiqAlgoProcLdc {
     AiqLdcUpdMeshMode upd_mesh_mode;
 } RkAiqAlgoProcLdc;
 #endif
+
+// ainr
+typedef struct rk_aiq_isp_ainr_params_s {
+    ainr_param_t ainr_param;
+    uint16_t prev_blacklvl;
+    uint16_t post_blacklvl;
+    uint16_t sw_in_comp_y[33];
+    uint16_t sw_out_decomp_y[33];
+} rk_aiq_isp_ainr_params_t;
+
+typedef struct {
+    RkAiqAlgoResCom res_com;
+    ainr_param_t* ainrRes;
+} RkAiqAlgoProcResAinr;
+
+typedef struct {
+    RkAiqAlgoCom com;
+} RkAiqAlgoProcAinr;
 
 #endif

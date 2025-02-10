@@ -179,6 +179,10 @@ func rkaiq_getSrcsFiles(soc string, macros_map map[string]bool) []string {
         if flag2 {
             srcs = append(srcs, "modules/rk_aiq_isp33_modules.c")
         }
+        flag3 = macros_map["ISP_HW_V35"]
+        if flag3 {
+            srcs = append(srcs, "modules/rk_aiq_isp35_modules.c")
+        }
         srcs = append(srcs, "algos/newStruct/algo_common.c")
     }
 
@@ -501,7 +505,8 @@ func rkaiq_getAlgoHandleSrcs(soc string, macros_map map[string]bool) []string {
     flag0 = macros_map["RKAIQ_HAVE_MERGE_V10"]
     flag1 = macros_map["RKAIQ_HAVE_MERGE_V11"]
     flag2 = macros_map["RKAIQ_HAVE_MERGE_V12"]
-    if (flag0 || flag1 || flag2) {
+    flag3 = macros_map["RKAIQ_HAVE_MERGE_V13"]
+    if (flag0 || flag1 || flag2 || flag3) {
         if useNewstruct {
             srcs = append(srcs, "aiq_core/algo_handlers/newStruct/RkAiqMergeHandler.cpp")
         } else {
@@ -514,7 +519,8 @@ func rkaiq_getAlgoHandleSrcs(soc string, macros_map map[string]bool) []string {
     flag2 = macros_map["RKAIQ_HAVE_DRC_V12"]
     flag3 = macros_map["RKAIQ_HAVE_DRC_V12_LITE"]
     flag4 = macros_map["RKAIQ_HAVE_DRC_V20"]
-    if (flag0 || flag1 || flag2 || flag3 || flag4) {
+    flag5 = macros_map["RKAIQ_HAVE_DRC_V21"]
+    if (flag0 || flag1 || flag2 || flag3 || flag4 || flag5) {
         if useNewstruct {
             srcs = append(srcs, "aiq_core/algo_handlers/newStruct/RkAiqDrcHandler.cpp")
         } else {

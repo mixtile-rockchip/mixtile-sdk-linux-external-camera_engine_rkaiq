@@ -159,6 +159,19 @@ static XCamReturn _handlerAf_processing(AiqAlgoHandler_t* pAlgoHandler) {
     else
         af_proc_int->xcam_pdaf_stats = NULL;
 
+//#define ZOOM_MOVE_DEBUG
+#ifdef ZOOM_MOVE_DEBUG
+    int zoom_index = 0;
+
+    if (getValueFromFile("/data/.zoom_pos", &zoom_index) == true) {
+        if (pAfHdl->mLastZoomIndex != zoom_index) {
+            AiqAlgoHandlerAf_setZoomIndex(pAfHdl, zoom_index);
+            AiqAlgoHandlerAf_endZoomChg(pAfHdl);
+            pAfHdl->mLastZoomIndex = zoom_index;
+        }
+    }
+#endif
+
     ret = AiqAlgoHandler_processing(pAlgoHandler);
     if (ret < 0) {
         LOGE_ANALYZER("af handle processing failed ret %d", ret);

@@ -844,16 +844,16 @@ static int filtOutFixed(float fval, awb_wpSpace_mode_t hw_awbT_wpSpace_mode)
 
 static void ConfigBlc2(const blc_res_cvt_t* ablc, const awbStats_cfg_t* awb_meas, float isp_dgain,
                        float isp_ob_predgain, int working_mode,
-                       struct isp33_rawawb_meas_cfg* awb_cfg_v32) {
-    awb_cfg_v32->bls2_en     = false;
+    struct isp33_rawawb_meas_cfg* awb_cfg_v32, float blc1_hw) {
+    awb_cfg_v32->bls2_en = false;
     awb_cfg_v32->bls2_val.r  = 0;
     awb_cfg_v32->bls2_val.gr = 0;
     awb_cfg_v32->bls2_val.gb = 0;
     awb_cfg_v32->bls2_val.b  = 0;
     if (awb_meas->hw_awbCfg_statsSrc_mode == awbStats_drcOut_mode ||
-        (awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrOut_mode &&
-         working_mode != RK_AIQ_WORKING_MODE_NORMAL)) {
-        LOGW_AWB("The BLC bias of the awbStats pathway is not effective in the current mode and is consistent with the main pathway");
+            (awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrOut_mode &&
+             working_mode != RK_AIQ_WORKING_MODE_NORMAL)) {
+        LOGD_AWB("The BLC bias of the awbStats pathway is not effective in the current mode and is consistent with the main pathway");
         // don't support to use blc2
         return;
     }
@@ -882,16 +882,16 @@ static void ConfigBlc2(const blc_res_cvt_t* ablc, const awbStats_cfg_t* awb_meas
     }
     // 2 blc2 recalc base on ablc
     if (awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrOut_mode) {
-        // update by (offset +blc1)*dgain
+        // update by blc1hw
         // working_mode = normal,so   applyPosition = IN_AWBGAIN1
         awb_cfg_v32->bls2_val.r =
-            (awbBls2.hw_awbCfg_obR_val + blc1[AWB_CHANNEL_R]) * isp_dgain * dgain2 + 0.5;
+            (awbBls2.hw_awbCfg_obR_val ) * isp_dgain * dgain2 + 0.5+ blc1_hw;
         awb_cfg_v32->bls2_val.b =
-            (awbBls2.hw_awbCfg_obB_val + blc1[AWB_CHANNEL_B]) * isp_dgain * dgain2 + 0.5;
+            (awbBls2.hw_awbCfg_obB_val ) * isp_dgain * dgain2 + 0.5+ blc1_hw;
         awb_cfg_v32->bls2_val.gr =
-            (awbBls2.hw_awbCfg_obGr_val + blc1[AWB_CHANNEL_GR]) * isp_dgain * dgain2 + 0.5;
+            (awbBls2.hw_awbCfg_obGr_val ) * isp_dgain * dgain2 + 0.5+ blc1_hw;
         awb_cfg_v32->bls2_val.gb =
-            (awbBls2.hw_awbCfg_obGb_val + blc1[AWB_CHANNEL_GB]) * isp_dgain * dgain2 + 0.5;
+            (awbBls2.hw_awbCfg_obGb_val ) * isp_dgain * dgain2 + 0.5+ blc1_hw;
     } else {  // select raw
         // update by offset +blc1
         awb_cfg_v32->bls2_val.r  = (awbBls2.hw_awbCfg_obR_val + blc1[AWB_CHANNEL_R]) + 0.5;
@@ -1189,7 +1189,7 @@ static void convertAiqAwbToIsp33Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_
         LOGW_AWB("%s blc_res is null", __FUNCTION__);
     }
     float isp_ob_predgain = pCvt->mCommonCvtInfo.preDGain;
-    ConfigBlc2(blc, awb_meas, isp_dgain, isp_ob_predgain, pCvt->_working_mode, awb_cfg_v32);
+    ConfigBlc2(blc, awb_meas, isp_dgain, isp_ob_predgain, pCvt->_working_mode, awb_cfg_v32, pCvt->mCommonCvtInfo.offset2Blc1);
     LOGD_AWB("blc2_cfg %d %d,%d,%d,%d", awb_cfg_v32->bls2_en, awb_cfg_v32->bls2_val.r,
              awb_cfg_v32->bls2_val.gr, awb_cfg_v32->bls2_val.gb, awb_cfg_v32->bls2_val.b);
 
@@ -1624,7 +1624,7 @@ static void convertAiqCacToIsp33Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_
     isp_cfg->others.cac_cfg.bypass_en = pBase->bypass;
     if(is_multi_isp)
         isp_cfg_right->others.cac_cfg.bypass_en = pBase->bypass;
-    rk_aiq_cac30_params_cvt(pBase->_data, isp_cfg, isp_cfg_right, is_multi_isp, &pCvt->mCommonCvtInfo);
+    rk_aiq_cac30_params_cvt(pBase->_data, &isp_cfg->others.cac_cfg, &isp_cfg_right->others.cac_cfg, is_multi_isp, &pCvt->mCommonCvtInfo);
 }
 #endif
 

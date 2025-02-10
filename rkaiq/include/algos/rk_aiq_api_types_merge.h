@@ -18,7 +18,11 @@
 #define _RK_AIQ_API_TYPES_MERGE_H_
 
 #include "common/rk_aiq_comm.h"
+#if ISP_HW_V35
+#include "isp/rk_aiq_isp_merge23.h"
+#else
 #include "isp/rk_aiq_isp_merge22.h"
+#endif
 
 #define MERGE_LINK_NUM 13
 
@@ -146,6 +150,21 @@ typedef struct amge_params_dyn_s {
         Reference enum types.\n
         Freq of use: low))  */
     mge_baseHdrL_mode_t sw_mgeT_baseHdrL_mode;
+#if ISP_HW_V35
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(sw_mgeT_baseHdrS_mode),
+        M4_TYPE(enum),
+        M4_ENUM_DEF(mge_baseHdrS_mode_t),
+        M4_DEFAULT(mge_motionDR_SPrior_mode),
+        M4_GROUP_CTRL(baseHdrS_mode_group),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(TODO.\n
+        Reference enum types.\n
+        Freq of use: low))  */
+    mge_baseHdrS_mode_t sw_mgeT_baseHdrS_mode;
+#endif
     /* M4_GENERIC_DESC(
         M4_ALIAS(oeWgt),
         M4_TYPE(struct),

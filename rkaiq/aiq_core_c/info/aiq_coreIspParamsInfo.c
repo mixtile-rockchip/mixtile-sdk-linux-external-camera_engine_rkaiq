@@ -122,7 +122,7 @@ void core_isp_params_dump_rawawb_params(AiqCore_t* self, st_string* result) {
              awb_meas_priv->com.hw_awbCfg_stats_en ? "Y" : "N" );
     aiq_string_printf(result, buffer);
     aiq_string_printf(result, "\n\n");
-#if defined(ISP_HW_V33)
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s", "uvDct_en", "xyDct_en",
              "statsSrc_mode", "light_num");
@@ -213,7 +213,7 @@ void core_isp_params_dump_rawawb_params(AiqCore_t* self, st_string* result) {
              awb_meas->wpEngine.hw_awbT_luma2WpWgt_curve.val[8]);
     aiq_string_printf(result, buffer);
     aiq_string_printf(result, "\n");
-#if defined(ISP_HW_V33)
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s", "ccm0r", "ccm1r",
              "ccm2r", "ccm0g", "ccm1g", "ccm1g", "ccm0b", "ccm1b", "ccm1b");
@@ -272,6 +272,9 @@ void core_isp_params_dump_cac_params(AiqCore_t* self, st_string* result) {
 #elif defined(ISP_HW_V33)
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-16s%-14s%-14s", "en", "bypass", "edge_detect_en",
              "neg_clip0_en", "wgt_color_en");
+#elif defined(ISP_HW_V35)
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-16s%-14s%-14s", "en", "bypass", "edge_detect_en",
+             "neg_clip0_en", "wgt_color_en");
 #endif
     aiq_string_printf(result, buffer);
     aiq_string_printf(result, "\n");
@@ -286,6 +289,11 @@ void core_isp_params_dump_cac_params(AiqCore_t* self, st_string* result) {
              pdyn->strgInterp.hw_cacT_edgeDetect_en ? "Y" : "N",
              pdyn->chromaAberrCorr.hw_cacT_negClip0_en ? "Y" : "N");
 #elif defined(ISP_HW_V33)
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-16s%-14s%-14s", en ? "Y" : "N",
+             base->bypass ? "Y" : "N", pdyn->edgeDetect.hw_cacT_edgeDetect_en ? "Y" : "N",
+             pdyn->hfCalc.hw_cacT_negClip0_en ? "Y" : "N",
+             pdyn->chromaAberrCorr.hw_cacT_wgtColor_en ? "Y" : "N");
+#elif defined(ISP_HW_V35)
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-16s%-14s%-14s", en ? "Y" : "N",
              base->bypass ? "Y" : "N", pdyn->edgeDetect.hw_cacT_edgeDetect_en ? "Y" : "N",
              pdyn->hfCalc.hw_cacT_negClip0_en ? "Y" : "N",

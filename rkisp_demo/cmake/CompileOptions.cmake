@@ -18,8 +18,10 @@ set(CMAKE_CXX_EXTENSIONS ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (ARCH STREQUAL "arm" AND CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mthumb -mthumb-interwork")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mthumb -mthumb-interwork")
+    #if (${CMAKE_C_COMPILER_VERSION} VERSION_LESS "12.4.0")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mthumb -mthumb-interwork")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mthumb -mthumb-interwork")
+    #endif()
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")

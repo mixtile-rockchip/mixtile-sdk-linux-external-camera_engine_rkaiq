@@ -153,6 +153,8 @@ void rk_aiq_drc40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
     struct isp39_drc_cfg* phwcfg = &isp_params->isp_cfg->others.drc_cfg;
 #elif ISP_HW_V33
     struct isp33_drc_cfg* phwcfg = &isp_params->isp_cfg->others.drc_cfg;
+#elif ISP_HW_V35
+    struct isp33_drc_cfg* phwcfg = &isp_params->isp_cfg->others.drc_cfg;
 #endif
     drc_param_t* drc_param         = &((rk_aiq_isp_drc_v39_t*)attr)->drc_param;
     drc_params_dyn_t* pdyn         = &drc_param->dyn;
@@ -247,20 +249,25 @@ void rk_aiq_drc40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
     }
 #endif
     if (cvtinfo->frameNum == 1) {
-        if (cvtinfo->btnr_en && cvtinfo->btnrCfg_pixDomain_mode == btnr_pixLog2Domain_mode &&
-            cvtinfo->blc_res.obcPostTnr.sw_blcT_obcPostTnr_en && !cvtinfo->use_aiisp) {
-            float totalGain = cvtinfo->ae_exp->LinearExp.exp_real_params.analog_gain
-                             * cvtinfo->ae_exp->LinearExp.exp_real_params.digital_gain
-                             * cvtinfo->ae_exp->LinearExp.exp_real_params.isp_dgain;
-            LOGD_ATMO("totalGain is %f", totalGain);
-            preDGain = PREDGAIN_DEFAULT;
-            while (totalGain >= 64.0f && preDGain > 1.0f) {
-                preDGain = MAX(preDGain * 0.707, 1);
-                totalGain /= 2;
+        if (cvtinfo->btnr_en && cvtinfo->btnrCfg_pixDomain_mode == btnr_pixLog2Domain_mode
+            && !cvtinfo->use_aiisp && !cvtinfo->btnrT_predgainWkArd_en) {
+            if (cvtinfo->btnrT_predgain_mode == btnr_vendorDefault_mode) {
+                float totalGain = cvtinfo->ae_exp->LinearExp.exp_real_params.analog_gain
+                    * cvtinfo->ae_exp->LinearExp.exp_real_params.digital_gain
+                    * cvtinfo->ae_exp->LinearExp.exp_real_params.isp_dgain;
+                LOGD_ATMO("totalGain is %f", totalGain);
+                preDGain = PREDGAIN_DEFAULT;
+                while (totalGain >= 64.0f && preDGain > 1.0f) {
+                    preDGain = MAX(preDGain * 0.707, 1);
+                    totalGain /= 2;
+                }
+                if (totalGain > 32.0f && preDGain > 1.0f) {
+                    float ratio = (totalGain / 32.0f - 1);
+                    preDGain = MAX(preDGain * 0.707 * ratio + preDGain * (1 - ratio), 1);
+                }
             }
-            if (totalGain > 32.0f && preDGain > 1.0f) {
-                float ratio = (totalGain / 32.0f - 1);
-                preDGain = MAX(preDGain * 0.707 * ratio + preDGain * (1 - ratio), 1);
+            else {
+                preDGain = CLIP(cvtinfo->btnrT_predgain_curve, 1, 8);
             }
 #if defined(ISP_HW_V33)
             if (cvtinfo->isFirstFrame || cvtinfo->sw_btnrT_outFrmBase_mode == btnr_curBaseOut_mode) {
@@ -274,12 +281,22 @@ void rk_aiq_drc40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
 #endif
             drc_gain = drc_gain / preDGain_drc;
             cvtinfo->preDGain_preFrm = preDGain;
-            LOGD_ATMO("preDGain is set to %f when btnrCfg_pixDomain_mode is btnr_pixLog2Domain_mode\n", preDGain);
+            LOGD_ATMO("frameId %d: preDGain is set to %f when btnrCfg_pixDomain_mode is btnr_pixLog2Domain_mode\n",
+                cvtinfo->frameId, preDGain_drc);
         }
         else {
             preDGain = 1.0f;
             preDGain_drc = 1.0f;
+            cvtinfo->preDGain_preFrm = preDGain;
         }
+    }
+
+    rk_aiq_isp_drc_v39_t* drc_res = (rk_aiq_isp_drc_v39_t*)attr;
+    if (preDGain_drc != cvtinfo->preDGain_preFrm) {
+        *drc_res->damping = 1;
+    }
+    else {
+        *drc_res->damping = 0;
     }
 
     // get sw_drc_gain_y

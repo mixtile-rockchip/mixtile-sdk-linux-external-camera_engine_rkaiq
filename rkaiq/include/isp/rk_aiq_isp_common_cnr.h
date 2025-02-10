@@ -282,6 +282,34 @@ typedef struct cnr_loNr_iirFilt_s {
         Freq of use: high))  */
     // reg: hw_cnrT_loFlt_vsigma, hw_cnrT_expX_shiftBit
     float sw_cnrT_rgeSgm_val;
+#ifdef ISP_HW_V35
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(sw_cnrT_rgeSgmRatio_mode),
+        M4_TYPE(enum),
+        M4_ENUM_DEF(cnr_iirSgmRatio_mode_t),
+        M4_DEFAULT(cnr_glbSgmRatio_only_mode),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(TODO.\n
+        Reference enum types.\n
+        Freq of use: low))  */
+    cnr_iirSgmRatio_mode_t sw_cnrT_rgeSgmRatio_mode;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(hw_cnrT_loFltGlobalSgmRatio_alpha),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0.0, 1.0),
+        M4_DEFAULT(0.5),
+        M4_DIGIT_EX(3f3b),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(TODO.\n
+        Freq of use: low))  */
+    // reg: hw_cnrT_loFltGlobalSgmRatio_alpha
+    float hw_cnrT_glbSgmRatio_alpha;
+#endif
     /* M4_GENERIC_DESC(
         M4_ALIAS(hw_cnrT_loFltGlobalSgm_ratio),
         M4_TYPE(f32),

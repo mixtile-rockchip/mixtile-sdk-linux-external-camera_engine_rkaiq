@@ -160,11 +160,11 @@ public:
     virtual XCamReturn rawReproc_genIspParams (uint32_t sequence, rk_aiq_frame_info_t *offline_finfo, int mode) {
         return XCAM_RETURN_ERROR_FAILED;
     }
-    virtual XCamReturn rawReProc_prepare (uint32_t sequence, rk_aiq_frame_info_t *offline_finfo) {
+    virtual XCamReturn rawReProc_prepare (uint32_t sequence) {
         return XCAM_RETURN_ERROR_FAILED;
     }
-    virtual void setRawStreamInfo(rk_aiq_rkrawstream_info_t *info) {
-        mRawStreamInfo = *info;
+    virtual void setAiqPreCtrlInfo(rk_aiq_control_preinit_t *info) {
+        mAiqPreCtrlInfo = *info;
     }
     virtual void setRkAiqManager(RkAiqManager *rkAiqManager)
     {
@@ -202,7 +202,7 @@ protected:
     bool mIsMain;
     RkAiqTbInfo_t mTbInfo;
     std::map<std::string, int> mDevBufCntMap;
-    rk_aiq_rkrawstream_info_t mRawStreamInfo;
+    rk_aiq_control_preinit_t mAiqPreCtrlInfo;
     RkAiqManager* rkAiqManager;
 
  private:

@@ -1524,6 +1524,11 @@
 										"sw_blcT_autoBlc_en":	1,
 										"sw_blcT_autoBlcEn_thred":	256,
 										"sw_blcT_damping_val":	0.2
+									},
+									"debug": {
+										"obcPostTnr": {
+											"sw_blcT_autoOBWkArd_en": 0
+										}
 									}
 								},
 								"dyn":	[{
@@ -8179,7 +8184,12 @@
 									},
 									"debug":	{
 										"sw_btnrT_dbgOut_en":	0,
-										"hw_btnrT_dbgOut_mode":	"btnr_dbgOut_mdWgt_mode"
+										"hw_btnrT_dbgOut_mode":	"btnr_dbgOut_mdWgt_mode",
+										"predgainWkArd":{
+											"sw_btnrT_predgainWkArd_en": 0,
+											"sw_btnrT_predgain_mode": "btnr_vendorDefault_mode",
+											"hw_btnrT_predgain_curve": [1,2,3,4,5,6,7,8,8,8,8,8,8]
+										}
 									},
 									"lowPowerCfg":	{
 										"preSpnrLP":	{

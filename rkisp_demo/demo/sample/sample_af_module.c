@@ -18,7 +18,7 @@
 #include "sample_comm.h"
 #include "iq_parser_v2/af_head.h"
 
-#ifndef ISP_HW_V33
+#if !defined(ISP_HW_V33)
 static void sample_af_usage()
 {
     printf("\n\nUsage : \n");
@@ -314,7 +314,7 @@ void sample_print_af_info(const void *arg)
 {
     printf ("enter AF modult test!\n");
 }
-#ifndef ISP_HW_V33
+#if !defined(ISP_HW_V33)
 void sample_af_case(const rk_aiq_sys_ctx_t* ctx) {
     
     sample_set_focus_automode(ctx);
@@ -344,7 +344,7 @@ void sample_af_case(const rk_aiq_sys_ctx_t* ctx) {
 #endif
 XCamReturn sample_af_module(const void *arg)
 {
-#ifndef ISP_HW_V33
+#if !defined(ISP_HW_V33)
     int key = -1;
     CLEAR();
     rk_aiq_wb_scene_t scene;

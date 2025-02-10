@@ -26,7 +26,7 @@
 RKAIQ_BEGIN_DECLARE
 
 typedef struct blc_param_auto_s {
-#ifdef ISP_HW_V33
+#if defined(ISP_HW_V33)
     /* M4_GENERIC_DESC(
         M4_ALIAS(static_param),
         M4_TYPE(struct),

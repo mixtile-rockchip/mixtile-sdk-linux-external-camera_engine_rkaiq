@@ -19,6 +19,7 @@
 #include "hwi_c/aiq_fake_camhw.h"
 #include "hwi_c/isp39/aiq_CamHwIsp39.h"
 #include "hwi_c/isp33/aiq_CamHwIsp33.h"
+#include "hwi_c/isp35/aiq_CamHwIsp35.h"
 
 #define RKAIQMNG_CHECK_RET(ret, format, ...) \
     if (ret) { \
@@ -52,6 +53,8 @@ typedef struct rkisp32_lite_stat_buffer rkisp_isp_stat_buffer;
 typedef struct rkisp39_stat_buffer rkisp_isp_stat_buffer;
 #elif defined(ISP_HW_V33)
 typedef struct rkisp33_stat_buffer rkisp_isp_stat_buffer;
+#elif defined(ISP_HW_V35)
+typedef struct rkisp35_stat_buffer rkisp_isp_stat_buffer;
 #else
 #error "wrong isp hw version !"
 typedef rkisp_isp2x_stat_buffer rkisp_isp_stat_buffer;
@@ -155,6 +158,11 @@ typedef rkisp_isp2x_stat_buffer rkisp_isp_stat_buffer;
         }
     }
     else if (hwres->type == ISP_POLL_AIISP) {
+#if RKAIQ_HAVE_AINR
+        AiqHwAinnEvt_t *ainnEvt = (AiqHwAinnEvt_t *)hwres;
+
+        AinrManager_hdlEvent(&pAiqManager->mAinrManager, ainnEvt);
+#else
         AiqHwAiispEvt_t* aiisp_data = (AiqHwAiispEvt_t *)hwres;
         if (pAiqManager->mAiispCtx.mAiispEvtcb) {
             rk_aiq_aiisp_t aiisp_evt;
@@ -179,7 +187,20 @@ typedef rkisp_isp2x_stat_buffer rkisp_isp_stat_buffer;
         else {
             LOGE_ANALYZER("mAiispEvtcb is NULL");
         }
-    } else if (hwres->type == ISP_POLL_TX) {
+#endif
+    }
+#if RKAIQ_HAVE_AINR
+    else if (hwres->type == ISP_POLL_AINR_DONE) {
+        if (AinrManager_isNeedRknn(&pAiqManager->mAinrManager))
+            RknnManager_hdlEvent(&pAiqManager->mRknnManager, (AiqHwAinnEvt_t *)hwres);
+        else
+            AinrManager_hdlEvent(&pAiqManager->mAinrManager, (AiqHwAinnEvt_t *)hwres);
+    }
+    else if (hwres->type == ISP_POLL_RKNN_DONE) {
+        AinrManager_hdlEvent(&pAiqManager->mAinrManager, (AiqHwAinnEvt_t *)hwres);
+    }
+#endif
+    else if (hwres->type == ISP_POLL_TX) {
         ret = AiqCore_pushStats(pAiqManager->mRkAiqAnalyzer, hwres);
     } else if (hwres->type == ISP_POLL_SP) {
         LOGD_ANALYZER("ISP_IMG");
@@ -419,7 +440,7 @@ XCamReturn AiqManager_applyAnalyzerResult(AiqManager_t* pAiqManager, AiqFullPara
     APPLY_ANALYZER_RESULT(Sharpen, SHARPEN);
     APPLY_ANALYZER_RESULT(Edgeflt, EDGEFLT);
 #endif
-#if RKAIQ_HAVE_SHARP_V40
+#if defined(RKAIQ_HAVE_SHARP_V40) || defined(RKAIQ_HAVE_SHARP_V41)
     APPLY_ANALYZER_RESULT(texEst, TEXEST);
 #endif
 #if RKAIQ_HAVE_FEC
@@ -476,6 +497,10 @@ XCamReturn AiqManager_applyAnalyzerResult(AiqManager_t* pAiqManager, AiqFullPara
 #if RKAIQ_HAVE_LDC
     APPLY_ANALYZER_RESULT(Ldc, LDC);
 #endif
+#if RKAIQ_HAVE_AINR
+    APPLY_ANALYZER_RESULT(Ainr, AINR);
+#endif
+
 	ret = AiqCamHw_applyAnalyzerResultList(pAiqManager->mCamHw, pAiqManager->mParamsList);
 	if (ret) {
         LOGE_ANALYZER("cid:%d, fid:%d apply to hw failed", aiqParams->_base.frame_id,
@@ -595,6 +620,9 @@ XCamReturn AiqManager_init(AiqManager_t* pAiqManager, const char* sns_ent_name, 
 #elif defined(ISP_HW_V33)
         pAiqManager->mTBStatsCnt = 2;
         ret = AiqCamHwIsp33_init(pAiqManager->mCamHw, pAiqManager->mSnsEntName);
+#elif defined(ISP_HW_V35)
+        pAiqManager->mTBStatsCnt = 2;
+        ret = AiqCamHwIsp35_init(pAiqManager->mCamHw, pAiqManager->mSnsEntName);
 #else
 		XCAM_ASSERT(0);
 #endif
@@ -621,6 +649,11 @@ XCamReturn AiqManager_init(AiqManager_t* pAiqManager, const char* sns_ent_name, 
 #if RKAIQ_HAVE_DUMPSYS
         pAiqManager->dump_mods = __dump_mods;
 #endif
+
+#if RKAIQ_HAVE_AINR
+    AinrManager_init(&pAiqManager->mAinrManager);
+#endif
+    RknnManager_init(&pAiqManager->mRknnManager);
 
         return ret;
 }
@@ -690,6 +723,16 @@ XCamReturn AiqManager_prepare(AiqManager_t* pAiqManager, uint32_t width, uint32_
         AiqCamHw_getIspUniteMode(pAiqManager->mCamHw));
     ret = AiqCore_prepare(pAiqManager->mRkAiqAnalyzer, &sensor_des, working_mode_hw);
     RKAIQMNG_CHECK_RET(ret, "analyzer prepare error %d", ret);
+#if RKAIQ_HAVE_AINR
+    AinrManager_prepare(&pAiqManager->mAinrManager,
+                        pAiqManager->mCamHw,
+                        pAiqManager->mCalibDbV2,
+                        sensor_des.isp_acq_width,
+                        sensor_des.isp_acq_height);
+#endif
+    RknnManager_prepare(&pAiqManager->mRknnManager,
+                        pAiqManager->mCamHw,
+                        pAiqManager->mCalibDbV2);
 
     AiqFullParams_t* initParams = AiqCore_getAiqFullParams(pAiqManager->mRkAiqAnalyzer);
 
@@ -732,6 +775,12 @@ XCamReturn AiqManager_start(AiqManager_t* pAiqManager)
 
     ret = AiqCamHw_start(pAiqManager->mCamHw);
     RKAIQMNG_CHECK_RET(ret, "camhw start error %d", ret);
+#if RKAIQ_HAVE_AINR
+    AinrManager_start(&pAiqManager->mAinrManager);
+    RKAIQMNG_CHECK_RET(ret, "AinrManager start error %d", ret);
+#endif
+    RknnManager_start(&pAiqManager->mRknnManager);
+    RKAIQMNG_CHECK_RET(ret, "RknnManager start error %d", ret);
 
     pAiqManager->_state = AIQ_STATE_STARTED;
 
@@ -758,6 +807,12 @@ XCamReturn AiqManager_stop(AiqManager_t* pAiqManager, bool keep_ext_hw_st)
     AiqCamHw_keepHwStAtStop(pAiqManager->mCamHw, keep_ext_hw_st);
     ret = AiqCamHw_stop(pAiqManager->mCamHw);
     RKAIQMNG_CHECK_RET(ret, "camhw stop error %d", ret);
+#if RKAIQ_HAVE_AINR
+    AinrManager_stop(&pAiqManager->mAinrManager);
+    RKAIQMNG_CHECK_RET(ret, "AinrManager stop error %d", ret);
+#endif
+    RknnManager_stop(&pAiqManager->mRknnManager);
+    RKAIQMNG_CHECK_RET(ret, "RknnManager stop error %d", ret);
 
 	AiqCore_clean(pAiqManager->mRkAiqAnalyzer);
 	AiqCamHw_clean(pAiqManager->mCamHw);
@@ -803,6 +858,10 @@ XCamReturn AiqManager_deinit(AiqManager_t* pAiqManager)
 	}
 
     GlobalParamsManager_deinit(&pAiqManager->mGlobalParamsManager);
+#if RKAIQ_HAVE_AINR
+    AinrManager_deinit(&pAiqManager->mAinrManager);
+#endif
+    RknnManager_deinit(&pAiqManager->mRknnManager);
 
     pAiqManager->_state = AIQ_STATE_INVALID;
 
@@ -826,6 +885,9 @@ XCamReturn AiqManager_updateCalibDb(AiqManager_t* pAiqManager, const CamCalibDbV
 
     *pAiqManager->mCalibDbV2 = *(CamCalibDbV2Context_t*)newCalibDb;
     AiqCamHw_setCalib(pAiqManager->mCamHw, newCalibDb);
+#if RKAIQ_HAVE_AINR
+    AinrManager_setCalib(&pAiqManager->mAinrManager, pAiqManager->mCalibDbV2);
+#endif
 
     ret = AiqCore_setCalib(pAiqManager->mRkAiqAnalyzer, pAiqManager->mCalibDbV2);
 
@@ -954,6 +1016,9 @@ XCamReturn AiqManager_calibTuning(AiqManager_t* pAiqManager, CamCalibDbV2Context
         (strstr(change_list->moduleNames[0], "ae") || strstr(change_list->moduleNames[0], "wb") || strstr(change_list->moduleNames[0], "af")))
         need_check = false;
     GlobalParamsManager_switchCalibDb(&pAiqManager->mGlobalParamsManager, aiqCalib, need_check);
+#if RKAIQ_HAVE_AINR
+    AinrManager_setCalib(&pAiqManager->mAinrManager, aiqCalib);
+#endif
     ret = AiqCore_setCalib(pAiqManager->mRkAiqAnalyzer, aiqCalib);
 
 	AiqCore_calibTuning(pAiqManager->mRkAiqAnalyzer, aiqCalib, change_list);

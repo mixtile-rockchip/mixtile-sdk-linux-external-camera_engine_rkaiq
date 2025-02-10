@@ -134,7 +134,7 @@ public:
     XCamReturn getFocusPosition(int& position) override;
     virtual void getShareMemOps(isp_drv_share_mem_ops_t** mem_ops) override;
     uint64_t getIspModuleEnState()  override;
-    RkAiqIspUniteMode getIspUniteMode() {
+    RkAiqIspUniteMode getIspUniteMode() override {
         return mIspUniteMode;
     };
 
@@ -149,9 +149,9 @@ public:
     virtual XCamReturn poll_event_ready (uint32_t sequence, int type) override;
     virtual XCamReturn poll_event_failed (int64_t timestamp, const char *msg) override;
     XCamReturn rawReproc_genIspParams (uint32_t sequence, rk_aiq_frame_info_t *offline_finfo, int mode) override;
-    XCamReturn rawReProc_prepare (uint32_t sequence, rk_aiq_frame_info_t *offline_finfo) override;
+    XCamReturn rawReProc_prepare (uint32_t sequence) override;
     //fake sensor
-    static const char* rawReproc_preInit(const char* isp_driver, const char* offline_sns_ent_name);
+    static const char* rawReproc_preInit(const char* isp_driver);
     XCamReturn rawReproc_deInit (const char* fakeSensor);
 
     XCamReturn getEffectiveIspParams(rkisp_effect_params_v20& ispParams, uint32_t frame_id) override;

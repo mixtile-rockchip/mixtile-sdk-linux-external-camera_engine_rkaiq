@@ -661,7 +661,7 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     pCfg->pre_spnr_hi_wgt_calc_scale = CLIP(tmp, 0, 0xff);
     // REG: BAY3D_PREHIWMM
     tmp = (pdyn->preSpNr.hiNr.hw_btnrT_filtWgt_minLimit) * (1 << 8);
-    pCfg->pre_spnr_hi_filter_wgt_min_limit = CLIP(tmp, 0, 0xff);
+    pCfg->pre_spnr_hi_filter_wgt_min_limit = CLIP(tmp, 1, 0xff);
     // REG: BAY3D_PREHISIGOF
     //tmp = MAX((1 - pdyn->preSpNr.hiNr.hw_btnrT_hiNrOut_alpha) * (1 << 7), 0);
     tmp = 0;
@@ -966,7 +966,7 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     tmp = MAX((1 - pdyn->preSpNr.loNr.hw_btnrT_loNrOut_alpha) * (1 << 7), 0);
     pCfg->pre_spnr_lo_filter_out_wgt = CLIP(tmp, 0, 0xff);
     tmp = (pdyn->preSpNr.loNr.hw_btnrT_filtWgt_minLimit) * (1 << 8);
-    pCfg->pre_spnr_lo_filter_wgt_min = CLIP(tmp, 0, 0xff);
+    pCfg->pre_spnr_lo_filter_wgt_min = CLIP(tmp, 1, 0xff);
     // REG: BAY3D_MIDBIG0
     tmp = (pmdDyn->subDeepLoMd.hw_btnrT_wgt_offset) * (1 << 8);
     pCfg->md_large_lo_md_wgt_offset = CLIP(tmp, 0, 0xff);

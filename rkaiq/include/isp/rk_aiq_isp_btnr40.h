@@ -1613,8 +1613,6 @@ typedef struct btnr_locSgmStrg_dyn_s {
     float hw_bnrT_locSgmStrg_maxLimit;
 } btnr_locSgmStrg_dyn_t;
 
-
-
 typedef enum btnr_dbgOutMux_mode_e {
     // reg: hw_btnr_iirspnr_out_en == 1
     btnr_dbgOut_iirSpNr_mode = 0,
@@ -1623,6 +1621,54 @@ typedef enum btnr_dbgOutMux_mode_e {
     // reg: hw_btnr_mdWgtOut_en == 1
     btnr_dbgOut_mdWgt_mode = 2
 } btnr_dbgOutMux_mode_t;
+
+typedef enum btnr_dbgPredgain_mode_e {
+    // Dynamic predgain
+    btnr_vendorDefault_mode = 0,
+    // Pregain is configured by the user
+    btnr_usrConfig_mode = 1
+}btnr_dbgPredgain_mode_t;
+
+typedef struct btnr_predgainWkArd_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(sw_btnrT_predgainWkArd_en),
+        M4_TYPE(bool),
+        M4_DEFAULT(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(1),
+        M4_GROUP_CTRL(predgainWkArd_en_group),
+        M4_NOTES(The enable bit for debugging pregain\n
+        Freq of use: low))  */
+    bool sw_btnrT_predgainWkArd_en;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(sw_btnrT_predgain_mode),
+        M4_TYPE(enum),
+        M4_ENUM_DEF(btnr_dbgPredgain_mode_t),
+        M4_DEFAULT(btnr_vendorDefault_mode),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_GROUP(!predgainWkArd_en_group),
+        M4_GROUP_CTRL(dbgPredgain_mode_group),
+        M4_NOTES(Reference enum types.\n
+        Freq of use: low))  */
+    btnr_dbgPredgain_mode_t sw_btnrT_predgain_mode;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(hw_btnrT_predgain_curve),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,13),
+        M4_RANGE_EX(0,8),
+        M4_DEFAULT([1,1,1,1,1,1,1,1,1,1,1,1,1]),
+        M4_GROUP(!predgainWkArd_en_group; dbgPredgain_mode_group:btnr_usrConfig_mode),
+        M4_DIGIT_EX(3),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(1),
+        M4_NOTES(Users can directly configure the predgain curve through dbgPregian_val when dbgPredgain_mode ==
+        btnr_usrConfig_mode.\n Freq of use: low))  */
+    float hw_btnrT_predgain_curve[BTNR_ISO_SEGMENT_MAX];
+} btnr_predgainWkArd_t;
 
 typedef struct btnr_debug_s {
     /* M4_GENERIC_DESC(
@@ -1649,6 +1695,15 @@ typedef struct btnr_debug_s {
         M4_NOTES( Reference enum types.\n
         Freq of use: high))  */
     btnr_dbgOutMux_mode_t hw_btnrT_dbgOut_mode;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(predgainWkArd),
+        M4_TYPE(struct),
+        M4_UI_MODULE(normal_ui_style),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(1),
+        M4_NOTES(TODO))  */
+    btnr_predgainWkArd_t predgainWkArd;
 } btnr_debug_t;
 
 typedef struct btnr_params_static_s {

@@ -71,9 +71,7 @@ static XCamReturn AiqPdafStreamProcUnit_poll_buffer_ready(void* ctx, AiqHwEvt_t*
         pdaf_evt->pdaf_meas = pProcUnit->mPdafMeas;
         //LOGD_AF("%s: PDAF_STATS seq: %d, driver_time : %lld, aiq_time: %lld", __func__,
         //        evt->frame_id, evt->mTimestamp, get_systime_us());
-        // change timestamp as vicap/pdaf driver set timestamp using fs, we need fe time as 3a stats use fe time.
-        evt->mTimestamp = get_systime_us();
-        AiqVideoBuffer_setTimestamp(evt->vb, evt->mTimestamp);
+        // vicap/pdaf driver set timestamp using fs, 3a stats use fe on old platform and fs on new platform(3576/1126b).
         return pProcUnit->_camHw->_hwResListener.hwResCb(pProcUnit->_camHw->_hwResListener._pCtx,
                                                          evt);
     } else {
@@ -302,6 +300,10 @@ XCamReturn AiqPdafStreamProcUnit_preapre(AiqPdafStreamProcUnit_t* pProcUnit,
 
     ret = AiqV4l2Device_setFmt(pProcUnit->mPdafDev, pProcUnit->mPdafInf.pdaf_width, pProcUnit->mPdafInf.pdaf_height,
                                pProcUnit->mPdafInf.pdaf_pixelformat, V4L2_FIELD_NONE, 0);
+
+    struct v4l2_format fmt;
+    ret |= AiqV4l2Device_getV4lFmt(pProcUnit->mPdafDev, &fmt);
+    pProcUnit->mPdafMeas.bytesperline = fmt.fmt.pix_mp.plane_fmt[0].bytesperline;
     return ret;
 fail:
     return XCAM_RETURN_ERROR_FAILED;

@@ -1848,8 +1848,13 @@ static void convertAiqAwbToIsp39Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_
 #if RKAIQ_HAVE_AF_V33 || RKAIQ_ONLY_AF_STATS_V33
 
 static void ConfigAfBlc(const blc_res_cvt_t *ablc, const afStats_cfg_t* af_data, float isp_dgain,
-                        float isp_ob_predgain, struct isp39_rawaf_meas_cfg *rawaf)
+                        float isp_ob_predgain, void *isp_rawaf)
 {
+#if ISP_HW_V39
+    struct isp39_rawaf_meas_cfg* rawaf = (struct isp39_rawaf_meas_cfg*)isp_rawaf;
+#elif ISP_HW_V35
+    struct isp35_rawaf_meas_cfg* rawaf = (struct isp35_rawaf_meas_cfg*)isp_rawaf;
+#endif
     if (af_data->hw_afCfg_statsSrc_mode == afStats_dmIn_mode ||
             af_data->hw_afCfg_statsSrc_mode == afStats_ynrOut_mode) {
         //don't support to use blc2
@@ -1882,9 +1887,13 @@ static void ConfigAfBlc(const blc_res_cvt_t *ablc, const afStats_cfg_t* af_data,
     rawaf->bls_en = 1;
 }
 
-static void convertAiqAfToIsp39Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_t* pBase) {
-    const afStats_cfg_t* afStats_cfg   = (afStats_cfg_t*)pBase->_data;
+void convertAiqAfToIsp39Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_t* pBase) {
+    const afStats_cfg_t* afStats_cfg = (afStats_cfg_t*)pBase->_data;
+#if ISP_HW_V39
     struct isp39_rawaf_meas_cfg* rawaf = &pCvt->isp_params.isp_cfg->meas.rawaf;
+#elif ISP_HW_V35
+    struct isp35_rawaf_meas_cfg* rawaf = &pCvt->isp_params.isp_cfg->meas.rawaf;
+#endif
     int i;
 
     if (afStats_cfg->hw_afCfg_stats_en) pCvt->isp_params.isp_cfg->module_ens |= ISP2X_MODULE_RAWAF;
@@ -1941,7 +1950,9 @@ static void convertAiqAfToIsp39Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_t
     rawaf->win[1].v_size = afStats_cfg->subWin.hw_afCfg_win_height;
     rawaf->aehgl_en      = 1;
     rawaf->ae_mode       = 0;
+#if ISP_HW_V39
     rawaf->ae_config_use = 1;
+#endif
     rawaf->vldg_sel      = 0;
     rawaf->y_mode        = 0;
     rawaf->num_afm_win   = 2;
@@ -2298,7 +2309,7 @@ void convertAiqDrcToIsp39Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_t* pBas
 #endif
 
 #if RKAIQ_HAVE_RGBIR_REMOSAIC_V10
-static void convertAiqRgbirToIsp39Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_t* pBase) {
+void convertAiqRgbirToIsp39Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_t* pBase) {
     if (pBase->en) {
         pCvt->isp_params.isp_cfg->module_ens |= ISP39_MODULE_RGBIR;
         pCvt->isp_params.isp_cfg->module_en_update |= ISP39_MODULE_RGBIR;

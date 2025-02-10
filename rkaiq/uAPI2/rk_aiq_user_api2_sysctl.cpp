@@ -492,26 +492,44 @@ void rk_aiq_uapi2_sysctl_rawReproc_genIspParams (rk_aiq_sys_ctx_t* sys_ctx,
 
 const char*
 rk_aiq_uapi2_sysctl_rawReproc_preInit(const char* isp_driver,
-                                           const char* offline_sns_name,
-                                           rk_aiq_frame_info_t two_frm_exp_info[2])
+                                      rk_aiq_control_preinit_t ctrl_info)
 {
     if (!g_rk_aiq_init_lib) {
         rk_aiq_init_lib();
         g_rk_aiq_init_lib = true;
     }
+
+    if (!isp_driver) {
+        LOGE("%s: input isp driver name is NULL, please check input", __FUNCTION__);
+        return NULL;
+    }
+
     const char* sns_name = NULL;
-    sns_name = CamHwIsp20::rawReproc_preInit(isp_driver, offline_sns_name);
+    sns_name = CamHwIsp20::rawReproc_preInit(isp_driver);
     if (sns_name) {
-        rk_aiq_frame_info_t exp_finfo = two_frm_exp_info[0];
-        LOGD("exp_finfo %d, %d, %f, %f\n",
-               exp_finfo.normal_gain_reg,
-               exp_finfo.normal_exp_reg,
-               exp_finfo.normal_exp,
-               exp_finfo.normal_gain);
-        std::string sns_ent_name = std::string(sns_name);
-        rk_aiq_sys_preinit_cfg_t cfg;
-        memcpy(cfg.frame_exp_info, two_frm_exp_info, sizeof(cfg.frame_exp_info));
-        g_rk_aiq_offline_raw_exp_map[sns_ent_name] = cfg;
+
+        if (ctrl_info.mode != RK_AIQ_CONTROL_CIS_ISP_PARAM &&
+            ctrl_info.mode != RK_AIQ_CONTROL_ISP_PARAM_ONLY) {
+            LOGK("%s limit mode to RK_AIQ_CONTROL_CIS_ISP_PARAM or RK_AIQ_CONTROL_ISP_PARAM_ONLY, "
+                 "no support to set mode to %d", __FUNCTION__, ctrl_info.mode);
+            return sns_name;
+        }
+
+        std::string sns_ent_name(sns_name);
+        rk_aiq_sys_preinit_cfg_t* cfg = NULL;
+        cfg = &g_rk_aiq_sys_preinit_cfg_map[sns_ent_name];
+        cfg->ctrl_info = ctrl_info;
+        if (ctrl_info.mode == RK_AIQ_CONTROL_ISP_PARAM_ONLY) {
+            rk_aiq_frame_info_t exp_finfo = ctrl_info.isp_param_only_info.first_exp_info;
+            LOGD("exp_finfo %d, %d, %f, %f\n",
+                 exp_finfo.normal_gain_reg,
+                 exp_finfo.normal_exp_reg,
+                 exp_finfo.normal_exp,
+                 exp_finfo.normal_gain);
+            cfg->is_use_as_fake = true;
+        } else if (ctrl_info.mode == RK_AIQ_CONTROL_ISP_PARAM_AND_RAW) {
+            cfg->is_use_as_fake = true;
+        }
     }
 
     return sns_name;
@@ -522,13 +540,6 @@ void rk_aiq_uapi2_sysctl_setIspParamsDelayCnts(const rk_aiq_sys_ctx_t* sys_ctx, 
     // TODO
 #endif
     sys_ctx->_analyzer->setDelayCnts(delay_cnts);
-}
-
-XCamReturn
-rk_aiq_uapi2_sysctl_preInit_rkrawstream_info(const char* sns_ent_name,
-                           const rk_aiq_rkrawstream_info_t* info)
-{
-    return rk_aiq_uapi_sysctl_preInit_rkrawtream_info(sns_ent_name, info);
 }
 
 XCamReturn rk_aiq_uapi2_sysctl_pause(rk_aiq_sys_ctx_t* sys_ctx, bool isSingleMode)

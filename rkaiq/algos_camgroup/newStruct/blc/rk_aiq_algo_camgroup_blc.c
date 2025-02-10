@@ -54,7 +54,7 @@ processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outparams)
     if(delta_iso > ABLC_RECALCULATE_DELTE_ISO) {
         pBlcCtx->isReCal_ = true;
     }
-#ifdef ISP_HW_V33
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     if (!pBlcCtx->aeIsConverged && procParaGroup->camgroupParmasArray[0]->aec._aeProcRes.IsConverged)
         pBlcCtx->isReCal_ = true;
     pBlcCtx->aeIsConverged = procParaGroup->camgroupParmasArray[0]->aec._aeProcRes.IsConverged;

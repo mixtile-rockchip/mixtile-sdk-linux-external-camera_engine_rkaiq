@@ -18,10 +18,6 @@
 #ifndef _SMART_IR_DEMO_H_
 #define _SMART_IR_DEMO_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <linux/videodev2.h>
 #include <sys/fcntl.h>
 #include <sys/stat.h>
@@ -46,6 +42,10 @@ extern "C" {
 #include <rk_aiq_user_api2_sysctl.h>
 
 #include "rk_smart_ir_api.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct buffer {
     void* start;
@@ -73,6 +73,7 @@ typedef struct _smartIr_demo_context {
     int limit_range;
     int run_time;
     bool camGroup;
+    bool en_calib;
 } smartIr_demo_context_t;
 
 #ifdef __cplusplus

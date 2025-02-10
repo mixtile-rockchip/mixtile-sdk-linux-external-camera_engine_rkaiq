@@ -162,6 +162,16 @@ typedef struct rk_aiq_module_list_s {
     rk_aiq_module_ctl_t module_ctl[RESULT_TYPE_MAX_PARAM];
 } rk_aiq_module_list_t;
 
+typedef enum cSpaceMode_e {
+    CSPACE_MODE_BT601_FULL  = 0,
+    CSPACE_MODE_BT601_LIMIT = 1,
+    CSPACE_MODE_BT709_FULL  = 2,
+    CSPACE_MODE_BT709_LIMIT = 3,
+    CSPACE_MODE_OTHER_FULL  = 253,
+    CSPACE_MODE_OTHER_LIMIT = 254,
+    CSPACE_MODE_OTHERS      = 255,
+} cSpaceMode_t;
+
 #ifdef __cplusplus
 }
 #endif

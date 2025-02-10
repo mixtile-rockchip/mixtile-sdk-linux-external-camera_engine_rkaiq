@@ -1140,7 +1140,8 @@ func rkaiq_getNewStructStaticLibSrcs(name string, macros_map map[string]bool) []
         flag2 := macros_map["RKAIQ_HAVE_DRC_V12"]
         flag3 := macros_map["RKAIQ_HAVE_DRC_V12_LITE"]
         flag4 := macros_map["RKAIQ_HAVE_DRC_V20"]
-        if flag0 || flag1 || flag2 || flag3 || flag4 {
+        flag5 := macros_map["RKAIQ_HAVE_DRC_V21"]
+        if flag0 || flag1 || flag2 || flag3 || flag4 || flag5 {
             srcs = append(srcs, "drc/algo_drc.c")
         }
         break
@@ -1196,7 +1197,8 @@ func rkaiq_getNewStructStaticLibSrcs(name string, macros_map map[string]bool) []
         flag0 := macros_map["RKAIQ_HAVE_MERGE_V10"]
         flag1 := macros_map["RKAIQ_HAVE_MERGE_V11"]
         flag2 := macros_map["RKAIQ_HAVE_MERGE_V12"]
-        if flag0 || flag1 || flag2 {
+        flag3 := macros_map["RKAIQ_HAVE_MERGE_V13"]
+        if flag0 || flag1 || flag2 || flag3 {
             srcs = append(srcs, "merge/algo_merge.c")
         }
         break

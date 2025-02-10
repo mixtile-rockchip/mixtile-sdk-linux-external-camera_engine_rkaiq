@@ -121,7 +121,7 @@ inline std::string AlgoTypeToString(RkAiqAlgoType_t type) {
         { RK_AIQ_ALGO_TYPE_ACNR,        "Cnr"       },
         { RK_AIQ_ALGO_TYPE_AGIC,        "Gic"      },
 #else
-#if defined(ISP_HW_V39) || defined(ISP_HW_V33) || defined(ISP_HW_V30) || defined(ISP_HW_V32) || defined(ISP_HW_V32_LITE)
+#if defined(ISP_HW_V39) || defined(ISP_HW_V33) || defined(ISP_HW_V30) || defined(ISP_HW_V32) || defined(ISP_HW_V32_LITE) || defined(ISP_HW_V35)
         { RK_AIQ_ALGO_TYPE_ARAWNR,      "Abayer2dnr"},
         { RK_AIQ_ALGO_TYPE_AMFNR,       "Abayertnr" },
 #else
@@ -195,6 +195,10 @@ inline std::string AlgoTypeToString(RkAiqAlgoType_t type) {
 
 #if defined(ISP_HW_V33)
 #include "RkAiqCoreConfigV33.h"
+#endif
+
+#if defined(ISP_HW_V35)
+#include "RkAiqCoreConfigV35.h"
 #endif
 
 #if defined(__GNUC__) && !defined(__clang__)

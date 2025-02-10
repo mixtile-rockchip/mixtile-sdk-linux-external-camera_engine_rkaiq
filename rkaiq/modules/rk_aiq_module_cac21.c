@@ -47,7 +47,7 @@ static void LutBufferManagerImportHwBuffers(LutBufferManager *man, uint8_t isp_i
     hw_config.mem_type             = MEM_TYPE_CAC;
     hw_config.alloc_param.width  = man->config_.Width;
     hw_config.alloc_param.height = man->config_.Height;
-    hw_config.alloc_param.reserved[0] = 1;
+    hw_config.alloc_param.reserved[0] = 2;
 
     man->mem_ops_->alloc_mem(isp_id, (void*)(man->mem_ops_), &hw_config, &man->mem_ctx_);
 }

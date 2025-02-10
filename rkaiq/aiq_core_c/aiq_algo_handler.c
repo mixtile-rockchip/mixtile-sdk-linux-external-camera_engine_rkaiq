@@ -48,6 +48,7 @@
 #include "algo_handlers/RkAiqEnhHandler.h"
 #include "algo_handlers/RkAiqHsvHandler.h"
 #include "algo_handlers/RkAiqLdcHandler.h"
+#include "algo_handlers/RkAiqAinrHandler.h"
 
 typedef AiqAlgoHandler_t* (*pAiqAlgoHandler_construct)(RkAiqAlgoDesComm* des, AiqCore_t* aiqCore);
 typedef void (*pAiqAlgoHandler_destruct)(AiqAlgoHandler_t* pAlgoHandler);
@@ -87,19 +88,26 @@ struct {
 #if RKAIQ_HAVE_HSV
     {RK_AIQ_ALGO_TYPE_AHSV, AiqAlgoHandlerHsv_constructor, AiqAlgoHandler_destructor},
 #endif
-#ifndef ISP_HW_V33
+#if RKAIQ_HAVE_DEHAZE
     {RK_AIQ_ALGO_TYPE_ADHAZ, AiqAlgoHandlerDehaze_constructor, AiqAlgoHandler_destructor},
+#endif
+#if RKAIQ_HAVE_3DLUT
     {RK_AIQ_ALGO_TYPE_A3DLUT, AiqAlgoHandler3dlut_constructor, AiqAlgoHandler_destructor},
+#endif
+#if RKAIQ_HAVE_RGBIR_REMOSAIC
     {RK_AIQ_ALGO_TYPE_ARGBIR, AiqAlgoHandlerRgbir_constructor, AiqAlgoHandler_destructor},
+#endif
 #if RKAIQ_HAVE_YUVME
     {RK_AIQ_ALGO_TYPE_AMD, AiqAlgoHandlerYme_constructor, AiqAlgoHandler_destructor},
 #endif
 #ifdef RKAIQ_HAVE_AF
     {RK_AIQ_ALGO_TYPE_AF, AiqAlgoHandlerAf_constructor, AiqAlgoHandler_destructor},
 #endif
-#endif
 #if RKAIQ_HAVE_LDC
     {RK_AIQ_ALGO_TYPE_ALDC, AiqAlgoHandlerLdc_constructor, AiqAlgoHandler_destructor},
+#endif
+#if RKAIQ_HAVE_AINR
+    {RK_AIQ_ALGO_TYPE_AINR, AiqAlgoHandlerAinr_constructor, AiqAlgoHandler_destructor},
 #endif
 };
 

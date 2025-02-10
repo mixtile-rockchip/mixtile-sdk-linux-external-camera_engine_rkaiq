@@ -374,6 +374,47 @@ static calibdb_ctx_member_offset_info_t info_CamCalibDbV2ContextIsp33_t[] = {
 };
 #endif
 
+#define CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(nm) \
+    CALIB_MODULE_RELATIVE_OFFSET(CamCalibDbV2ContextIsp35_t, nm)
+
+#if defined(ISP_HW_V35)
+static calibdb_ctx_member_offset_info_t info_CamCalibDbV2ContextIsp35_t[] = {
+    {"ae_calib", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(ae_calib)},
+    {"wb", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(wb)},
+    {"blc", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(blc)},
+    {"demosaic", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(demosaic)},
+    {"colorAsGrey", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(colorAsGrey)},
+    {"ccm", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(ccm)},
+    {"dpc", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(dpc)},
+    {"ie", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(ie)},
+    {"cp", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(cp)},
+    {"mge", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(mge)},
+    {"drc", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(drc)},
+    {"trans", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(trans)},
+    {"lsc", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(lsc)},
+    {"bayertnr", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(bayertnr)},
+    {"texEst", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(texEst)},
+    {"ynr", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(ynr)},
+    {"sharp", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(sharp)},
+    {"cnr", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(cnr)},
+    {"gamma", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(gamma)},
+    {"enh", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(enh)},
+    {"hsv", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(hsv)},
+    {"gic", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(gic)},
+    {"histEQ", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(histEQ)},
+    {"cac", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(cac)},
+    {"gain", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(gain)},
+    {"csm", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(csm)},
+    {"cgc", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(cgc)},
+    {"ldc", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(ldc)},
+    {"postisp", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(postisp)},
+    {"rgbir", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(rgbir)},
+    {"af_v33", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(af_v33)},
+    {"ainr", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(ainr)},
+    {NULL, 0},
+};
+#endif
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
 static calibdb_ctx_infos_t info_CamCalibDbV2Context_array[] = {
@@ -398,6 +439,9 @@ static calibdb_ctx_infos_t info_CamCalibDbV2Context_array[] = {
 #if defined(ISP_HW_V33)
     {33, info_CamCalibDbV2ContextIsp33_t},
 #endif
+#if defined(ISP_HW_V35)
+    {35, info_CamCalibDbV2ContextIsp35_t},
+#endif
 };
 #pragma GCC diagnostic pop
 
@@ -421,6 +465,9 @@ static inline size_t calibdbV2_scene_ctx_size(CamCalibDbContext_t* ctx) {
 #endif
 #ifdef ISP_HW_V33
     return sizeof(CamCalibDbV2ContextIsp33_t);
+#endif
+#ifdef ISP_HW_V35
+    return sizeof(CamCalibDbV2ContextIsp35_t);
 #endif
     return 0;
 }
@@ -448,6 +495,9 @@ static inline const char* calibdbv2_get_scene_ctx_struct_name(const void* scene_
 #ifdef ISP_HW_V33
     return "CamCalibDbV2ContextIsp33_t";
 #endif
+#ifdef ISP_HW_V35
+    return "CamCalibDbV2ContextIsp35_t";
+#endif
     return NULL;
 }
 
@@ -472,6 +522,9 @@ calibdbv2_get_scene_ptr(CamCalibSubSceneList_t* scene) {
 #elif defined(ISP_HW_V33)
     if (CHECK_ISP_HW_V33())
         return (&scene->scene_isp33);
+#elif defined(ISP_HW_V35)
+    if (CHECK_ISP_HW_V35())
+        return (&scene->scene_isp35);
 #else
     return NULL;
 #endif
@@ -516,8 +569,11 @@ static inline int calibdbV2_to_tuningdb(CamCalibDbV2Tuning_t *dst,
 #elif defined(ISP_HW_V33)
     memcpy(&dst->calib_scene, src->calib_scene,
            sizeof(CamCalibDbV2ContextIsp33_t));
+#elif defined(ISP_HW_V35)
+    memcpy(&dst->calib_scene, src->calib_scene,
+           sizeof(CamCalibDbV2ContextIsp35_t));
 #else
-#error "WRONG ISP_HW_VERSION, ONLY SUPPORT V20 AND V21 AND V30 AND V32 AND V32_LITE V39 AND V33 NOW !"
+#error "WRONG ISP_HW_VERSION, ONLY SUPPORT V20 AND V21 AND V30 AND V32 AND V32_LITE V39 AND V33 V35 NOW !"
 #endif
     return 0;
 }
@@ -546,8 +602,11 @@ static inline int calibdbV2_from_tuningdb(CamCalibDbV2Context_t *dst,
 #elif defined(ISP_HW_V33)
     memcpy(dst->calib_scene, &src->calib_scene,
            sizeof(CamCalibDbV2ContextIsp33_t));
+#elif defined(ISP_HW_V35)
+    memcpy(dst->calib_scene, &src->calib_scene,
+           sizeof(CamCalibDbV2ContextIsp35_t));
 #else
-#error "WRONG ISP_HW_VERSION, ONLY SUPPORT V20 AND V21 AND V30 AND V32 AND V32_LITE V39 AND V33 NOW !"
+#error "WRONG ISP_HW_VERSION, ONLY SUPPORT V20 AND V21 AND V30 AND V32 AND V32_LITE V39 AND V33 V35 NOW !"
 #endif
     return 0;
 }

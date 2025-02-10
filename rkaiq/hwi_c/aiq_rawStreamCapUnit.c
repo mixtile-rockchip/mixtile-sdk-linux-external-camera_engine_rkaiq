@@ -768,6 +768,14 @@ void AiqRawStreamCapUnit_setCamPhyId(AiqRawStreamCapUnit_t* pRawStrCapUnit, int 
     pRawStrCapUnit->mCamPhyId = phyId;
 }
 
+void AiqRawStreamCapUnit_setTxBufferCnt(AiqRawStreamCapUnit_t* pRawStrCapUnit, uint16_t buf_num) {
+    for (int i = 0; i < 3; i++) {
+        if (pRawStrCapUnit->_dev[i]) {
+            AiqV4l2Device_setBufCnt(pRawStrCapUnit->_dev[i], buf_num);
+        }
+    }
+}
+
 #if RKAIQ_HAVE_DUMPSYS
 int AiqRawStreamCapUnit_dump(void* dumper, st_string* result, int argc, void* argv[]) {
     AiqRawStreamCapUnit_t* pRawStrCapUnit = (AiqRawStreamCapUnit_t*)dumper;

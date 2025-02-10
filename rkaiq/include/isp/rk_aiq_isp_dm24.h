@@ -128,7 +128,6 @@ typedef struct {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
-        M4_GROUP_CTRL(g_interp_group),
         M4_NOTES(Enable g-channel clip using its neighboring pixels.\n
         Freq of use: high))  */
     bool hw_dmT_gInterpClip_en;
@@ -141,7 +140,6 @@ typedef struct {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(1),
-        M4_GROUP(g_interp_group),
         M4_NOTES(The offset to contrl fusion weight of color-channel gradient for g interpolation, related to sharp strength.\n
         Freq of use: high))  */
     uint16_t hw_dmT_gInterpSharpStrg_offset;
@@ -154,7 +152,6 @@ typedef struct {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(2),
-        M4_GROUP(g_interp_group),
         M4_NOTES(The max fusion weight of color-channel gradient for g interpolation, related to sharp strength.\n
         Freq of use: high))  */
     uint8_t hw_dmT_gInterpSharpStrg_maxLim;

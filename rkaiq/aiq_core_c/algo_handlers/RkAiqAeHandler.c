@@ -192,19 +192,19 @@ static XCamReturn _handlerAe_preProcess(AiqAlgoHandler_t* pAlgoHandler) {
 
     RkAiqAlgoDescription* des = (RkAiqAlgoDescription*)pAlgoHandler->mDes;
     if (!AiqCore_isGroupAlgo(pAlgoHandler->mAiqCore, pAlgoHandler->mDes->type)) {
-		if (des->pre_process) {
-			aiqMutex_lock(&pAlgoHandler->mCfgMutex);
-			ret = des->pre_process(pAlgoHandler->mPreInParam,
-								   (RkAiqAlgoResCom*)(pAeHdl->mPreResShared->_data));
-			aiqMutex_unlock(&pAlgoHandler->mCfgMutex);
-			if (ret < 0) {
-				LOGE_ANALYZER("ae handle pre_process failed ret %d", ret);
-				return ret;
-			} else if (ret == XCAM_RETURN_BYPASS) {
-				LOGW_ANALYZER("%s:%d bypass !", __func__, __LINE__);
-				return ret;
-			}
-		}
+        if (des->pre_process) {
+            aiqMutex_lock(&pAlgoHandler->mCfgMutex);
+            ret = des->pre_process(pAlgoHandler->mPreInParam,
+                                   (RkAiqAlgoResCom*)(pAeHdl->mPreResShared->_data));
+            aiqMutex_unlock(&pAlgoHandler->mCfgMutex);
+            if (ret < 0) {
+                LOGE_ANALYZER("ae handle pre_process failed ret %d", ret);
+                return ret;
+            } else if (ret == XCAM_RETURN_BYPASS) {
+                LOGW_ANALYZER("%s:%d bypass !", __func__, __LINE__);
+                return ret;
+            }
+        }
     }
 
     if (pAlgoHandler->mPostShared) {
@@ -303,18 +303,18 @@ static XCamReturn _handlerAe_processing(AiqAlgoHandler_t* pAlgoHandler) {
 
     RkAiqAlgoDescription* des = (RkAiqAlgoDescription*)pAlgoHandler->mDes;
     if (!AiqCore_isGroupAlgo(pAlgoHandler->mAiqCore, pAlgoHandler->mDes->type)) {
-		if (des->processing) {
-			aiqMutex_lock(&pAlgoHandler->mCfgMutex);
-			ret = des->processing(pAlgoHandler->mProcInParam, (RkAiqAlgoResCom*)(pAlgoHandler->mProcOutParam));
-			aiqMutex_unlock(&pAlgoHandler->mCfgMutex);
-			if (ret < 0) {
-				LOGE_ANALYZER("ae algo processing failed ret %d", ret);
-				return ret;
-			} else if (ret == XCAM_RETURN_BYPASS) {
-				LOGW_ANALYZER("%s:%d bypass !", __func__, __LINE__);
-				return ret;
-			}
-		}
+        if (des->processing) {
+            aiqMutex_lock(&pAlgoHandler->mCfgMutex);
+            ret = des->processing(pAlgoHandler->mProcInParam, (RkAiqAlgoResCom*)(pAlgoHandler->mProcOutParam));
+            aiqMutex_unlock(&pAlgoHandler->mCfgMutex);
+            if (ret < 0) {
+                LOGE_ANALYZER("ae algo processing failed ret %d", ret);
+                return ret;
+            } else if (ret == XCAM_RETURN_BYPASS) {
+                LOGW_ANALYZER("%s:%d bypass !", __func__, __LINE__);
+                return ret;
+            }
+        }
     }
 
     if (pAlgoHandler->mAiqCore->mAlogsComSharedParams.init) {
@@ -327,15 +327,15 @@ static XCamReturn _handlerAe_processing(AiqAlgoHandler_t* pAlgoHandler) {
         int hdr_iso[3] = {0};
         if (pAlgoHandler->mAiqCore->mAlogsComSharedParams.hdr_mode == 0) {
             hdr_iso[0] = 50 *
-                            ae_proc_res_int->new_ae_exp->LinearExp.exp_real_params.analog_gain *
-                            ae_proc_res_int->new_ae_exp->LinearExp.exp_real_params.digital_gain *
-                            ae_proc_res_int->new_ae_exp->LinearExp.exp_real_params.isp_dgain;
+                         ae_proc_res_int->new_ae_exp->LinearExp.exp_real_params.analog_gain *
+                         ae_proc_res_int->new_ae_exp->LinearExp.exp_real_params.digital_gain *
+                         ae_proc_res_int->new_ae_exp->LinearExp.exp_real_params.isp_dgain;
         } else {
             for(int i = 0; i < 3; i++) {
                 hdr_iso[i] = 50 *
-                                ae_proc_res_int->new_ae_exp->HdrExp[i].exp_real_params.analog_gain *
-                                ae_proc_res_int->new_ae_exp->HdrExp[i].exp_real_params.digital_gain *
-                                ae_proc_res_int->new_ae_exp->HdrExp[i].exp_real_params.isp_dgain;
+                             ae_proc_res_int->new_ae_exp->HdrExp[i].exp_real_params.analog_gain *
+                             ae_proc_res_int->new_ae_exp->HdrExp[i].exp_real_params.digital_gain *
+                             ae_proc_res_int->new_ae_exp->HdrExp[i].exp_real_params.isp_dgain;
             }
         }
 
@@ -476,9 +476,9 @@ static XCamReturn _handlerAe_genIspResult(AiqAlgoHandler_t* pAlgoHandler, AiqFul
     }
 
     if (AiqCore_isGroupAlgo(pAlgoHandler->mAiqCore, pAlgoHandler->mDes->type)) {
-		cur_params->pParamsArray[RESULT_TYPE_EXPOSURE_PARAM] = params->pParamsArray[RESULT_TYPE_EXPOSURE_PARAM];
+        cur_params->pParamsArray[RESULT_TYPE_EXPOSURE_PARAM] = params->pParamsArray[RESULT_TYPE_EXPOSURE_PARAM];
         cur_params->pParamsArray[RESULT_TYPE_IRIS_PARAM] = params->pParamsArray[RESULT_TYPE_IRIS_PARAM];
-		cur_params->pParamsArray[RESULT_TYPE_AESTATS_PARAM] = params->pParamsArray[RESULT_TYPE_AESTATS_PARAM];
+        cur_params->pParamsArray[RESULT_TYPE_AESTATS_PARAM] = params->pParamsArray[RESULT_TYPE_AESTATS_PARAM];
         return XCAM_RETURN_NO_ERROR;
     }
 
@@ -1029,6 +1029,38 @@ XCamReturn AiqAlgoHandlerAe_getExpWinAttr(AiqAlgoHandlerAe_t* pAeHdl, Uapi_ExpWi
 
     rk_aiq_uapi_ae_getExpWinAttr(pHdl->mAlgoCtx, pExpWinAttr);
     pExpWinAttr->sync.done = true;
+    aiqMutex_unlock(&pHdl->mCfgMutex);
+
+    EXIT_ANALYZER_FUNCTION();
+    return ret;
+}
+XCamReturn AiqAlgoHandlerAe_setExpSubWinAttr(AiqAlgoHandlerAe_t* pAeHdl, Uapi_ExpSubWin_t ExpSubWinAttr)
+{
+    ENTER_ANALYZER_FUNCTION();
+
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    AiqAlgoHandler_t* pHdl = (AiqAlgoHandler_t*)pAeHdl;
+    aiqMutex_lock(&pHdl->mCfgMutex);
+
+    rk_aiq_uapi_ae_setExpSubWinAttr(pHdl->mAlgoCtx, &ExpSubWinAttr, false);
+    AeInstanceConfig_t* pAeInstConfig = (AeInstanceConfig_t*)pHdl->mAlgoCtx;
+    AeConfig_t pAecCfg                = pAeInstConfig->aecCfg;
+    pAecCfg->IsReconfig |= UPDATE_EXPSUBWINATTR;
+    aiqMutex_unlock(&pHdl->mCfgMutex);
+
+    EXIT_ANALYZER_FUNCTION();
+    return ret;
+}
+XCamReturn AiqAlgoHandlerAe_getExpSubWinAttr(AiqAlgoHandlerAe_t* pAeHdl, Uapi_ExpSubWin_t* pExpSubWinAttr)
+{
+    ENTER_ANALYZER_FUNCTION();
+
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    AiqAlgoHandler_t* pHdl = (AiqAlgoHandler_t*)pAeHdl;
+    aiqMutex_lock(&pHdl->mCfgMutex);
+
+    rk_aiq_uapi_ae_getExpSubWinAttr(pHdl->mAlgoCtx, pExpSubWinAttr);
+    pExpSubWinAttr->sync.done = true;
     aiqMutex_unlock(&pHdl->mCfgMutex);
 
     EXIT_ANALYZER_FUNCTION();

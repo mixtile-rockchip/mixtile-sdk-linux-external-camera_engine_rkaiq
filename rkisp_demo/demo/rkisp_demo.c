@@ -2440,7 +2440,7 @@ static int query_ae_state(const rk_aiq_sys_ctx_t* ctx)
 {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
 
-#if defined(ISP_HW_V39) || defined(ISP_HW_V33)
+#if defined(ISP_HW_V39) || defined(ISP_HW_V33) || defined(ISP_HW_V35)
     ae_api_queryInfo_t queryInfo;
     ret = rk_aiq_user_api2_ae_queryExpResInfo(ctx, &queryInfo);
     printf("ae IsConverged: %d\n", queryInfo.isConverged);
@@ -2458,7 +2458,7 @@ static void set_af_manual_meascfg(const rk_aiq_sys_ctx_t* ctx)
     rk_aiq_af_attrib_t attr;
     uint16_t gamma_y[RKAIQ_RAWAF_GAMMA_NUM] =
     {0, 45, 108, 179, 245, 344, 409, 459, 500, 567, 622, 676, 759, 833, 896, 962, 1023};
-#ifndef ISP_HW_V33
+#if !defined(ISP_HW_V33)
     rk_aiq_user_api2_af_GetAttrib(ctx, &attr);
     attr.AfMode = RKAIQ_AF_MODE_FIXED;
 

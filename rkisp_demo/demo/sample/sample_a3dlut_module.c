@@ -55,7 +55,7 @@ void sample_print_a3dlut_info(const void *arg)
 {
     printf ("enter 3DLUT modult test!\n");
 }
-#if USE_NEWSTRUCT && !defined(ISP_HW_V33)
+#if USE_NEWSTRUCT && !defined(ISP_HW_V33) && !defined(ISP_HW_V35)
 /*
 ******************************
 *
@@ -466,7 +466,7 @@ int sample_3dlut_setCalib_test(const rk_aiq_sys_ctx_t* ctx)
 }
 #endif
 
-#if USE_NEWSTRUCT && defined(ISP_HW_V33)
+#if USE_NEWSTRUCT && (defined(ISP_HW_V33) || defined(ISP_HW_V35))
 int sample_hsv_test(const rk_aiq_sys_ctx_t* ctx)
 {
     // get cur mode
@@ -657,7 +657,7 @@ XCamReturn sample_a3dlut_module(const void* arg)
                 CLEAR();
                 sample_a3dlut_usage ();
                 break;
-#if USE_NEWSTRUCT && !defined(ISP_HW_V33)
+#if USE_NEWSTRUCT && !defined(ISP_HW_V33) && !defined(ISP_HW_V35)
             case '0':
                 sample_set_a3dlut_manual(ctx);
                 printf("Set 3DLUT MANUAL Mode\n\n");
@@ -734,7 +734,7 @@ XCamReturn sample_a3dlut_module(const void* arg)
                 sample_3dlut_setCalib_test(ctx);
                 break;
 #endif
-#if USE_NEWSTRUCT && defined(ISP_HW_V33)
+#if USE_NEWSTRUCT && (defined(ISP_HW_V33) || defined(ISP_HW_V35))
             case 'm':
                 sample_hsv_test(ctx);
                 break;

@@ -64,7 +64,7 @@ AiqStatsTranslator_t* AiqStatsTranslator_SetMultiIspMode(AiqStatsTranslator_t* p
     return pStatsTrans;
 }
 
-AiqStatsTranslator_t* AiqStatsTranslator_SetIspUnitedMode(AiqStatsTranslator_t* pStatsTrans,
+AiqStatsTranslator_t* AiqStatsTranslator_SetIspUniteMode(AiqStatsTranslator_t* pStatsTrans,
                                                           RkAiqIspUniteMode mode) {
     pStatsTrans->mIspUniteMode = mode;
     return pStatsTrans;
@@ -104,7 +104,7 @@ bool AiqStatsTranslator_IsMultiIspMode(AiqStatsTranslator_t* pStatsTrans) {
     return pStatsTrans->mIsMultiIsp;
 }
 
-RkAiqIspUniteMode AiqStatsTranslator_GetIspUnitedMode(AiqStatsTranslator_t* pStatsTrans) {
+RkAiqIspUniteMode AiqStatsTranslator_GetIspUniteMode(AiqStatsTranslator_t* pStatsTrans) {
     return pStatsTrans->mIspUniteMode;
 }
 
@@ -155,6 +155,18 @@ OUT:
     return false;
 }
 
+static inline uint32_t getStrideValue(uint32_t pixelperline, uint32_t bytesperline) {
+    uint32_t stride;
+
+#if defined(ISP_HW_V35)
+    stride = pixelperline;
+#else
+    stride = bytesperline >> 1;
+#endif
+
+    return stride;
+}
+
 XCamReturn AiqStatsTranslator_translatePdafStats(AiqStatsTranslator_t* pStatsTrans,
                                                  const rk_aiq_isp_pdaf_meas_t* pdaf,
                                                  const aiq_VideoBuffer_t* from,
@@ -174,6 +186,7 @@ XCamReturn AiqStatsTranslator_translatePdafStats(AiqStatsTranslator_t* pStatsTra
     unsigned short pdHeight;
     bool dumppdraw    = false;
     uint32_t frame_id = AiqV4l2Buffer_getSequence((AiqV4l2Buffer_t*)from);
+    uint32_t stride = pdaf->bytesperline >> 1;
 
     pdLData = statsInt->pdLData;
     pdRData = statsInt->pdRData;
@@ -211,32 +224,34 @@ XCamReturn AiqStatsTranslator_translatePdafStats(AiqStatsTranslator_t* pStatsTra
             pdWidth = pdaf->pdWidth;
             pdHeight = pdaf->pdHeight >> 1;
             pixelperline = pdaf->pdWidth;
+            stride = getStrideValue(pixelperline, pdaf->bytesperline);
             for (j = 0; j < 2 * pdHeight; j += 4) {
                 for (i = 0; i < pixelperline; i++) {
                     *pdRData++ = pdData[i] >> 6;
                 }
-                pdData += pixelperline;
+                pdData += stride;
                 for (i = 0; i < pixelperline; i++) {
                     *pdLData++ = pdData[i] >> 6;
                 }
-                pdData += pixelperline;
+                pdData += stride;
 
                 for (i = 0; i < pixelperline; i++) {
                     *pdLData++ = pdData[i] >> 6;
                 }
-                pdData += pixelperline;
+                pdData += stride;
                 for (i = 0; i < pixelperline; i++) {
                     *pdRData++ = pdData[i] >> 6;
                 }
-                pdData += pixelperline;
+                pdData += stride;
             }
         } else {
             if (pdaf->pdLRInDiffLine == 0) {
                 pdWidth  = pdaf->pdWidth >> 1;
                 pdHeight = pdaf->pdHeight;
                 pixelperline = 2 * pdWidth;
+                stride = getStrideValue(pixelperline, pdaf->bytesperline);
                 for (j = 0; j < pdHeight; j++) {
-                    pdData = (uint16_t*)pdafstats + j * pixelperline;
+                    pdData = (uint16_t*)pdafstats + j * stride;
                     for (i = 0; i < pixelperline; i += 2) {
                         *pdLData++ = pdData[i] >> 6;
                         *pdRData++ = pdData[i + 1] >> 6;
@@ -246,15 +261,16 @@ XCamReturn AiqStatsTranslator_translatePdafStats(AiqStatsTranslator_t* pStatsTra
                 pdWidth      = pdaf->pdWidth;
                 pdHeight     = pdaf->pdHeight >> 1;
                 pixelperline = pdaf->pdWidth;
+                stride = getStrideValue(pixelperline, pdaf->bytesperline);
                 for (j = 0; j < 2 * pdHeight; j += 2) {
                     for (i = 0; i < pixelperline; i++) {
                         *pdLData++ = pdData[i] >> 6;
                     }
-                    pdData += pixelperline;
+                    pdData += stride;
                     for (i = 0; i < pixelperline; i++) {
                         *pdRData++ = pdData[i] >> 6;
                     }
-                    pdData += pixelperline;
+                    pdData += stride;
                 }
             }
         }
@@ -268,7 +284,7 @@ XCamReturn AiqStatsTranslator_translatePdafStats(AiqStatsTranslator_t* pStatsTra
             uint16x8_t vrev_data;
             pixelperline = 2 * pdWidth;
             for (j = 0; j < pdHeight; j++) {
-                pdData = (uint16_t*)pdafstats + j * pixelperline;
+                pdData = (uint16_t*)pdafstats + j * stride;
                 for (i = 0; i < pixelperline / 16 * 16; i += 16) {
                     vld2_data = vld2q_u16(pdData);
                     vst1q_u16(pdLData, vld2_data.val[0]);
@@ -288,7 +304,7 @@ XCamReturn AiqStatsTranslator_translatePdafStats(AiqStatsTranslator_t* pStatsTra
 #else
             pixelperline = 2 * pdWidth;
             for (j = 0; j < pdHeight; j++) {
-                pdData = (uint16_t*)pdafstats + j * pixelperline;
+                pdData = (uint16_t*)pdafstats + j * stride;
                 for (i = 0; i < pixelperline; i += 2) {
                     *pdLData++ = pdData[i];
                     *pdRData++ = pdData[i + 1];
@@ -301,9 +317,9 @@ XCamReturn AiqStatsTranslator_translatePdafStats(AiqStatsTranslator_t* pStatsTra
             pixelperline = pdaf->pdWidth;
             for (j = 0; j < 2 * pdHeight; j += 2) {
                 memcpy(pdRData, pdData, pixelperline * sizeof(uint16_t));
-                pdData += pixelperline;
+                pdData += stride;
                 memcpy(pdLData, pdData, pixelperline * sizeof(uint16_t));
-                pdData += pixelperline;
+                pdData += stride;
                 pdLData += pixelperline;
                 pdRData += pixelperline;
             }
@@ -397,6 +413,9 @@ XCamReturn AiqStatsTranslator_getParams(AiqStatsTranslator_t* pStatsTrans,
 #ifdef ISP_HW_V39
     struct rkisp39_stat_buffer* stats =
         (struct rkisp39_stat_buffer*)(AiqV4l2Buffer_getExpbufUsrptr(buf));
+#elif ISP_HW_V35
+    struct rkisp35_stat_buffer* stats =
+        (struct rkisp35_stat_buffer*)(AiqV4l2Buffer_getExpbufUsrptr(buf));
 #elif ISP_HW_V33
     struct rkisp33_stat_buffer* stats =
         (struct rkisp33_stat_buffer*)(AiqV4l2Buffer_getExpbufUsrptr(buf));

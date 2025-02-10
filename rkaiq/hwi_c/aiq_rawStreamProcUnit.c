@@ -812,6 +812,14 @@ XCamReturn AiqRawStreamProcUnit_notify_capture_raw(AiqRawStreamProcUnit_t* pRawS
 #endif
 }
 
+void AiqRawStreamProcUnit_setRxBufferCnt(AiqRawStreamProcUnit_t* pRawStrProcUnit, uint16_t buf_num) {
+    for (int i = 0; i < 3; i++) {
+        if (pRawStrProcUnit->_dev[i]) {
+            AiqV4l2Device_setBufCnt(pRawStrProcUnit->_dev[i], buf_num);
+        }
+    }
+}
+
 #if RKAIQ_HAVE_DUMPSYS
 int AiqRawStreamProcUnit_dump(void* dumper, st_string* result, int argc, void* argv[]) {
     AiqRawStreamProcUnit_t* pRawStrProcUnit = (AiqRawStreamProcUnit_t*)dumper;

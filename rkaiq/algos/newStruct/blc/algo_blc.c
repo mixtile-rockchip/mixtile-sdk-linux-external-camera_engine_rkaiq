@@ -124,7 +124,7 @@ processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outparams)
     if(delta_iso > ABLC_RECALCULATE_DELTE_ISO) {
         pBlcCtx->isReCal_ = true;
     }
-#ifdef ISP_HW_V33
+#if defined(ISP_HW_V33)
     if (!pBlcCtx->aeIsConverged && blc_proc_param->aeIsConverged && !blc_proc_param->ishdr)
         pBlcCtx->isReCal_ = true;
     pBlcCtx->aeIsConverged = blc_proc_param->aeIsConverged;
@@ -209,6 +209,7 @@ BlcSelectParam(BlcContext_t *pBlcCtx, blc_param_t* out, int iso)
                 paut->dyn[ilow].obcPostTnr.sw_blcT_autoOB_offset, paut->dyn[ihigh].obcPostTnr.sw_blcT_autoOB_offset, uratio);
     out->dyn.obcPostTnr.sw_blcT_obcPostTnr_en = paut->dyn[ilow].obcPostTnr.sw_blcT_obcPostTnr_en;
 #ifdef ISP_HW_V33
+    out->sta.debug.obcPostTnr.sw_blcT_autoOBWkArd_en = paut->sta.debug.obcPostTnr.sw_blcT_autoOBWkArd_en;
     out->sta.autoBlc.sw_blcT_autoBlc_en = paut->sta.autoBlc.sw_blcT_autoBlc_en;
     out->sta.autoBlc.sw_blcT_autoBlcEn_thred = paut->sta.autoBlc.sw_blcT_autoBlcEn_thred;
     out->sta.autoBlc.sw_blcT_damping_val = paut->sta.autoBlc.sw_blcT_damping_val;

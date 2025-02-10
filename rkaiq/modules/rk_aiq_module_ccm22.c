@@ -22,6 +22,8 @@ void rk_aiq_ccm22_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
     struct isp39_ccm_cfg* cfg = &isp_params->isp_cfg->others.ccm_cfg;
 #elif ISP_HW_V33
     struct isp33_ccm_cfg* cfg = &isp_params->isp_cfg->others.ccm_cfg;
+#elif ISP_HW_V35
+    struct isp33_ccm_cfg* cfg = &isp_params->isp_cfg->others.ccm_cfg;
 #endif
 
     ccm_param_t* ccm_param = (ccm_param_t*)attr;

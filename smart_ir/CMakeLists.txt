@@ -77,7 +77,8 @@ add_compile_options(-fstack-protector-strong -D_FORTIFY_SOURCE=2)
 add_compile_options(${ISP_HW_VERSION})
 
 if (ISP_HW_VERSION STREQUAL "-DISP_HW_V39"
-		OR ISP_HW_VERSION STREQUAL "-DISP_HW_V33")
+		OR ISP_HW_VERSION STREQUAL "-DISP_HW_V33"
+		OR ISP_HW_VERSION STREQUAL "-DISP_HW_V35")
     add_compile_options(-DUSE_NEWSTRUCT=1)
 endif()
 

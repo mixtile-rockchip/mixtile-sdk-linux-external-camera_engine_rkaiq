@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-#if defined(ISP_HW_V33)||defined(ISP_HW_V39)
+#if defined(ISP_HW_V33)||defined(ISP_HW_V39) || defined(ISP_HW_V35)
 #include "sample_comm.h"
 #define safe_free(x) if(NULL!=(x))\
                            free(x); x=NULL;

@@ -183,6 +183,9 @@ endif ()
 if (${ISP_HW_VERSION} STREQUAL "-DISP_HW_V33")
     set(IQFILES_DIR_INTERNAL "${rk_aiq_SOURCE_DIR}/iqfiles/isp33")
 endif ()
+if (${ISP_HW_VERSION} STREQUAL "-DISP_HW_V35")
+    set(IQFILES_DIR_INTERNAL "${rk_aiq_SOURCE_DIR}/iqfiles/isp35")
+endif ()
 
 add_custom_target(
     j2s4b

@@ -1054,7 +1054,7 @@ typedef struct awb_luma2WpWgt_s {
         M4_NOTES( \n
         Freq of use: low))  */
     awb_lum2wgt_enTh_t luma2WpWgtEn_th;
-#ifdef ISP_HW_V33
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     /* M4_GENERIC_DESC(
         M4_ALIAS(luma2WpWgt_ccm),
         M4_TYPE(f32),
@@ -1375,7 +1375,7 @@ typedef struct awb_lgtSrc_s {
         M4_NOTES(\n
         Freq of use: high))  */
     awb_xyWpDct_t wpDct_xySpace;
-#ifndef ISP_HW_V33
+#if defined(ISP_HW_V39)
     /* M4_GENERIC_DESC(
         M4_ALIAS(wpDct_rotYuvSpace),
         M4_TYPE(struct),
@@ -1595,7 +1595,7 @@ typedef struct awb_Stats_s {
         Freq of use: high))  */
     //reg:sw_rawawb_xy_en0
     bool hw_awbCfg_xyDct_en;
- #ifndef ISP_HW_V33
+#if defined(ISP_HW_V39)
     /* M4_GENERIC_DESC(
         M4_ALIAS(hw_awbCfg_rotYuvDct_en),
         M4_TYPE(bool),
@@ -1674,7 +1674,7 @@ typedef struct awb_Stats_s {
         M4_NOTES(Parameters for converting rgb space to xy space\n
         Freq of use: high))  */
     awb_rgb2xy_para_t rgb2xy;
-#ifndef ISP_HW_V33
+#if defined(ISP_HW_V39)
      /* M4_GENERIC_DESC(
         M4_ALIAS(hw_awbCfg_rgb2RYuv_coeff),
         M4_TYPE(f32),

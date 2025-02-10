@@ -30,6 +30,8 @@ void cvt_isp_params_dump_mod_param(AiqIspParamsCvt_t* self, st_string* result) {
     struct isp39_isp_params_cfg* params = self->mCvtedIsp39Prams;
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
 #else
     return;
 #endif
@@ -75,6 +77,8 @@ void cvt_isp_params_dump_bls_attr(AiqIspParamsCvt_t* self, st_string* result) {
     struct isp39_isp_params_cfg* params = self->mCvtedIsp39Prams;
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
 #else
     return;
 #endif
@@ -90,7 +94,11 @@ void cvt_isp_params_dump_bls_attr(AiqIspParamsCvt_t* self, st_string* result) {
     aiq_string_printf(result, "\n");
 
     bool en                       = params->module_ens & ISP39_MODULE_BLS;
+#if ISP_HW_V35
+    struct isp35_bls_cfg* bls_cfg = &params->others.bls_cfg;
+#else
     struct isp32_bls_cfg* bls_cfg = &params->others.bls_cfg;
+#endif
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-9s%-11d%-12d%-12d%-12d%-12d%-13d%-8d", en ? "Y" : "N",
@@ -107,6 +115,8 @@ static void __dump_awb1_gain(AiqIspParamsCvt_t* self, char* buffer, st_string* r
     struct isp39_isp_params_cfg* params = self->mCvtedIsp39Prams;
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
 #else
     return;
 #endif
@@ -130,6 +140,8 @@ static void __dump_awb0_gain(AiqIspParamsCvt_t* self, char* buffer, st_string* r
     struct isp39_isp_params_cfg* params = self->mCvtedIsp39Prams;
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
 #else
     return;
 #endif
@@ -175,6 +187,8 @@ void cvt_isp_params_dump_wbgain_attr(AiqIspParamsCvt_t* self, st_string* result)
     struct isp39_isp_params_cfg* params = self->mCvtedIsp39Prams;
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
 #else
     return;
 #endif
@@ -208,6 +222,9 @@ void cvt_isp_params_dump_rawawb_attr(AiqIspParamsCvt_t* self, st_string* result)
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
     struct isp33_rawawb_meas_cfg* awb_cfg = &self->isp_params.isp_cfg->meas.rawawb;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
+    struct isp35_rawawb_meas_cfg* awb_cfg = &self->isp_params.isp_cfg->meas.rawawb;
 #else
     return;
 #endif
@@ -227,7 +244,7 @@ void cvt_isp_params_dump_rawawb_attr(AiqIspParamsCvt_t* self, st_string* result)
 
     aiq_string_printf(result, buffer);
     aiq_string_printf(result, "\n\n");
-#if defined(ISP_HW_V33)
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-14s%-14s%-14s%-14s", "uvDct_en", "xyDct_en",
              "drcOut_mod_en", "bnrOut_mod_en", "light_num");
@@ -299,7 +316,7 @@ void cvt_isp_params_dump_rawawb_attr(AiqIspParamsCvt_t* self, st_string* result)
              awb_cfg->wp_luma_weicurve_w6, awb_cfg->wp_luma_weicurve_w7, awb_cfg->wp_luma_weicurve_w8);
     aiq_string_printf(result, buffer);
     aiq_string_printf(result, "\n");
-#if defined(ISP_HW_V33)
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-6s%-6s%-6s%-6s%-6s%-6s%-6s%-6s%-6s", "ccm0r", "ccm1r",
              "ccm2r", "ccm0g", "ccm1g", "ccm1g", "ccm0b", "ccm1b", "ccm1b");
@@ -330,6 +347,8 @@ void cvt_isp_params_dump_dpc_attr(AiqIspParamsCvt_t* self, st_string* result) {
     struct isp39_isp_params_cfg* params = self->mCvtedIsp39Prams;
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
 #else
     return;
 #endif
@@ -360,6 +379,8 @@ void cvt_isp_params_dump_lsc_attr(AiqIspParamsCvt_t* self, st_string* result) {
     struct isp39_isp_params_cfg* params = self->mCvtedIsp39Prams;
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
 #else
     return;
 #endif
@@ -412,6 +433,9 @@ void cvt_isp_params_dump_debayer_attr(AiqIspParamsCvt_t* self, st_string* result
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
     struct isp33_debayer_cfg* dm_cfg    = &params->others.debayer_cfg;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
+    struct isp35_debayer_cfg* dm_cfg    = &params->others.debayer_cfg;
 #else
     return;
 #endif
@@ -424,6 +448,8 @@ void cvt_isp_params_dump_debayer_attr(AiqIspParamsCvt_t* self, st_string* result
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-10s%-10s", "en", "flt_g_en", "flt_c_en");
 #elif defined(ISP_HW_V33)
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-10s", "en", "bypass", "g_flt_en");
+#elif defined(ISP_HW_V35)
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-10s%-10s", "en", "flt_g_en", "flt_c_en");
 #endif
     aiq_string_printf(result, buffer);
     aiq_string_printf(result, "\n");
@@ -435,6 +461,9 @@ void cvt_isp_params_dump_debayer_attr(AiqIspParamsCvt_t* self, st_string* result
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-10s%-10s", en ? "Y" : "N",
              dm_cfg->filter_g_en ? "Y" : "N", dm_cfg->filter_c_en ? "Y" : "N");
 #elif defined(ISP_HW_V33)
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-10s%-10s", en ? "Y" : "N", dm_cfg->bypass ? "Y" : "N",
+             dm_cfg->g_out_flt_en ? "Y" : "N");
+#elif defined(ISP_HW_V35)
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-10s%-10s", en ? "Y" : "N", dm_cfg->bypass ? "Y" : "N",
              dm_cfg->g_out_flt_en ? "Y" : "N");
 #endif
@@ -449,6 +478,9 @@ static void __dump_ccm_coeff(AiqIspParamsCvt_t* self, char* buffer, st_string* r
     struct isp39_ccm_cfg* ccm_cfg       = &params->others.ccm_cfg;
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
+    struct isp33_ccm_cfg* ccm_cfg       = &params->others.ccm_cfg;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
     struct isp33_ccm_cfg* ccm_cfg       = &params->others.ccm_cfg;
 #else
     return;
@@ -486,6 +518,9 @@ static void __dump_ccm_alp(AiqIspParamsCvt_t* self, char* buffer, st_string* res
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
     struct isp33_ccm_cfg* ccm_cfg       = &params->others.ccm_cfg;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
+    struct isp33_ccm_cfg* ccm_cfg       = &params->others.ccm_cfg;
 #else
     return;
 #endif
@@ -522,6 +557,9 @@ void cvt_isp_params_dump_ccm_attr(AiqIspParamsCvt_t* self, st_string* result) {
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
     struct isp33_ccm_cfg* ccm_cfg       = &params->others.ccm_cfg;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
+    struct isp33_ccm_cfg* ccm_cfg       = &params->others.ccm_cfg;
 #else
     return;
 #endif
@@ -554,6 +592,8 @@ void cvt_isp_params_dump_gammaout_attr(AiqIspParamsCvt_t* self, st_string* resul
     struct isp39_isp_params_cfg* params = self->mCvtedIsp39Prams;
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
 #else
     return;
 #endif
@@ -582,6 +622,8 @@ void cvt_isp_params_dump_cp_attr(AiqIspParamsCvt_t* self, st_string* result) {
     struct isp39_isp_params_cfg* params = self->mCvtedIsp39Prams;
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
 #else
     return;
 #endif
@@ -632,6 +674,9 @@ void cvt_isp_params_dump_drc_attr(AiqIspParamsCvt_t* self, st_string* result) {
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
     struct isp33_drc_cfg* drc_cfg       = &params->others.drc_cfg;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
+    struct isp35_drc_cfg* drc_cfg       = &params->others.drc_cfg;
 #else
     return;
 #endif
@@ -658,8 +703,13 @@ void cvt_isp_params_dump_drc_attr(AiqIspParamsCvt_t* self, st_string* result) {
 void cvt_isp_params_dump_mge_attr(AiqIspParamsCvt_t* self, st_string* result) {
 #if defined(ISP_HW_V39)
     struct isp39_isp_params_cfg* params = self->mCvtedIsp39Prams;
+    struct isp32_hdrmge_cfg* mge_cfg = &params->others.hdrmge_cfg;
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
+    struct isp32_hdrmge_cfg* mge_cfg = &params->others.hdrmge_cfg;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
+    struct isp35_hdrmge_cfg* mge_cfg = &params->others.hdrmge_cfg;
 #else
     return;
 #endif
@@ -673,11 +723,16 @@ void cvt_isp_params_dump_mge_attr(AiqIspParamsCvt_t* self, st_string* result) {
     aiq_string_printf(result, "\n");
 
     bool en                          = params->module_ens & ISP39_MODULE_HDRMGE;
-    struct isp32_hdrmge_cfg* mge_cfg = &params->others.hdrmge_cfg;
 
+#if defined(ISP_HW_V39) || defined(ISP_HW_V33)
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8d%-6d", en ? "Y" : "N", mge_cfg->s_base,
              mge_cfg->mode);
+#elif defined(ISP_HW_V35)
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8d%-6d", en ? "Y" : "N", mge_cfg->short_base_en,
+            mge_cfg->frame_mode);
+#endif
 
     aiq_string_printf(result, buffer);
     aiq_string_printf(result, "\n\n");
@@ -735,6 +790,9 @@ void cvt_isp_params_dump_ldch_attr(AiqIspParamsCvt_t* self, st_string* result) {
     struct isp39_ldch_cfg* ldch_cfg     = &params->others.ldch_cfg;
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
+    struct isp32_ldch_cfg* ldch_cfg     = &params->others.ldch_cfg;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
     struct isp32_ldch_cfg* ldch_cfg     = &params->others.ldch_cfg;
 #else
     return;
@@ -813,6 +871,8 @@ void cvt_isp_params_dump_ldc_attr(AiqIspParamsCvt_t* self, st_string* result) {
     cvt_isp_params_dump_ldcv_attr(self, result);
 #elif defined(ISP_HW_V33)
     cvt_isp_params_dump_ldch_attr(self, result);
+#elif defined(ISP_HW_V35)
+    cvt_isp_params_dump_ldch_attr(self, result);
 #endif
 }
 
@@ -823,6 +883,9 @@ void cvt_isp_params_dump_bay3d_attr(AiqIspParamsCvt_t* self, st_string* result) 
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
     struct isp33_bay3d_cfg* bay3d_cfg   = &params->others.bay3d_cfg;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
+    struct isp35_bay3d_cfg* bay3d_cfg   = &params->others.bay3d_cfg;
 #else
     return;
 #endif
@@ -837,10 +900,15 @@ void cvt_isp_params_dump_bay3d_attr(AiqIspParamsCvt_t* self, st_string* result) 
 
     bool en = params->module_ens & ISP39_MODULE_BAY3D;
 
+#if defined(ISP_HW_V39) || defined(ISP_HW_V33)
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-14s", en ? "Y" : "N",
              bay3d_cfg->bypass_en ? "Y" : "N", bay3d_cfg->iirsparse_en ? "Y" : "N");
-
+#elif defined(ISP_HW_V35)
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-14s", en ? "Y" : "N",
+             bay3d_cfg->bypass_en ? "Y" : "N", bay3d_cfg->iir_wr_src ? "Y" : "N");
+#endif
     aiq_string_printf(result, buffer);
     aiq_string_printf(result, "\n\n");
 }
@@ -852,6 +920,9 @@ void cvt_isp_params_dump_ynr_attr(AiqIspParamsCvt_t* self, st_string* result) {
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
     struct isp33_ynr_cfg* ynr_cfg       = &params->others.ynr_cfg;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
+    struct isp35_ynr_cfg* ynr_cfg       = &params->others.ynr_cfg;
 #else
     return;
 #endif
@@ -864,6 +935,9 @@ void cvt_isp_params_dump_ynr_attr(AiqIspParamsCvt_t* self, st_string* result) {
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-12s%-12s%-12s%-10s%-9s%-5s", "en", "lospnr_byp",
              "hispnr_byp", "exgain_byp", "glo_gain", "gain_alp", "rnr");
 #elif defined(ISP_HW_V33)
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-12s%-12s%-12s%-10s%-9s%-5s", "en", "lospnr_byp",
+             "hispnr_byp", "mispnr_byp", "glo_gain", "gain_alp", "rnr");
+#elif defined(ISP_HW_V35)
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-12s%-12s%-12s%-10s%-9s%-5s", "en", "lospnr_byp",
              "hispnr_byp", "mispnr_byp", "glo_gain", "gain_alp", "rnr");
 #endif
@@ -885,6 +959,11 @@ void cvt_isp_params_dump_ynr_attr(AiqIspParamsCvt_t* self, st_string* result) {
              ynr_cfg->lo_spnr_bypass ? "Y" : "N", ynr_cfg->hi_spnr_bypass ? "Y" : "N",
              ynr_cfg->mi_spnr_bypass ? "Y" : "N", ynr_cfg->global_set_gain,
              ynr_cfg->gain_merge_alpha, ynr_cfg->rnr_en ? "Y" : "N");
+#elif defined(ISP_HW_V35)
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-12s%-12s%-12s%-10d%-9d%-5s", en ? "Y" : "N",
+             ynr_cfg->lo_spnr_bypass ? "Y" : "N", ynr_cfg->hi_spnr_bypass ? "Y" : "N",
+             ynr_cfg->mi_spnr_bypass ? "Y" : "N", ynr_cfg->global_set_gain,
+             ynr_cfg->gain_merge_alpha, ynr_cfg->rnr_en ? "Y" : "N");
 #endif
 
     aiq_string_printf(result, buffer);
@@ -898,6 +977,9 @@ void cvt_isp_params_dump_cnr_attr(AiqIspParamsCvt_t* self, st_string* result) {
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
     struct isp33_cnr_cfg* cnr_cfg       = &params->others.cnr_cfg;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
+    struct isp35_cnr_cfg* cnr_cfg       = &params->others.cnr_cfg;
 #else
     return;
 #endif
@@ -929,6 +1011,9 @@ void cvt_isp_params_dump_sharp_attr(AiqIspParamsCvt_t* self, st_string* result) 
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
     struct isp33_sharp_cfg* shp_cfg     = &params->others.sharp_cfg;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
+    struct isp35_sharp_cfg* shp_cfg     = &params->others.sharp_cfg;
 #else
     return;
 #endif
@@ -942,6 +1027,10 @@ void cvt_isp_params_dump_sharp_attr(AiqIspParamsCvt_t* self, st_string* result) 
              "bypass", "center_mode", "lo_gain_byp", "radius_step", "noise_clip", "clipldx",
              "baselmg", "noise_flt", "tex2wgt");
 #elif defined(ISP_HW_V33)
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-13s%-10s%-10s%-12s%-11s%-13s%-12s%-10s%-7s", "en",
+             "bypass", "lo_gain_byp", "tex_est", "max_flt", "fusion_wgt", "noise_calc",
+             "radius_step", "curve_clip", "gain_wgt", "lp_en");
+#elif defined(ISP_HW_V35)
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-13s%-10s%-10s%-12s%-11s%-13s%-12s%-10s%-7s", "en",
              "bypass", "lo_gain_byp", "tex_est", "max_flt", "fusion_wgt", "noise_calc",
              "radius_step", "curve_clip", "gain_wgt", "lp_en");
@@ -964,6 +1053,12 @@ void cvt_isp_params_dump_sharp_attr(AiqIspParamsCvt_t* self, st_string* result) 
              shp_cfg->tex_est_mode, shp_cfg->max_min_flt_mode, shp_cfg->detail_fusion_wgt_mode,
              shp_cfg->noise_calc_mode, shp_cfg->radius_step_mode, shp_cfg->noise_curve_mode,
              shp_cfg->gain_wgt_mode, shp_cfg->detail_lp_en ? "Y" : "N");
+#elif defined(ISP_HW_V35)
+    snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-13d%-10d%-10d%-12d%-11d%-13d%-12d%-10d%-7s",
+             en ? "Y" : "N", shp_cfg->bypass ? "Y" : "N", shp_cfg->local_gain_bypass,
+             shp_cfg->tex_est_mode, shp_cfg->max_min_flt_mode, shp_cfg->detail_fusion_wgt_mode,
+             shp_cfg->noise_calc_mode, shp_cfg->radius_step_mode, shp_cfg->noise_curve_mode,
+             shp_cfg->gain_wgt_mode, shp_cfg->detail_lp_en ? "Y" : "N");
 #endif
 
     aiq_string_printf(result, buffer);
@@ -976,6 +1071,9 @@ void cvt_isp_params_dump_cac_attr(AiqIspParamsCvt_t* self, st_string* result) {
     struct isp32_cac_cfg* cac_cfg       = &params->others.cac_cfg;
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
+    struct isp33_cac_cfg* cac_cfg       = &params->others.cac_cfg;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
     struct isp33_cac_cfg* cac_cfg       = &params->others.cac_cfg;
 #else
     return;
@@ -1017,6 +1115,8 @@ void cvt_isp_params_dump_gain_attr(AiqIspParamsCvt_t* self, st_string* result) {
     struct isp39_isp_params_cfg* params = self->mCvtedIsp39Prams;
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
 #else
     return;
 #endif
@@ -1044,6 +1144,8 @@ void cvt_isp_params_dump_csm_attr(AiqIspParamsCvt_t* self, st_string* result) {
     struct isp39_isp_params_cfg* params = self->mCvtedIsp39Prams;
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
 #else
     return;
 #endif
@@ -1073,6 +1175,8 @@ void cvt_isp_params_dump_cgc_attr(AiqIspParamsCvt_t* self, st_string* result) {
     struct isp39_isp_params_cfg* params = self->mCvtedIsp39Prams;
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
 #else
     return;
 #endif
@@ -1127,10 +1231,14 @@ void cvt_isp_params_dump_aec_attr(AiqIspParamsCvt_t* self, st_string* result) {
 #elif defined(ISP_HW_V33)
     struct isp33_isp_params_cfg* params = self->mCvtedIsp33Prams;
     struct isp33_isp_meas_cfg* meas_cfg = &params->meas;
+#elif defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
+    struct isp35_isp_meas_cfg* meas_cfg = &params->meas;
 #else
     return;
 #endif
 
+#ifndef ISP_HW_V35 //TODO
     aiq_info_dump_title(result, "aec hwi params");
 
     snprintf(buffer, MAX_LINE_LENGTH, "%-5s%-8s%-8s", "en", "aeswap", "aesel");
@@ -1177,9 +1285,87 @@ void cvt_isp_params_dump_aec_attr(AiqIspParamsCvt_t* self, st_string* result) {
              meas_cfg->rawhist3.win.h_size, meas_cfg->rawhist3.win.v_size);
     aiq_string_printf(result, buffer);
     aiq_string_printf(result, "\n\n");
-
+#endif
 }
 
+void cvt_isp_params_dump_ainr_attr(AiqIspParamsCvt_t* self, st_string* result)
+{
+    char buffer[MAX_LINE_LENGTH] = {0};
+
+#if defined(ISP_HW_V35)
+    struct isp35_isp_params_cfg* params = self->mCvtedIsp35Prams;
+    struct isp35_ai_cfg *ai_cfg = &params->others.ai_cfg;
+
+    aiq_info_dump_title(result, "aipre hwi params");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d", "AIPRE_CTRL",
+             ai_cfg->aipre_luma2gain_dis, ai_cfg->aipre_narmap_inv);
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d", "AIPRE_NL_PRE",
+             ai_cfg->aipre_scale, ai_cfg->aipre_zp,
+             ai_cfg->aipre_black_lvl);
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d", "AIPRE_GAIN",
+             ai_cfg->aipre_gain_alpha, ai_cfg->aipre_global_gain,
+             ai_cfg->aipre_gain_ratio);
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d", "AIPRE_NOISE0",
+             ai_cfg->aipre_noise_mot_offset, ai_cfg->aipre_noise_mot_gain,
+             ai_cfg->aipre_noise_luma_offset);
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d", "AIPRE_NOISE1",
+             ai_cfg->aipre_noise_luma_gain, ai_cfg->aipre_noise_luma_clip,
+             ai_cfg->aipre_noise_luma_static);
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d", "AIPRE_NOISE2",
+             ai_cfg->aipre_nar_manual, ai_cfg->aipre_nar_manual_alpha);
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
+
+    for (int i = 0; i < ISP35_AI_SIGMA_NUM; i+=3) {
+        memset(buffer, 0, MAX_LINE_LENGTH);
+        snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d", "AIPRE_SIGMA",
+                 ai_cfg->aipre_sigma_y[i], ai_cfg->aipre_sigma_y[i+1],
+                 ai_cfg->aipre_sigma_y[i+2]);
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n");
+
+    }
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d%-13d%-13d", "VPSL_PYR",
+             ai_cfg->pyr_yraw_mode, ai_cfg->pyr_sigma_en, ai_cfg->pyr_yraw_sel,
+             ai_cfg->pyr_gain_leftshift, ai_cfg->pyr_blacklvl_sig);
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
+
+    for (int i = 0; i < ISP35_VPSL_SIGMA_NUM; i+=9) {
+        memset(buffer, 0, MAX_LINE_LENGTH);
+        snprintf(buffer, MAX_LINE_LENGTH, "%-15s%-13d%-13d%-13d%-13d%-13d%-13d%-13d%-13d%-13d", "VPSL_SIGMA",
+                 ai_cfg->pyr_sigma_y[i+0], ai_cfg->pyr_sigma_y[i+1],ai_cfg->pyr_sigma_y[i+2],
+                 ai_cfg->pyr_sigma_y[i+3], ai_cfg->pyr_sigma_y[i+4],ai_cfg->pyr_sigma_y[i+5],
+                 ai_cfg->pyr_sigma_y[i+6], ai_cfg->pyr_sigma_y[i+7],ai_cfg->pyr_sigma_y[i+8]);
+        aiq_string_printf(result, buffer);
+        aiq_string_printf(result, "\n");
+    }
+#endif
+}
 
 #define CVT_DUMP_INFO(_type, _func) \
     [_type] = {                     \
@@ -1224,6 +1410,9 @@ static const struct params_cvt_dump_info params_dump_cvts[] = {
     CVT_DUMP_INFO(RESULT_TYPE_LUT3D_PARAM, cvt_isp_params_dump_3dlut_attr),
 #endif
     CVT_DUMP_INFO(RESULT_TYPE_LDC_PARAM, cvt_isp_params_dump_ldc_attr),
+#if defined(ISP_HW_V35)
+    CVT_DUMP_INFO(RESULT_TYPE_AINR_PARAM, cvt_isp_params_dump_ainr_attr),
+#endif
 };
 
 #ifndef ARRAY_SIZE

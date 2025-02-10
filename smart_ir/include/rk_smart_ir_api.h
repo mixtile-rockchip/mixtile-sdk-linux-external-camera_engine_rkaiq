@@ -57,6 +57,15 @@ typedef enum RK_SMART_IR_LIGHT_MODE_e {
     RK_SMART_IR_LIGHT_MODE_MAX
 } RK_SMART_IR_LIGHT_MODE_t;
 
+typedef enum RK_SMART_IR_CALIB_MODE_e {
+    RK_SMART_IR_CALIB_MODE_INVALID      = 0,
+    RK_SMART_IR_CALIB_MODE_D2N          = 1,
+    RK_SMART_IR_CALIB_MODE_N2D          = 2,
+    RK_SMART_IR_CALIB_MODE_BASE         = 3,
+    RK_SMART_IR_CALIB_MODE_DIS          = 4,
+    RK_SMART_IR_CALIB_MODE_MAX
+} RK_SMART_IR_CALIB_MODE_t;
+
 typedef struct rk_smart_ir_params_s {
     float d2n_envL_th;
     float n2d_envL_th;
@@ -99,6 +108,13 @@ typedef struct rk_smart_ir_result_s {
     bool is_fill_change;
 } rk_smart_ir_result_t;
 
+typedef struct rk_smart_ir_calib_s {
+    bool calib_en;
+    RK_SMART_IR_CALIB_MODE_t calib_mode;
+    rk_smart_ir_params_t calib_params;
+    rk_smart_ir_params_t calib_result;
+} rk_smart_ir_calib_t;
+
 typedef struct rk_smart_ir_query_info_s {
     float rggain;
     float bggain;
@@ -122,6 +138,7 @@ XCamReturn rk_smart_ir_getAttr(rk_smart_ir_ctx_t* ctx, rk_smart_ir_attr_t* attr)
 XCamReturn rk_smart_ir_queryInfo(rk_smart_ir_ctx_t* ctx, rk_smart_ir_query_info_t* query_info);
 XCamReturn rk_smart_ir_run(rk_smart_ir_ctx_t* ctx, bool camGroup, rk_smart_ir_result_t* result);
 XCamReturn rk_smart_ir_runCb(rk_smart_ir_ctx_t* ctx, bool camGroup, void (*smart_ir_cb)(rk_smart_ir_result_t));
+XCamReturn rk_smart_ir_calib(rk_smart_ir_ctx_t* ctx, rk_smart_ir_calib_t* cfg);
 
 // SMARTIR_VERSION 1.0.0
 XCamReturn rk_smart_ir_runOnce(rk_smart_ir_ctx_t* ctx, rk_aiq_isp_stats_t* stats_ref, rk_smart_ir_result_t* result);

@@ -54,6 +54,8 @@ static void CamHwIsp33_updateEffParams(AiqCamHwBase_t* pCamHw, void* params, voi
     }
     pDstEff->meas         = pCamHw->_mIspParamsCvt->mLatestMeasCfg;
     pDstEff->bls_cfg      = pCamHw->_mIspParamsCvt->mLatestBlsCfg;
+    pDstEff->blc0_diff = pCamHw->_mIspParamsCvt->mCommonCvtInfo.blc0_diff;
+    pDstEff->offset2Blc1 = pCamHw->_mIspParamsCvt->mCommonCvtInfo.offset2Blc1;
     pDstEff->awb_gain_cfg = pCamHw->_mIspParamsCvt->mLatestWbGainCfg;
 
 #if defined(RKAIQ_HAVE_MULTIISP)
@@ -127,7 +129,7 @@ bool CamHwIsp33_processTb(AiqCamHwBase_t* pCamHw, void* params) {
                 awbStats_cfg_priv_t* first_awb_param =
                     (awbStats_cfg_priv_t*)pCamHw->_first_awb_param;
                 memcpy(first_awb_param->preWbgainSw, awb_meas_cfg->preWbgainSw,
-                        4 * sizeof(float));
+                       4 * sizeof(float));
                 *awb_meas_cfg        = *first_awb_param;
                 pDstEff->awb_cfg_v33 = *awb_meas_cfg;
             }
@@ -261,7 +263,7 @@ XCamReturn CamHwIsp33_saveInfoForStartAgainTb(AiqCamHwBase_t* pCamHw) {
     char fastboot_info_path[32];
     snprintf(fastboot_info_path, 32, "%s%d", AIQCAM_FASTBOOT_FILE_PREFIX, pCamHw->mCamPhyId);
     aiq_isp_effect_params_t* ispParams = NULL;
-    AiqCamHw_getEffectiveIspParams(pCamHw, &ispParams, (uint32_t)-2);
+    AiqCamHw_getEffectiveIspParams(pCamHw, &ispParams, (uint32_t) -2);
 
     FILE *fp = fopen(fastboot_info_path, "wb+");
     if (!fp) {
@@ -275,7 +277,7 @@ XCamReturn CamHwIsp33_saveInfoForStartAgainTb(AiqCamHwBase_t* pCamHw) {
     fclose(fp);
 
     LOGK_CAMHW("<TB> sync to file, pclock %f, awb time(%s)",
-        pCamHw->mTbInfo.pixel_clock_freq_mhz, ispParams->awb_cfg_v33.timeSign);
+               pCamHw->mTbInfo.pixel_clock_freq_mhz, ispParams->awb_cfg_v33.timeSign);
 
     AIQ_REF_BASE_UNREF(&ispParams->_ref_base);
 #endif
@@ -308,7 +310,7 @@ XCamReturn CamHwIsp33_getLastEffectParamTb(AiqCamHwBase_t* pCamHw) {
     fclose(fp);
 
     LOGK_CAMHW("<TB> sync frome file, pclock %f, awb time(%s)",
-        pCamHw->mTbInfo.pixel_clock_freq_mhz, ((awbStats_cfg_priv_t*)pCamHw->_first_awb_param)->timeSign);
+               pCamHw->mTbInfo.pixel_clock_freq_mhz, ((awbStats_cfg_priv_t*)pCamHw->_first_awb_param)->timeSign);
 #endif
     return XCAM_RETURN_NO_ERROR;
 

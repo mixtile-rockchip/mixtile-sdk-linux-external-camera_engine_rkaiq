@@ -23,6 +23,8 @@
 #include "hwi_c/isp39/aiq_isp39ParamsCvt.h"
 #elif defined(ISP_HW_V33)
 #include "hwi_c/isp33/aiq_isp33ParamsCvt.h"
+#elif defined(ISP_HW_V35)
+#include "hwi_c/isp35/aiq_isp35ParamsCvt.h"
 #endif
 
 #if RKAIQ_HAVE_DUMPSYS
@@ -56,7 +58,7 @@ static void AiqIspParamsCvt_checkModuleEnable(AiqIspParamsCvt_t* pCvt, AiqList_t
         AiqIspParamsCvt_get_3a_result(pCvt, results, RESULT_TYPE_UVNR_PARAM);
     aiq_params_base_t* sharpResult =
         AiqIspParamsCvt_get_3a_result(pCvt, results, RESULT_TYPE_SHARPEN_PARAM);
-#if ISP_HW_V33
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     aiq_params_base_t* enhResult =
         AiqIspParamsCvt_get_3a_result(pCvt, results, RESULT_TYPE_ENH_PARAM);
 #endif
@@ -71,7 +73,8 @@ static void AiqIspParamsCvt_checkModuleEnable(AiqIspParamsCvt_t* pCvt, AiqList_t
             pCvt->mCommonCvtInfo.cnr_path_en = true;
         }
     }
-#elif ISP_HW_V33
+#endif
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     if (ynrResult != NULL && cnrResult != NULL && sharpResult != NULL && enhResult != NULL) {
         if (ynrResult->en == cnrResult->en && ynrResult->en == sharpResult->en && sharpResult->en == enhResult->en) {
             pCvt->mCommonCvtInfo.cnr_path_en = ynrResult->en;
@@ -128,7 +131,8 @@ static void AiqIspParamsCvt_checkModuleEnable(AiqIspParamsCvt_t* pCvt, AiqList_t
             LOGW_ANR("ynr, cnr, and sharp cannot be enabled/disabled individually. they must be enabled together");
         }
     }
-#elif ISP_HW_V33
+#endif
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     if (!update_vaild) {
         if (pCvt->mCommonCvtInfo.cnr_path_en) {
             if (ynrResult != NULL && !ynrResult->en) {
@@ -274,7 +278,7 @@ void AiqIspParamsCvt_getCommonCvtInfo(AiqIspParamsCvt_t* pCvt, AiqList_t* result
             pCvt->mCommonCvtInfo.ynr_sigma[i] = ynr_param->dyn.hw_ynrC_luma2Sigma_curve.val[i];
     }
 #endif
-#if RKAIQ_HAVE_YNR_V40
+#if defined(RKAIQ_HAVE_YNR_V40) || defined(RKAIQ_HAVE_YNR_V41)
     aiq_params_base_t* ynrResult =
         AiqIspParamsCvt_get_3a_result(pCvt, results, RESULT_TYPE_YNR_PARAM);
     if (ynrResult != NULL) {
@@ -289,12 +293,24 @@ void AiqIspParamsCvt_getCommonCvtInfo(AiqIspParamsCvt_t* pCvt, AiqList_t* result
     if (tnrResult != NULL) {
         btnr_param_t* btnr_param = (btnr_param_t*)tnrResult->_data;
         btnr_params_static_t* psta = &btnr_param->sta;
-#if ISP_HW_V33
+#if defined(ISP_HW_V33)
         btnr_other_dyn_t* pdyn = &btnr_param->spNrDyn;
         pCvt->mCommonCvtInfo.sw_btnrT_outFrmBase_mode = pdyn->sw_btnrT_outFrmBase_mode;
+#elif defined(ISP_HW_V35)
+        btnr_other_dyn_t* pdyn = &btnr_param->spNrDyn;
+        pCvt->mCommonCvtInfo.sw_btnrT_outFrmBase_mode = pdyn->outFrmFusion.sw_btnrT_outFrmBase_mode;
+#elif ISP_HW_V39
+        btnr_other_dyn_t* pdyn = &btnr_param->dyn;
 #endif
         pCvt->mCommonCvtInfo.btnrCfg_pixDomain_mode = psta->hw_btnrCfg_pixDomain_mode;
         pCvt->mCommonCvtInfo.btnr_en = tnrResult->en;
+        pCvt->mCommonCvtInfo.btnrT_predgainWkArd_en = psta->debug.predgainWkArd.sw_btnrT_predgainWkArd_en;
+        pCvt->mCommonCvtInfo.btnrT_predgain_mode = psta->debug.predgainWkArd.sw_btnrT_predgain_mode;
+        pCvt->mCommonCvtInfo.btnrT_predgain_curve = psta->debug.predgainWkArd.hw_btnrT_predgain_curve[0];
+#if defined(ISP_HW_V35)
+        pCvt->mCommonCvtInfo.btnrCfg_trans_mode = psta->transCfg.hw_btnrCfg_trans_mode;
+        pCvt->mCommonCvtInfo.btnrCfg_trans_offset = psta->transCfg.hw_btnrCfg_trans_offset;
+#endif
     }
 }
 
@@ -310,6 +326,8 @@ XCamReturn AiqIspParamsCvt_merge_isp_results(AiqIspParamsCvt_t* pCvt, AiqList_t*
     pCvt->isp_params.isp_cfg = (struct isp39_isp_params_cfg*)isp_cfg;
 #elif defined(ISP_HW_V33)
     pCvt->isp_params.isp_cfg = (struct isp33_isp_params_cfg*)isp_cfg;
+#elif defined(ISP_HW_V35)
+    pCvt->isp_params.isp_cfg = (struct isp35_isp_params_cfg*)isp_cfg;
 #endif
     pCvt->mBlcResult = AiqIspParamsCvt_get_3a_result(pCvt, results, RESULT_TYPE_BLC_PARAM);
 
@@ -341,10 +359,15 @@ XCamReturn AiqIspParamsCvt_merge_isp_results(AiqIspParamsCvt_t* pCvt, AiqList_t*
         }
     }
 
+    aiq_params_base_t* blc_params = AiqIspParamsCvt_get_3a_result(pCvt, results, RESULT_TYPE_BLC_PARAM);
+    if (blc_params)
+        pCvt->mIspParamsCvtOps.Convert3aResultsToIspCfg(pCvt, blc_params, isp_cfg, is_multi_isp);
+
     // convert remain results
     AIQ_LIST_FOREACH(results, pItem, rm) {
         aiq_params_base_t* params = *(aiq_params_base_t**)(pItem->_pData);
-        pCvt->mIspParamsCvtOps.Convert3aResultsToIspCfg(pCvt, params, isp_cfg, is_multi_isp);
+        if (params->type != RESULT_TYPE_BLC_PARAM)
+            pCvt->mIspParamsCvtOps.Convert3aResultsToIspCfg(pCvt, params, isp_cfg, is_multi_isp);
         pItem = aiqList_erase_item_locked(results, pItem);
         rm    = true;
         AIQ_REF_BASE_UNREF(&params->_ref_base);
@@ -356,6 +379,8 @@ XCamReturn AiqIspParamsCvt_merge_isp_results(AiqIspParamsCvt_t* pCvt, AiqList_t*
         pCvt->mIspParamsCvtOps.update(isp_cfg, pCvt->mCvtedIsp39Prams);
 #elif defined(ISP_HW_V33)
         pCvt->mIspParamsCvtOps.update(isp_cfg, pCvt->mCvtedIsp33Prams);
+#elif defined(ISP_HW_V35)
+        pCvt->mIspParamsCvtOps.update(isp_cfg, pCvt->mCvtedIsp35Prams);
 #endif
     }
 #endif
@@ -370,7 +395,7 @@ inline void AiqIspParamsCvt_set_working_mode(AiqIspParamsCvt_t* pCvt, int mode) 
 }
 
 void AiqIspParamsCvt_setCalib(AiqIspParamsCvt_t* pCvt, const CamCalibDbV2Context_t* calibv2) {
-#if (defined(ISP_HW_V39) || defined(ISP_HW_V33)) && (USE_NEWSTRUCT)
+#if (defined(ISP_HW_V39) || defined(ISP_HW_V33) || defined(ISP_HW_V35)) && (USE_NEWSTRUCT)
     btnr_api_attrib_t * btnr_attrib = (btnr_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR((void *)calibv2, bayertnr));
     btnr_cvt_info_t *btnr_info = &pCvt->mBtnrInfo;
     pCvt->btnr_attrib = btnr_attrib;
@@ -398,6 +423,13 @@ XCamReturn AiqIspParamsCvt_init(AiqIspParamsCvt_t* pCvt) {
     pCvt->mCvtedIsp33Prams =
         (struct isp33_isp_params_cfg*)aiq_mallocz(sizeof(*pCvt->mCvtedIsp33Prams));
     pCvt->mIspParamsCvtOps.update = AiqIspParamsCvt_updIsp33Params;
+#endif
+#elif defined(ISP_HW_V35)
+    pCvt->mIspParamsCvtOps.Convert3aResultsToIspCfg = Convert3aResultsToIsp35Cfg;
+#if RKAIQ_HAVE_DUMPSYS
+    pCvt->mCvtedIsp35Prams =
+        (struct isp35_isp_params_cfg*)aiq_mallocz(sizeof(*pCvt->mCvtedIsp35Prams));
+    pCvt->mIspParamsCvtOps.update = AiqIspParamsCvt_updIsp35Params;
 #endif
 #else
     pCvt->mIspParamsCvtOps.Convert3aResultsToIspCfg = NULL;

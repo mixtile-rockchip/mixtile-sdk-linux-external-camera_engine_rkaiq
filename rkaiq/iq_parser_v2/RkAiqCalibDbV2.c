@@ -50,6 +50,8 @@ CamCalibDbV2Context_t* calibdbV2_ctx_new() {
     calib_scene = aiq_mallocz(sizeof(CamCalibDbV2ContextIsp39_t));
 #elif defined(ISP_HW_V33)
     calib_scene = aiq_mallocz(sizeof(CamCalibDbV2ContextIsp33_t));
+#elif defined(ISP_HW_V35)
+    calib_scene = aiq_mallocz(sizeof(CamCalibDbV2ContextIsp35_t));
 #else
     XCAM_LOG_ERROR("not supported ISP plateform");
     return NULL;
@@ -966,6 +968,8 @@ RkAiqAlgoType_t CamCalibDbString2algostype(const char *str) {
         {"sharp_v33", RK_AIQ_ALGO_TYPE_ASHARP},
         {"wb_v32", RK_AIQ_ALGO_TYPE_AWB},
         {"yuvme_v1", RK_AIQ_ALGO_TYPE_AMD},
+
+        {"ainr", RK_AIQ_ALGO_TYPE_AINR},
     };
 
     RkAiqAlgoType_t ret = RK_AIQ_ALGO_TYPE_NONE;

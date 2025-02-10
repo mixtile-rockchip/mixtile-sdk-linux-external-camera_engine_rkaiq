@@ -50,6 +50,9 @@ typedef struct AiqPdafStreamProcUnit_s AiqPdafStreamProcUnit_t;
 typedef struct AiqRawStreamCapUnit_s AiqRawStreamCapUnit_t;
 typedef struct AiqRawStreamProcUnit_s AiqRawStreamProcUnit_t;
 typedef struct AiqManager_s AiqManager_t;
+#if RKAIQ_HAVE_AINR
+typedef struct AinrManager_s AinrManager_t;
+#endif
 
 enum cam_hw_state_e {
     CAM_HW_STATE_INVALID,
@@ -167,6 +170,8 @@ typedef struct AiqCamHwBase_s {
     AiqV4l2SubDevice_t* _cif_csi2_sd;
     AiqV4l2Device_t* mIspSpDev;
     AiqV4l2SubDevice_t* mVicapItfDev;
+    AiqV4l2Device_t* mAiIspDev;
+    AiqV4l2SubDevice_t* mAiIspSubDev;
     AiqHwResListener_t _hwResListener;
     calib_infos_t _cur_calib_infos;
     int _hdr_mode;
@@ -217,7 +222,7 @@ typedef struct AiqCamHwBase_s {
     // <char*, int>
     AiqDevBufCntsInfo_t* mDevBufCntMap;
     int mDevBufCntMap_size;
-    rk_aiq_rkrawstream_info_t mRawStreamInfo;
+    rk_aiq_control_preinit_t mAiqPreCtrlInfo;
     bool use_rkrawstream;
     int mWorkingMode;
     const CamCalibDbV2Context_t* mCalibDbV2;
@@ -269,7 +274,31 @@ typedef struct AiqCamHwBase_s {
     struct AiispLibrary lib_aiisp_;
     XCamReturn (*setAiispMode)(AiqCamHwBase_t* pCamHw, struct rkisp_aiisp_cfg* aiisp_cfg);
     XCamReturn (*read_aiisp_result)(AiqCamHwBase_t* pCamHw, rk_aiq_aiisp_t* aiisp_evt);
-    XCamReturn (*aiisp_processing)(AiqCamHwBase_t* pCamHw, rk_aiq_aiisp_t* aiisp_evt);
+    XCamReturn(*aiisp_processing)(AiqCamHwBase_t* pCamHw, rk_aiq_aiisp_t* aiisp_evt);
+
+#if RKAIQ_HAVE_AINR
+    bool use_ainn;
+    RkAiqAinrModelBuf_t mAinrModel;
+    AiqAinrIspStream_t*   mAinrIspStream;
+    AiqAinrAiispStream_t* mAinrAiispStream;
+    struct rkisp_aiisp_cfg mAinr_cfg;
+    struct rkaiisp_param_info mAinrParamInfo;
+    AinrManager_t* mAinrManager;
+    bool mAinrBufPoolInit;
+    XCamReturn (*ainr_init)(AiqCamHwBase_t* pCamHw, AinrManager_t* pAinrManager, struct rkisp_aiisp_cfg *ainr_cfg);
+    XCamReturn (*ainr_prepare)(AiqCamHwBase_t* pCamHw);
+    XCamReturn (*ainr_start)(AiqCamHwBase_t* pCamHw);
+    XCamReturn (*ainr_stop)(AiqCamHwBase_t* pCamHw);
+    XCamReturn (*ainr_deinit)(AiqCamHwBase_t* pCamHw);
+    XCamReturn (*ainr_getParamsBuf)(AiqCamHwBase_t* pCamHw, AiqV4l2Buffer_t** pV4l2Buf);
+    XCamReturn (*ainr_updateParams)(AiqCamHwBase_t* pCamHw, AiqV4l2Buffer_t* pV4l2Buf);
+    XCamReturn (*ainr_doNrnn)(AiqCamHwBase_t* pCamHw, struct rkisp_aiisp_st *isp_out);
+    XCamReturn (*ainr_doIspBe)(AiqCamHwBase_t* pCamHw, struct rkisp_aiisp_st *isp_in);
+    XCamReturn (*ainr_getIspBufInf)(AiqCamHwBase_t* pCamHw, struct rkisp_bnr_buf_info *bnr_buf);
+    XCamReturn (*ainr_setIspBufInf)(AiqCamHwBase_t* pCamHw, struct rkaiisp_ispbuf_info *ispbuf_info);
+    XCamReturn (*ainr_setParamInf)(AiqCamHwBase_t* pCamHw, struct rkaiisp_param_info *param_info);
+    XCamReturn (*ainr_setModelInf)(AiqCamHwBase_t* pCamHw, RkAiqAinrModelBuf_t *pAinrModel);
+#endif
 
     // dumpsys
     int (*dump)(void* pCamHw, st_string* result, int argc, void* argv[]);
@@ -359,12 +388,11 @@ typedef struct AiqDevBufCnt_s {
 void AiqCamHw_setDevBufCnt(AiqCamHwBase_t* pCamHw, AiqDevBufCnt_t* devBufCntsInfo, int cnt);
 XCamReturn AiqCamHw_reset_hardware(AiqCamHwBase_t* pCamHw);
 
-const char* AiqCamHw_rawReproc_preInit(const char* isp_driver, const char* offline_sns_ent_name);
+const char* AiqCamHw_rawReproc_preInit(const char* isp_driver);
 XCamReturn AiqCamHw_rawReproc_genIspParams(AiqCamHwBase_t* pCamHw, uint32_t sequence,
                                            rk_aiq_frame_info_t* offline_finfo, int mode);
-XCamReturn AiqCamHw_rawReProc_prepare(AiqCamHwBase_t* pCamHw, uint32_t sequence,
-                                      rk_aiq_frame_info_t* offline_finfo);
-void AiqCamHw_setRawStreamInfo(AiqCamHwBase_t* pCamHw, rk_aiq_rkrawstream_info_t* info);
+XCamReturn AiqCamHw_rawReProc_prepare(AiqCamHwBase_t* pCamHw, uint32_t sequence);
+void AiqCamHw_setAiqPreCtrlInfo(AiqCamHwBase_t* pCamHw, rk_aiq_control_preinit_t* info);
 XCamReturn AiqCamHw_waitLastSensorDone(AiqCamHwBase_t* pCamHw);
 XCamReturn AiqCamHw_setExposureParams(AiqCamHwBase_t* pCamHw, AiqAecExpInfoWrapper_t* expPar);
 void AiqCamHw_setMulCamConc(AiqCamHwBase_t* pCamHw, bool cc);
@@ -381,6 +409,8 @@ rk_sensor_full_info_t* AiqCamHw_getFullSnsInfo(const char* sensor_name);
 aiq_isp_effect_params_t* AiqCamHw_getParamsForEffMap(AiqCamHwBase_t* pCamHw, uint32_t frame_id);
 XCamReturn AiqCam_FastBootSetLastEffectParam(AiqCamHwBase_t* pCamHw);
 RkAiqIspUniteMode AiqCamHw_getIspUniteMode(AiqCamHwBase_t* pCamHw);
+XCamReturn AiqCamHw_setNoReadbackMode(AiqCamHwBase_t* pCamHw, bool on);
+XCamReturn AiqCamHw_setRawBufNum(AiqCamHwBase_t* pCamHw, uint16_t buf_num);
 
 #define CamHW_setManager(pMan, pRkAiqManager) \
         (pMan)->rkAiqManager = pRkAiqManager

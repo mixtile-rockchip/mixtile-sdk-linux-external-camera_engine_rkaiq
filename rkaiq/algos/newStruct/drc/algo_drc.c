@@ -160,7 +160,7 @@ static XCamReturn processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outp
         pDrcCtx->isReCal_ = true;
     }
 
-#if RKAIQ_HAVE_DRC_V20
+#if defined(RKAIQ_HAVE_DRC_V20) || defined(RKAIQ_HAVE_DRC_V21)
     bool isIIRReclac = false;
     if (pDrcCtx->CurrData.autoCurveIIRParams.sw_drcT_drcCurve_mode == adrc_auto_mode) {
         if (drc_proc_param->aeIsConverged) {
@@ -182,7 +182,7 @@ static XCamReturn processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outp
         DrcSelectParam(pDrcCtx, outparams->algoRes, iso);
         DrcExpoParaProcessing(pDrcCtx, outparams->algoRes);
 #endif
-#if RKAIQ_HAVE_DRC_V20
+#if defined(RKAIQ_HAVE_DRC_V20) || defined(RKAIQ_HAVE_DRC_V21)
 #if ISP_HW_V33
         drcRes->sta = pDrcCtx->drc_attrib->stAuto.sta;
 #endif
@@ -516,7 +516,7 @@ void DrcExpoParaProcessing(DrcContext_t* pDrcCtx, drc_param_t* out) {
 }
 #endif
 
-#if RKAIQ_HAVE_DRC_V20
+#if defined(RKAIQ_HAVE_DRC_V20) || defined(RKAIQ_HAVE_DRC_V21)
 XCamReturn DrcSelectParam(DrcContext_t* pDrcCtx, drc_param_t* out, trans_params_static_t* pstaTrans,
                           int iso) {
     LOGI_ATMO("%s(%d): enter!\n", __FUNCTION__, __LINE__);
@@ -563,6 +563,17 @@ XCamReturn DrcSelectParam(DrcContext_t* pDrcCtx, drc_param_t* out, trans_params_
         out->dyn.preProc.hw_drcT_luma2ToneGain_val[i] =
             interpolation_f32(paut->dyn[ilow].preProc.hw_drcT_luma2ToneGain_val[i],
                               paut->dyn[ihigh].preProc.hw_drcT_luma2ToneGain_val[i], ratio);
+#if RKAIQ_HAVE_DRC_V21
+    out->dyn.preProc.hw_drcT_lumaFilt_maxWgt =
+        interpolation_f32(paut->dyn[ilow].preProc.hw_drcT_lumaFilt_maxWgt,
+                          paut->dyn[ihigh].preProc.hw_drcT_lumaFilt_maxWgt, ratio);
+    out->dyn.preProc.hw_drcT_lumaFilt_midWgt =
+        interpolation_f32(paut->dyn[ilow].preProc.hw_drcT_lumaFilt_midWgt,
+                          paut->dyn[ihigh].preProc.hw_drcT_lumaFilt_midWgt, ratio);
+    out->dyn.preProc.hw_drcT_lumaFilt_minWgt =
+        interpolation_f32(paut->dyn[ilow].preProc.hw_drcT_lumaFilt_minWgt,
+                          paut->dyn[ihigh].preProc.hw_drcT_lumaFilt_minWgt, ratio);
+#endif
 
     // get bifilt_filter
     // get hw_drcT_bifiltOut_alpha

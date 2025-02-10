@@ -574,7 +574,7 @@ RkAiqCore::prepare(const rk_aiq_exposure_sensor_descriptor* sensor_des,
         uint32_t extended_pixel = mHwInfo.multi_isp_extended_pixel;
         RkAiqResourceTranslatorV3x* translator = static_cast<RkAiqResourceTranslatorV3x*>(mTranslator.ptr());
         uint32_t size = sensor_des->isp_acq_width * sensor_des->isp_acq_height;
-        int isp_unite_mode = translator->GetIspUnitedMode();
+        int isp_unite_mode = translator->GetIspUniteMode();
         if (isp_unite_mode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID) {
             translator->SetMultiIspMode(true)
             .SetPicInfo({0, 0, sensor_des->isp_acq_width, sensor_des->isp_acq_height})
@@ -3998,7 +3998,7 @@ RkAiqCore::setTranslaterIspUniteMode(RkAiqIspUniteMode mode) {
     if (mTranslator.ptr()) {
         RkAiqResourceTranslatorV3x* translator =
             static_cast<RkAiqResourceTranslatorV3x*>(mTranslator.ptr());
-        translator->SetIspUnitedMode(mode);
+        translator->SetIspUniteMode(mode);
     }
 
     return XCAM_RETURN_NO_ERROR;

@@ -5,6 +5,8 @@
 
 #if RKAIQ_HAVE_HSV_V10
 #include "isp/rk_aiq_isp_hsv10.h"
+#elif RKAIQ_HAVE_HSV_V11
+#include "isp/rk_aiq_isp_hsv11.h"
 #else
 #error "wrong hsv hw version !"
 #endif

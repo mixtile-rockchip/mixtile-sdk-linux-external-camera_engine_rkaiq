@@ -23,7 +23,7 @@ void sample_print_ae_info(const void* arg)
     printf("enter AE modult test!\n");
 }
 
-#if !defined(ISP_HW_V39) && !defined(ISP_HW_V33)
+#if !defined(ISP_HW_V39) && !defined(ISP_HW_V33) && !defined(ISP_HW_V35)
 static void sample_ae_usage()
 {
     printf("Usage : \n");
@@ -55,6 +55,8 @@ static void sample_ae_usage()
     printf("\t p) AE:         get fps.\n");
     printf("\t r) AE:         set aec stats cfg params.\n");
     printf("\t s) AE:         get aec stats cfg params.\n");
+    printf("\t t) AE:         set use subwin aec.\n");
+    printf("\t u) AE:         not use subwin aec.\n");
 
     printf("\t W) AE:         test default mode.\n");
     printf("\t X) AE:         test sync mode.\n");
@@ -773,6 +775,7 @@ XCamReturn sample_ae_module (const void *arg)
     Uapi_ExpWin_t ExpWin;
     Uapi_AecStatsCfg_t AecStatsCfg;
     Uapi_ExpSwAttrV2_t expSwAttr;
+    Uapi_ExpSubWin_t ExpSubWin;
     float fps = 0.0f;
 
     do {
@@ -909,7 +912,21 @@ XCamReturn sample_ae_module (const void *arg)
             printf("get aec stats cfg, rawStatsChnSel=Y(%d)-R(%d)-G(%d)-B(%d), updateStats=%d\n\n", AecStatsCfg.YChannelEn,
                    AecStatsCfg.RChannelEn, AecStatsCfg.GChannelEn, AecStatsCfg.BChannelEn, AecStatsCfg.updateStats);
             break;
-
+        case 't':
+            ExpSubWin.Params.SubWinEn = true;
+            ExpSubWin.Params.SubWin.h_offs = 0;
+            ExpSubWin.Params.SubWin.v_offs = 0;
+            ExpSubWin.Params.SubWin.h_size = 200;
+            ExpSubWin.Params.SubWin.v_size = 200;
+            rk_aiq_user_api2_ae_setExpSubWinAttr(ctx, ExpSubWin);
+            printf("set use sub win\n");
+            break;
+        case 'u':
+            ExpSubWin.Params.SubWinEn = false;
+            ExpSubWin.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
+            rk_aiq_user_api2_ae_setExpSubWinAttr(ctx, ExpSubWin);
+            printf("no set exp windows\n\n");
+            break;
         // TEST SYNC MODE
         case 'W':
             sample_set_exp_manual(ctx, RK_AIQ_UAPI_MODE_DEFAULT);
@@ -1551,6 +1568,8 @@ static void sample_ae_usage()
     printf("\t r) AE:         en dc-iriss.\n");
     printf("\t s) AE:         enter hall dc-iris calib.\n");
     printf("\t t) AE:         set linear synctest.\n\n");
+    printf("\t u) AE:         set use subwin aec.\n");
+    printf("\t v) AE:         not use subwin aec.\n");
 
     printf("\t X) AE:         set exp windows.\n");
     printf("\t Y) AE:         set aec stats cfg params.\n");
@@ -1667,6 +1686,7 @@ XCamReturn sample_ae_module(const void* arg)
     Uapi_ExpWin_t ExpWin;
     Uapi_AecStatsCfg_t AecStatsCfg;
     ae_api_expSwAttr_t expSwAttr;
+    Uapi_ExpSubWin_t ExpSubWin;
     float fps = 0.0f;
 
     do {
@@ -1790,6 +1810,29 @@ XCamReturn sample_ae_module(const void* arg)
             sample_set_linear_synctest(ctx);
             printf("set linear synctest\n\n");
             break;
+        case 'u':
+            ExpSubWin.Params.SubWinEn = true;
+            ExpSubWin.Params.SubWin.h_offs = 0;
+            ExpSubWin.Params.SubWin.v_offs = 0;
+            ExpSubWin.Params.SubWin.h_size = 240;
+            ExpSubWin.Params.SubWin.v_size = 240;
+            ExpSubWin.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
+            rk_aiq_user_api2_ae_setExpSubWinAttr(ctx, ExpSubWin);
+            printf("set exp windows[0,0,240,240]\n\n");
+            break;
+
+        case 'v':
+            ExpSubWin.Params.SubWinEn = false;
+            ExpSubWin.Params.SubWin.h_offs = 0;
+            ExpSubWin.Params.SubWin.v_offs = 0;
+            ExpSubWin.Params.SubWin.h_size = 240;
+            ExpSubWin.Params.SubWin.v_size = 240;
+            ExpSubWin.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
+            rk_aiq_user_api2_ae_setExpSubWinAttr(ctx, ExpSubWin);
+            printf("no set exp windows\n\n");
+            break;
+
+
 
         case 'X':
             ExpWin.Params.h_offs = 0;

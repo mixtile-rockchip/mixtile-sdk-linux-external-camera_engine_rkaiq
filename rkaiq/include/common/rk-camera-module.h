@@ -13,7 +13,7 @@
 
 #define RKMODULE_API_VERSION		KERNEL_VERSION(0, 1, 0x2)
 
-#if ISP_HW_V33
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
 /* using for rk1103b dual isp unite */
 #define RKMOUDLE_UNITE_EXTEND_PIXEL 512
 #else

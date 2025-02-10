@@ -28,7 +28,7 @@
 #define SHORT_MODE_COEF_MAX         (0.001)
 #define HDR_LONG_FRMAE_MODE_OECURVE (0)
 
-int mergeClipValue(float posx, int BitInt, int BitFloat, bool ifBitMax) {
+static int mergeClipValue(float posx, int BitInt, int BitFloat, bool ifBitMax) {
     int yOutInt = 0, yOutIntMin = 0, yOutIntMax = 0;
 
     if (ifBitMax)

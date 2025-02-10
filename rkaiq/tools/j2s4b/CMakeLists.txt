@@ -76,14 +76,18 @@ add_definitions(-DGIT_VERSION="${GIT_VERSION}")
 
 if (NOT RKAIQ_J2S4B_DEV)
 ADD_EXECUTABLE(j2s4b ${J2S4B_SRCS})
+if (NOT (${CMAKE_SYSTEM_NAME} STREQUAL "Android"))
 target_link_libraries(j2s4b
 	PRIVATE
 	pthread)
+endif()
 else()
 ADD_EXECUTABLE(j2s4b_dev ${J2S4B_SRCS})
+if (NOT (${CMAKE_SYSTEM_NAME} STREQUAL "Android"))
 target_link_libraries(j2s4b_dev
 	PRIVATE
 	pthread)
+endif()
 endif()
 
 if (RKAIQ_TARGET_ARCH STREQUAL "arm")

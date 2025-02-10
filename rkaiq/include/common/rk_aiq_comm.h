@@ -126,6 +126,7 @@ typedef enum _camAlgoResultType {
     RESULT_TYPE_HSV_PARAM,
     // hold postisp params
     RESULT_TYPE_POSTISP_PARAM,
+    RESULT_TYPE_AINR_PARAM,
     RESULT_TYPE_MAX_PARAM,
 } camAlgoResultType;
 
@@ -610,6 +611,9 @@ extern int g_rkaiq_isp_hw_ver;
 
 #define CHECK_ISP_HW_V33() \
     (g_rkaiq_isp_hw_ver == 33 ? true : false)
+
+#define CHECK_ISP_HW_V35() \
+    (g_rkaiq_isp_hw_ver == 35 ? true : false)
 
 #define CHECK_ISP_HW_V3X() \
     (g_rkaiq_isp_hw_ver == 30 ? true : \

@@ -101,6 +101,7 @@ enum dump_mod_type {
     DUMP_AIQ_MOD_ENH,
     DUMP_AIQ_MOD_TEXEST,
     DUMP_AIQ_MOD_HSV,
+    DUMP_AIQ_MOD_AINR,
     DUMP_AIQ_MOD_MAX,
 
     DUMP_AIQ_MAX,
@@ -167,6 +168,9 @@ static struct dump_mod_descr aiq_modules[] = {
 #if RKAIQ_HAVE_HSV
     { DUMP_AIQ_MOD_HSV,         "hsv",          { NULL, NULL }, AIQInfo_dumpIspModHelp },
 #endif
+#if RKAIQ_HAVE_AINR
+    { DUMP_AIQ_MOD_AINR,        "ainr",         { NULL, NULL }, AIQInfo_dumpIspModHelp },
+#endif
     { DUMP_AIQ_MOD_MAX,         "max",          { NULL, NULL }, AIQInfo_dumpIspModHelp },
 
     { DUMP_AIQ_MAX,             "unknown",      { NULL, NULL }, NULL }
@@ -208,6 +212,16 @@ static void AIQInfo_dumpIspModHelp(int type, st_string* dump_info) {
     snprintf(buffer, MAX_LINE_LENGTH, "Dump the complete state information of %s module.",
              aiq_modules[type].descr);
     aiq_string_printf(dump_info, buffer);
+}
+
+static bool AIQInfo_validateArgs(int argc, char* argv[]) {
+    for (int i = 0; i < argc; i++) {
+        if (strcasecmp(argv[i], "-h") == 0 || strcasecmp(argv[i], "--help") == 0 ||
+            strcasecmp(argv[i], "--log") == 0) {
+            return true;
+        }
+    }
+    return false;
 }
 
 static void __dumpListInfo(st_string* dumpInfo) {
@@ -333,18 +347,25 @@ void AIQInfoServiceControl_dumpAllModule(AIQInfoServiceControl* const me, st_str
     rk_aiq_sys_ctx_t* ctx = registery->mArray[0];
     if (!ctx) return;
 
+    bool executeOnce = AIQInfo_validateArgs(argc, (char**)argv);
+
     if (ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
         const rk_aiq_camgroup_ctx_t* grpCtx = (rk_aiq_camgroup_ctx_t*)ctx;
         bool first_cam                      = true;
         for (int i = 0; i < RK_AIQ_CAM_GROUP_MAX_CAMS; i++) {
             __dumpAllModule(grpCtx->cam_ctxs_array[i], first_cam, dumpInfo, argc, argv);
 
+            if (executeOnce) break;
+
             // Only need to dump once in camgroup
             if (grpCtx->cam_ctxs_array[i]) first_cam = false;
         }
     } else if (ctx->cam_type == RK_AIQ_CAM_TYPE_SINGLE) {
-        for (int i = 0; i < registery->mCnt; i++)
+        for (int i = 0; i < registery->mCnt; i++) {
             __dumpAllModule(registery->mArray[i], true, dumpInfo, argc, argv);
+
+            if (executeOnce) break;
+        }
     }
 
     return;
@@ -400,6 +421,22 @@ static void __dumpMultiModule(rk_aiq_sys_ctx_t* ctx, bool dumpPartialMods, st_st
     }
 }
 
+void AIQInfo_prepareExtendedArgs(char* pos_str, int argc, void* argv[], char argvArray[][256],
+                                 char* extended_argv[], int* extended_argc) {
+    *extended_argc = 0;
+
+    snprintf(argvArray[0], sizeof(argvArray[*extended_argc]), "%s", pos_str);
+    extended_argv[0] = argvArray[0];
+    (*extended_argc)++;
+    for (int i = 0; i < argc; i++) {
+        LOG1("argv[%d]: %s", i, *((const char**)argv + i));
+        snprintf(argvArray[*extended_argc], sizeof(argvArray[*extended_argc]), "%s",
+                 *((const char**)argv + i));
+        extended_argv[*extended_argc] = argvArray[*extended_argc];
+        (*extended_argc)++;
+    }
+}
+
 void AIQInfoServiceControl_dumpMultiModule(AIQInfoServiceControl* const me, st_string* dumpInfo,
                                            char* moduleName, int argc, void* argv[]) {
     if (!me) return;
@@ -424,33 +461,31 @@ void AIQInfoServiceControl_dumpMultiModule(AIQInfoServiceControl* const me, st_s
         rk_aiq_sys_ctx_t* ctx = registery->mArray[0];
         if (!ctx) return;
 
-        extended_argc = 0;
-
-        snprintf(argvArray[0], sizeof(argvArray[extended_argc]), "%s", pos->str);
-        extended_argv[0] = argvArray[0];
-        extended_argc++;
-        for (int i = 0; i < argc; i++) {
-            LOG1("argv[%d]: %s", i, *((const char**)argv + i));
-            snprintf(argvArray[extended_argc], sizeof(argvArray[extended_argc]), "%s",
-                     *((const char**)argv + i));
-            extended_argv[extended_argc] = argvArray[extended_argc];
-            extended_argc++;
-        }
+        bool executeOnce = AIQInfo_validateArgs(argc, (char**)argv);
 
         if (ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
             const rk_aiq_camgroup_ctx_t* grpCtx = (rk_aiq_camgroup_ctx_t*)ctx;
             bool first_cam                      = true;
             for (int i = 0; i < RK_AIQ_CAM_GROUP_MAX_CAMS; i++) {
+                AIQInfo_prepareExtendedArgs(pos->str, argc, argv, argvArray, extended_argv,
+                                            &extended_argc);
                 __dumpMultiModule(grpCtx->cam_ctxs_array[i], first_cam, dumpInfo, extended_argc,
                                   (void**)extended_argv, pos->str);
+
+                if (executeOnce) break;
 
                 // Only need to dump once in camgroup
                 if (grpCtx->cam_ctxs_array[i]) first_cam = false;
             }
         } else if (ctx->cam_type == RK_AIQ_CAM_TYPE_SINGLE) {
-            for (int i = 0; i < registery->mCnt; i++)
+            for (int i = 0; i < registery->mCnt; i++) {
+                AIQInfo_prepareExtendedArgs(pos->str, argc, argv, argvArray, extended_argv,
+                                            &extended_argc);
                 __dumpMultiModule(registery->mArray[i], true, dumpInfo, extended_argc,
                                   (void**)extended_argv, pos->str);
+
+                if (executeOnce) break;
+            }
         }
     }
     pos = NULL;

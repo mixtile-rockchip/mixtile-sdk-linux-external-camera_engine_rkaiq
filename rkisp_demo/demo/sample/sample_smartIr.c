@@ -368,69 +368,51 @@ static void sample_smartIr_stop(const void* arg)
 
 static void sample_smartIr_calib(const void* arg)
 {
-    const rk_aiq_sys_ctx_t* ctx = (rk_aiq_sys_ctx_t*)(arg);
+    g_sample_smartIr_ctx.ir_ctx = rk_smart_ir_init((rk_aiq_sys_ctx_t*)arg);
+    rk_smart_ir_calib_t calib_cfg;
+    calib_cfg.calib_en = true;
 
-    // 1) make sure no visible light
-    // 2) ir-cutter off, ir-led on
-    ir_cutter_ctrl(false);
-    // 3. query wb info
-    float RGgain = 0.0f, BGgain = 0.0f;
-    int counts = 0;
-    rk_aiq_isp_stats_t *stats_ref = NULL;
-    rk_aiq_awb_stat_blk_res_v201_t* blockResult;
-    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    /* calib d2n_envL_th
+     * 1. Switch to ISP day mode
+     * 2. Enable IR-cutter, disable IR-LED
+     * 3. Adjust brightness threshold for day-to-night switch
+     */
+    calib_cfg.calib_mode = RK_SMART_IR_CALIB_MODE_D2N;
+    calib_cfg.calib_params.d2n_envL_th = 0.04f; //need cfg
+    rk_smart_ir_calib(g_sample_smartIr_ctx.ir_ctx, &calib_cfg);
 
-    printf("smartIr calib start ...... \n");
-    while (counts++ < 100) {
-        if (g_sample_smartIr_ctx.camGroup) {
-            printf("get3AStatsBlk only support single ctx!\n");
-            break;
-        }
-        ret = rk_aiq_uapi2_sysctl_get3AStatsBlk(ctx, &stats_ref, -1);
-        if (ret != XCAM_RETURN_NO_ERROR || stats_ref == NULL) {
-            printf("ret=%d, get3AStatsBlk fail!\n", ret);
-            break;
-        }
+    /* calib n2d_envL_th
+     * 1. Switch to ISP night mode
+     * 2. Disable IR-cutter, enable IR-LED
+     * 3. Adjust brightness threshold for night-to-day switch
+     */
+    calib_cfg.calib_mode = RK_SMART_IR_CALIB_MODE_N2D;
+    calib_cfg.calib_params.n2d_envL_th = 0.2f; //need cfg
+    rk_smart_ir_calib(g_sample_smartIr_ctx.ir_ctx, &calib_cfg);
 
-        float Rvalue = 0, Gvalue = 0, Bvalue = 0, RGgain = 0, BGgain = 0;
+    /* calib awbgain base
+     * 1. Switch to ISP night mode
+     * 2. Disable IR-cutter, enable IR-LED
+     * 3. Ensure no visible light
+     */
+    calib_cfg.calib_mode = RK_SMART_IR_CALIB_MODE_BASE;
+    rk_smart_ir_calib(g_sample_smartIr_ctx.ir_ctx, &calib_cfg);
 
-#if USE_NEWSTRUCT
-        for (int i = 0; i < RK_AIQ_AWB_GRID_NUM_TOTAL; i++) {
-            Rvalue = (float)stats_ref->awb_stats_v39.com.pixEngine.zonePix[i].hw_awbCfg_rSum_val;
-            Gvalue = (float)stats_ref->awb_stats_v39.com.pixEngine.zonePix[i].hw_awbCfg_gSum_val;
-            Bvalue = (float)stats_ref->awb_stats_v39.com.pixEngine.zonePix[i].hw_awbCfg_bSum_val;
-            RGgain = RGgain + Rvalue / Gvalue;
-            BGgain = BGgain + Bvalue / Gvalue;
-        }
-#else
-        printf("stats frame id %d, awb_hw_ver %d\n", stats_ref->frame_id, stats_ref->awb_hw_ver);
-        if (stats_ref->awb_hw_ver == 4)
-            blockResult = stats_ref->awb_stats_v32.blockResult;
-        else if (stats_ref->awb_hw_ver == 3)
-            blockResult = stats_ref->awb_stats_v3x.blockResult;
-        else if (stats_ref->awb_hw_ver == 1)
-            blockResult = stats_ref->awb_stats_v21.blockResult;
-        else {
-            printf("smartIr is not supported on this platform\n");
-            rk_aiq_uapi2_sysctl_release3AStatsRef(ctx, stats_ref);
-            break;
-        }
+    /* tune awbgain dis
+     * 1. Switch to ISP night mode
+     * 2. Disable IR-cutter, enable IR-LED
+     * 3. Test various scenarios and get the maximum value
+     */
+    calib_cfg.calib_mode = RK_SMART_IR_CALIB_MODE_DIS;
+    calib_cfg.calib_params.rggain_base = 1.00f; //need cfg
+    calib_cfg.calib_params.bggain_base = 1.00f; //need cfg
+    calib_cfg.calib_params.awbgain_rad = 0.10f; //need cfg
+    rk_smart_ir_calib(g_sample_smartIr_ctx.ir_ctx, &calib_cfg);
 
-        for (int i = 0; i < RK_AIQ_AWB_GRID_NUM_TOTAL; i++) {
-            Rvalue = (float)blockResult[i].Rvalue;
-            Gvalue = (float)blockResult[i].Gvalue;
-            Bvalue = (float)blockResult[i].Bvalue;
-            RGgain = RGgain + Rvalue / Gvalue;
-            BGgain = BGgain + Bvalue / Gvalue;
-        }
-#endif
-        RGgain /= RK_AIQ_AWB_GRID_NUM_TOTAL;
-        BGgain /= RK_AIQ_AWB_GRID_NUM_TOTAL;
-        printf("origin rggain_base:%0.3f, bggain_base:%0.3f\n", RGgain, BGgain);
-        rk_aiq_uapi2_sysctl_release3AStatsRef(ctx, stats_ref);
-
+    if (g_sample_smartIr_ctx.ir_ctx) {
+        rk_smart_ir_deInit(g_sample_smartIr_ctx.ir_ctx);
+        g_sample_smartIr_ctx.ir_ctx = NULL;
     }
-    printf("smartIr calib done ...... \n");
 }
 
 void smartIr_cb(rk_smart_ir_result_t result)
