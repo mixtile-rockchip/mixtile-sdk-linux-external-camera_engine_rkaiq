@@ -2697,6 +2697,17 @@ XCamReturn RkAiqCore::groupAnalyze(uint64_t grpId, const RkAiqAlgosGroupShared_t
                     fullParam->data()->mFrmId = item->first;
                     item = mFullParamsPendingMap.erase(item);
                     mLatestParamsDoneId = fullParam->data()->mFrmId;
+                    if (fullParam->data()->mFrmId < shared->frameId) {
+#ifdef RKAIQ_ENABLE_CAMGROUP
+                        if (!mCamGroupCoreManager && mCb)
+#else
+                        if (mCb)
+#endif
+                            mCb->rkAiqCalcExpDone(fullParam->data().ptr()->mExposureParams);
+
+                        LOGD_ANALYZER("[%d]:%p fullParam discard, shared->frame %d, just set exp param",
+                                      fullParam->data()->mFrmId, fullParam->data().ptr(), shared->frameId);
+                    }
                     LOGD_ANALYZER("[%d]:%p fullParams done !", fullParam->data()->mFrmId, fullParam->data().ptr());
                 } else
                     break;

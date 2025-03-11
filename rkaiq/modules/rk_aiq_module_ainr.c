@@ -140,7 +140,7 @@ static void rk_aiq_ainr_params_print(struct isp35_ai_cfg* ai_cfg)
     }
 }
 
-void rk_aiq_ainr_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t *cvtinfo)
+void rk_aiq_ainr_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t *cvtinfo, bool bypass)
 {
     struct isp35_ai_cfg* ai_cfg = &isp_params->isp_cfg->others.ai_cfg;
     RkAiqAinrModelBuf_t *pAinrModel = &cvtinfo->ainrModel;
@@ -158,25 +158,27 @@ void rk_aiq_ainr_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_inf
         return;
     }
 
-    float blc_remain = 0;
-    if (cvtinfo->blc_res.obcPostTnr.sw_blcT_autoOB_offset && cvtinfo->blc_res.obcPostTnr.sw_blcT_obcPostTnr_en) {
-        blc_remain = cvtinfo->blc_res.obcPostTnr.sw_blcT_autoOB_offset;
-    }
+    isp_ainr_param->is_bypass = bypass;
+
     float hdrLS_ratio = cvtinfo->L2S_Ratio;
-    float preDgain = cvtinfo->preDGain;
+    float preDgain = cvtinfo->preDGain_drc;
     int btnrCfg_pixDomain_mode = cvtinfo->btnrCfg_pixDomain_mode;
     int hw_btnrCfg_trans_mode = cvtinfo->btnrCfg_trans_mode;
     int hw_btnrCfg_trans_offset = cvtinfo->btnrCfg_trans_offset;
+    float sw_ainrC_blkPrev_val = cvtinfo->isp_ob_offset1 + calib->sw_ainrC_blkPrev_val;
+    float sw_ainrC_blkPost_val = cvtinfo->isp_ob_offset1 + calib->sw_ainrC_blkPost_val;
 
     if (preDgain < 1.0)
         preDgain = 1.0;
 
-    LOGD_AINR("%s: frameNum %d, L2S_Ratio %f, preDGain %f, pixDomain_mode %d, trans_mode %d, trans_offset %d, autoOB_offset %d, obcPostTnr_en %d",
+    sw_ainrC_blkPrev_val = CLIP(sw_ainrC_blkPrev_val, 0, 511);
+    sw_ainrC_blkPost_val = CLIP(sw_ainrC_blkPost_val, 0, 511);
+
+    LOGD_AINR("%s: frameNum %d, L2S_Ratio %f, preDGain %f, pixDomain_mode %d, trans_mode %d, trans_offset %d, isp_ob_offset %d, isp_ob_offset1 %d, sw_ainrC_blkPrev_val %f, sw_ainrC_blkPost_val %f",
               __func__,
-              cvtinfo->frameNum, cvtinfo->L2S_Ratio, cvtinfo->preDGain, cvtinfo->btnrCfg_pixDomain_mode,
+              cvtinfo->frameNum, cvtinfo->L2S_Ratio, preDgain, cvtinfo->btnrCfg_pixDomain_mode,
               cvtinfo->btnrCfg_trans_mode, cvtinfo->btnrCfg_trans_offset,
-              cvtinfo->blc_res.obcPostTnr.sw_blcT_autoOB_offset,
-              cvtinfo->blc_res.obcPostTnr.sw_blcT_obcPostTnr_en);
+              cvtinfo->isp_ob_offset, cvtinfo->isp_ob_offset1, sw_ainrC_blkPrev_val, sw_ainrC_blkPost_val);
 
     if (cvtinfo->frameNum > 1) {
         if (btnrCfg_pixDomain_mode != btnr_pixLog2Domain_mode) {
@@ -203,7 +205,7 @@ void rk_aiq_ainr_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_inf
     ai_cfg->aipre_yraw_sel      = 1;
     ai_cfg->aipre_nl_ddr_mode   = 1;
     ai_cfg->aipre_gain_bypass   = 0;
-    ai_cfg->aipre_gain_mode     = 1;
+    ai_cfg->aipre_gain_mode     = 0;
     ai_cfg->aipre_luma2gain_dis = (cvtinfo->rawWidth % 8 != 0) ? 1 : 0;
 
     /* VPSL_PYR_CTRL */
@@ -224,15 +226,15 @@ void rk_aiq_ainr_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_inf
         logMax     = (log2(log_offset + (1 << 12) * hdrLS_ratio * preDgain) - log2(log_offset)) * (1 << 12) / (1 << 16);
         logScale = nonlinear_scale / logMax;
 
-        ai_cfg->aipre_black_lvl = (log2(log_offset + calib->sw_ainrC_blkPrev_val) - log2(log_offset)) * (1 << 12);
+        ai_cfg->aipre_black_lvl = (log2(log_offset + sw_ainrC_blkPrev_val) - log2(log_offset)) * (1 << 12);
         ai_cfg->pyr_blacklvl_sig = ai_cfg->aipre_black_lvl / 256;
         isp_ainr_param->prev_blacklvl = ai_cfg->aipre_black_lvl;
-        isp_ainr_param->post_blacklvl = (log2(log_offset + calib->sw_ainrC_blkPost_val) - log2(log_offset)) * (1 << 12);
+        isp_ainr_param->post_blacklvl = (log2(log_offset + sw_ainrC_blkPost_val) - log2(log_offset)) * (1 << 12);
     } else {
-        ai_cfg->aipre_black_lvl       = calib->sw_ainrC_blkPrev_val * (1 << 4);
-        ai_cfg->pyr_blacklvl_sig      = calib->sw_ainrC_blkPrev_val * (1 << 4) / 256;
+        ai_cfg->aipre_black_lvl       = sw_ainrC_blkPrev_val * (1 << 4);
+        ai_cfg->pyr_blacklvl_sig      = sw_ainrC_blkPrev_val * (1 << 4) / 256;
         isp_ainr_param->prev_blacklvl = ai_cfg->aipre_black_lvl;
-        isp_ainr_param->post_blacklvl = calib->sw_ainrC_blkPost_val * (1 << 4);
+        isp_ainr_param->post_blacklvl = sw_ainrC_blkPost_val * (1 << 4);
     }
     ai_cfg->aipre_black_lvl           = ai_cfg->aipre_black_lvl >> 4;
     ai_cfg->aipre_gain_ratio          = tunning->sw_ainrT_noiseAdd_ratio * (1 << AIBNR_NAR_MAP_BIT_7) * 255;

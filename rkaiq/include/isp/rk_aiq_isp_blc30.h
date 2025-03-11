@@ -99,7 +99,7 @@ typedef enum blc_obcPostTnr_mode_e {
 } blc_obcPostTnr_mode_t;
 #endif
 
-#if defined(ISP_HW_V33)
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
 typedef struct blc_autoBlc_dyn_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(sw_blcT_darkArea_thred),
@@ -202,7 +202,7 @@ typedef struct blc_obcPostTnr_dyn_s {
         It is only recommended for use in low SNR situations in linear mode.\n
         Freq of use: high))  */
     uint16_t sw_blcT_autoOB_offset;
-#if defined(ISP_HW_V33)
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     /* M4_GENERIC_DESC(
         M4_ALIAS(autoBlc),
         M4_TYPE(struct),
@@ -300,7 +300,7 @@ typedef struct blc_params_dyn_s {
     blc_obcPostTnr_dyn_t obcPostTnr;
 } blc_params_dyn_t;
 
-#if defined(ISP_HW_V33)
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
 typedef struct blc_autoBlc_sta_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(sw_blcT_autoBlc_en),
@@ -342,11 +342,12 @@ typedef struct blc_autoBlc_sta_s {
     float sw_blcT_damping_val;
 } blc_autoBlc_sta_t;
 
+#if defined(ISP_HW_V33)
 typedef struct blc_obcPostTnr_sta_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(sw_blcT_autoOBWkArd_en),
         M4_TYPE(bool),
-        M4_DEFAULT(0),
+        M4_DEFAULT(1),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -366,6 +367,7 @@ typedef struct blc_debug_s {
         M4_NOTES(TODO))  */
     blc_obcPostTnr_sta_t obcPostTnr;
 } blc_debug_t;
+#endif
 
 typedef struct blc_params_static_s {
     /* M4_GENERIC_DESC(
@@ -377,6 +379,7 @@ typedef struct blc_params_static_s {
         M4_ORDER(1),
         M4_NOTES(TODO))  */
     blc_autoBlc_sta_t autoBlc;
+#if defined(ISP_HW_V33)
     /* M4_GENERIC_DESC(
         M4_ALIAS(debug),
         M4_TYPE(struct),
@@ -386,11 +389,12 @@ typedef struct blc_params_static_s {
         M4_ORDER(0),
         M4_NOTES(TODO))  */
     blc_debug_t debug;
+#endif
 } blc_params_static_t;
 #endif
 
 typedef struct blc_param_s {
-#if defined(ISP_HW_V33)
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     /* M4_GENERIC_DESC(
         M4_ALIAS(static_param),
         M4_TYPE(struct),

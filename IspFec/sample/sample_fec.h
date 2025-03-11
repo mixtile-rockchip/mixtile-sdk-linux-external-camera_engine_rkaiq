@@ -37,14 +37,18 @@
    case is used to retrieve a setting. */
 enum Option {
     // clang-format off
-    OptSetFormat = 'f',
-    OptSetWidth = 'w',
-    OptSetHeight = 'h',
+    OptSetVideoFormat = 'v',
+    OptSetVideoOutFormat = 'x',
     OptHelp = 'z',
 
     OptStreamCount = 128,
     OptStreamTo,
     OptStreamFrom,
+    OptMeshFrom,
+    OptMeshDensity,
+    OptBorderMode,
+    OptCrossBufMode,
+    OptSetBgVal,
     OptSilent,
     OptLast = 512
     // clang-format on

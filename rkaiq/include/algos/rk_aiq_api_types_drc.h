@@ -224,7 +224,7 @@ typedef struct adrc_drcProc_s {
     M4_HIDE_EX(0),
     M4_RO(0),
     M4_ORDER(2),
-    M4_NOTES())  */
+    M4_NOTES(Parameters when sw_drcT_drcCurve_mode == adrc_auto_mode.\n Freq of use: high))  */
     drcCurve_auto_t sw_drcT_drcCurve_auto;
     /* M4_GENERIC_DESC(
         M4_ALIAS(sw_drcT_drcStrgLut_mode),
@@ -307,7 +307,7 @@ typedef struct adrc_params_dyn_s {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(2),
-        M4_NOTES(All preProc params corresponded with iso array))  */
+        M4_NOTES(All preProc params corresponded with iso array. Freq of use: high))  */
     drc_preProc_dyn_t preProc;
     /* M4_GENERIC_DESC(
         M4_ALIAS(bifilt_guideDiff),
@@ -316,7 +316,7 @@ typedef struct adrc_params_dyn_s {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(2),
-        M4_NOTES(All bifilt_guideDiff params corresponded with iso array))  */
+        M4_NOTES(All bifilt_guideDiff params corresponded with iso array. Freq of use: low))  */
     drc_bifilt_guideDiff_t bifilt_guideDiff;
     /* M4_GENERIC_DESC(
         M4_ALIAS(bifilt),
@@ -325,7 +325,7 @@ typedef struct adrc_params_dyn_s {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(2),
-        M4_NOTES(All bifilt_filter params corresponded with iso array))  */
+        M4_NOTES(All bifilt_filter params corresponded with iso array. Freq of use: high))  */
     drc_bifilt_t bifilt_filter;
     /* M4_GENERIC_DESC(
         M4_ALIAS(drcProc),
@@ -334,7 +334,7 @@ typedef struct adrc_params_dyn_s {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(2),
-        M4_NOTES(All drcProc params corresponded with iso array))  */
+        M4_NOTES(All drcProc params corresponded with iso array. Freq of use: high))  */
     adrc_drcProc_t drcProc;
 } adrc_params_dyn_t;
 
@@ -351,7 +351,7 @@ typedef struct drc_param_auto_s {
     drc_params_static_t sta;
 #endif
     /* M4_GENERIC_DESC(
-        M4_ALIAS(dynamic_param),
+        M4_ALIAS(dyn),
         M4_TYPE(struct_list),
         M4_SIZE_EX(1,13),
         M4_UI_MODULE(dynamic_ui),

@@ -721,11 +721,19 @@ switchCalibDbCheck(GlobalParamsManager_t* pMan, CamCalibDbV2Context_t* calibDb) 
 #if USE_NEWSTRUCT
     btnr_api_attrib_t* btnr_calib = (btnr_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(
         (void*)(calibDb), bayertnr));
+#if ISP_HW_V39
     if (*pMan->mGlobalParams[RESULT_TYPE_TNR_PARAM].en != btnr_calib->en) {
         LOGE("The Btnr doesn't support turn on/off in runtime, please use btnr.bypass instead "
                     "or config during the initialization.");
         return XCAM_RETURN_ERROR_FAILED;
     }
+#elif defined(ISP_HW_V33) || defined(ISP_HW_V35)
+    if (!pMan->btnr_init_enable && *pMan->mGlobalParams[RESULT_TYPE_TNR_PARAM].en != btnr_calib->en) {
+        LOGE("The Btnr didn't enable in first frame, so can't support turn on/off in runtime, "
+            "please use btnr.bypass instead or config during the initialization.");
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+#endif
 #if RKAIQ_HAVE_YUVME
     yme_api_attrib_t* yme_calib = (yme_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(
                 (void*)(calibDb), yme));
@@ -782,6 +790,13 @@ checkAlgoEnableInit(GlobalParamsManager_t* pMan) {
     int state = AiqManager_getAiqState(pMan->rkAiqManager);
     if (state == 0) {
         pMan->yme_init_enable = *pMan->mGlobalParams[RESULT_TYPE_MOTION_PARAM].en;
+    }
+#endif
+
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
+    int state = AiqManager_getAiqState(pMan->rkAiqManager);
+    if (state == 0) {
+        pMan->btnr_init_enable = *pMan->mGlobalParams[RESULT_TYPE_TNR_PARAM].en;
     }
 #endif
 #if USE_NEWSTRUCT
@@ -844,13 +859,36 @@ checkAlgoEnableInit(GlobalParamsManager_t* pMan) {
     if (hsv_calib) {
         ahsv_hsvCalib_t* calibdb = &hsv_calib->calibdb;
         int tblAll_len = calibdb->sw_hsvCfg_tblAll_len;
-        for (int i = 0;i < tblAll_len;i++) {
-            int lut0_mode = calibdb->tableAll[i].meshGain.lut1d0.hw_hsvT_lut1d_mode == 3? 1:calibdb->tableAll[i].meshGain.lut1d0.hw_hsvT_lut1d_mode;
-            int lut1_mode = calibdb->tableAll[i].meshGain.lut1d1.hw_hsvT_lut1d_mode == 3? 1:calibdb->tableAll[i].meshGain.lut1d1.hw_hsvT_lut1d_mode;
-            int lut2_mode = calibdb->tableAll[i].meshGain.lut2d.hw_hsvT_lut2d_mode / 2;
+        int lut0_mode = 0, lut1_mode = 0, lut2_mode = 0;
+#ifdef ISP_HW_V35
+        hsv_api_attrib_t* attr = &hsv_calib->tunning;
+        hsv_lutcfg_mode_t hsv_lut_mode;
+        rk_aiq_op_mode_t mode = *pMan->mGlobalParams[RESULT_TYPE_HSV_PARAM].opMode;
+        if (mode == RK_AIQ_OP_MODE_AUTO) {
+            hsv_lut_mode = attr->stAuto.sta.hsvCfg.hw_hsvT_lut_mode;
+        } else {
+            hsv_lut_mode = attr->stMan.sta.hw_hsvT_lut_mode;
+        }
+#endif
+        for (int i = 0;i < tblAll_len;i++) {     
+#ifdef ISP_HW_V33
+            lut0_mode = calibdb->tableAll[i].meshGain.lut1d0.hw_hsvT_lut1d_mode == 3? 1:calibdb->tableAll[i].meshGain.lut1d0.hw_hsvT_lut1d_mode;
+            lut1_mode = calibdb->tableAll[i].meshGain.lut1d1.hw_hsvT_lut1d_mode == 3? 1:calibdb->tableAll[i].meshGain.lut1d1.hw_hsvT_lut1d_mode;
+            lut2_mode = calibdb->tableAll[i].meshGain.lut2d.hw_hsvT_lut2d_mode / 2;
+#elif defined(ISP_HW_V35)
+            if (hsv_lut_mode == hsv_1dAnd2d_mode) {
+                lut0_mode = calibdb->tableAll[i].meshGain.lut1d0.hw_hsvT_lut1d_mode == 3? 1:calibdb->tableAll[i].meshGain.lut1d0.hw_hsvT_lut1d_mode;
+                lut1_mode = calibdb->tableAll[i].meshGain.lut1d1.hw_hsvT_lut1d_mode == 3? 1:calibdb->tableAll[i].meshGain.lut1d1.hw_hsvT_lut1d_mode;
+                lut2_mode = calibdb->tableAll[i].meshGain.lut2d.hw_hsvT_lut2d_mode / 2;
+            } else if (hsv_lut_mode == hsv_only2d_mode) {
+                lut0_mode = calibdb->tableAll[i].meshGain.lut2d.hw_hsvT_lut2d_mode / 2;
+                lut1_mode = calibdb->tableAll[i].meshGain.lut2d1.hw_hsvT_lut2d_mode / 2;
+                lut2_mode = calibdb->tableAll[i].meshGain.lut2d2.hw_hsvT_lut2d_mode / 2;
+            }
+#endif
             if (lut0_mode == lut1_mode || lut1_mode == lut2_mode || lut2_mode == lut0_mode) {
-                LOGE("HSV config failed, hsv.calibdb is invaild. Three output channels of hsv lut must be different."
-                    "Please configure by hsv.calibdb.tableAll.meshGain.");
+                LOGE("HSV config failed, hsv.calibdb in %s is invaild. Three output channels of hsv lut must be different."
+                    "Please configure by hsv.calibdb.tableAll.meshGain.", calibdb->tableAll[i].sw_hsvC_illu_name);
                 *pMan->mGlobalParams[RESULT_TYPE_HSV_PARAM].en = 0;
             }
         }
@@ -1231,6 +1269,7 @@ XCamReturn GlobalParamsManager_checkAlgoEnableBypass(GlobalParamsManager_t* pMan
 {
     int state = AiqManager_getAiqState(pMan->rkAiqManager);
 #if USE_NEWSTRUCT
+#if ISP_HW_V39
     if (type == RESULT_TYPE_TNR_PARAM) {
         if (*pMan->mGlobalParams[type].en != *en) {
             // tnr can't open/close in runtime
@@ -1244,6 +1283,21 @@ XCamReturn GlobalParamsManager_checkAlgoEnableBypass(GlobalParamsManager_t* pMan
             }
         }
     }
+#elif defined(ISP_HW_V33) || defined(ISP_HW_V35)
+    if (type == RESULT_TYPE_TNR_PARAM) {
+        if (!pMan->btnr_init_enable && *pMan->mGlobalParams[type].en != *en) {
+            // tnr can't open/close in runtime if not enable in first frame
+            if (state != AIQ_STATE_INITED && state != AIQ_STATE_STOPED) {
+                LOGE("The Btnr doesn't support turn on in runtime if not enable in first frame, "
+                    "please use btnr.bypass instead or config during the initialization.");
+                socket_client_setNote(pMan->_socket, IPC_RET_UAPI_ERROR,
+                    "The Btnr doesn't support turn on in runtime if not enable in first frame, "
+                    "please use btnr.bypass instead or config during the initialization.");
+                return XCAM_RETURN_ERROR_FAILED;
+            }
+        }
+    }
+#endif
 #if RKAIQ_HAVE_YUVME
     if (type == RESULT_TYPE_MOTION_PARAM) {
         if (*pMan->mGlobalParams[type].en != *en && *en) {
@@ -1546,9 +1600,23 @@ static bool checkAlgoParams(GlobalParamsManager_t* pMan, rk_aiq_global_params_wr
         hsv_api_attrib_t attr;
         if (param->opMode == RK_AIQ_OP_MODE_MANUAL) {
             memcpy(&attr.stMan, param->man_param_ptr, param->man_param_size);
-            int lut0_mode = attr.stMan.dyn.lut1d0.hw_hsvT_lut1d_mode==3? 1: attr.stMan.dyn.lut1d0.hw_hsvT_lut1d_mode;
-            int lut1_mode = attr.stMan.dyn.lut1d1.hw_hsvT_lut1d_mode==3? 1: attr.stMan.dyn.lut1d1.hw_hsvT_lut1d_mode;
-            int lut2_mode = attr.stMan.dyn.lut2d.hw_hsvT_lut2d_mode / 2;
+            int lut0_mode = 0, lut1_mode = 0, lut2_mode = 0;
+#if defined ISP_HW_V33
+            lut0_mode = attr.stMan.dyn.lut1d0.hw_hsvT_lut1d_mode==3? 1: attr.stMan.dyn.lut1d0.hw_hsvT_lut1d_mode;
+            lut1_mode = attr.stMan.dyn.lut1d1.hw_hsvT_lut1d_mode==3? 1: attr.stMan.dyn.lut1d1.hw_hsvT_lut1d_mode;
+            lut2_mode = attr.stMan.dyn.lut2d.hw_hsvT_lut2d_mode / 2;
+#endif            
+#if defined(ISP_HW_V35)
+            if (attr.stMan.sta.hw_hsvT_lut_mode == hsv_1dAnd2d_mode) {
+                lut0_mode = attr.stMan.dyn.lut1d0.hw_hsvT_lut1d_mode==3? 1: attr.stMan.dyn.lut1d0.hw_hsvT_lut1d_mode;
+                lut1_mode = attr.stMan.dyn.lut1d1.hw_hsvT_lut1d_mode==3? 1: attr.stMan.dyn.lut1d1.hw_hsvT_lut1d_mode;
+                lut2_mode = attr.stMan.dyn.lut2d.hw_hsvT_lut2d_mode / 2;
+            } else if (attr.stMan.sta.hw_hsvT_lut_mode == hsv_only2d_mode) {
+                lut0_mode = attr.stMan.dyn.lut2d.hw_hsvT_lut2d_mode / 2;
+                lut1_mode = attr.stMan.dyn.lut2d1.hw_hsvT_lut2d_mode / 2;
+                lut2_mode = attr.stMan.dyn.lut2d2.hw_hsvT_lut2d_mode / 2;
+            }
+#endif
             if (lut0_mode == lut1_mode || lut1_mode == lut2_mode || lut2_mode == lut0_mode) {
                 LOGE("Three output channels of hsv lut must be different. "
                     "Please configure by hsv.dyn.lut1d0.hw_hsvT_lut1d_mode, hsv.dyn.lut1d1.hw_hsvT_lut1d_mode, hsv.dyn.lut2d.hw_hsvT_lut2d_mode!");
@@ -1556,7 +1624,35 @@ static bool checkAlgoParams(GlobalParamsManager_t* pMan, rk_aiq_global_params_wr
                     "Please configure by hsv.dyn.lut1d0.hw_hsvT_lut1d_mode, hsv.dyn.lut1d1.hw_hsvT_lut1d_mode, hsv.dyn.lut2d.hw_hsvT_lut2d_mode!\n");
                 return false;
             }
+            
         }
+#ifdef ISP_HW_V35
+        if (state != AIQ_STATE_INITED && state != AIQ_STATE_STOPED) {
+            hsv_lutcfg_mode_t newmode;
+            hsv_lutcfg_mode_t oldmode;
+            hsv_api_attrib_t old_attr;
+            memcpy(&attr.stAuto, param->aut_param_ptr, param->aut_param_size);
+            memcpy(&old_attr.stAuto, pMan->mGlobalParams[param->type].aut_param_ptr, param->aut_param_size);
+            memcpy(&old_attr.stMan, pMan->mGlobalParams[param->type].man_param_ptr, param->man_param_size);
+            if (param->opMode == RK_AIQ_OP_MODE_AUTO) {
+                newmode = attr.stAuto.sta.hsvCfg.hw_hsvT_lut_mode;
+            }
+            else {
+                newmode = attr.stMan.sta.hw_hsvT_lut_mode;
+            }
+            if (*pMan->mGlobalParams[param->type].opMode == RK_AIQ_OP_MODE_AUTO) {
+                oldmode = old_attr.stAuto.sta.hsvCfg.hw_hsvT_lut_mode;
+            }
+            else{
+                oldmode = old_attr.stMan.sta.hw_hsvT_lut_mode;
+            }
+            if (newmode != oldmode) {
+                LOGE("During the runtime of hsv, it is not allowed to change the hsvT_lut_mode. Please configure during the initialization.");
+                socket_client_setNote(pMan->_socket, IPC_RET_UAPI_ERROR, "During the runtime of hsv, it is not allowed to change the hsvT_lut_mode. Please configure during the initialization.\n");
+                return true;
+            }
+        }
+#endif
     }
 #endif
 
@@ -1583,12 +1679,12 @@ static bool checkAlgoParams(GlobalParamsManager_t* pMan, rk_aiq_global_params_wr
             memcpy(&attr.stMan, param->man_param_ptr, param->man_param_size);
             if (attr.stMan.dyn.drcProc.sw_drcT_drcCurve_mode == adrc_auto_mode) {
                 LOGE(
-                    "sw_drcT_drcCurve_mode == adrc_auto_mode is supported in RK_AIQ_OP_MODE_MANUAL "
-                    "mode. Using hw_drcT_hdr2Sdr_curve instead.");
+                    "sw_drcT_drcCurve_mode == adrc_auto_mode is not supported in RK_AIQ_OP_MODE_MANUAL "
+                    "mode. Please using adrc_usrConfig_mode/adrc_vendorDefault_mode instead.");
                 socket_client_setNote(
                     pMan->_socket, IPC_RET_UAPI_ERROR,
-                    "sw_drcT_drcCurve_mode == adrc_auto_mode is supported in RK_AIQ_OP_MODE_MANUAL "
-                    "mode. Using hw_drcT_hdr2Sdr_curve instead.\n");
+                    "sw_drcT_drcCurve_mode == adrc_auto_mode is not supported in RK_AIQ_OP_MODE_MANUAL "
+                    "mode. Please using adrc_usrConfig_mode/adrc_vendorDefault_mode instead.\n");
             }
         }
     }

@@ -523,11 +523,40 @@ XCamReturn AiqManager_applyAnalyzerResult(AiqManager_t* pAiqManager, AiqFullPara
     return ret;
 }
 
+static XCamReturn
+AiqManager_applyAnalyzerExpResult(AiqManager_t* pAiqManager, aiq_params_base_t* results)
+{
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+    if (!results) {
+        return ret;
+    }
+
+	aiqList_push(pAiqManager->mParamsList, &results);
+
+    ret = AiqCamHw_applyAnalyzerResultList(pAiqManager->mCamHw, pAiqManager->mParamsList);
+    if (ret) {
+        LOGE_ANALYZER("cid:%d, fid:%d apply exp param to hw failed", results->frame_id,
+				AiqCamHw_getCamPhyId(pAiqManager->mCamHw));
+	}
+
+    return ret;
+
+}
+
 static void
 rkAiqCalcDone(void* pCtx, AiqFullParams_t* results)
 {
     ENTER_XCORE_FUNCTION();
     AiqManager_applyAnalyzerResult((AiqManager_t*)pCtx, results, false);
+    EXIT_XCORE_FUNCTION();
+}
+
+static void
+rkAiqCalcExpDone(void* pCtx, aiq_params_base_t* results)
+{
+    ENTER_XCORE_FUNCTION();
+    AiqManager_applyAnalyzerExpResult((AiqManager_t*)pCtx, results);
     EXIT_XCORE_FUNCTION();
 }
 
@@ -594,8 +623,9 @@ XCamReturn AiqManager_init(AiqManager_t* pAiqManager, const char* sns_ent_name, 
 
 	pAiqManager->mLastAweekId = -1;
 	pAiqManager->mAnalyzeCb.pCtx = pAiqManager;
-	pAiqManager->mAnalyzeCb.rkAiqCalcDone = rkAiqCalcDone;
-	pAiqManager->mAnalyzeCb.rkAiqCalcFailed = NULL;
+	pAiqManager->mAnalyzeCb.rkAiqCalcDone    = rkAiqCalcDone;
+    pAiqManager->mAnalyzeCb.rkAiqCalcExpDone = rkAiqCalcExpDone;
+	pAiqManager->mAnalyzeCb.rkAiqCalcFailed  = NULL;
 	AiqCore_setAnalyzeResultCb(pAiqManager->mRkAiqAnalyzer, &pAiqManager->mAnalyzeCb);
 
     GlobalParamsManager_setManager(&pAiqManager->mGlobalParamsManager, pAiqManager);

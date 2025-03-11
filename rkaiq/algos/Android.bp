@@ -26,7 +26,6 @@ cc_defaults {
         "-Wno-extern-c-compat",
         "-fno-strict-aliasing",
         "-frtti",
-        "-DGENMESH_ONLINE"
     ],
 
     cppflags: [
@@ -51,7 +50,6 @@ cc_defaults {
         "-Wno-extern-c-compat",
         "-Wno-missing-braces",
         "-Wno-missing-field-initializers",
-        "-DGENMESH_ONLINE"
     ],
 
     include_dirs: [

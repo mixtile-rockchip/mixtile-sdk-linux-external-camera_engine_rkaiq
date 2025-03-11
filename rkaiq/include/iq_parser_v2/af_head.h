@@ -1319,7 +1319,7 @@ typedef struct Af_ContrastZoom_s {
         M4_DYNAMIC_EX(1),
         M4_ORDER(16),
         M4_NOTES(Parameter for variable step search.\n
-        Freq of use: high))  */
+        Freq of use: low))  */
     Af_ZoomVarStepCfg_t     VarStepCfg[10];
     /* M4_GENERIC_DESC(
         M4_ALIAS(VarStepCfg_len),
@@ -1679,6 +1679,7 @@ typedef struct Af_Contrast_s {
         M4_RO(0),
         M4_DYNAMIC_EX(0),
         M4_ORDER(26),
+        M4_UI_MODULE(grid_weight_table),
         M4_NOTES(Weight matrix to get focus value.\n
         Freq of use: low))  */
     unsigned char           Weight[225];
@@ -3597,7 +3598,7 @@ typedef struct CalibDbV2_AFV33_s {
         M4_RO(0),
         M4_ORDER(5),
         M4_NOTES(Vcm config.\n
-        Freq of use: high))  */
+        Freq of use: low))  */
     Af_VcmCfg_t VcmCfg;
     /* M4_GENERIC_DESC(
         M4_ALIAS(ZoomFocusTbl),
@@ -3608,7 +3609,7 @@ typedef struct CalibDbV2_AFV33_s {
         M4_ORDER(6),
         M4_GROUP(contrast_en_group),
         M4_NOTES(Optical zoom config.\n
-        Freq of use: high))  */
+        Freq of use: low))  */
     Af_ZoomFocusTbl_t ZoomFocusTbl;
     /* M4_GENERIC_DESC(
         M4_ALIAS(MeasCfg),
@@ -3619,7 +3620,7 @@ typedef struct CalibDbV2_AFV33_s {
         M4_RO(0),
         M4_ORDER(7),
         M4_NOTES(Af measurement config.\n
-        Freq of use: high))  */
+        Freq of use: low))  */
     AfV33_Meas_t MeasCfg;
 } CalibDbV2_AFV33_t;
 

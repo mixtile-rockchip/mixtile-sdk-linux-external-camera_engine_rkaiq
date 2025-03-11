@@ -126,7 +126,11 @@ int RkIspFecHwMgr::readFileList(const char *basePath) {
                     char buf[128];
                     const char* ret = fgets(buf, 128, fp);
                     // printf("buf=%s\n", buf);
+#ifdef RKFEC_HW_V20
+                    if (strstr(buf, "rkfec_offline") != NULL) {
+#else
                     if (strstr(buf, "rkispp_fec") != NULL) {
+#endif
                         printf("found ispp fec node\n");
                         found = 1;
                         fclose(fp);
@@ -212,9 +216,7 @@ RkIspFecHwMgr::selectFecHw()
     return fecHw;
 }
 
-int
-RkIspFecHwMgr::process(struct rkispp_fec_in_out& param)
-{
+int RkIspFecHwMgr::process(RKFecInOut& param) {
     int fecHw = selectFecHw();
     int ret = -1;
 
@@ -233,5 +235,4 @@ RkIspFecHwMgr::process(struct rkispp_fec_in_out& param)
 
     return ret;
 }
-
 };

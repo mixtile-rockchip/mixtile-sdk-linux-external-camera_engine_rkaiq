@@ -647,3 +647,18 @@ XCamReturn AiqAlgoHandlerAwb_getStrategyResult(AiqAlgoHandlerAwb_t* pAwbHdl, rk_
     return ret;
 }
 
+XCamReturn AiqAlgoHandlerAwb_SetNNres(AiqAlgoHandlerAwb_t* pAwbHdl, const awb_ai_res_t *att)
+{
+    ENTER_ANALYZER_FUNCTION();
+
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+	AiqAlgoHandler_t* pHdl = (AiqAlgoHandler_t*)pAwbHdl;
+    aiqMutex_lock(&pHdl->mCfgMutex);
+
+    ret = rk_aiq_uapiV3_awb_SetNNres(pHdl->mAlgoCtx, att, false);
+
+    aiqMutex_unlock(&pHdl->mCfgMutex);
+
+    EXIT_ANALYZER_FUNCTION();
+    return ret;
+}

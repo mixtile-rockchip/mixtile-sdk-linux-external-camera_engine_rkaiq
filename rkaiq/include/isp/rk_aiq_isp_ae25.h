@@ -773,7 +773,7 @@ typedef struct ae_commCtrl_s {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(6),
-        M4_UI_MODULE(ae_grid_weight),
+        M4_UI_MODULE(grid_weight_table),
         M4_NOTES(The grid weight used in ae algorithm.\n
         Freq of use: high))  */
     uint8_t sw_aeT_grid_wgt[AE_GRIDWEIGHT_MAX_NUM];

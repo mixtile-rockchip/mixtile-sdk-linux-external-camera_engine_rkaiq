@@ -290,4 +290,18 @@ typedef struct Uapi_AecStatsCfg_s {
     bool                    BChannelEn;
 } Uapi_AecStatsCfg_t;
 
+/*****************************************************************************/
+/**
+ * @brief   ISP2.0/2.1 AEC API Frame Hdr Params
+ */
+/*****************************************************************************/
+typedef struct Uapi_FrameHdrAttr_s {
+    rk_aiq_uapi_sync_t sync;
+    bool FrameHdrEn;
+    uint8_t FrameHdrNum;
+    float FrameHdrCurve[256];
+    RkAiqExpParamComb_t FrameHdrExp[3];
+    uint32_t FrameLengthLines[3];
+} Uapi_FrameHdrAttr_t;
+
 #endif

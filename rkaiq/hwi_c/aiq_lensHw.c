@@ -469,7 +469,7 @@ XCamReturn AiqLensHw_setLensVcmMaxlogpos(AiqLensHw_t* pLensHw, int* max_log_pos)
     if (!pLensHw->mSd._v4l_base._name)
         return XCAM_RETURN_NO_ERROR;
 
-    if (pLensHw->mSd._v4l_base.io_control(&pLensHw->mSd._v4l_base, RK_VIDIOC_SET_VCM_MAX_LOGICALPOS, &max_log_pos) < 0) {
+    if (pLensHw->mSd._v4l_base.io_control(&pLensHw->mSd._v4l_base, RK_VIDIOC_SET_VCM_MAX_LOGICALPOS, max_log_pos) < 0) {
         LOGE_CAMHW_SUBM(LENS_SUBM, "set vcm cfg failed");
         return XCAM_RETURN_ERROR_IOCTL;
     }

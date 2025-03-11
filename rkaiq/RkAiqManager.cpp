@@ -1020,6 +1020,22 @@ RkAiqManager::applyAnalyzerResult(SmartPtr<RkAiqFullParamsProxy>& results, bool 
     return ret;
 }
 
+XCamReturn
+RkAiqManager::applyAnalyzerExpResult(SmartPtr<RkAiqExpParamsProxy>& results)
+{
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    cam3aResultList results_list;
+
+    if (results.ptr()) {
+        results->setType(RESULT_TYPE_EXPOSURE_PARAM);
+        results_list.push_back(results);
+    }
+
+    mCamHw->applyAnalyzerResult(results_list);
+
+    return ret;
+}
+
 void
 RkAiqManager::rkAiqCalcDone(SmartPtr<RkAiqFullParamsProxy> &results)
 {
@@ -1031,6 +1047,16 @@ RkAiqManager::rkAiqCalcDone(SmartPtr<RkAiqFullParamsProxy> &results)
 #else
     applyAnalyzerResult(results);
 #endif
+    EXIT_XCORE_FUNCTION();
+}
+
+void
+RkAiqManager::rkAiqCalcExpDone(SmartPtr<RkAiqExpParamsProxy> &results)
+{
+    ENTER_XCORE_FUNCTION();
+
+    applyAnalyzerExpResult(results);
+
     EXIT_XCORE_FUNCTION();
 }
 

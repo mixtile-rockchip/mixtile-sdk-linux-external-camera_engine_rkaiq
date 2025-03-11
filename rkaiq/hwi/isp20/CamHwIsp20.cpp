@@ -6196,7 +6196,7 @@ retry:
         isp_params->module_en_update  = 0;
         isp_params->module_cfg_update = 0;
         isp_params->module_ens = 0;
-        if (merge_isp_results(ready_results, isp_params, mIsMultiIspMode, false) != XCAM_RETURN_NO_ERROR)
+        if (merge_isp_results(ready_results, isp_params, !!(mIsMultiIspMode && mIspUniteMode), false) != XCAM_RETURN_NO_ERROR)
             LOGE_CAMHW_SUBM(ISP20HW_SUBM, "ISP parameter translation error\n");
 
         if (isp_params->module_cfg_update == 0 &&

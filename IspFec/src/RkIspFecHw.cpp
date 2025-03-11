@@ -43,20 +43,23 @@ RkIspFecHw::~RkIspFecHw()
         ::close(mFd);
 }
 
-int
-RkIspFecHw::process(struct rkispp_fec_in_out& param)
-{
+int RkIspFecHw::process(RKFecInOut& param) {
     if (mFd < 0) {
         printf("E: wrong fec fd \n");
         return -1;
     }
 
-    int ret = ioctl(mFd, RKISPP_CMD_FEC_IN_OUT, &param);
+#ifdef RKFEC_HW_V20
+    unsigned long int cmd = RKFEC_CMD_IN_OUT;
+#else
+    unsigned long int cmd = RKISPP_CMD_FEC_IN_OUT;
+#endif
+
+    int ret = ioctl(mFd, cmd, &param);
 
     if (ret == -EAGAIN) // try again
-        ret = ioctl(mFd, RKISPP_CMD_FEC_IN_OUT, &param);
+        ret = ioctl(mFd, cmd, &param);
 
     return ret;
 }
-
 };

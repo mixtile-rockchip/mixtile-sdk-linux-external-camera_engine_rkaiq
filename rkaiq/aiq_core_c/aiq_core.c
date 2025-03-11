@@ -867,6 +867,7 @@ static void newPdafStatsPool(AiqCore_t* pAiqCore) {
 #endif
 
 #if RKAIQ_HAVE_AF_V33
+#if ISP_HW_V39
     CalibDbV2_AFV33_t* af_v33 =
         (CalibDbV2_AFV33_t*)(CALIBDBV2_GET_MODULE_PTR((void*)aiqCalib, af_v33));
     Af_Pdaf_t* pdaf = &af_v33->Pdaf;
@@ -891,6 +892,32 @@ static void newPdafStatsPool(AiqCore_t* pAiqCore) {
             pdaf_stats->pdRData = NULL;
         }
     }
+#else
+    af_param_t* af_calib =
+        (af_param_t*)(CALIBDBV2_GET_MODULE_PTR((void*)aiqCalib, af_calib));
+    af_pdaf_t *pdaf = &af_calib->pdaf;
+
+    pd_size = pdaf->sw_afT_pdMax_width * pdaf->sw_afT_pdMax_height * sizeof(short);
+    if (pd_size > 0 && pdaf && pdaf->sw_afT_pdAf_en) {
+        AiqPoolItem_t* pItem = NULL;
+        AIQ_POOL_FOREACH(pAiqCore->mAiqPdafStatsPool, pItem) {
+            rk_aiq_isp_pdaf_stats_t* pdaf_stats =
+                (rk_aiq_isp_pdaf_stats_t*)(((aiq_stats_base_t*)pItem->_pData)->_data);
+            pdaf_stats->pdWidth  = pdaf->sw_afT_pdMax_width;
+            pdaf_stats->pdHeight = pdaf->sw_afT_pdMax_height;
+            pdaf_stats->pdLData  = (unsigned short*)aiq_mallocz(pd_size);
+            pdaf_stats->pdRData  = (unsigned short*)aiq_mallocz(pd_size);
+        }
+    } else {
+        AiqPoolItem_t* pItem = NULL;
+        AIQ_POOL_FOREACH(pAiqCore->mAiqPdafStatsPool, pItem) {
+            rk_aiq_isp_pdaf_stats_t* pdaf_stats =
+                (rk_aiq_isp_pdaf_stats_t*)(((aiq_stats_base_t*)pItem->_pData)->_data);
+            pdaf_stats->pdLData = NULL;
+            pdaf_stats->pdRData = NULL;
+        }
+    }
+#endif
 #endif
 }
 
@@ -3246,6 +3273,17 @@ XCamReturn AiqCore_groupAnalyze(AiqCore_t * pAiqCore, uint64_t grpId,
 												(void*)(intptr_t)fullParam->_base.frame_id);
 					rm    = true;
 					pAiqCore->mLatestParamsDoneId = fullParam->_base.frame_id;
+                    if (fullParam->_base.frame_id < shared->frameId) {
+#ifdef RKAIQ_ENABLE_CAMGROUP
+                        if (!pAiqCore->mCamGroupCoreManager && pAiqCore->mCb)
+#else
+                        if (pAiqCore->mCb)
+#endif
+                            pAiqCore->mCb->rkAiqCalcExpDone(pAiqCore->mCb->pCtx, fullParam->pParamsArray[RESULT_TYPE_EXPOSURE_PARAM]);
+
+                        LOGD_ANALYZER("[%d]:%p fullParam discard, shared->frame %d, just set exp param",
+                                      fullParam->_base.frame_id, fullParam, shared->frameId);
+                    }
 					LOGD_ANALYZER("[%d]:%p fullParams done !", fullParam->_base.frame_id,
 								  fullParam);
 				} else
@@ -3450,6 +3488,7 @@ static XCamReturn fixAiqParamsIsp(AiqCore_t* pAiqCore, AiqFullParams_t* aiqParam
     aiq_params_base_t* pBlcBase  = aiqParams->pParamsArray[RESULT_TYPE_BLC_PARAM];
     aiq_params_base_t* pBtnrBase = aiqParams->pParamsArray[RESULT_TYPE_TNR_PARAM];
     aiq_params_base_t* pGainBase = aiqParams->pParamsArray[RESULT_TYPE_GAIN_PARAM];
+    aiq_params_base_t* pCacBase = aiqParams->pParamsArray[RESULT_TYPE_CAC_PARAM];
 
     // drc update, maybe predgain update
     if (pDrcBase && pDrcBase->is_update ) {
@@ -3463,6 +3502,10 @@ static XCamReturn fixAiqParamsIsp(AiqCore_t* pAiqCore, AiqFullParams_t* aiqParam
 
         if (pBtnrBase && !pBtnrBase->is_update) {
             pBtnrBase->is_update = true;
+        }
+
+        if (pCacBase && !pCacBase->is_update) {
+            pCacBase->is_update = true;
         }
     }
 
@@ -3484,6 +3527,15 @@ static XCamReturn fixAiqParamsIsp(AiqCore_t* pAiqCore, AiqFullParams_t* aiqParam
 
     if (pGainBase && !pGainBase->is_update) {
         pGainBase->is_update = true;
+    }
+
+    if (pBlcBase && pBlcBase->is_update) {
+#if RKAIQ_HAVE_AINR
+        aiq_params_base_t* pAinrBase = aiqParams->pParamsArray[RESULT_TYPE_AINR_PARAM];
+        if (pAinrBase && !pAinrBase->is_update) {
+            pAinrBase->is_update = true;
+        }
+#endif
     }
 
     return XCAM_RETURN_NO_ERROR;

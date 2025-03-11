@@ -94,6 +94,7 @@ typedef enum {
     LDM = 0x10,
     CLM = 0x20,
     ECM = 0x40,
+    FHDR = 0x80,
 } AecLogLevel_t;
 /*****************************************************************************/
 /**
@@ -115,6 +116,7 @@ typedef enum {
     UPDATE_RESOLUTION = 0x400,
     UPDATE_AECSTATSCFG = 0x800, //including ae stats channel select, stats update flag
     UPDATE_EXPSUBWINATTR = 0x1000,
+    UPDATE_FRAMEHDRATTR = 0x2000,
     UPDATE_CALIB = 0xffff,//update iq file
 } AecUpdateAttrMode_t;
 

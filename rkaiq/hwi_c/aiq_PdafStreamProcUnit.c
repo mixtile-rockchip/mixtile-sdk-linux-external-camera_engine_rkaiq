@@ -219,12 +219,14 @@ XCamReturn AiqPdafStreamProcUnit_init(AiqPdafStreamProcUnit_t* pProcUnit, int ty
 
     aiqMutex_init(&pProcUnit->mStreamMutex);
     PdafStreamHelperThd_init(&pProcUnit->mHelperThd, pProcUnit);
+    PdafStreamHelperThd_start(&pProcUnit->mHelperThd);
     return XCAM_RETURN_NO_ERROR;
 }
 
 XCamReturn AiqPdafStreamProcUnit_deinit(AiqPdafStreamProcUnit_t* pProcUnit) {
     if (!pProcUnit) return XCAM_RETURN_ERROR_PARAM;
 
+    PdafStreamHelperThd_stop(&pProcUnit->mHelperThd);
     PdafStreamHelperThd_deinit(&pProcUnit->mHelperThd);
 
     if (pProcUnit->_pcb) {

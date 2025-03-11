@@ -75,6 +75,7 @@ static uint16_t FULLPARMAS_MAX_PENDING_SIZE = 2;
 typedef struct AiqAnalyzerCb_s {
     void* pCtx;
     void (*rkAiqCalcDone)(void* pCtx, AiqFullParams_t* results);
+    void (*rkAiqCalcExpDone)(void* pCtx, aiq_params_base_t* results);
     void (*rkAiqCalcFailed)(void* pCtx, const char* msg);
 } AiqAnalyzerCb_t;
 

@@ -287,14 +287,23 @@ XCamReturn CnrSelectParam
     out->dyn.hiNr_locFiltAlpha.hw_cnrT_locFiltAlpha_minLimit = interpolation_f32(
                 paut->dyn[ilow].hiNr_locFiltAlpha.hw_cnrT_locFiltAlpha_minLimit, paut->dyn[ihigh].hiNr_locFiltAlpha.hw_cnrT_locFiltAlpha_minLimit, ratio);
 #if RKAIQ_HAVE_CNR_V36
-    for(i =0;i<13;i++){
-        out->dyn.loNrGuide_iirFilt_locSgmRat.hw_cnrT_locSgmStrg2SgmRat_val[i] = interpolation_f32(
-                    paut->dyn[ilow].loNrGuide_iirFilt_locSgmRat.hw_cnrT_locSgmStrg2SgmRat_val[i],
-                    paut->dyn[ihigh].loNrGuide_iirFilt_locSgmRat.hw_cnrT_locSgmStrg2SgmRat_val[i], ratio);
+    for(i = 0; i < 13; i++) {
+        out->dyn.loNrGuide_iirFilt.hw_cnrT_locSgmStrg2SgmRat_val[i] = interpolation_f32(
+                    paut->dyn[ilow].loNrGuide_iirFilt.hw_cnrT_locSgmStrg2SgmRat_val[i],
+                    paut->dyn[ihigh].loNrGuide_iirFilt.hw_cnrT_locSgmStrg2SgmRat_val[i], ratio);
     }
     out->dyn.loNrGuide_iirFilt.sw_cnrT_rgeSgmRatio_mode = paut->dyn[inear].loNrGuide_iirFilt.sw_cnrT_rgeSgmRatio_mode;
     out->dyn.loNrGuide_iirFilt.hw_cnrT_glbSgmRatio_alpha = interpolation_f32(
-        paut->dyn[ilow].loNrGuide_iirFilt.hw_cnrT_glbSgmRatio_alpha, paut->dyn[ihigh].loNrGuide_iirFilt.hw_cnrT_glbSgmRatio_alpha, ratio);
+                paut->dyn[ilow].loNrGuide_iirFilt.hw_cnrT_glbSgmRatio_alpha, paut->dyn[ihigh].loNrGuide_iirFilt.hw_cnrT_glbSgmRatio_alpha, ratio);
+    out->dyn.hiNr_locFiltAlpha.hw_cnrT_hueSatAdj_en = paut->dyn[inear].hiNr_locFiltAlpha.hw_cnrT_hueSatAdj_en;
+    for (i = 0; i < 10; i++) {
+        out->dyn.hiNr_locFiltAlpha.hw_cnrT_locSgmStrg2NrOutAlpha[i] = interpolation_f32(
+                    paut->dyn[ilow].hiNr_locFiltAlpha.hw_cnrT_locSgmStrg2NrOutAlpha[i], paut->dyn[ihigh].hiNr_locFiltAlpha.hw_cnrT_locSgmStrg2NrOutAlpha[i], ratio);
+        out->dyn.hiNr_locFiltAlpha.hw_cnrT_hue2NrOutAlpha[i] = interpolation_f32(
+                    paut->dyn[ilow].hiNr_locFiltAlpha.hw_cnrT_hue2NrOutAlpha[i], paut->dyn[ihigh].hiNr_locFiltAlpha.hw_cnrT_hue2NrOutAlpha[i], ratio);
+        out->dyn.hiNr_locFiltAlpha.hw_cnrT_sat2NrOutAlpha[i] = interpolation_f32(
+                    paut->dyn[ilow].hiNr_locFiltAlpha.hw_cnrT_sat2NrOutAlpha[i], paut->dyn[ihigh].hiNr_locFiltAlpha.hw_cnrT_sat2NrOutAlpha[i], ratio);
+    }
 #endif
     return XCAM_RETURN_NO_ERROR;
 }

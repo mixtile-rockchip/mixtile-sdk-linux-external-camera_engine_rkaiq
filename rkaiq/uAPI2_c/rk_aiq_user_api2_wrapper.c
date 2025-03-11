@@ -201,6 +201,101 @@ int rk_aiq_uapi_get_awbV39_stat(const rk_aiq_sys_ctx_t* sys_ctx, rk_tool_isp_awb
     return 0;
 }
 
+#ifndef ISP_HW_V33
+int rk_aiq_uapi_get_af_stats(const rk_aiq_sys_ctx_t* sys_ctx, uapi_af_v20stats_t* af_hwstats)
+{
+    rk_aiq_isp_statistics_t isp_stats;
+
+    if (sys_ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
+        LOGE("Can't read 3A stats for group ctx!");
+        return XCAM_RETURN_ERROR_PARAM;
+    }
+#if 0
+    XCamReturn ret = rk_aiq_uapi2_stats_getIspStats(sys_ctx, &isp_stats, 500);
+    if (ret)
+        return ret;
+
+    memcpy(af_hwstats, &isp_stats.af_stats, sizeof(afStats_stats_t));
+#endif
+    return 0;
+}
+
+int rk_aiq_uapi_get_af_v3xstats(const rk_aiq_sys_ctx_t* sys_ctx, uapi_af_v30stats_t* af_hwstats)
+{
+    rk_aiq_isp_statistics_t isp_stats;
+    int i;
+
+    if (sys_ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
+        LOGE("Can't read 3A stats for group ctx!");
+        return XCAM_RETURN_ERROR_PARAM;
+    }
+
+    XCamReturn ret = rk_aiq_uapi2_stats_getIspStats(sys_ctx, &isp_stats, 500);
+    if (ret)
+        return ret;
+
+#if 0
+    af_hwstats->wndb_luma = isp_stats.af_stats_v3x.wndb_luma;
+    af_hwstats->wndb_sharpness = isp_stats.af_stats_v3x.wndb_sharpness;
+    af_hwstats->winb_highlit_cnt = isp_stats.af_stats_v3x.winb_highlit_cnt;
+    for (i = 0; i < 225; i++) {
+        af_hwstats->wnda_luma[i] = isp_stats.af_stats_v3x.wnda_luma[i];
+        af_hwstats->wnda_fv_v1[i] = isp_stats.af_stats_v3x.wnda_fv_v1[i];
+        af_hwstats->wnda_fv_v2[i] = isp_stats.af_stats_v3x.wnda_fv_v2[i];
+        af_hwstats->wnda_fv_h1[i] = isp_stats.af_stats_v3x.wnda_fv_h1[i];
+        af_hwstats->wnda_fv_h2[i] = isp_stats.af_stats_v3x.wnda_fv_h2[i];
+    }
+#endif
+    return 0;
+}
+
+int rk_aiq_uapi_get_af_v32litestats(const rk_aiq_sys_ctx_t* sys_ctx, uapi_af_v32litestats_t* af_hwstats)
+{
+    rk_aiq_isp_statistics_t isp_stats;
+    int i;
+
+    if (sys_ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
+        LOGE("Can't read 3A stats for group ctx!");
+        return XCAM_RETURN_ERROR_PARAM;
+    }
+
+    XCamReturn ret = rk_aiq_uapi2_stats_getIspStats(sys_ctx, &isp_stats, 500);
+    if (ret)
+        return ret;
+
+#if 0
+    af_hwstats->wndb_luma = isp_stats.af_stats_v3x.wndb_luma;
+    af_hwstats->wndb_sharpness = isp_stats.af_stats_v3x.wndb_sharpness;
+    af_hwstats->winb_highlit_cnt = isp_stats.af_stats_v3x.winb_highlit_cnt;
+    for (i = 0; i < 25; i++) {
+        af_hwstats->wnda_luma[i] = isp_stats.af_stats_v3x.wnda_luma[i];
+        af_hwstats->wnda_fv_v1[i] = isp_stats.af_stats_v3x.wnda_fv_v1[i];
+        af_hwstats->wnda_fv_v2[i] = isp_stats.af_stats_v3x.wnda_fv_v2[i];
+        af_hwstats->wnda_fv_h1[i] = isp_stats.af_stats_v3x.wnda_fv_h1[i];
+        af_hwstats->wnda_fv_h2[i] = isp_stats.af_stats_v3x.wnda_fv_h2[i];
+    }
+#endif
+    return 0;
+}
+
+int rk_aiq_uapi_get_af_newstats(const rk_aiq_sys_ctx_t* sys_ctx, afStats_stats_t* af_hwstats)
+{
+    rk_aiq_isp_statistics_t isp_stats;
+
+    if (sys_ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
+        LOGE("Can't read 3A stats for group ctx!");
+        return XCAM_RETURN_ERROR_PARAM;
+    }
+
+    XCamReturn ret = rk_aiq_uapi2_stats_getIspStats(sys_ctx, &isp_stats, 500);
+    if (ret)
+        return ret;
+
+    memcpy(af_hwstats, &isp_stats.afStats_stats, sizeof(afStats_stats_t));
+
+    return 0;
+}
+#endif
 
 XCamReturn rk_aiq_get_adpcc_manual_attr(const rk_aiq_sys_ctx_t *sys_ctx,
                                         Adpcc_Manual_Attr_t *manual) {

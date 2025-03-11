@@ -53,6 +53,7 @@ typedef struct {
     uint8_t frameNum;
     float preDGain;
     float preDGain_preFrm;
+    float preDGain_drc;
     int frameIso[3];
     float frameEt[3];
     float frameDGain[3];
@@ -79,6 +80,7 @@ typedef struct {
     bool dehaze_en;
     bool histeq_en;
     bool btnr_en;
+    bool btnr_init_en;
     int btnrCfg_pixDomain_mode;
     bool btnrT_predgainWkArd_en;
     int btnrT_predgain_mode;
@@ -95,6 +97,8 @@ typedef struct {
     void* pBlcInfo;
     float offset2Blc1;
     int blc0_diff;
+    uint16_t isp_ob_offset;
+    uint16_t isp_ob_offset1;
 } common_cvt_info_t;
 
 typedef struct {

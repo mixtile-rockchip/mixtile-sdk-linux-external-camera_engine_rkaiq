@@ -418,6 +418,7 @@ typedef struct {
     RkAiqAlgoCom com;
     bool aeIsConverged;
     bool ishdr;
+    bool damping;
 } RkAiqAlgoProcBlc;
 
 typedef struct {
@@ -662,6 +663,7 @@ typedef struct _RkAiqAlgoProcLdc {
 // ainr
 typedef struct rk_aiq_isp_ainr_params_s {
     ainr_param_t ainr_param;
+    bool is_bypass;
     uint16_t prev_blacklvl;
     uint16_t post_blacklvl;
     uint16_t sw_in_comp_y[33];

@@ -79,6 +79,10 @@
 #include "iq_parser_v2/rkpostisp_head_v2.h"
 #endif
 
+#ifndef ISP_HW_V33
+#include "iq_parser_v2/af_uapi_head.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -475,7 +479,7 @@ typedef struct __ae_uapi {
 #endif
 
 typedef struct __awb_uapi {
-#if defined(ISP_HW_V39) || defined(ISP_HW_V33)
+#ifdef USE_NEWSTRUCT
     /* M4_GENERIC_DESC(
        M4_ALIAS(attr),
        M4_TYPE(struct),
@@ -599,6 +603,8 @@ typedef struct __aiq_measure_info {
     uapi_ae_hwstats_t ae_hwstats;
     // M4_STRUCT_DESC("wb_log", "normal_ui_style")
     uapi_wbV21_log_t wb_log;
+    // M4_STRUCT_DESC("af_hwstats", "normal_ui_style")
+    uapi_af_v20stats_t af_hwstats;
 } aiq_measure_info_t;
 #elif ISP_HW_V30
 typedef struct __aiq_measure_info {
@@ -606,6 +612,8 @@ typedef struct __aiq_measure_info {
     uapi_ae_hwstats_t ae_hwstats;
     // M4_STRUCT_DESC("wb_log", "normal_ui_style")
     uapi_wbV30_log_t wb_log;
+    // M4_STRUCT_DESC("af_hwstats", "normal_ui_style")
+    uapi_af_v30stats_t af_hwstats;
 } aiq_measure_info_t;
 
 #elif  defined(ISP_HW_V32) || defined(ISP_HW_V30) || defined(ISP_HW_V32_LITE)
@@ -614,6 +622,13 @@ typedef struct __aiq_measure_info {
     uapi_ae_hwstats_t ae_hwstats;
     // M4_STRUCT_DESC("wb_log", "normal_ui_style")
     uapi_wbV32_log_t wb_log;
+#if ISP_HW_V32
+    // M4_STRUCT_DESC("af_hwstats", "normal_ui_style")
+    uapi_af_v30stats_t af_hwstats;
+#elif ISP_HW_V32_LITE
+    // M4_STRUCT_DESC("af_hwstats", "normal_ui_style")
+    uapi_af_v32litestats_t af_hwstats;
+#endif
 } aiq_measure_info_t;
 #elif defined(ISP_HW_V39) || defined(ISP_HW_V33) || defined(ISP_HW_V35)
 typedef struct __aiq_measure_info {
@@ -621,6 +636,10 @@ typedef struct __aiq_measure_info {
     uapi_ae_v39_hwstats_t ae_hwstats;
     // M4_STRUCT_DESC("wb_log", "normal_ui_style")
     uapi_wbV32_log_t wb_log;
+#if ISP_HW_V39 || ISP_HW_V35
+    // M4_STRUCT_DESC("af_hwstats", "normal_ui_style")
+    afStats_stats_t af_hwstats;
+#endif
 } aiq_measure_info_t;
 #endif
 
@@ -1012,13 +1031,21 @@ typedef struct __af_uapi {
     // M4_STRUCT_DESC("calib", "normal_ui_style")
     CalibDbV2_AFV32_Tuning_Para_t calib;
 #endif
-#if defined(ISP_HW_V39) || defined(ISP_HW_V35)
+#if defined(ISP_HW_V39)
     /* M4_GENERIC_DESC(
        M4_ALIAS(attr),
        M4_TYPE(struct),
        M4_UI_MODULE(tuning_param),
        M4_REF(/af_v33)) */
     CalibDbV2_AFV33_t calib;
+#endif
+#if defined(ISP_HW_V35)
+    /* M4_GENERIC_DESC(
+       M4_ALIAS(attr),
+       M4_TYPE(struct),
+       M4_UI_MODULE(tuning_param),
+       M4_REF(/af_calib)) */
+    af_param_t calib;
 #endif
 } af_uapi_t;
 #endif

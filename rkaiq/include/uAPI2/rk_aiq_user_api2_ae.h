@@ -69,7 +69,8 @@ XCamReturn rk_aiq_user_api2_ae_setAecStatsCfg(const rk_aiq_sys_ctx_t* ctx, const
 XCamReturn rk_aiq_user_api2_ae_getAecStatsCfg(const rk_aiq_sys_ctx_t* ctx, Uapi_AecStatsCfg_t* pAecStatsCfg);
 XCamReturn rk_aiq_user_api2_ae_setExpSubWinAttr(const rk_aiq_sys_ctx_t* ctx, const Uapi_ExpSubWin_t ExpSubWinAttr);
 XCamReturn rk_aiq_user_api2_ae_getExpSubWinAttr(const rk_aiq_sys_ctx_t* ctx, Uapi_ExpSubWin_t* pExpSubWinAttr);
-
+XCamReturn rk_aiq_user_api2_ae_setFrameHdrAttr(const rk_aiq_sys_ctx_t* ctx, const Uapi_FrameHdrAttr_t FrameHdrAttr);
+XCamReturn rk_aiq_user_api2_ae_getFrameHdrAttr(const rk_aiq_sys_ctx_t* ctx, Uapi_FrameHdrAttr_t* pFrameHdrAttr);
 
 RKAIQ_END_DECLARE
 

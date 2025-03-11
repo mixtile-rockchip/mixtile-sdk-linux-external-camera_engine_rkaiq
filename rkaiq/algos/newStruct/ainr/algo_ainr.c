@@ -221,7 +221,7 @@ XCamReturn Ainr_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
         return XCAM_RETURN_NO_ERROR;
     }
 
-    if (ainr_attrib->en == false || ainr_attrib->bypass == true) {
+    if (ainr_attrib->en == false) {
         if (inparams->u.proc.is_attrib_update) {
             outparams->cfg_update = true;
             outparams->en = ainr_attrib->en;

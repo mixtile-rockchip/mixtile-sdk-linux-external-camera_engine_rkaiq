@@ -18,89 +18,79 @@
 #include "sample_fec.h"
 
 #include <ctype.h>
-#include <drm/drm_mode.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
-#include <linux/videodev2.h>
+// #include <linux/videodev2.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <xf86drm.h>
+#include <inttypes.h>
 
 #include "rk_ispfec_api.h"
+#ifdef RKFEC_HW_V20
+#include "rk_ispfec_videobuf.h"
+#endif
+#include <rk-video-format.h>
+#include "sample_common.h"
+#include "sample_drm_buffer.h"
 
-struct drm_buf {
-    int fb_id;
-    uint32_t handle;
-    uint32_t size;
-    uint32_t pitch;
-    char* map;
-    int dmabuf_fd;
+struct mem_ops {
+    int (*init)(void);
+    void (*deinit)(int fd);
+    int (*alloc)(int fd, uint32_t size, struct rkfec_buffer* buf);
+    int (*free)(int fd, struct rkfec_buffer* buf);
 };
-
-#define CLEAR(x) memset(&(x), 0, sizeof(x))
-
-#define FEC_STATIC_FPS_CALCULATION(objname, count)                                     \
-    do {                                                                               \
-        static uint32_t num_frame = 0;                                                 \
-        static struct timeval last_sys_time;                                           \
-        static struct timeval first_sys_time;                                          \
-        static bool b_last_sys_time_init = false;                                      \
-        if (!b_last_sys_time_init) {                                                   \
-            gettimeofday(&last_sys_time, NULL);                                        \
-            gettimeofday(&first_sys_time, NULL);                                       \
-            b_last_sys_time_init = true;                                               \
-        } else {                                                                       \
-            if ((num_frame % count) == 0) {                                            \
-                double total, current;                                                 \
-                struct timeval cur_sys_time;                                           \
-                gettimeofday(&cur_sys_time, NULL);                                     \
-                total = (cur_sys_time.tv_sec - first_sys_time.tv_sec) * 1.0f +         \
-                        (cur_sys_time.tv_usec - first_sys_time.tv_usec) / 1000000.0f;  \
-                current = (cur_sys_time.tv_sec - last_sys_time.tv_sec) * 1.0f +        \
-                          (cur_sys_time.tv_usec - last_sys_time.tv_usec) / 1000000.0f; \
-                info("%s Current fps: %.2f, Total avg fps: %.2f\n", #objname,          \
-                     ((float)(count)) / current, (float)num_frame / total);            \
-                last_sys_time = cur_sys_time;                                          \
-            }                                                                          \
-        }                                                                              \
-        ++num_frame;                                                                   \
-    } while (0)
 
 #define IN_IMAGE_FILE "/data/imx415_4k_nv12.yuv"
 
 static const char* file_from;
 static const char* file_to;
+static const char* mesh_from;
 static unsigned stream_count;
 static char options[OptLast];
 
-static int width;
-static int height;
-static int format;
+static int width, height, out_width, out_height, pixfmt, out_pixfmt;
+static int mesh_density, border_mode, cross_buf_mode;
+static rk_ispfec_bg_val bg_val;
 
 static rk_ispfec_ctx_t* g_ispfec_ctx = NULL;
 static rk_ispfec_cfg_t g_ispfec_cfg;
-struct drm_buf g_drm_buf_pic_in;
-struct drm_buf g_drm_buf_pic_out;
-struct drm_buf g_drm_buf_xint;
-struct drm_buf g_drm_buf_xfra;
-struct drm_buf g_drm_buf_yint;
-struct drm_buf g_drm_buf_yfra;
+
+struct rkfec_buffer g_rkfec_buf_pic_in;
+struct rkfec_buffer g_rkfec_buf_pic_out;
+
+#ifdef RKFEC_HW_V20
+struct rkfec_buffer g_rkfec_buf_mesh;
+#else
+struct rkfec_buffer g_rkfec_buf_xint;
+struct rkfec_buffer g_rkfec_buf_xfra;
+struct rkfec_buffer g_rkfec_buf_yint;
+struct rkfec_buffer g_rkfec_buf_yfra;
+#endif
+
+struct mem_ops* cur_mem_pos;
+static int dma_node_fd = -1;
+
+#define IS_DMA_INVALID() (dma_node_fd < 0)
 
 static struct option long_options[] = {
     // clang-format off
     {"help", no_argument, 0, OptHelp},
     {"silent", no_argument, 0, OptSilent},
-    {"width",  required_argument, 0, OptSetWidth},
-    {"height", required_argument, 0, OptSetHeight},
-    {"format", required_argument, 0, OptSetFormat},
+    {"set-fmt-video", required_argument, NULL, OptSetVideoFormat},
+    {"set-fmt-video-out", required_argument, NULL, OptSetVideoOutFormat},
     {"stream-count", required_argument, NULL, OptStreamCount},
     {"stream-to", required_argument, NULL, OptStreamTo},
     {"stream-from", required_argument, NULL, OptStreamFrom},
+    {"mesh-from", required_argument, NULL, OptMeshFrom},
+    {"mesh-density", required_argument, NULL, OptMeshDensity},
+    {"border-mode", required_argument, NULL, OptBorderMode},
+    {"cross-buf-mode", required_argument, NULL, OptCrossBufMode},
+    {"set-bg-val", required_argument, NULL, OptSetBgVal},
     {0, 0, 0, 0}
     // clang-format on
 };
@@ -108,153 +98,187 @@ static struct option long_options[] = {
 void common_usage(void) {
     printf(
         "\nGeneral/Common options:\n"
-        "  --width <size>     width of image.\n"
-        "  --height <size>    height of image.\n"
-        "  --format <fmt>     fourcc of format.\n"
+        "  -v, --set-fmt-video\n"
+        "  -x, --set-fmt-video-out "
+        "width=<w>,height=<h>,pixelformat=<pf>,field=<f>,colorspace=<c>,\n"
         "  --stream-count <count>\n"
         "                     stream <count> buffers. The default is to keep streaming\n"
         "                     forever. This count does not include the number of initial\n"
         "                     skipped buffers as is passed by --stream-skip.\n"
-        "  --stream-from <file>\n"
-        "                     stream from this file.\n"
-        "  --stream-to <file> stream to this file. The default is to discard the\n"
-        "                     data.\n"
+        "  --stream-from <file> stream from this file.\n"
+        "  --stream-to <file>\n"
+        "                     stream to this file. The default is to discard the data.\n"
+        "  --mesh-from <file> mesh from this file.\n"
+        "  --mesh-density <val> mesh density.\n"
+        "                       0: 32x16. 1: 16x8. 2: 4x4\n"
+        "  --border-mode <val> border mode.\n"
+        "                       0: fill with bg_value. 1: copy with the nearest pixel."
+        "  --cross-buf-mode <val> cross buffer mode\n"
+        "                       0: fill with bg_value. 1: copy with the nearest pixel."
+        "  --set-bg-val <val> y=<y>,u=<u>,v=<v>\n"
+        "                     fill with the bg_val."
         "  -s, --silent       subpress debug log.\n"
         "  -h, --help         display this help message.\n");
 }
 
-int alloc_drm_buffer(int fd, int width, int height, int bpp, struct drm_buf* buf) {
-    struct drm_mode_create_dumb alloc_arg;
-    struct drm_mode_map_dumb mmap_arg;
-    struct drm_mode_destroy_dumb destory_arg;
-    void* map;
-    int ret;
+struct mem_ops rk_mem_ops_tbl[] = {
+    {
+        .init   = init_drm,
+        .deinit = deinit_drm,
+        .alloc  = alloc_drm_buffer,
+        .free   = free_drm_buffer,
+    },
+#ifdef RKFEC_HW_V20
+    {
+        .init   = rk_ispfec_api_vb_init,
+        .deinit = rk_ispfec_api_vb_deinit,
+        .alloc  = rk_ispfec_api_vb_alloc,
+        .free   = rk_ispfec_api_vb_free,
+    },
+#endif
+};
 
-    memset(&alloc_arg, 0, sizeof(alloc_arg));
-    alloc_arg.bpp    = bpp;
-    alloc_arg.width  = width;
-    alloc_arg.height = height;
+int ispfec_mem_init(void) {
+    int ret = -1;
+    uint32_t i;
 
-    ret = drmIoctl(fd, DRM_IOCTL_MODE_CREATE_DUMB, &alloc_arg);
-    if (ret) {
-        info("failed to create dumb buffer\n");
-        return ret;
+    for (i = 0; i < ARRAY_SIZE(rk_mem_ops_tbl); i++) {
+        dma_node_fd = rk_mem_ops_tbl[i].init();
+        if (dma_node_fd >= 0) break;
     }
 
-    memset(&mmap_arg, 0, sizeof(mmap_arg));
-    mmap_arg.handle = alloc_arg.handle;
-    ret             = drmIoctl(fd, DRM_IOCTL_MODE_MAP_DUMB, &mmap_arg);
-    if (ret) {
-        info("failed to create map dumb\n");
-        ret = -EINVAL;
-        goto destory_dumb;
+    if (dma_node_fd < 0) {
+        ret = -1;
+        goto exit;
     }
-    map = mmap(0, alloc_arg.size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, mmap_arg.offset);
-    if (map == MAP_FAILED) {
-        info("failed to mmap buffer\n");
-        ret = -EINVAL;
-        goto destory_dumb;
-    }
-    ret = drmPrimeHandleToFD(fd, alloc_arg.handle, 0, &buf->dmabuf_fd);
-    if (ret) {
-        info("failed to get dmabuf fd\n");
-        munmap(map, alloc_arg.size);
-        ret = -EINVAL;
-        goto destory_dumb;
-    }
-    buf->size = alloc_arg.size;
-    buf->map  = (char*)map;
 
-destory_dumb:
-    memset(&destory_arg, 0, sizeof(destory_arg));
-    destory_arg.handle = alloc_arg.handle;
-    drmIoctl(fd, DRM_IOCTL_MODE_DESTROY_DUMB, &destory_arg);
+    cur_mem_pos = &rk_mem_ops_tbl[i];
+
+    ret = 0;
+exit:
     return ret;
 }
 
-int free_drm_buffer(int fd, struct drm_buf* buf) {
-    if (buf) {
-        close(buf->dmabuf_fd);
-        return munmap(buf->map, buf->size);
+void rkfec_mem_deinit(void) {
+    if (IS_DMA_INVALID()) return;
+
+    if (cur_mem_pos) {
+        cur_mem_pos->deinit(dma_node_fd);
+        cur_mem_pos = NULL;
     }
-    return -EINVAL;
 }
 
 int init_ispfec_bufs(rk_ispfec_cfg_t* cfg) {
     int ret    = 0;
-    int drm_fd = drmOpen("rockchip", NULL);
-    if (drm_fd < 0) {
-        info("failed to open rockchip drm\n");
-        return -1;
+
+    ret = ispfec_mem_init();
+    if (ret < 0) {
+        stderr_info("failed to init mem\n");
+        return ret;
     }
 
-    int mesh_size = rk_ispfec_api_calFecMeshsize(cfg->in_width, cfg->in_height);
+    int mesh_size = rk_ispfec_api_calFecMeshsize(cfg->out_width, cfg->out_height);
+    // 1. alloc mesh buffer
+#ifdef RKFEC_HW_V20
+    ret = cur_mem_pos->alloc(dma_node_fd, mesh_size * 6, &g_rkfec_buf_mesh);
+    if (ret) goto deinit_mem;
+    info("mesh fd:%d size:%" PRId64 "\n", g_rkfec_buf_mesh.dmabuf_fd, g_rkfec_buf_mesh.size);
+#else
+    ret = cur_mem_pos->alloc(dma_node_fd, mesh_size * 2, &g_rkfec_buf_xint);
+    if (ret) goto deinit_mem;
+    info("xint fd:%d size:%" PRId64 "\n", g_rkfec_buf_xint.dmabuf_fd, g_rkfec_buf_xint.size);
 
-    info("\nmesh_size:%d\n", mesh_size);
-    ret = alloc_drm_buffer(drm_fd, mesh_size * 2, 1, 8, &g_drm_buf_xint);
-    if (ret) goto close_drm_fd;
-    info("xint fd:%d size:%d\n", g_drm_buf_xint.dmabuf_fd, g_drm_buf_xint.size);
-
-    ret = alloc_drm_buffer(drm_fd, mesh_size, 1, 8, &g_drm_buf_xfra);
+    ret = cur_mem_pos->alloc(dma_node_fd, mesh_size, &g_rkfec_buf_xfra);
     if (ret) goto free_drm_buf_xint;
-    info("xfra fd:%d size:%d\n", g_drm_buf_xfra.dmabuf_fd, g_drm_buf_xfra.size);
+    info("xfra fd:%d size:%" PRId64 "\n", g_rkfec_buf_xfra.dmabuf_fd, g_rkfec_buf_xfra.size);
 
-    ret = alloc_drm_buffer(drm_fd, mesh_size * 2, 1, 8, &g_drm_buf_yint);
+    ret = cur_mem_pos->alloc(dma_node_fd, mesh_size * 2, &g_rkfec_buf_yint);
     if (ret) goto free_drm_buf_xfra;
-    info("yint fd:%d size:%d\n", g_drm_buf_yint.dmabuf_fd, g_drm_buf_yint.size);
+    info("yint fd:%d size:%" PRId64 "\n", g_rkfec_buf_yint.dmabuf_fd, g_rkfec_buf_yint.size);
 
-    ret = alloc_drm_buffer(drm_fd, mesh_size, 1, 8, &g_drm_buf_yfra);
+    ret = cur_mem_pos->alloc(dma_node_fd, mesh_size, &g_rkfec_buf_yfra);
     if (ret) goto free_drm_buf_yint;
-    info("yfra fd:%d size:%d\n", g_drm_buf_yfra.dmabuf_fd, g_drm_buf_yfra.size);
+    info("yfra fd:%d size:%" PRId64 "\n", g_rkfec_buf_yfra.dmabuf_fd, g_rkfec_buf_yfra.size);
+#endif
 
-    ret = alloc_drm_buffer(drm_fd, cfg->in_width, cfg->in_height * 3 / 2, 8, &g_drm_buf_pic_in);
-    if (ret) goto free_drm_buf_yfra;
-    info("in pic fd:%d size:%d\n", g_drm_buf_pic_in.dmabuf_fd, g_drm_buf_pic_in.size);
+    // 2. alloc input picture buffer
+    ret = cur_mem_pos->alloc(dma_node_fd, cfg->in_width * (cfg->in_height + 1) * 3 / 2,
+                             &g_rkfec_buf_pic_in);
+    if (ret) goto free_drm_buf_mesh;
+    info("in pic fd:%d size: %" PRId64 "\n", g_rkfec_buf_pic_in.dmabuf_fd, g_rkfec_buf_pic_in.size);
 
-    ret = alloc_drm_buffer(drm_fd, cfg->out_width, cfg->out_height * 3 / 2, 8, &g_drm_buf_pic_out);
+    // 3. alloc output picture buffer
+    if (out_pixfmt == V4L2_PIX_FMT_FBC0) {
+        int stride_y = (cfg->out_width + 63) / 64 * 384;
+        int stride_c = (cfg->out_width + 63) / 64 * 16;
+        int size     = (stride_y * cfg->out_height + stride_c * cfg->out_height) / 4;
+
+        ret = cur_mem_pos->alloc(dma_node_fd, size, &g_rkfec_buf_pic_out);
+	g_rkfec_buf_pic_out.size = size;
+    } else {
+        ret = cur_mem_pos->alloc(dma_node_fd, cfg->in_width * (cfg->in_height + 1) * 3 / 2,
+                                 &g_rkfec_buf_pic_out);
+	g_rkfec_buf_pic_out.size = cfg->out_width * cfg->out_height * 3 / 2;
+    }
     if (ret) goto free_drm_buf_pic_in;
-    info("out pic fd:%d size:%d\n", g_drm_buf_pic_out.dmabuf_fd, g_drm_buf_pic_out.size);
+    info("out pic fd:%d size: %" PRId64 "\n", g_rkfec_buf_pic_out.dmabuf_fd, g_rkfec_buf_pic_out.size);
 
-    cfg->mesh_xint.dmaFd    = g_drm_buf_xint.dmabuf_fd;
-    cfg->mesh_xint.size     = g_drm_buf_xint.size;
-    cfg->mesh_xint.vir_addr = g_drm_buf_xint.map;
+#ifdef RKFEC_HW_V20
+    cfg->mesh_info.dmaFd        = g_rkfec_buf_mesh.dmabuf_fd;
+    cfg->mesh_info.size         = g_rkfec_buf_mesh.size;
+    cfg->mesh_info.vir_addr     = g_rkfec_buf_mesh.map;
+#else
+    cfg->mesh_xint.dmaFd    = g_rkfec_buf_xint.dmabuf_fd;
+    cfg->mesh_xint.size     = g_rkfec_buf_xint.size;
+    cfg->mesh_xint.vir_addr = g_rkfec_buf_xint.map;
 
-    cfg->mesh_xfra.dmaFd    = g_drm_buf_xfra.dmabuf_fd;
-    cfg->mesh_xfra.size     = g_drm_buf_xfra.size;
-    cfg->mesh_xfra.vir_addr = g_drm_buf_xfra.map;
+    cfg->mesh_xfra.dmaFd    = g_rkfec_buf_xfra.dmabuf_fd;
+    cfg->mesh_xfra.size     = g_rkfec_buf_xfra.size;
+    cfg->mesh_xfra.vir_addr = g_rkfec_buf_xfra.map;
 
-    cfg->mesh_yint.dmaFd    = g_drm_buf_yint.dmabuf_fd;
-    cfg->mesh_yint.size     = g_drm_buf_yint.size;
-    cfg->mesh_yint.vir_addr = g_drm_buf_yint.map;
+    cfg->mesh_yint.dmaFd    = g_rkfec_buf_yint.dmabuf_fd;
+    cfg->mesh_yint.size     = g_rkfec_buf_yint.size;
+    cfg->mesh_yint.vir_addr = g_rkfec_buf_yint.map;
 
-    cfg->mesh_yfra.dmaFd    = g_drm_buf_yfra.dmabuf_fd;
-    cfg->mesh_yfra.size     = g_drm_buf_yfra.size;
-    cfg->mesh_yfra.vir_addr = g_drm_buf_yfra.map;
+    cfg->mesh_yfra.dmaFd    = g_rkfec_buf_yfra.dmabuf_fd;
+    cfg->mesh_yfra.size     = g_rkfec_buf_yfra.size;
+    cfg->mesh_yfra.vir_addr = g_rkfec_buf_yfra.map;
+#endif
 
-    goto close_drm_fd;
+    return ret;
 
 free_drm_buf_pic_in:
-    free_drm_buffer(drm_fd, &g_drm_buf_pic_in);
-free_drm_buf_yfra:
-    free_drm_buffer(drm_fd, &g_drm_buf_yfra);
+    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_pic_in);
+free_drm_buf_mesh:
+#ifdef RKFEC_HW_V20
+    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_mesh);
+#else
+    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_yfra);
 free_drm_buf_yint:
-    free_drm_buffer(drm_fd, &g_drm_buf_yfra);
+    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_yfra);
 free_drm_buf_xfra:
-    free_drm_buffer(drm_fd, &g_drm_buf_xfra);
+    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_xfra);
 free_drm_buf_xint:
-    free_drm_buffer(drm_fd, &g_drm_buf_xint);
-close_drm_fd:
-    close(drm_fd);
+    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_xint);
+#endif
+deinit_mem:
+    rkfec_mem_deinit();
 
     return ret;
 }
 
 void deinit_ispfec_bufs() {
-    free_drm_buffer(-1, &g_drm_buf_pic_out);
-    free_drm_buffer(-1, &g_drm_buf_yfra);
-    free_drm_buffer(-1, &g_drm_buf_yfra);
-    free_drm_buffer(-1, &g_drm_buf_xfra);
-    free_drm_buffer(-1, &g_drm_buf_xint);
+#ifdef RKFEC_HW_V20
+    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_mesh);
+#else
+    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_yfra);
+    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_yfra);
+    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_xfra);
+    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_xint);
+#endif
+    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_pic_in);
+    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_pic_out);
+    rkfec_mem_deinit();
 }
 
 size_t read_image_from_file(const char* file_path, char* buffer, size_t buffer_size) {
@@ -294,21 +318,22 @@ int do_handle_fec(FILE* fout) {
     char ch = '<';
     int ret;
 
-    ret = rk_ispfec_api_process(g_ispfec_ctx, g_drm_buf_pic_in.dmabuf_fd,
-                                g_drm_buf_pic_out.dmabuf_fd);
+    ret = rk_ispfec_api_process(g_ispfec_ctx, g_rkfec_buf_pic_in.dmabuf_fd,
+                                g_rkfec_buf_pic_out.dmabuf_fd);
     if (ret) {
         stderr_info("rk_ispfec_api_process failed: %s\n", strerror(errno));
         return -1;
     }
 
     if (fout) {
-        ret = write_buffer_to_file(fout, g_drm_buf_pic_out.map, g_drm_buf_pic_out.size);
+        ret = write_buffer_to_file(fout, g_rkfec_buf_pic_out.map, g_rkfec_buf_pic_out.size);
+
         if (ret <= 0) {
             stderr_info("write_buffer_to_file failed: %s\n", strerror(errno));
             return -1;
         }
 
-        stderr_info("%c", ch);
+        stderr_info("%c\n", ch);
         fflush(stderr);
     }
 
@@ -316,6 +341,119 @@ int do_handle_fec(FILE* fout) {
 
     if (--stream_count == 0) return -1;
 
+    return 0;
+}
+
+void parse_path(const char* path, char* directory, char* filename) {
+    // 找到最后一个 '/' 的位置
+    const char* last_slash = strrchr(path, '/');
+    if (last_slash) {
+        // 提取目录部分
+        size_t dir_len = last_slash - path + 1;  // 包括最后的 '/'
+        strncpy(directory, path, dir_len);
+        directory[dir_len] = '\0';  // 确保字符串以 '\0' 结尾
+
+        // 提取文件名部分
+        strcpy(filename, last_slash + 1);
+    } else {
+        // 如果没有 '/'，认为路径中只有文件名
+        directory[0] = '\0';  // 目录为空
+        strcpy(filename, path);
+    }
+}
+
+int getsubopt(char** opt, char* const* keys, char** val) {
+    char* s = *opt;
+    int i;
+
+    *val = NULL;
+    *opt = strchr(s, ',');
+    if (*opt)
+        *(*opt)++ = 0;
+    else
+        *opt = s + strlen(s);
+
+    for (i = 0; keys[i]; i++) {
+        size_t l = strlen(keys[i]);
+        if (strncmp(keys[i], s, l)) continue;
+        if (s[l] == '=')
+            *val = s + l + 1;
+        else if (s[l])
+            continue;
+        return i;
+    }
+    return -1;
+}
+
+int parse_subopt(char** subs, const char* const* subopts, char** value) {
+    int opt = getsubopt(subs, (char* const*)(subopts), value);
+
+    if (opt == -1) {
+        fprintf(stderr, "Invalid suboptions specified\n");
+        return -1;
+    }
+    if (*value == NULL) {
+        fprintf(stderr, "No value given to suboption <%s>\n", subopts[opt]);
+        return -1;
+    }
+    return opt;
+}
+
+int parse_bg_val(char* optarg, int* bg_y, int* bg_u, int* bg_v) {
+    char *value, *subs;
+
+    subs = optarg;
+    while (*subs != '\0') {
+        static const char* subopts[] = {"y", "u", "v", NULL};
+
+        switch (parse_subopt(&subs, subopts, &value)) {
+            case 0:
+                *bg_y = strtoul(value, NULL, 0);
+                break;
+            case 1:
+                *bg_u = strtoul(value, NULL, 0);
+                break;
+            case 2:
+                *bg_v = strtoul(value, NULL, 0);
+                break;
+            default:
+                return -1;
+        }
+    }
+    return 0;
+}
+
+int parse_fmt(char* optarg, int* width, int* height, int* pixelformat) {
+    char *value, *subs;
+    bool be_pixfmt;
+
+    subs = optarg;
+    while (*subs != '\0') {
+        static const char* subopts[] = {"width", "height", "pixelformat", NULL};
+
+        switch (parse_subopt(&subs, subopts, &value)) {
+            case 0:
+                *width = strtoul(value, NULL, 0);
+                break;
+            case 1:
+                *height = strtoul(value, NULL, 0);
+                break;
+            case 2:
+                be_pixfmt = strlen(value) == 7 && !memcmp(value + 4, "-BE", 3);
+                if (be_pixfmt || strlen(value) == 4) {
+                    *pixelformat = v4l2_fourcc(value[0], value[1], value[2], value[3]);
+                    if (be_pixfmt) *pixelformat |= 1U << 31;
+                } else if (isdigit(value[0])) {
+                    *pixelformat = strtol(value, NULL, 0);
+                } else {
+                    fprintf(stderr, "The pixelformat '%s' is invalid\n", value);
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            default:
+                return -1;
+        }
+    }
     return 0;
 }
 
@@ -344,6 +482,7 @@ int32_t main(int argc, char** argv) {
     }
     while (1) {
         int option_index = 0;
+        int ret          = 0;
 
         short_options[idx] = 0;
         ch                 = getopt_long(argc, argv, short_options, long_options, &option_index);
@@ -354,14 +493,19 @@ int32_t main(int argc, char** argv) {
             case OptHelp:
                 common_usage();
                 return 0;
-            case OptSetWidth:
-                width = atoi(optarg);
+            case OptSetVideoFormat:
+                ret = parse_fmt(optarg, &width, &height, &pixfmt);
+                if (ret < 0) {
+                    common_usage();
+                    exit(EXIT_FAILURE);
+                }
                 break;
-            case OptSetHeight:
-                height = atoi(optarg);
-                break;
-            case OptSetFormat:
-                format = v4l2_fourcc(optarg[0], optarg[1], optarg[2], optarg[3]);
+            case OptSetVideoOutFormat:
+                ret = parse_fmt(optarg, &out_width, &out_height, &out_pixfmt);
+                if (ret < 0) {
+                    common_usage();
+                    exit(EXIT_FAILURE);
+                }
                 break;
             case OptStreamCount:
                 stream_count = strtoul(optarg, NULL, 0);
@@ -372,6 +516,22 @@ int32_t main(int argc, char** argv) {
             case OptStreamFrom:
                 file_from = optarg;
                 break;
+            case OptMeshFrom:
+                mesh_from = optarg;
+                break;
+            case OptMeshDensity:
+                mesh_density = atoi(optarg);
+                break;
+            case OptBorderMode:
+                border_mode = atoi(optarg);
+                break;
+            case OptCrossBufMode:
+                cross_buf_mode = atoi(optarg);
+                break;
+            case OptSetBgVal:
+                ret = parse_bg_val(optarg, &bg_val.bg_y, &bg_val.bg_u, &bg_val.bg_v);
+                if (ret < 0) printf("Failed to parse bg_val\n");
+                break;
             default:
                 break;
         }
@@ -381,23 +541,32 @@ int32_t main(int argc, char** argv) {
         while (optind < argc) printf("%s ", argv[optind++]);
         printf("\n");
         common_usage();
-        return 1;
+        exit(EXIT_FAILURE);
     }
 
-    g_ispfec_cfg.in_width   = width;
-    g_ispfec_cfg.in_height  = height;
-    g_ispfec_cfg.out_width  = width;
-    g_ispfec_cfg.out_height = height;
-    g_ispfec_cfg.in_fourcc  = 0;
-    g_ispfec_cfg.out_fourcc = 0;
+    g_ispfec_cfg.in_width       = width;
+    g_ispfec_cfg.in_height      = height;
+    g_ispfec_cfg.out_width      = out_width;
+    g_ispfec_cfg.out_height     = out_height;
+    g_ispfec_cfg.in_fourcc      = pixfmt;
+    g_ispfec_cfg.out_fourcc     = out_pixfmt;
+#ifdef RKFEC_HW_V20
+    g_ispfec_cfg.border_mode    = border_mode;
+    g_ispfec_cfg.cross_buf_mode = cross_buf_mode;
+    g_ispfec_cfg.bg_val         = bg_val;
+#endif
 
-#if 0
+#if 1
     g_ispfec_cfg.mesh_upd_mode = RK_ISPFEC_UPDATE_MESH_FROM_FILE;
+#ifdef RKFEC_HW_V20
+    parse_path(mesh_from, g_ispfec_cfg.u.mesh_file_path, g_ispfec_cfg.mesh_info.mesh_file);
+#else
     strcpy(g_ispfec_cfg.u.mesh_file_path, "/etc/iqfiles/FEC_mesh_3840_2160_imx415_3.6mm/");
     strcpy(g_ispfec_cfg.mesh_xint.mesh_file, "meshxi_level0.bin");
     strcpy(g_ispfec_cfg.mesh_xfra.mesh_file, "meshxf_level0.bin");
     strcpy(g_ispfec_cfg.mesh_yint.mesh_file, "meshyi_level0.bin");
     strcpy(g_ispfec_cfg.mesh_yfra.mesh_file, "meshyf_level0.bin");
+#endif
 #else
     g_ispfec_cfg.mesh_upd_mode                 = RK_ISPFEC_UPDATE_MESH_ONLINE;
     g_ispfec_cfg.u.mesh_online.light_center[0] = 1956.3909119999998438;
@@ -414,7 +583,7 @@ int32_t main(int argc, char** argv) {
     int ret = init_ispfec_bufs(&g_ispfec_cfg);
     if (ret < 0) {
         stderr_info("init_ispfec_bufs failed: %s\n", strerror(errno));
-        return 1;
+        return -1;
     }
 
     g_ispfec_ctx = rk_ispfec_api_init(&g_ispfec_cfg);
@@ -425,7 +594,7 @@ int32_t main(int argc, char** argv) {
 
     if (!file_from) file_from = IN_IMAGE_FILE;
 
-    ret = read_image_from_file(file_from, g_drm_buf_pic_in.map, g_drm_buf_pic_in.size);
+    ret = read_image_from_file(file_from, g_rkfec_buf_pic_in.map, g_rkfec_buf_pic_in.size);
     if (ret <= 0) {
         stderr_info("read_image_from_file failed: %s\n", strerror(errno));
         goto clean_up;

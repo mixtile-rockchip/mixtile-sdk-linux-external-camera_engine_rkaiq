@@ -154,7 +154,7 @@ typedef struct {
         /* M4_GENERIC_DESC(
         M4_ALIAS(lut2d1),
         M4_TYPE(struct),
-        M4_UI_MODULE(HSV_2DLut),
+        M4_UI_MODULE(HSV_2DLut1),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -163,7 +163,7 @@ typedef struct {
         /* M4_GENERIC_DESC(
         M4_ALIAS(lut2d2),
         M4_TYPE(struct),
-        M4_UI_MODULE(HSV_2DLut),
+        M4_UI_MODULE(HSV_2DLut2),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -232,11 +232,11 @@ typedef struct {
         M4_ENUM_DEF(hsv_lutcfg_mode_t),
         M4_DEFAULT(hsv_1dAnd2d_mode),
         M4_GROUP_CTRL(lutcfg_mode_group),
-        M4_HIDE_EX(0),
-        M4_RO(0),
+        M4_HIDE_EX(1),
+        M4_RO(1),
         M4_ORDER(0),
         M4_NOTES(1dlut and 2dlut config mode.\n
-        Freq of use: high))  */
+        Freq of use: low))  */
     hsv_lutcfg_mode_t hw_hsvT_lut_mode;
 } hsv_param_static_t;
 

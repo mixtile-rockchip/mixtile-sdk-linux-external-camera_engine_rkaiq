@@ -31,7 +31,7 @@ void rk_aiq_blc30_params_cvt(void* attr, isp_params_t* isp_params,
     int isp_ob_max = 0xfff;
     float pre_dgain = 1.0;
     float isp_dgain = 1.0;
-#ifdef ISP_HW_V33
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     blc_params_static_t* psta = &((blc_param_t*)attr)->sta;
     bool autoblc_en = psta->autoBlc.sw_blcT_autoBlc_en & pdyn->obcPostTnr.sw_blcT_obcPostTnr_en &
                       pBlcInfo->init_success & (cvtinfo->frameNum == 1) & cvtinfo->btnr_en;
@@ -143,7 +143,7 @@ lib_init_success:
 
     if (pdyn->obcPostTnr.sw_blcT_obcPostTnr_en) {
         phwcfg->bls1_en = 1;
-#if ISP_HW_V33
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
         int blc1_r = 0;
         int blc1_b = 0;
         if (pBlcInfo->autoblc_count <= 2 && autoblc_en && totalGain >= psta->autoBlc.sw_blcT_autoBlcEn_thred) {
@@ -181,12 +181,13 @@ lib_init_success:
             pBlcInfo->blc_adjust[0] = 0;
             pBlcInfo->blc_adjust[1] = 0;
         }
-        cvtinfo->offset2Blc1 = 0;
-        cvtinfo->blc0_diff = 0;
         // phwcfg->bls1_val.r = CLIP(pdyn->obcPostTnr.hw_blcT_manualOBR_val * isp_dgain * pre_dgain, 0, 32767);
         // phwcfg->bls1_val.gr = CLIP(pdyn->obcPostTnr.hw_blcT_manualOBGr_val * isp_dgain * pre_dgain, 0, 32767);
         // phwcfg->bls1_val.gb = CLIP(pdyn->obcPostTnr.hw_blcT_manualOBGb_val * isp_dgain * pre_dgain, 0, 32767);
         // phwcfg->bls1_val.b = CLIP(pdyn->obcPostTnr.hw_blcT_manualOBB_val * isp_dgain * pre_dgain, 0, 32767);
+#if ISP_HW_V33
+        cvtinfo->offset2Blc1 = 0;
+        cvtinfo->blc0_diff = 0;
         if (cvtinfo->isFirstFrame || cvtinfo->sw_btnrT_outFrmBase_mode == btnr_curBaseOut_mode) {
             pBlcInfo->pre_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
             phwcfg->isp_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
@@ -202,42 +203,37 @@ lib_init_success:
                 *blc_res->damping = true;
             }
 
-            if (!psta->debug.obcPostTnr.sw_blcT_autoOBWkArd_en) {
-                if (pBlcInfo->pre_ob_offset >= pdyn->obcPostTnr.sw_blcT_autoOB_offset) {
-                    *blc_res->damping = (pBlcInfo->pre_ob_offset != pdyn->obcPostTnr.sw_blcT_autoOB_offset);
-                    phwcfg->isp_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
-                    int diff = pBlcInfo->pre_ob_offset - phwcfg->isp_ob_offset;
-                    phwcfg->bls1_val.r += diff;
-                    phwcfg->bls1_val.gr += diff;
-                    phwcfg->bls1_val.gb += diff;
-                    phwcfg->bls1_val.b += diff;
-                    cvtinfo->offset2Blc1 = diff;
-                }
-                else {
-                    float diff = (pdyn->obcPostTnr.sw_blcT_autoOB_offset - pBlcInfo->pre_ob_offset) / (pre_dgain * isp_dgain);
-                    cvtinfo->blc0_diff = MIN(phwcfg->fixed_val.gr, diff) * isp_dgain;
-                    phwcfg->isp_ob_offset = pBlcInfo->pre_ob_offset;
-                    phwcfg->fixed_val.r = MAX(phwcfg->fixed_val.r - diff, 0);
-                    phwcfg->fixed_val.gr = MAX(phwcfg->fixed_val.gr - diff, 0);
-                    phwcfg->fixed_val.gb = MAX(phwcfg->fixed_val.gb - diff, 0);
-                    phwcfg->fixed_val.b = MAX(phwcfg->fixed_val.b - diff, 0);
-                    *blc_res->damping = true;
-                }
+            if (psta->debug.obcPostTnr.sw_blcT_autoOBWkArd_en) {
+                *blc_res->damping = *blc_res->damping | (pBlcInfo->pre_ob_offset != pdyn->obcPostTnr.sw_blcT_autoOB_offset);
+                phwcfg->isp_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
+                int diff = pBlcInfo->pre_ob_offset - phwcfg->isp_ob_offset;
+                phwcfg->bls1_val.r += diff;
+                phwcfg->bls1_val.gr += diff;
+                phwcfg->bls1_val.gb += diff;
+                phwcfg->bls1_val.b += diff;
+                cvtinfo->offset2Blc1 = diff;
                 pBlcInfo->pre_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
             }
             else {
                 phwcfg->isp_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
                 pBlcInfo->pre_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
             }
-    }
-#elif ISP_HW_V39
-        phwcfg->isp_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
+        }
 #elif ISP_HW_V35
         if (cvtinfo->isFirstFrame || cvtinfo->sw_btnrT_outFrmBase_mode == btnr_curBaseOut_mode) {
             phwcfg->isp_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
             phwcfg->isp_ob_offset1 = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
+            phwcfg->bls1_val.r = blc1_r;
+            phwcfg->bls1_val.b = blc1_b;
         }
         else {
+            phwcfg->bls1_val.r = (int)pBlcInfo->pre_adjust[0];
+            phwcfg->bls1_val.b = (int)pBlcInfo->pre_adjust[1];
+            pBlcInfo->pre_adjust[0] = blc1_r;
+            pBlcInfo->pre_adjust[1] = blc1_b;
+            if (phwcfg->bls1_val.r != pBlcInfo->pre_adjust[0] || phwcfg->bls1_val.b != pBlcInfo->pre_adjust[1]) {
+                *blc_res->damping = true;
+            }
             phwcfg->isp_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
             phwcfg->isp_ob_offset1 = pBlcInfo->pre_ob_offset;
         }
@@ -245,9 +241,9 @@ lib_init_success:
         if (phwcfg->isp_ob_offset != phwcfg->isp_ob_offset1) {
             *blc_res->damping = true;
         }
-        else {
-            *blc_res->damping = false;
-        }
+#endif
+#else
+        phwcfg->isp_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
 #endif
     }
     else {
@@ -258,7 +254,7 @@ lib_init_success:
         phwcfg->isp_ob_offset1 = 0;
 #endif
     }
-#if ISP_HW_V33
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     LOGD_ABLC("frameId %d blc_res->aeIsConverged %d totalGain %f phwcfg->bls1_val.r %d phwcfg->bls1_val.b %d phwcfg->isp_ob_offset %d",
         cvtinfo->frameId, *blc_res->aeIsConverged, totalGain, phwcfg->bls1_val.r, phwcfg->bls1_val.b, phwcfg->isp_ob_offset);
 #endif
@@ -285,10 +281,20 @@ lib_init_success:
 #endif
     }
 
+#if ISP_HW_V35
+    cvtinfo->isp_ob_offset = phwcfg->isp_ob_offset;
+    cvtinfo->isp_ob_offset1 = phwcfg->isp_ob_offset1;
+#endif
+
     if (phwcfg->isp_ob_predgain != 0 && fabs(phwcfg->isp_ob_predgain - (float)0x100) > FLT_EPSILON) {
         phwcfg->bls1_en = 1;
-        phwcfg->isp_ob_max = CLIP((int)(4096 * pre_dgain) - phwcfg->isp_ob_offset, 0, 1048575);
-    } else {
+#if ISP_HW_V35
+        phwcfg->isp_ob_max = CLIP((int)(4096 * cvtinfo->preDGain_drc) - phwcfg->isp_ob_offset1, 0, 1048575);
+#else
+        phwcfg->isp_ob_max = CLIP((int)(4096 * cvtinfo->preDGain_drc) - phwcfg->isp_ob_offset, 0, 1048575);
+#endif
+    }
+    else {
         if (cvtinfo->frameNum == 1)
             phwcfg->isp_ob_max = 0xfff;
         else

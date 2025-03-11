@@ -760,3 +760,29 @@ rk_aiq_user_api2_awb_setAwbPreWbgain(const rk_aiq_sys_ctx_t* sys_ctx,  const flo
     return XCAM_RETURN_ERROR_UNKNOWN;
 #endif
 }
+
+
+XCamReturn
+rk_aiq_user_api2_awb_SetNNres(const rk_aiq_sys_ctx_t* sys_ctx, awb_ai_res_t *attr)
+{
+#if RKAIQ_HAVE_AWB_V39
+
+    CHECK_USER_API_ENABLE2(sys_ctx);
+    CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AWB);
+    RKAIQ_API_SMART_LOCK(sys_ctx);
+    if (sys_ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
+        LOGW_AWB("%s:bypass",__FUNCTION__);
+        return XCAM_RETURN_NO_ERROR;//TODO
+    } else {
+        AiqAlgoHandlerAwb_t* algo_handle =
+            (AiqAlgoHandlerAwb_t*)sys_ctx->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AWB];
+
+        if (algo_handle) {
+            return AiqAlgoHandlerAwb_SetNNres(algo_handle, attr);
+        }
+        return XCAM_RETURN_NO_ERROR;
+    }
+#else
+    return XCAM_RETURN_ERROR_UNKNOWN;
+#endif
+}

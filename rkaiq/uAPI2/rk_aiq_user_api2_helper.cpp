@@ -398,6 +398,19 @@ RkAiqUapiDesc_t rkaiq_uapidesc_list[] = {
     __RKAIQUAPI_DESC_DEF("/uapi/0/measure_info/wb_log/info/awb_strategy_result",
                          rk_tool_awb_strategy_result_t, NULL,
                          rk_aiq_user_api2_awb_getStrategyResult),
+#if defined(ISP_HW_V20) || defined(ISP_HW_V21)
+    __RKAIQUAPI_DESC_DEF("/uapi/0/measure_info/af_hwstats", uapi_af_v20stats_t,
+                         NULL, rk_aiq_uapi_get_af_stats),
+#elif defined(ISP_HW_V30) || defined(ISP_HW_V32)
+    __RKAIQUAPI_DESC_DEF("/uapi/0/measure_info/af_hwstats", uapi_af_v30stats_t,
+                         NULL, rk_aiq_uapi_get_af_v3xstats),
+#elif defined(ISP_HW_V32_LITE)
+    __RKAIQUAPI_DESC_DEF("/uapi/0/measure_info/af_hwstats", uapi_af_v32litestats_t,
+                         NULL, rk_aiq_uapi_get_af_v32litestats),
+#elif defined(ISP_HW_V39) || defined(ISP_HW_V35)
+    __RKAIQUAPI_DESC_DEF("/uapi/0/measure_info/af_hwstats", afStats_stats_t,
+                         NULL, rk_aiq_uapi_get_af_newstats),
+#endif
 
     __RKAIQUAPI_DESC_DEF("/uapi/0/accm_uapi/mode", uapi_wb_mode_t, rk_aiq_set_tool_accm_mode,
                          rk_aiq_get_accm_mode),

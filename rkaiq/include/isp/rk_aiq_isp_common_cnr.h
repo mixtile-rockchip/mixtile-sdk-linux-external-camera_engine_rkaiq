@@ -64,6 +64,9 @@ typedef enum cnr_iirSgmRatio_mode_e {
     cnr_locSgmStrg2SgmRat_mode,
 } cnr_iirSgmRatio_mode_t;
 
+
+
+
 typedef struct cnr_sigmaCurve_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(idx),
@@ -155,7 +158,7 @@ typedef struct cnr_loNr_preProc_s {
         M4_ORDER(0),
         M4_NOTES(TODO.\n
         Reference enum types.\n
-        Freq of use: low))  */
+        Freq of use: high))  */
     // @reg: hw_cnrT_thumb_mode
     cnr_ds_mode_t hw_cnrT_ds_mode;
     /* M4_GENERIC_DESC(
@@ -254,6 +257,24 @@ typedef struct cnr_loNr_bifilt_s {
 } cnr_loNr_bifilt_t;
 
 typedef struct cnr_loNr_iirFilt_s {
+#ifdef ISP_HW_V35
+    /* M4_GENERIC_DESC(
+    M4_ALIAS(hw_cnrT_gainAdjHiFltSgm_ratio),
+    M4_TYPE(f32),
+    M4_SIZE_EX(1,13),
+    M4_RANGE_EX(0.0, 4.0),
+    M4_DEFAULT(1.0),
+    M4_DIGIT_EX(3f6b),
+    M4_HIDE_EX(0),
+    M4_UI_MODULE(curve),
+    M4_DATAX([1, 2, 4, 8, 16, 24, 32, 48, 64, 128, 256, 512, 1024]),
+    M4_RO(0),
+    M4_ORDER(0),
+    M4_NOTES(TODO.\n
+    Freq of use: high))  */
+    // @reg: hw_cnrT_gainAdjLoFltSgm_ratio0~12
+    float hw_cnrT_locSgmStrg2SgmRat_val[13];
+#endif
     /* M4_GENERIC_DESC(
         M4_ALIAS(hw_cnrT_loFlt_coeff),
         M4_TYPE(u8),
@@ -291,6 +312,7 @@ typedef struct cnr_loNr_iirFilt_s {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
+        M4_GROUP_CTRL(cnr_rgeSgmRatio_mode_group),
         M4_NOTES(TODO.\n
         Reference enum types.\n
         Freq of use: low))  */
@@ -305,6 +327,7 @@ typedef struct cnr_loNr_iirFilt_s {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
+        M4_GROUP(cnr_rgeSgmRatio_mode_group: cnr_glbSgmRat_locSgmStrg_mode),
         M4_NOTES(TODO.\n
         Freq of use: low))  */
     // reg: hw_cnrT_loFltGlobalSgmRatio_alpha
@@ -395,7 +418,7 @@ typedef struct cnr_hiNr_preLpf_s {
         M4_GROUP(hiNr_filtCfg_mode_group:cnr_cfgByFiltStrg_mode),
         M4_NOTES(The spatial wgt of preLpf is operator from the strength value. Only valid on cnr_cfgByFiltStrg_mode.\n
         Higher the value, the higher spatial denoise strength.\n
-        Freq of use: high))  */
+        Freq of use: low))  */
     // @reg: hw_cnrT_gausFlt_coeff0~hw_cnrT_gausFlt_coeff5
     float sw_cnrT_filtSpatial_strg;
     /* M4_GENERIC_DESC(
@@ -426,7 +449,7 @@ typedef struct cnr_hiNr_preLpf_s {
         M4_RO(0),
         M4_ORDER(1),
         M4_NOTES(TODO.\n
-        Freq of use: high))  */
+        Freq of use: low))  */
     // @reg: hw_cnrT_gausFlt_alpha
     float hw_cnrT_lpfOut_alpha;
 } cnr_hiNr_preLpf_t;

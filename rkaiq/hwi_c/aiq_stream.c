@@ -728,6 +728,7 @@ static void AiqAinr_IspStream_start(AiqStream_t* pStream) {
 static void AiqAinr_IspStream_stop(AiqStream_t* pStream) {
     AiqAinrIspStream_t* pIspPartStrm = (AiqAinrIspStream_t*)pStream;
     RKStream_stopThreadOnly(&pIspPartStrm->_base);
+    AiqAinr_close_IspStream(pIspPartStrm);
     AiqV4l2Device_unsubscribeEvt2(pIspPartStrm->_base._dev, RKISP_V4L2_EVENT_AIISP_LINECNT, RKISP_AIISP_WR_LINECNT_ID);
     AiqV4l2Device_unsubscribeEvt2(pIspPartStrm->_base._dev, RKISP_V4L2_EVENT_AIISP_LINECNT, RKISP_AIISP_RD_LINECNT_ID);
     RKStream_stopDeviceOnly(&pIspPartStrm->_base);

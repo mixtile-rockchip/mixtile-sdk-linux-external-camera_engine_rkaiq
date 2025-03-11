@@ -86,6 +86,9 @@ typedef struct GlobalParamsManager_s {
 #if RKAIQ_HAVE_YUVME
     bool yme_init_enable;
 #endif
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
+    bool btnr_init_enable;
+#endif
 } GlobalParamsManager_t;
 
 XCamReturn GlobalParamsManager_init(GlobalParamsManager_t* pMan, bool isFullManMode, CamCalibDbV2Context_t* calibDb);

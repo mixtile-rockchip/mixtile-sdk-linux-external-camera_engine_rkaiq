@@ -1067,6 +1067,39 @@ XCamReturn AiqAlgoHandlerAe_getExpSubWinAttr(AiqAlgoHandlerAe_t* pAeHdl, Uapi_Ex
     return ret;
 }
 
+XCamReturn AiqAlgoHandlerAe_setFrameHdrAttr(AiqAlgoHandlerAe_t* pAeHdl, Uapi_FrameHdrAttr_t FrameHdrAttr)
+{
+    ENTER_ANALYZER_FUNCTION();
+
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    AiqAlgoHandler_t* pHdl = (AiqAlgoHandler_t*)pAeHdl;
+    aiqMutex_lock(&pHdl->mCfgMutex);
+
+    rk_aiq_uapi_ae_setFrameHdrAttr(pHdl->mAlgoCtx, &FrameHdrAttr, false, false);
+    AeInstanceConfig_t* pAeInstConfig = (AeInstanceConfig_t*)pHdl->mAlgoCtx;
+    AeConfig_t pAecCfg                = pAeInstConfig->aecCfg;
+    pAecCfg->IsReconfig |= UPDATE_FRAMEHDRATTR;
+    aiqMutex_unlock(&pHdl->mCfgMutex);
+
+    EXIT_ANALYZER_FUNCTION();
+    return ret;
+}
+XCamReturn AiqAlgoHandlerAe_getFrameHdrAttr(AiqAlgoHandlerAe_t* pAeHdl, Uapi_FrameHdrAttr_t* pFrameHdrAttr)
+{
+    ENTER_ANALYZER_FUNCTION();
+
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    AiqAlgoHandler_t* pHdl = (AiqAlgoHandler_t*)pAeHdl;
+    aiqMutex_lock(&pHdl->mCfgMutex);
+
+    rk_aiq_uapi_ae_getFrameHdrAttr(pHdl->mAlgoCtx, pFrameHdrAttr, false);
+    pFrameHdrAttr->sync.done = true;
+    aiqMutex_unlock(&pHdl->mCfgMutex);
+
+    EXIT_ANALYZER_FUNCTION();
+    return ret;
+}
+
 XCamReturn AiqAlgoHandlerAe_setAecStatsCfg(AiqAlgoHandlerAe_t* pAeHdl, Uapi_AecStatsCfg_t AecStatsCfg)
 {
     ENTER_ANALYZER_FUNCTION();

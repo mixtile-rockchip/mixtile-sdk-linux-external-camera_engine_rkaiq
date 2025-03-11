@@ -130,6 +130,8 @@ public:
     virtual XCamReturn getAecStatsCfg(Uapi_AecStatsCfg_t* pAecStatsCfg);
     virtual XCamReturn setExpSubWinAttr(Uapi_ExpSubWin_t ExpSubWinAttr);
     virtual XCamReturn getExpSubWinAttr(Uapi_ExpSubWin_t* pExpSubWinAttr);
+    virtual XCamReturn setFrameHdrAttr(Uapi_FrameHdrAttr_t FrameHdrAttr);
+    virtual XCamReturn getFrameHdrAttr(Uapi_FrameHdrAttr_t* pFrameHdrAttr);
 
     virtual XCamReturn genIspResult(RkAiqFullParams* params, RkAiqFullParams* cur_params);
     virtual XCamReturn setAOVForAE(bool en);
@@ -173,6 +175,8 @@ private:
     Uapi_AecStatsCfg_t mNewAecStatsCfg;
     Uapi_ExpSubWin_t mCurExpSubWinAttr;
     Uapi_ExpSubWin_t mNewExpSubWinAttr;
+    Uapi_FrameHdrAttr_t mCurFrameHdrAttr;
+    Uapi_FrameHdrAttr_t mNewFrameHdrAttr;
 
     // TODO: calibv1
     bool updateExpSwAttr  = false;
@@ -191,6 +195,7 @@ private:
     mutable std::atomic<bool> updateExpWinAttr;
     mutable std::atomic<bool> updateAecStatsCfg;
     mutable std::atomic<bool> updateExpSubWinAttr;
+    mutable std::atomic<bool> updateFrameHdrAttr;
 
     uint16_t updateAttr = 0;
 #endif

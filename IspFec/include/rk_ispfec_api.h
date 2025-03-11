@@ -18,6 +18,8 @@
 #ifndef _RK_ISPFEC_API_H_
 #define _RK_ISPFEC_API_H_
 
+#include "rkfec_config.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -65,6 +67,12 @@ typedef struct mesh_info_s {
     char mesh_file[64];
 } mesh_info_t;
 
+typedef struct rk_ispfec_bg_val_s {
+    int bg_y;
+    int bg_u;
+    int bg_v;
+} rk_ispfec_bg_val;
+
 typedef struct rk_ispfec_cfg_s {
     // 输入输出的分辨率
     int in_width;
@@ -74,11 +82,24 @@ typedef struct rk_ispfec_cfg_s {
     // 输入输出的 v4l2 fmt
     int in_fourcc;
     int out_fourcc;
+
+#ifdef RKFEC_HW_V20
+    // 超边界配置
+    int border_mode;
+    int cross_buf_mode;
+
+    // 超边界配置背景像素值
+    rk_ispfec_bg_val bg_val;
+
+    // mesh 表 buf fd，外部分配，可用 rk_ispfec_api_calFecMeshsize 计算size
+    mesh_info_t mesh_info;
+#else
     // mesh 表 buf fd，外部分配，可用 rk_ispfec_api_calFecMeshsize 计算size
     mesh_info_t mesh_xint;
     mesh_info_t mesh_xfra;
     mesh_info_t mesh_yint;
     mesh_info_t mesh_yfra;
+#endif
 
     enum rk_ispfec_update_mesh_mode mesh_upd_mode;
 

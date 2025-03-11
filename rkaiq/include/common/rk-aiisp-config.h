@@ -9,7 +9,8 @@
 
 #include "common/rkisp2-config.h"
 
-#define RKAIISP_MAX_RUNCNT			4
+#define RKAIISP_PYRAMID_LAYER_NUM		4
+#define RKAIISP_MAX_RUNCNT			8
 #define RKAIISP_MAX_ISPBUF			8
 #define RKAIISP_MODEL_UPDATE			0x01
 #define RKAIISP_OTHER_UPDATE			0x02
@@ -44,6 +45,12 @@ enum rkaiisp_chn_src {
 	VPSL_SIG_CHN4,
 	ISP_AIPRE_NARMAP,
 	AIISP_LAST_OUT
+};
+
+enum rkaiisp_model_mode {
+	SINGLE_MODE,
+	COMBO_MODE,
+	SINGLEX2_MODE
 };
 
 enum rkaiisp_exemode {
@@ -111,21 +118,23 @@ struct rkaiisp_params {
 	__u32 frame_id;
 	__u32 module_update;
 	__u32 model_runcnt;
+	enum rkaiisp_model_mode model_mode;
 
 	struct rkaiisp_other_cfg other_cfg;
 	struct rkaiisp_model_cfg model_cfg[RKAIISP_MAX_RUNCNT];
 	struct rkaiisp_kwt_cfg kwt_cfg;
-	__u8 reserved[40];
+	__u8 reserved[36];
 } __attribute__ ((packed));
 
 struct rkaiisp_model_info {
 	__u32 checksum;
 	__u32 model_runcnt;
 	float model_qr;
+	enum rkaiisp_model_mode model_mode;
 
 	struct rkaiisp_model_cfg model_cfg[RKAIISP_MAX_RUNCNT];
 	struct rkaiisp_kwt_cfg kwt_cfg;
-	__u8 reserved[52];
+	__u8 reserved[48];
 } __attribute__ ((packed));
 
 #endif /* _UAPI_RK_AIISP_CONFIG_H */

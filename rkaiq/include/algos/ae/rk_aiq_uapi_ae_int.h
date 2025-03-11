@@ -32,7 +32,8 @@ XCamReturn rk_aiq_uapi_ae_getAecStatsCfg(RkAiqAlgoContext* ctx, Uapi_AecStatsCfg
 XCamReturn rk_aiq_uapi_ae_setAOV(RkAiqAlgoContext* ctx, bool enAOV);
 XCamReturn rk_aiq_uapi_ae_setExpSubWinAttr(RkAiqAlgoContext* ctx, const Uapi_ExpSubWin_t* pExpSubWinAttr, bool need_sync);
 XCamReturn rk_aiq_uapi_ae_getExpSubWinAttr(RkAiqAlgoContext* ctx, Uapi_ExpSubWin_t* pExpSubWinAttr);
-
+XCamReturn rk_aiq_uapi_ae_setFrameHdrAttr(RkAiqAlgoContext* ctx, const Uapi_FrameHdrAttr_t* pFrameHdrAttr, bool isGroupAe, bool need_sync);
+XCamReturn rk_aiq_uapi_ae_getFrameHdrAttr(RkAiqAlgoContext* ctx, Uapi_FrameHdrAttr_t* pFrameHdrAttr, bool isGroupAe);
 
 #ifndef USE_NEWSTRUCT
 XCamReturn rk_aiq_uapi_ae_setExpSwAttr(RkAiqAlgoContext* ctx, const Uapi_ExpSwAttrV2_t* pExpSwAttr, bool isGroupAe, bool need_sync);

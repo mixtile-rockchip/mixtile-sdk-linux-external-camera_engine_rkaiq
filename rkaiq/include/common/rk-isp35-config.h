@@ -323,17 +323,17 @@ struct isp35_debayer_cfg {
 	/* G_FILTER_VSIGMA */
 	__u16 gflt_vsigma[ISP35_DEBAYER_VSIGMA_NUM];
 	/* C_FILTER_GUIDE_GAUS */
-	__s8 cnr_lo_guide_lpf_coe0;
-	__s8 cnr_lo_guide_lpf_coe1;
-	__s8 cnr_lo_guide_lpf_coe2;
+	__u8 cnr_lo_guide_lpf_coe0;
+	__u8 cnr_lo_guide_lpf_coe1;
+	__u8 cnr_lo_guide_lpf_coe2;
 	/* C_FILTER_CE_GAUS */
-	__s8 cnr_pre_flt_coe0;
-	__s8 cnr_pre_flt_coe1;
-	__s8 cnr_pre_flt_coe2;
+	__u8 cnr_pre_flt_coe0;
+	__u8 cnr_pre_flt_coe1;
+	__u8 cnr_pre_flt_coe2;
 	/* C_FILTER_ALPHA_GAUS */
-	__s8 cnr_alpha_lpf_coe0;
-	__s8 cnr_alpha_lpf_coe1;
-	__s8 cnr_alpha_lpf_coe2;
+	__u8 cnr_alpha_lpf_coe0;
+	__u8 cnr_alpha_lpf_coe1;
+	__u8 cnr_alpha_lpf_coe2;
 	/* C_FILTER_LOG_OFFSET */
 	__u16 cnr_log_grad_offset;
 	__u16 cnr_log_guide_offset;
@@ -557,16 +557,16 @@ struct isp35_bay3d_cfg {
 	__u16 mode0_wgt_out_max_limit;
 	__u16 mode0_wgt_out_offset;
 	/* BAY3D_LOCOEF0 */
-	__u8 lo_dif_hflt_coeff0;
-	__u8 lo_dif_hflt_coeff1;
-	__u8 lo_dif_hflt_coeff2;
-	__u8 sig_hflt_coeff0;
-	__u8 sig_hflt_coeff1;
-	__u8 sig_hflt_coeff2;
-	/* BAY3D_LOCOEF1 */
-	__u8 lo_wgt_hflt_coeff0;
-	__u8 lo_wgt_hflt_coeff1;
 	__u8 lo_wgt_hflt_coeff2;
+	__u8 lo_wgt_hflt_coeff1;
+	__u8 lo_wgt_hflt_coeff0;
+	__u8 sig_hflt_coeff2;
+	__u8 sig_hflt_coeff1;
+	__u8 sig_hflt_coeff0;
+	/* BAY3D_LOCOEF1 */
+	__u8 lo_dif_hflt_coeff2;
+	__u8 lo_dif_hflt_coeff1;
+	__u8 lo_dif_hflt_coeff0;
 	/* BAY3D_DPC0 */
 	__u8 pre_spnr_dpc_bright_str;
 	__u8 pre_spnr_dpc_dark_str;

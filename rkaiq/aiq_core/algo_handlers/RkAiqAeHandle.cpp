@@ -1081,7 +1081,7 @@ XCamReturn RkAiqAeHandleInt::getAecStatsCfg(Uapi_AecStatsCfg_t* pAecStatsCfg) {
             memcpy(pAecStatsCfg, &mNewAecStatsCfg, sizeof(mNewAecStatsCfg));
             pAecStatsCfg->sync.done = false;
         } else {
-            rk_aiq_uapi_ae_getExpWinAttr(mAlgoCtx, pAecStatsCfg);
+            rk_aiq_uapi_ae_getAecStatsCfg(mAlgoCtx, pAecStatsCfg, false);
             pAecStatsCfg->sync.sync_mode = mNewAecStatsCfg.sync.sync_mode;
             pAecStatsCfg->sync.done      = true;
         }
@@ -1151,6 +1151,72 @@ XCamReturn RkAiqAeHandleInt::getExpSubWinAttr(Uapi_ExpSubWin_t* pExpSubWinAttr) 
             rk_aiq_uapi_ae_getExpSubWinAttr(mAlgoCtx, pExpSubWinAttr);
             pExpSubWinAttr->sync.sync_mode = mNewExpSubWinAttr.sync.sync_mode;
             pExpSubWinAttr->sync.done      = true;
+        }
+    }
+#endif
+
+    EXIT_ANALYZER_FUNCTION();
+    return ret;
+}
+
+XCamReturn RkAiqAeHandleInt::setFrameHdrAttr(Uapi_FrameHdrAttr_t FrameHdrAttr) {
+    ENTER_ANALYZER_FUNCTION();
+
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    mCfgMutex.lock();
+
+#ifdef DISABLE_HANDLE_ATTRIB
+    rk_aiq_uapi_ae_setFrameHdrAttr(mAlgoCtx, &FrameHdrAttr, false, false);
+    AeInstanceConfig_t* pAeInstConfig = (AeInstanceConfig_t*)mAlgoCtx;
+    AeConfig_t pAecCfg                = pAeInstConfig->aecCfg;
+    pAecCfg->IsReconfig |= UPDATE_FRAMEHDRATTR;
+#else
+    bool isChanged = false;
+    if (FrameHdrAttr.sync.sync_mode == RK_AIQ_UAPI_MODE_ASYNC && \
+            memcmp(&mNewFrameHdrAttr, &FrameHdrAttr, sizeof(FrameHdrAttr)))
+        isChanged = true;
+    else if (FrameHdrAttr.sync.sync_mode != RK_AIQ_UAPI_MODE_ASYNC && \
+             memcmp(&mCurFrameHdrAttr, &FrameHdrAttr, sizeof(FrameHdrAttr)))
+        isChanged = true;
+
+    // if something changed
+    if (isChanged) {
+        mNewFrameHdrAttr   = FrameHdrAttr;
+        updateFrameHdrAttr = true;
+        waitSignal(FrameHdrAttr.sync.sync_mode);
+    }
+#endif
+
+    mCfgMutex.unlock();
+
+    EXIT_ANALYZER_FUNCTION();
+    return ret;
+}
+
+XCamReturn RkAiqAeHandleInt::getFrameHdrAttr(Uapi_FrameHdrAttr_t* pFrameHdrAttr) {
+    ENTER_ANALYZER_FUNCTION();
+
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+#ifdef DISABLE_HANDLE_ATTRIB
+    mCfgMutex.lock();
+    rk_aiq_uapi_ae_getFrameHdrAttr(mAlgoCtx, pFrameHdrAttr, false);
+    pFrameHdrAttr->sync.done = true;
+    mCfgMutex.unlock();
+#else
+    if (pFrameHdrAttr->sync.sync_mode == RK_AIQ_UAPI_MODE_SYNC) {
+        mCfgMutex.lock();
+        rk_aiq_uapi_ae_getFrameHdrAttr(mAlgoCtx, pFrameHdrAttr, false);
+        pFrameHdrAttr->sync.done = true;
+        mCfgMutex.unlock();
+    } else {
+        if (updateFrameHdrAttr) {
+            memcpy(pFrameHdrAttr, &mNewFrameHdrAttr, sizeof(mNewFrameHdrAttr));
+            pFrameHdrAttr->sync.done = false;
+        } else {
+            rk_aiq_uapi_ae_getFrameHdrAttr(mAlgoCtx, pFrameHdrAttr);
+            pFrameHdrAttr->sync.sync_mode = mNewFrameHdrAttr.sync.sync_mode;
+            pFrameHdrAttr->sync.done      = true;
         }
     }
 #endif

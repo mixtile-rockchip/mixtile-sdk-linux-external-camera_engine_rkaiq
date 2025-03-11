@@ -500,7 +500,7 @@ void rk_aiq_sharp41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_
         int coeff[6];
         int radius = pdyn->detailShp.midDetailExtra_lpf.sw_shpT_filtRadius_mode;
         if (pdyn->detailShp.midDetailExtra_lpf.sw_shpT_filtCfg_mode == shp_cfgByFiltStrg_mode) {
-            float rsigma = pdyn->detailShp.midDetailExtra_lpf.sw_shpT_filt_strg;
+            float rsigma = pdyn->detailShp.midDetailExtra_lpf.sw_shpT_filtSpatial_strg;
             SharpCreateKernelCoeffs(radius, 5 / 2, rsigma, coeff, 7, 2);
         } else {
             for (i = 0; i < 6; i++)
@@ -624,8 +624,8 @@ void rk_aiq_sharp41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_
         int coeff0[10];
         int coeff1[10];
         int coeff[10];
-        int radius0 = pdyn->edgeShp.edgeExtra_bpf.sw_shpT_loFiltRadi_mode;
-        int radius1 = pdyn->edgeShp.edgeExtra_bpf.sw_shpT_upFiltRadi_mode;
+        int radius0 = pdyn->edgeShp.edgeExtra_bpf.sw_shpT_loFiltRadius_mode;
+        int radius1 = pdyn->edgeShp.edgeExtra_bpf.sw_shpT_upFiltRadius_mode;
         if (pdyn->edgeShp.edgeExtra_bpf.sw_shpT_filtCfg_mode == shp_cfgByFiltStrg_mode) {
             float rsigma0 = pdyn->edgeShp.edgeExtra_bpf.sw_shpT_loFiltSpatial_strg;
             float rsigma1 = pdyn->edgeShp.edgeExtra_bpf.sw_shpT_upFiltSpatial_strg;
@@ -1120,8 +1120,14 @@ void rk_aiq_sharp41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_
 
     {
         int coeff[3];
-        float rsigma = pdyn->edgeShp.locShpStrg_edge.sw_shpT_edgeWgtFlt_strg;
-        SharpCreateKernelCoeffs(1, 1, rsigma, coeff, 6, 2);
+        if (pdyn->edgeShp.locShpStrg_edge.sw_shpT_edgeWgtFltCfg_mode == shp_cfgByFiltStrg_mode) {
+            float rsigma = pdyn->edgeShp.locShpStrg_edge.sw_shpT_edgeWgtFlt_strg;
+            SharpCreateKernelCoeffs(1, 1, rsigma, coeff, 6, 2);
+        } else {
+            for (i = 0; i < 3; i++) {
+                coeff[i] = ROUND_F(pdyn->edgeShp.locShpStrg_edge.sw_shpT_edgeWgtFlt_wgt[i] * (1 << 6));
+            }
+        }
 
         SharpKernelCoeffsNormalization(coeff, 1, (1 << 6), 2);
 
@@ -1130,18 +1136,26 @@ void rk_aiq_sharp41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_
         pCfg->edge_wgt_flt_coeff2 = CLIP(coeff[2], 0, 0x3f);
     }
 
-	// edge global clip
-	pCfg->edge_glb_clip_thred = pdyn->edgeShp.shootReduction.hw_shpT_glbClip_thred;
-	pCfg->pos_edge_clip       = pdyn->edgeShp.shootReduction.hw_shpT_edgePosClip_val;
-	pCfg->neg_edge_clip       = pdyn->edgeShp.shootReduction.hw_shpT_edgeNegClip_val;
+    // edge global clip
+    tmp = pdyn->edgeShp.shootReduction.hw_shpT_glbClip_thred;
+    pCfg->edge_glb_clip_thred = CLIP(tmp, 0, 0x3ff);
+    tmp = pdyn->edgeShp.shootReduction.hw_shpT_edgePosClip_val;
+    pCfg->pos_edge_clip       = CLIP(tmp, 0, 0x3ff);
+    tmp =  pdyn->edgeShp.shootReduction.hw_shpT_edgeNegClip_val;
+    pCfg->neg_edge_clip       = CLIP(tmp, 0, 0x3ff);
 
-	// global mi-freq strg	
-	pCfg->pos_mf_detail_strg    = ROUND_F(pdyn->mfDetailShp.glbShpStrg.hw_shpT_detailPos_strg * (1 << 2));
-	pCfg->neg_mf_detail_strg    = ROUND_F(pdyn->mfDetailShp.glbShpStrg.hw_shpT_detailNeg_strg * (1 << 2));
-	pCfg->mf_detail_data_alpha  = ROUND_F(pdyn->mfDetailShp.detailExtra.hw_shpT_detailSrcMf_alpha * (1 << 5));
-	// mifreq clip
-	pCfg->mf_detail_pos_clip    = pdyn->mfDetailShp.shootReduction.hw_shpT_detailPosClip_val;
-	pCfg->sharp_mf_detail_neg_clip = pdyn->mfDetailShp.shootReduction.hw_shpT_detailNegClip_val;
+    // global mi-freq strg
+    tmp = ROUND_F(pdyn->mfDetailShp.glbShpStrg.hw_shpT_detailPos_strg * (1 << 2));
+    pCfg->pos_mf_detail_strg    = CLIP(tmp, 0, 0x3f);
+    tmp = ROUND_F(pdyn->mfDetailShp.glbShpStrg.hw_shpT_detailNeg_strg * (1 << 2));
+    pCfg->neg_mf_detail_strg    = CLIP(tmp, 0, 0x3f);
+    tmp = ROUND_F(pdyn->mfDetailShp.detailExtra.hw_shpT_detailSrcMf_alpha * (1 << 5));
+    pCfg->mf_detail_data_alpha  = CLIP(tmp, 0, 0x20);
+    // mifreq clip
+    tmp = pdyn->mfDetailShp.shootReduction.hw_shpT_detailPosClip_val;
+    pCfg->mf_detail_pos_clip    = CLIP(tmp, 0, 0x3ff);
+    tmp = pdyn->mfDetailShp.shootReduction.hw_shpT_detailNegClip_val;
+    pCfg->sharp_mf_detail_neg_clip = CLIP(tmp, 0, 0x3ff);
 
     {
         int sat_adj_strg[9];
@@ -1164,8 +1178,10 @@ void rk_aiq_sharp41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_
         pCfg->staturation2strg[7] = CLIP(sat_adj_strg[7], 0, 0x1f);
         pCfg->staturation2strg[8] = CLIP(sat_adj_strg[8], 0, 0x1f);
     }
-	// saturation strength 
-	pCfg->lo_saturation_strg = ROUND_F(pdyn->locShpStrg.sat.hw_shpT_loSatRegionShp_strg * (1 << 9));
+    // saturation strength
+
+    tmp = ROUND_F(pdyn->locShpStrg.sat.hw_shpT_loSatRegionShp_strg * (1 << 9));
+    pCfg->lo_saturation_strg = CLIP(tmp, 0, 0x3ff);
 
     return;
 }

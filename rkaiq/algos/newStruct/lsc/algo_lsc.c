@@ -80,7 +80,7 @@ static int get_all_mesh_by_name(LscContext_t *pLscCtx, char *name) {
     for (i=0; i<table_len; i++) {
         alsc_tableAll_t *pTable = &calibdb->tableAll[i];
         if (strncmp(name, pTable->sw_lscC_illu_name, ALSC_ILLUM_NAME_LEN) == 0) {
-            LOGI_ALSC("%s: pTable name %s, sw_lscC_vignetting_val %f i %d\n", 
+            LOGI_ALSC("%s: pTable name %s, sw_lscC_vignetting_val %f i %d\n",
                     __func__, pTable->sw_lscC_illu_name, pTable->sw_lscC_vignetting_val, i);
             mesh_all[cnt] = i;
             cnt ++;
@@ -303,7 +303,7 @@ XCamReturn Alsc_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
     if (inparams->u.proc.is_attrib_update || inparams->u.proc.init) {
         need_recal = true;
     }
-
+    LOGD_ALSC("awbGain= (%f, %f)", swinfo->awbGain[0], swinfo->awbGain[1]);
     int illu_idx = illu_estm_once(&tunning->stAuto.dyn, swinfo->awbGain);
     if (illu_idx < 0) {
         LOGE_ALSC("illu_estm_once failed!");
@@ -437,7 +437,7 @@ static int dump(const RkAiqAlgoCom* config, st_string* result)
 
 XCamReturn algo_lsc_queryalscStatus
 (
-    RkAiqAlgoContext* ctx, 
+    RkAiqAlgoContext* ctx,
     alsc_status_t* status
 )
 {
@@ -449,10 +449,10 @@ XCamReturn algo_lsc_queryalscStatus
     LscContext_t* pLscCtx = (LscContext_t*)ctx;
     lsc_param_auto_t* stAuto = &pLscCtx->lsc_attrib->tunning.stAuto;
 
-    strncpy(status->sw_lscC_illuUsed_name, 
-            stAuto->dyn.illuLink[pLscCtx->pre_illu_idx].sw_lscC_illu_name, 
+    strncpy(status->sw_lscC_illuUsed_name,
+            stAuto->dyn.illuLink[pLscCtx->pre_illu_idx].sw_lscC_illu_name,
             ALSC_ILLUM_NAME_LEN - 1);
-    
+
     status->sw_lscC_vignetting_val = pLscCtx->pre_vignetting;
 
     return XCAM_RETURN_NO_ERROR;

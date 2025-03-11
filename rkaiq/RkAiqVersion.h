@@ -858,10 +858,12 @@
  *     https://10.10.10.29/c/rk/kernel/+/238143/9
  * - tuning tool of ae and awb support api path
  * - improve dumpcam
+ * v6.0x30.0
+ * - support isp35 
  */
 
-#define RK_AIQ_VERSION_REAL_V "v6.0x9.0"
-#define RK_AIQ_RELEASE_DATE "2024-12-13"
+#define RK_AIQ_VERSION_REAL_V "v6.0x30.0"
+#define RK_AIQ_RELEASE_DATE "2025-03-24"
 
 #define RK_AIQ_IQ_HEAD_VERSION_REAL_V "v1.0.2"
 

@@ -203,8 +203,8 @@ static void Damping(HsvContext_t* pHsvCtx, float damp)
                          HSV_2DLUT_NUM, 7, &lutSum[3]);
         LOGD_AHSV("lut2d1: Damping 0, lutsum2 %d -> %d\n",
                   lutSum[3], pHsvCtx->pre_lutSum[3]);
-        }
-    if (sta->hsvCfg.hw_hsvT_lut2d_en) {
+    }
+    if (sta->hsvCfg.hw_hsvT_lut2d2_en) {
         array_weight_sum(pDamped->lut2d2, pUndamped->lut2d2, f1,
                          HSV_2DLUT_NUM, 7, &lutSum[4]);
         LOGD_AHSV("lut2d2: Damping %f, lutsum2 %d -> %d\n",
@@ -248,6 +248,12 @@ XCamReturn Ahsv_prepare(RkAiqAlgoCom* params)
     pHsvCtx->pre_lutSum[0] = -1;
     pHsvCtx->pre_lutSum[1] = -1;
     pHsvCtx->pre_lutSum[2] = -1;
+#if RKAIQ_HAVE_HSV_V11
+    pHsvCtx->pre_mode[3] = INVALID_ILLU_IDX;
+    pHsvCtx->pre_mode[4] = INVALID_ILLU_IDX;
+    pHsvCtx->pre_lutSum[3] = -1;
+    pHsvCtx->pre_lutSum[4] = -1;
+#endif
     pHsvCtx->damp_converged = false;
     pHsvCtx->is_calib_update = false;
 
@@ -339,24 +345,30 @@ XCamReturn Ahsv_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
                    sizeof(pHsvCtx->calib_lut->lut1d1.hw_hsvT_lut1d_val));
         if (tunning->stAuto.sta.hsvCfg.hw_hsvT_lut2d_en) {
             interpolate_lut2d_alpha(alpha, &pHsvCtx->calib_lut->lut2d, pHsvCtx->undamped_lut.lut2);
-#if RKAIQ_HAVE_HSV_V11
-            interpolate_lut2d_alpha(alpha, &pHsvCtx->calib_lut->lut2d1, pHsvCtx->undamped_lut.lut2d1);
-            interpolate_lut2d_alpha(alpha, &pHsvCtx->calib_lut->lut2d2, pHsvCtx->undamped_lut.lut2d2);
-#endif
         }
         else {
             memcpy(pHsvCtx->undamped_lut.lut2,
                    pHsvCtx->calib_lut->lut2d.hw_hsvT_lut2d_val,
                    sizeof(pHsvCtx->calib_lut->lut2d.hw_hsvT_lut2d_val));
+        }
 #if RKAIQ_HAVE_HSV_V11
+        if (tunning->stAuto.sta.hsvCfg.hw_hsvT_lut2d1_en) {
+            interpolate_lut2d_alpha(alpha, &pHsvCtx->calib_lut->lut2d1, pHsvCtx->undamped_lut.lut2d1);
+        }
+        else {
             memcpy(pHsvCtx->undamped_lut.lut2d1,
                    pHsvCtx->calib_lut->lut2d1.hw_hsvT_lut2d_val,
                    sizeof(pHsvCtx->calib_lut->lut2d1.hw_hsvT_lut2d_val));
+        }
+        if (tunning->stAuto.sta.hsvCfg.hw_hsvT_lut2d2_en) {
+            interpolate_lut2d_alpha(alpha, &pHsvCtx->calib_lut->lut2d2, pHsvCtx->undamped_lut.lut2d2);
+        }
+        else {
             memcpy(pHsvCtx->undamped_lut.lut2d2,
                    pHsvCtx->calib_lut->lut2d2.hw_hsvT_lut2d_val,
                    sizeof(pHsvCtx->calib_lut->lut2d2.hw_hsvT_lut2d_val));
-#endif
         }
+#endif
     }
 
     //(4) damp

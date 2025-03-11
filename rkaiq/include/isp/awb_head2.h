@@ -108,6 +108,8 @@ typedef enum awb_ganCalcMethod_s{
     awb_gan_calc_method_wp_big = 3,
     awb_gan_calc_method_wp_ext = 4,
     awb_gan_calc_method_sgc = 5,
+    awb_gan_calc_method_nn = 6,
+    awb_gan_calc_method_reserve = 7,
 }awb_ganCalcMethod_e;
 
 typedef struct awb_cct_s {
@@ -1543,6 +1545,7 @@ typedef struct awb_zoneWgt_s{
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
+        M4_UI_MODULE(grid_weight_table),
         M4_NOTES(The weight of each zone in awb statistics..\n
         Freq of use: high))  */
     //reg:sw_rawawb_wp_blk_wei_w0~224

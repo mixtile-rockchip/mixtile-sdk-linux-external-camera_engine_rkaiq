@@ -25,10 +25,10 @@
 RKAIQ_BEGIN_DECLARE
 
 #define AINR_IIR_BUF_CNT                3
-#define AINR_GAIN_BUF_CNT               3
+#define AINR_GAIN_BUF_CNT               4
 #define AINR_AIPRE_BUF_CNT              3
 #define AINR_VPSL_BUF_CNT               3
-#define AINR_AIISP_BUF_CNT              4
+#define AINR_AIISP_BUF_CNT              3
 #define AINR_AIISP_MODE                 BOTHEVENT_TO_AIQ
 
 #if RKAIQ_HAVE_AINR
@@ -36,8 +36,10 @@ RKAIQ_BEGIN_DECLARE
 typedef struct AinrManager_s AinrManager_t;
 typedef struct AinrManager_s {
     bool is_enable;
+    bool is_bypass;
     bool is_start;
     bool is_param_update;
+    bool is_parambuf_prepare;
     uint32_t model_max_runcnt;
     uint32_t isp_acq_width;
     uint32_t isp_acq_height;

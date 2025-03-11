@@ -262,7 +262,7 @@ static XCamReturn readModel(AinrManager_t* pAinrManager, CamCalibDbV2Context_t* 
 
             runcnt = model_info.model_runcnt;
             kwt_cfg = &model_info.kwt_cfg;
-            if (runcnt != 3 && runcnt != 4) {
+            if (runcnt != 3 && runcnt != 4 && runcnt != 8) {
                 LOGE_AINR("%s(%d): %s: runcnt(%d) is error\n",
                     __FUNCTION__, __LINE__, tunning->sw_ainrT_model_file, runcnt);
                 XCAM_ASSERT(false);
@@ -343,15 +343,14 @@ XCamReturn AinrManager_prepare(AinrManager_t* pAinrManager, AiqCamHwBase_t* pCam
     pAinrManager->pCalibDbV2      = pCalibDbV2;
     pAinrManager->isp_acq_width   = isp_acq_width;
     pAinrManager->isp_acq_height  = isp_acq_height;
-
-    if (ainr_attrib->bypass)
-        pAinrManager->is_enable = false;
+    pAinrManager->is_bypass = ainr_attrib->bypass;
 
     if (!pAinrManager->is_enable) {
         LOGD_AINR("%s: ainr is disabled.", __func__);
         return XCAM_RETURN_BYPASS;
     }
 
+    memset(&pAinrManager->last_ainr_params, 0, sizeof(pAinrManager->last_ainr_params));
     readModel(pAinrManager, pCalibDbV2);
     getParamInfo(pAinrManager, &pAinrManager->param_info);
 
@@ -361,14 +360,13 @@ XCamReturn AinrManager_prepare(AinrManager_t* pAinrManager, AiqCamHwBase_t* pCam
     pAinrManager->pCamHw->ainr_init(pAinrManager->pCamHw, pAinrManager, &pAinrManager->mAinrCfg);
     pAinrManager->pCamHw->ainr_setModelInf(pAinrManager->pCamHw, &pAinrManager->mAinrModel);
     pAinrManager->pCamHw->ainr_setParamInf(pAinrManager->pCamHw, &pAinrManager->param_info);
-    pAinrManager->pCamHw->ainr_prepare(pAinrManager->pCamHw);
 
     for (int i = 0; i < AINR_AIISP_BUF_CNT; i++)
         pAinrManager->aiisp_idx_pool[i] = false;
 
     LOGD_AINR("iir_width %d, iir_height %d", isp_acq_width, isp_acq_height);
     calcIspBufSize(ispbuf_info, isp_acq_width, isp_acq_height);
-    pAinrManager->pCamHw->ainr_setIspBufInf(pAinrManager->pCamHw, ispbuf_info);
+    pAinrManager->is_parambuf_prepare = false;
 
     return ret;
 }
@@ -383,6 +381,18 @@ XCamReturn AinrManager_updateParams(AinrManager_t* pAinrManager, rk_aiq_isp_ainr
         return XCAM_RETURN_BYPASS;
     }
 
+    if ((pAinrManager->is_bypass == isp_ainr_params->is_bypass) && isp_ainr_params->is_bypass && pAinrManager->is_parambuf_prepare) {
+        LOGD_AINR("%s: ainr is bypass.", __func__);
+        return XCAM_RETURN_BYPASS;
+    }
+    pAinrManager->is_bypass = isp_ainr_params->is_bypass;
+
+    if (!pAinrManager->is_parambuf_prepare) {
+        pAinrManager->pCamHw->ainr_init(pAinrManager->pCamHw, pAinrManager, &pAinrManager->mAinrCfg);
+        pAinrManager->pCamHw->ainr_setIspBufInf(pAinrManager->pCamHw, &pAinrManager->ispbuf_info);
+        pAinrManager->pCamHw->ainr_prepare(pAinrManager->pCamHw);
+        pAinrManager->is_parambuf_prepare = true;
+    }
     pAinrManager->pCamHw->ainr_getParamsBuf(pAinrManager->pCamHw, &pV4l2Buf);
     if (pV4l2Buf) {
         struct rkaiisp_params* aiisp_cfg = (struct rkaiisp_params*)(AiqV4l2Buffer_getBuf(pV4l2Buf)->m.userptr);
@@ -420,6 +430,7 @@ XCamReturn AinrManager_updateParams(AinrManager_t* pAinrManager, rk_aiq_isp_ainr
                 return XCAM_RETURN_ERROR_FAILED;
             }
 
+            aiisp_cfg->model_mode = model_info->model_mode;
             aiisp_cfg->model_runcnt = model_info->model_runcnt;
             memcpy(&aiisp_cfg->model_cfg[0], &model_info->model_cfg[0], sizeof(model_info->model_cfg));
             memcpy(&aiisp_cfg->kwt_cfg, &model_info->kwt_cfg, sizeof(model_info->kwt_cfg));
@@ -475,6 +486,10 @@ XCamReturn AinrManager_stop(AinrManager_t* pAinrManager)
 
     pAinrManager->pCamHw->ainr_stop(pAinrManager->pCamHw);
     pAinrManager->is_start = false;
+    pAinrManager->is_parambuf_prepare = false;
+    memset(&pAinrManager->last_ainr_params, 0, sizeof(pAinrManager->last_ainr_params));
+    for (int i = 0; i < AINR_AIISP_BUF_CNT; i++)
+        pAinrManager->aiisp_idx_pool[i] = false;
 
     return ret;
 }
@@ -573,7 +588,7 @@ static XCamReturn AinrManager_doIspBe(AinrManager_t* pAinrManager, struct rkisp_
     bool dump_flag = false;
     u32 i;
 
-#define AINR_DUMPBUF_DIR        "/data/"
+#define AINR_DUMPBUF_DIR        "/data/ainr_dump"
 #define AINR_DUMPBUF_DEBUG
 #ifdef AINR_DUMPBUF_DEBUG
     int dummy_index = 0;
@@ -584,7 +599,7 @@ static XCamReturn AinrManager_doIspBe(AinrManager_t* pAinrManager, struct rkisp_
     }
 #endif
 
-    if (dump_flag) {
+    if (dump_flag && !pAinrManager->is_bypass) {
         frame_id = isp_in->sequence;
         LOGD_AINR("ainr dump frame %d", frame_id);
 
@@ -680,13 +695,14 @@ static XCamReturn AinrManager_doIspBe(AinrManager_t* pAinrManager, struct rkisp_
     }
 #endif
 
-    LOGD_AINR("ainr_doIspBe, frame id %d, iir_index %d, gain_index %d, aipre_gain_index %d, vpsl_index %d, aiisp_index %d",
+    LOGD_AINR("ainr_doIspBe, frame id %d, iir_index %d, gain_index %d, aipre_gain_index %d, vpsl_index %d, aiisp_index %d, is_bypass %d",
         isp_in->sequence,
         isp_in->iir_index,
         isp_in->gain_index,
         isp_in->aipre_gain_index,
         isp_in->vpsl_index,
-        isp_in->aiisp_index);
+        isp_in->aiisp_index,
+        pAinrManager->is_bypass);
     pAinrManager->pCamHw->ainr_doIspBe(pAinrManager->pCamHw, isp_in);
     return XCAM_RETURN_NO_ERROR;
 }
@@ -715,6 +731,20 @@ XCamReturn AinrManager_hdlEvent(AinrManager_t* pAinrManager, AiqHwAinnEvt_t *eve
                 return XCAM_RETURN_ERROR_FAILED;
             }
 
+            if (pAinrManager->is_bypass) {
+                // skip nn, inform isp to do BE
+                pAinrManager->isp_in.timestamp = isp_idxbuf->timestamp;
+                pAinrManager->isp_in.sequence  = isp_idxbuf->sequence;
+                pAinrManager->isp_in.iir_index = isp_idxbuf->iir_index;
+                pAinrManager->isp_in.gain_index = isp_idxbuf->gain_index;
+                pAinrManager->isp_in.aipre_gain_index = isp_idxbuf->aipre_gain_index;
+                pAinrManager->isp_in.vpsl_index = isp_idxbuf->vpsl_index;
+                pAinrManager->isp_in.aiisp_index = -1;
+
+                AinrManager_doIspBe(pAinrManager, &pAinrManager->isp_in);
+                return ret;
+            }
+
             aiqMutex_lock(&pAinrManager->idx_pool_mutex);
             for (i = 0; i < AINR_AIISP_BUF_CNT; i++) {
                 if (pAinrManager->aiisp_idx_pool[i] == 0) {
@@ -740,6 +770,9 @@ XCamReturn AinrManager_hdlEvent(AinrManager_t* pAinrManager, AiqHwAinnEvt_t *eve
                 pAinrManager->isp_out.aiisp_index);
             pAinrManager->pCamHw->ainr_doNrnn(pAinrManager->pCamHw, &pAinrManager->isp_out);
         } else {
+            if (pAinrManager->is_bypass && isp_idxbuf->aiisp_index < 0)
+                return ret;
+
             if (isp_idxbuf->aiisp_index < 0 || isp_idxbuf->aiisp_index >= bnr_buf->u.v35.aiisp.buf_cnt) {
                 LOGE_AINR("RD_LINECNT_ID event error index, to check");
                 return XCAM_RETURN_ERROR_FAILED;
@@ -747,6 +780,7 @@ XCamReturn AinrManager_hdlEvent(AinrManager_t* pAinrManager, AiqHwAinnEvt_t *eve
             aiqMutex_lock(&pAinrManager->idx_pool_mutex);
             pAinrManager->aiisp_idx_pool[isp_idxbuf->aiisp_index] = false;
             aiqMutex_unlock(&pAinrManager->idx_pool_mutex);
+            LOGD_AINR("aiisp_index %d is free by isp", isp_idxbuf->aiisp_index);
         }
     }
     // aiisp event

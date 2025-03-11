@@ -76,7 +76,7 @@ static int get_all_mesh_by_name(CcmContext_t *pCcmCtx, char *name) {
     for (i=0; i<table_len; i++) {
         accm_matrixAll_t *pTable = &calibdb->matrixAll[i];
         if (strncmp(name, pTable->sw_ccmC_illu_name, ACCM_ILLUM_NAME_LEN) == 0) {
-            LOGI_ACCM("%s: pTable name %s, sw_ccmC_ccmSat_val %f i %d", 
+            LOGI_ACCM("%s: pTable name %s, sw_ccmC_ccmSat_val %f i %d",
                     __func__, pTable->sw_ccmC_illu_name, pTable->sw_ccmC_ccmSat_val, i);
             mesh_all[cnt] = i;
             cnt ++;
@@ -388,7 +388,7 @@ XCamReturn Accm_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
     if (isReCal_) {
         need_recal = true;
     }
-
+    LOGD_ACCM("awbGain= (%f, %f)", swinfo->awbGain[0], swinfo->awbGain[1]);
     int illu_idx = illu_estm_once(pdyn->illuLink, pdyn->sw_ccmT_illuLink_len, swinfo->awbGain);
     if (illu_idx < 0) {
         LOGE_ACCM("illu_estm_once failed!");
@@ -428,7 +428,7 @@ XCamReturn Accm_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
         need_recal = true;
     }
 
-    // TODO 
+    // TODO
     bool damp_en = tunning->stAuto.sta.sw_ccmT_damp_en;
     if (damp_en) {
         if (need_recal || !pCcmCtx->damp_converged) {
@@ -561,10 +561,10 @@ algo_ccm_queryaccmStatus
     CcmContext_t* pCcmCtx = (CcmContext_t*)ctx;
     ccm_param_auto_t* stAuto = &pCcmCtx->ccm_attrib->tunning.stAuto;
 
-    strncpy(status->sw_ccmC_illuUsed_name, 
-            stAuto->dyn.illuLink[pCcmCtx->pre_illu_idx].sw_ccmC_illu_name, 
+    strncpy(status->sw_ccmC_illuUsed_name,
+            stAuto->dyn.illuLink[pCcmCtx->pre_illu_idx].sw_ccmC_illu_name,
             ACCM_ILLUM_NAME_LEN - 1);
-    
+
     status->sw_ccmC_ccmSat_val = pCcmCtx->pre_saturation;
     status->sw_ccmT_glbCcm_scale = pCcmCtx->pre_scale;
 

@@ -34,19 +34,19 @@ typedef struct {
     // reg: !en = sw_cnr_local_alpha_dis
     bool hw_cnrT_locFiltAlpha_en;
     /* M4_GENERIC_DESC(
-       M4_ALIAS(hiBfFlt_mergeFrames_maxLimit),
-       M4_TYPE(f32),
-       M4_SIZE_EX(1,1),
-       M4_RANGE_EX(1.0,1024.0),
-       M4_DEFAULT(256.0),
-       M4_DIGIT_EX(2),
-       M4_HIDE_EX(0),
-       M4_RO(0),
-       M4_ORDER(1),
-       M4_GROUP(cnrLocFiltAlpha_en_group),
-       M4_NOTES(CNR bf3x3 merge maxlimit..\n
-       Higher the value, the higher the max merge frames strength for static region.\n
-       Freq of use: low))  */
+        M4_ALIAS(hiBfFlt_mergeFrames_maxLimit),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(1.0,1024.0),
+        M4_DEFAULT(256.0),
+        M4_DIGIT_EX(2),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(1),
+        M4_GROUP(cnrLocFiltAlpha_en_group),
+        M4_NOTES(CNR bf3x3 merge maxlimit..\n
+        Higher the value, the higher the max merge frames strength for static region.\n
+        Freq of use: low))  */
     // reg: hw_cnrT_bfMerge_maxLimit
     float hw_cnrT_locFiltAlpha_maxLimit;
     /* M4_GENERIC_DESC(
@@ -65,26 +65,71 @@ typedef struct {
         Freq of use: low))  */
     // reg: hiBfFlt_locAlpha_maxLimit
     float hw_cnrT_locFiltAlpha_minLimit;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(hw_cnrT_hueSatAdj_en),
+        M4_TYPE(bool),
+        M4_DEFAULT(1),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(1),
+        M4_GROUP_CTRL(cnr_hueSatAdj_en_group),
+        M4_NOTES(Enable the hue & sat adjust control.Turn on by setting this bit to 1.
+        Freq of use: high))  */
+    // @reg: sw_cnr_hsv_alpha_en
+    bool hw_cnrT_hueSatAdj_en;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(hw_cnrT_locSgmStrg2NrOutAlpha),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,10),
+        M4_RANGE_EX(0.0, 1.0),
+        M4_DEFAULT(16.0),
+        M4_DIGIT_EX(3f1b),
+        M4_HIDE_EX(0),
+        M4_UI_MODULE(curve),
+        M4_DATAX([0, 2, 4, 8, 12, 16, 80, 208, 464, 976]),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_GROUP(cnr_hueSatAdj_en_group),
+        M4_NOTES(TODO.\n
+        Freq of use: high))  */
+    // @reg: hw_cnrT_gainAdjAlpha_table0~10
+    float hw_cnrT_locSgmStrg2NrOutAlpha[10];
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(hw_cnrT_hue2NrOutAlpha),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,10),
+        M4_RANGE_EX(0.0, 1.0),
+        M4_DEFAULT(1.0),
+        M4_DIGIT_EX(3f1b),
+        M4_HIDE_EX(0),
+        M4_UI_MODULE(curve),
+        M4_DATAX([0, 128, 256, 320, 354, 384, 512, 640, 896, 1024]),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_GROUP(cnr_hueSatAdj_en_group),
+        M4_NOTES(TODO.\n
+        Freq of use: high))  */
+    // @reg: hw_cnrT_hsvAdjAlpha_table0~10
+    float hw_cnrT_hue2NrOutAlpha[10];
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(hw_cnrT_sat2NrOutAlpha),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,10),
+        M4_RANGE_EX(0.0, 1.0),
+        M4_DEFAULT(1.0),
+        M4_DIGIT_EX(3f1b),
+        M4_HIDE_EX(0),
+        M4_UI_MODULE(curve),
+        M4_DATAX([0, 16, 32, 64, 96, 128, 192, 256, 384, 512]),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_GROUP(cnr_hueSatAdj_en_group),
+        M4_NOTES(TODO.\n
+        Freq of use: high))  */
+    // @reg: hw_cnrT_satAdjAlpha_table0~10
+    float hw_cnrT_sat2NrOutAlpha[10];
 } cnr_hiNr_locFiltAlpha_t;
 
-typedef struct cnr_loNr_iirFlt_locSgm2SgmRat_s{
-	/* M4_GENERIC_DESC(
-	M4_ALIAS(hw_cnrT_gainAdjHiFltSgm_ratio),
-	M4_TYPE(f32),
-	M4_SIZE_EX(1,13),
-	M4_RANGE_EX(0.0, 4.0),
-	M4_DEFAULT(1.0),
-	M4_DIGIT_EX(3f6b),
-	M4_HIDE_EX(0),
-	M4_UI_MODULE(curve),
-	M4_DATAX([1, 2, 4, 8, 16, 24, 32, 48, 64, 128, 256, 512, 1024]),
-	M4_RO(0),
-	M4_ORDER(0),
-	M4_NOTES(TODO.\n
-	Freq of use: high))  */
-	// @reg: hw_cnrT_gainAdjLoFltSgm_ratio0~12
-	float hw_cnrT_locSgmStrg2SgmRat_val[13];
-}cnr_loNr_iirFlt_locSgm2SgmRat_t;
 
 typedef struct cnr_params_dyn_s {
     /* M4_GENERIC_DESC(
@@ -114,15 +159,6 @@ typedef struct cnr_params_dyn_s {
         M4_ORDER(2),
         M4_NOTES(TODO))  */
     cnr_loNr_bifilt_t loNrGuide_bifilt;
-	/* M4_GENERIC_DESC(
-        M4_ALIAS(loNrGuide_iirFilt_locSgmStrg2SgmRate),
-        M4_TYPE(struct),
-        M4_UI_MODULE(normal_ui_style),
-        M4_HIDE_EX(0),
-        M4_RO(0),
-        M4_ORDER(2),
-        M4_NOTES(TODO))  */
-    cnr_loNr_iirFlt_locSgm2SgmRat_t loNrGuide_iirFilt_locSgmRat;
     /* M4_GENERIC_DESC(
         M4_ALIAS(loNrGuide_iirFilt),
         M4_TYPE(struct),

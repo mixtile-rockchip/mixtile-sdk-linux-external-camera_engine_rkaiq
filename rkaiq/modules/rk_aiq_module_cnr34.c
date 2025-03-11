@@ -290,14 +290,14 @@ void rk_aiq_cnr34_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
 
 #if RKAIQ_HAVE_CNR_V36
     /* CNR_IIR_GLOBAL_GAIN */
-    // mode0 : global, cnr_glbSgmRatio_only_mode; mode1 : global, local, cnr_glbSgmRat_locSgmStrg_mode; mode2 : local, cnr_locSgmStrg2SgmRat_mode;	
+    // mode0 : global, cnr_glbSgmRatio_only_mode; mode1 : global, local, cnr_glbSgmRat_locSgmStrg_mode; mode2 : local, cnr_locSgmStrg2SgmRat_mode;
     if(pdyn->loNrGuide_iirFilt.sw_cnrT_rgeSgmRatio_mode == cnr_glbSgmRatio_only_mode)
     {
-        pFix->loflt_global_sgm_ratio_alpha= 1.0 * (1 << RKCNR_V31_G_GAIN_ALPHA_FIX_BITS);
+        pFix->loflt_global_sgm_ratio_alpha = 1.0 * (1 << RKCNR_V31_G_GAIN_ALPHA_FIX_BITS);
     }
     else if(pdyn->loNrGuide_iirFilt.sw_cnrT_rgeSgmRatio_mode == cnr_locSgmStrg2SgmRat_mode)
     {
-        pFix->loflt_global_sgm_ratio_alpha= 0.0 * (1 << RKCNR_V31_G_GAIN_ALPHA_FIX_BITS);
+        pFix->loflt_global_sgm_ratio_alpha = 0.0 * (1 << RKCNR_V31_G_GAIN_ALPHA_FIX_BITS);
     }
     else
     {
@@ -333,8 +333,22 @@ void rk_aiq_cnr34_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
     }
 #if RKAIQ_HAVE_CNR_V36
     for (int i = 0; i < 13; i++) {
-        tmp = ROUND_F(pdyn->loNrGuide_iirFilt_locSgmRat.hw_cnrT_locSgmStrg2SgmRat_val[i] * (1 << RKCNR_V31_sgmRatio));
+        tmp = ROUND_F(pdyn->loNrGuide_iirFilt.hw_cnrT_locSgmStrg2SgmRat_val[i] * (1 << RKCNR_V31_sgmRatio));
         pFix->lo_flt_vsigma[i] = CLIP(tmp, 0, 0xff);
+    }
+    tmp = pdyn->hiNr_locFiltAlpha.hw_cnrT_hueSatAdj_en;
+    pFix->hsv_alpha_en = CLIP(tmp, 0, 1);
+    for (int i = 0; i < 10; i++) {
+        tmp = ROUND_F(pdyn->hiNr_locFiltAlpha.hw_cnrT_hue2NrOutAlpha[i] * (1 << 7));
+        pFix->hsv_adj_alpha_table[i] = CLIP(tmp, 0, 0x80);
+    }
+    for (int i = 0; i < 10; i++) {
+        tmp = ROUND_F(pdyn->hiNr_locFiltAlpha.hw_cnrT_sat2NrOutAlpha[i] * (1 << 7));
+        pFix->sat_adj_alpha_table[i] = CLIP(tmp, 0, 0x80);
+    }
+    for (int i = 0; i < 10; i++) {
+        tmp = ROUND_F(pdyn->hiNr_locFiltAlpha.hw_cnrT_locSgmStrg2NrOutAlpha[i] * (1 << 4));
+        pFix->gain_adj_alpha_table[i] = CLIP(tmp, 0, 0xff);
     }
 #endif
     return;

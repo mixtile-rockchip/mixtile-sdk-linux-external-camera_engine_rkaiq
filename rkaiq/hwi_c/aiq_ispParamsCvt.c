@@ -290,6 +290,9 @@ void AiqIspParamsCvt_getCommonCvtInfo(AiqIspParamsCvt_t* pCvt, AiqList_t* result
 
     aiq_params_base_t* tnrResult =
         AiqIspParamsCvt_get_3a_result(pCvt, results, RESULT_TYPE_TNR_PARAM);
+    if (pCvt->mCommonCvtInfo.isFirstFrame) {
+        pCvt->mCommonCvtInfo.btnr_init_en = tnrResult != NULL? tnrResult->en : false;
+    }
     if (tnrResult != NULL) {
         btnr_param_t* btnr_param = (btnr_param_t*)tnrResult->_data;
         btnr_params_static_t* psta = &btnr_param->sta;
@@ -299,7 +302,7 @@ void AiqIspParamsCvt_getCommonCvtInfo(AiqIspParamsCvt_t* pCvt, AiqList_t* result
 #elif defined(ISP_HW_V35)
         btnr_other_dyn_t* pdyn = &btnr_param->spNrDyn;
         pCvt->mCommonCvtInfo.sw_btnrT_outFrmBase_mode = pdyn->outFrmFusion.sw_btnrT_outFrmBase_mode;
-#elif ISP_HW_V39
+#elif defined(ISP_HW_V39)
         btnr_other_dyn_t* pdyn = &btnr_param->dyn;
 #endif
         pCvt->mCommonCvtInfo.btnrCfg_pixDomain_mode = psta->hw_btnrCfg_pixDomain_mode;

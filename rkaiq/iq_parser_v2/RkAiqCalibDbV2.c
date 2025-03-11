@@ -879,6 +879,7 @@ RkAiqAlgoType_t CamCalibDbString2algostype(const char *str) {
         {"af_v31", RK_AIQ_ALGO_TYPE_AF},
         {"af_v32", RK_AIQ_ALGO_TYPE_AF},
         {"af_v33", RK_AIQ_ALGO_TYPE_AF},
+        {"af_calib", RK_AIQ_ALGO_TYPE_AF},
         {"ablc_calib", RK_AIQ_ALGO_TYPE_ABLC},
         {"adpcc_calib", RK_AIQ_ALGO_TYPE_ADPCC},
         {"dpc", RK_AIQ_ALGO_TYPE_ADPCC},

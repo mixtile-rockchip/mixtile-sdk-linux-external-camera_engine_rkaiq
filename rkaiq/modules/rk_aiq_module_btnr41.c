@@ -986,6 +986,17 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
             || (pTransParams->transf_mode_scale != pCfg->transf_mode_scale)) {
         bayertnr_logtrans_init(pCfg->transf_mode, pCfg->transf_mode_scale, pTransParams);
     }
+
+    bool update_itransf_tbl = false;
+    if ((pTransParams->transf_mode != pCfg->transf_mode) ||
+        (pTransParams->transf_mode_scale != pCfg->transf_mode_scale) ||
+        (pTransParams->isTransfBypass != pCfg->transf_bypass_en) ||
+        (pTransParams->transf_data_max_limit != pCfg->transf_data_max_limit) ||
+        (pTransParams->itransf_mode_offset != pCfg->itransf_mode_offset) ||
+        (pTransParams->transf_mode_offset != pCfg->transf_mode_offset)) {
+        update_itransf_tbl = true;
+    }
+
     pTransParams->transf_mode = pCfg->transf_mode;
     pTransParams->transf_mode_scale = pCfg->transf_mode_scale;
     pTransParams->transf_mode_offset = pCfg->transf_mode_offset;
@@ -1002,12 +1013,12 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
             pCfg->pix_max_limit  = bayertnr_logtrans(((1 << 20) - 1), pTransParams);;
         }
     }
-    if (cvtinfo->isFirstFrame || (pTransParams->transf_mode != pCfg->transf_mode)
-            || (pTransParams->transf_mode_scale != pCfg->transf_mode_scale)) {
+
+    pTransParams->isTransfBypass = pCfg->transf_bypass_en;
+    if (cvtinfo->isFirstFrame || update_itransf_tbl) {
         rk_autoblc_gen_tbl(pBlcInfo->bayertnr_itransf_tbl, pCfg->pix_max_limit, pTransParams);
     }
 
-    pTransParams->isTransfBypass = pCfg->transf_bypass_en;
     bayertnr_luma2sigmax_config_v41(pTransParams, &cvtinfo->blc_res, cvtinfo->preDGain);
 
     bool auto_sig_curve_spnruse = psta->sigmaEnv.sw_btnrCfg_sigma_mode == btnr_autoSigma_mode;

@@ -19,6 +19,7 @@
 #include "RkIspFecHwMgr.h"
 #include "RkIspFecGenMesh.h"
 #include "RkIspFecVersion.h"
+
 #include <errno.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -26,6 +27,7 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <linux/videodev2.h>
+#include <rk-video-format.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -78,8 +80,7 @@ _load_mesh(const char* file, void* vir_addr, size_t size)
         size_t len = ftell(fp);
         rewind(fp);
 
-        if (len > size)
-            printf("E: mesh file len %lu > buf size %lu", len, size);
+        if (len > size) printf("E: mesh file len %lu > buf size %lu\n", len, size);
 #if 0
         void* map = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, dstFd, 0);
 
@@ -96,6 +97,8 @@ _load_mesh(const char* file, void* vir_addr, size_t size)
         size_t rd_size = fread(vir_addr, 1, len, fp);
         if (rd_size < len)
             printf("file read size:%lu < %lu \n", rd_size, len);
+
+        printf("mesh file len %lu, read size %lu\n", len, rd_size);
 #endif
         fclose(fp);
     } else {
@@ -114,6 +117,9 @@ _configure(rk_ispfec_ctx_t* ctx, rk_ispfec_cfg_t* cfg)
     pthread_mutex_lock (&ctx->_mutex);
 
     if (cfg->mesh_upd_mode == RK_ISPFEC_UPDATE_MESH_ONLINE) {
+#ifdef RKFEC_HW_V20
+	    printf("E: FEC_V20 does not yet support the RkIspFecGenMesh function.\n");
+#else
 #ifdef GENMESH_ONLINE
         if (!ctx->_fecGenMesh) {
             ctx->_fecGenMesh = new RkIspFecGenMesh();
@@ -140,12 +146,22 @@ _configure(rk_ispfec_ctx_t* ctx, rk_ispfec_cfg_t* cfg)
             goto err;
         }
 #endif
+#endif
     } else {
         char mesh_file[MESH_FILE_MAX_LEN] = {'\0'};
 
         if (ctx == NULL)
             return -1;
 
+#ifdef RKFEC_HW_V20
+        snprintf(mesh_file, MESH_FILE_MAX_LEN, "%s/%s", cfg->u.mesh_file_path,
+                 cfg->mesh_info.mesh_file);
+        ret = _load_mesh(mesh_file, cfg->mesh_info.vir_addr, cfg->mesh_info.size);
+        if (ret) {
+            printf("E: load mesh error!\n");
+            goto err;
+        }
+#else
         // load mesh_xint
         snprintf(mesh_file, MESH_FILE_MAX_LEN, "%s/%s", cfg->u.mesh_file_path, cfg->mesh_xint.mesh_file);
         ret = _load_mesh(mesh_file, cfg->mesh_xint.vir_addr, cfg->mesh_xint.size);
@@ -176,7 +192,8 @@ _configure(rk_ispfec_ctx_t* ctx, rk_ispfec_cfg_t* cfg)
             printf("E: load mesh_yfra error!\n");
             goto err;
         }
-//#ifdef GENMESH_ONLINE
+#endif
+        // #ifdef GENMESH_ONLINE
     }
 //#endif
 
@@ -290,7 +307,11 @@ int
 rk_ispfec_api_process(rk_ispfec_ctx_t* ctx, int src_fd, int dst_fd)
 {
     int ret = 0;
+#ifdef RKFEC_HW_V20
+    struct rkfec_in_out param = {0};
+#else
     struct rkispp_fec_in_out param;
+#endif
 
     if (ctx == NULL)
         return -1;
@@ -307,6 +328,54 @@ rk_ispfec_api_process(rk_ispfec_ctx_t* ctx, int src_fd, int dst_fd)
         goto out;
     }
 
+#ifdef RKFEC_HW_V20
+    param.in_width   = ctx->_cfg.in_width;
+    param.in_height  = ctx->_cfg.in_height;
+    param.out_width  = ctx->_cfg.out_width;
+    param.out_height = ctx->_cfg.out_height;
+    param.in_fourcc  = ctx->_cfg.in_fourcc;
+    param.out_fourcc = ctx->_cfg.out_fourcc;
+
+    param.buf_cfg.in_pic_fd  = src_fd;
+    param.buf_cfg.out_pic_fd = dst_fd;
+    param.buf_cfg.in_offs    = 0;
+    param.buf_cfg.in_size    = param.in_width * param.in_height * 3 / 2;
+    if (param.out_fourcc == V4L2_PIX_FMT_FBC0) {
+        int stride_y = (param.out_width + 63) / 64 * 384;
+        int stride_c = (param.out_width + 63) / 64 * 16;
+
+        param.buf_cfg.out_offs = 0;
+        param.buf_cfg.out_size = (stride_y * param.out_height + stride_c * param.out_height) / 4;
+    } else {
+        param.buf_cfg.out_offs = 0;
+        param.buf_cfg.out_size = param.out_width * param.out_height * 3 / 2;
+    }
+
+    param.buf_cfg.in_stride  = ctx->_cfg.in_width;
+    param.buf_cfg.out_stride = ctx->_cfg.out_width;
+    param.buf_cfg.lut_fd     = ctx->_cfg.mesh_info.dmaFd;
+    param.buf_cfg.lut_size   = rk_ispfec_api_calFecMeshsize(param.out_width, param.out_height);
+
+    param.core_ctrl.density = ctx->_cfg.out_width >= 1920 ? 0 : ctx->_cfg.out_width >= 512 ? 1 : 2;
+    param.core_ctrl.bic_mode     = 0;
+    param.core_ctrl.border_mode  = ctx->_cfg.border_mode;
+    param.core_ctrl.pbuf_crs_dis = 0;
+    param.core_ctrl.buf_mode     = ctx->_cfg.cross_buf_mode;
+
+    memcpy(&param.bg_val, &ctx->_cfg.bg_val, sizeof(rk_ispfec_bg_val));
+
+    printf("%dx%d->%dx%d format(in:%c%c%c%c out:%c%c%c%c)\n", param.in_width, param.in_height,
+           param.out_width, param.out_height, param.in_fourcc, param.in_fourcc >> 8,
+           param.in_fourcc >> 16, param.in_fourcc >> 24, param.out_fourcc, param.out_fourcc >> 8,
+           param.out_fourcc >> 16, param.out_fourcc >> 24);
+
+    printf("border_mode:%d, cross_buf_mode:%d, density: %d\n", param.core_ctrl.border_mode,
+           param.core_ctrl.buf_mode, param.core_ctrl.density);
+
+    printf("in_stride:%d, out_stride:%d\n", param.buf_cfg.in_stride, param.buf_cfg.out_stride);
+
+    printf("bg_val: %d,%d,%d\n", param.bg_val.bg_y, param.bg_val.bg_u, param.bg_val.bg_v);
+#else
     param.in_width      = ctx->_cfg.in_width;
     param.in_height     = ctx->_cfg.in_height;
     param.out_width     = ctx->_cfg.out_width;
@@ -319,6 +388,7 @@ rk_ispfec_api_process(rk_ispfec_ctx_t* ctx, int src_fd, int dst_fd)
     param.mesh_xfra_fd  = ctx->_cfg.mesh_xfra.dmaFd;
     param.mesh_yint_fd  = ctx->_cfg.mesh_yint.dmaFd;
     param.mesh_yfra_fd  = ctx->_cfg.mesh_yfra.dmaFd;
+#endif
 
     ret = ctx->_fecHwMgr->process(param);
     if (ret) {
@@ -332,6 +402,36 @@ out:
     return ret;
 }
 
+#ifdef RKFEC_HW_V20
+int rk_ispfec_api_calFecMeshsize(int width, int height) {
+    int block_w = 16, block_h = 8;
+    int density = width >= 1920 ? 0 : width >= 512 ? 1 : 2;
+
+    if (density == 0) {
+        block_w = 32;
+        block_h = 16;
+    } else if (density == 1) {
+        block_w = 16;
+        block_h = 8;
+    } else if (density == 2) {
+        block_w = 4;
+        block_h = 4;
+    }
+
+    width  = 32 * ((width + 31) / 32);
+    height = 32 * ((height + 31) / 32);
+
+    int lut_w = width / block_w + 1;
+    int lut_h = height / block_h + 1;
+
+    int lut_size = lut_w * lut_h;
+
+    printf("LUT width: %d, LUT height: %d\n", lut_w, lut_h);
+    printf("LUT size: %d\n", lut_size);
+
+    return lut_size;
+}
+#else
 int
 rk_ispfec_api_calFecMeshsize(int width, int height)
 {
@@ -352,6 +452,7 @@ rk_ispfec_api_calFecMeshsize(int width, int height)
 
     return mesh_size;
 }
+#endif
 
 #ifdef __cplusplus
 }

@@ -309,23 +309,23 @@ void rk_aiq_btnr42_params_logtrans(struct isp35_bay3d_cfg *pCfg)
 
 static void bay_hozi_filter_coeff(float sigma, int *hfilter_coeff)
 {
-	float tmpf0, tmpf1, coeff[5];
-	int sumc = 0;
+    float tmpf0, tmpf1, coeff[5];
+    int sumc = 0;
 
-	tmpf1 = 0;
-	for (int j = 0; j <5; j++)
-	{
-		tmpf0 = (float)((j-2)*(j-2));
-		tmpf0 = tmpf0/(2*sigma*sigma);
-		coeff[j] = expf(-tmpf0);
-		tmpf1 = tmpf1 + coeff[j];
-	}
-	for (int j = 0; j <5; j++)
-	{
-		hfilter_coeff[j] = (int)(coeff[j]/tmpf1*(1<<5));
-		sumc = sumc + hfilter_coeff[j];
-	}
-	hfilter_coeff[2] += ((1<<5)-sumc);
+    tmpf1 = 0;
+    for (int j = 0; j < 5; j++)
+    {
+        tmpf0 = (float)((j - 2) * (j - 2));
+        tmpf0 = tmpf0 / (2 * sigma * sigma);
+        coeff[j] = expf(-tmpf0);
+        tmpf1 = tmpf1 + coeff[j];
+    }
+    for (int j = 0; j < 5; j++)
+    {
+        hfilter_coeff[j] = (int)(coeff[j] / tmpf1 * (1 << 5));
+        sumc = sumc + hfilter_coeff[j];
+    }
+    hfilter_coeff[2] += ((1 << 5) - sumc);
 }
 
 void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t* cvtinfo, btnr_cvt_info_t* pBtnrInfo)
@@ -408,6 +408,15 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
             psta->hw_btnrCfg_pixDomain_mode = btnr_pixLog2Domain_mode;
         }
     }
+
+    if (cvtinfo->use_aiisp) {
+        if (psta->transCfg.hw_btnrCfg_trans_mode != btnr_pixInBw20b_mode) {
+            LOGE_ANR("hw_btnrCfg_trans_mode == %s(0x%x) is error. When isp is in Aiisp mode, btnr must run in 'btnr_pixInBw20b_mode'. "
+                     "The trans_mode will be forcibly set to 'btnr_pixInBw20b_mode' in HWI.",
+                     trans_mode2str(psta->transCfg.hw_btnrCfg_trans_mode), psta->transCfg.hw_btnrCfg_trans_mode);
+            psta->transCfg.hw_btnrCfg_trans_mode = btnr_pixInBw20b_mode;
+        }
+    }
     /*
         float frameiso[3];
         float frameEt[3];
@@ -441,14 +450,26 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     }
     //pCfg->out_use_pre_mode = CLIP(pdyn->hw_btnrT_noiseBal_mode, 0, 0x7);
     pCfg->motion_est_en = cvtinfo->frameId > 1 ? pmdDyn->memc.hw_btnrT_memc_en : 0;
-#if 1 
+#if 1
     // TODO: for aiisp
     pCfg->iir_wr_src = 0;
-    pCfg->iir_rw_fmt = 1;
-#endif
+    pCfg->iir_rw_fmt = 2;
 
-    if (cvtinfo->use_aiisp)
-        pCfg->iir_rw_fmt = 2;
+    if (psta->hw_btnrCfg_pixDomain_mode == btnr_pixLog2Domain_mode &&
+        !cvtinfo->use_aiisp)
+        pCfg->iir_rw_fmt = 0; // could be 0~3, preferred to be 0 to save bandwidth
+
+    if (psta->hw_btnrCfg_pixDomain_mode == btnr_pixLinearDomain_mode &&
+        cvtinfo->frameNum == 1)
+        pCfg->iir_rw_fmt = 2; // should be 2 by hardware restriction
+
+    if (pCfg->btnr_ldc_en)//TODO
+        pCfg->iir_rw_fmt = 3; // should be 3 by hardware restriction
+
+    // check conflictions
+    if (pCfg->btnr_ldc_en && cvtinfo->use_aiisp && (cvtinfo->frameNum > 1))
+        LOGE("btnr_ldc_en and aiisp_hdr_en can't be enabled simultaneously");
+#endif
 
     // REG: BAY3D_CTRL1
     switch (psta->hw_btnrCfg_pixDomain_mode) {
@@ -604,9 +625,9 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     pCfg->pre_spnr_dpc_flt_en =  pdyn->preDpc.hw_btnrT_dpc_en;
     pCfg->pre_spnr_dpc_flt_mode = CLIP(pdyn->preDpc.hw_btnrT_dpc_mode, 1, 1); //ONLY SUPPORT btnr_nsBalSoftThd_mode
     pCfg->pre_spnr_dpc_nr_bal_mode = pCfg->pre_spnr_dpc_flt_mode ?
-        pdyn->preDpc.dpc_nsBalSfThd.hw_btnrT_preWgt_mode : pdyn->preDpc.dpc_nsBalNsStrg.hw_btnrT_preWgt_mode;
+                                     pdyn->preDpc.dpc_nsBalSfThd.hw_btnrT_preWgt_mode : pdyn->preDpc.dpc_nsBalNsStrg.hw_btnrT_preWgt_mode;
     pCfg->pre_spnr_dpc_flt_prewgt_en = pCfg->pre_spnr_dpc_flt_mode ?
-        pdyn->preDpc.dpc_nsBalSfThd.hw_btnrT_preWgt_en: pdyn->preDpc.dpc_nsBalNsStrg.hw_btnrT_preWgt_en;
+                                       pdyn->preDpc.dpc_nsBalSfThd.hw_btnrT_preWgt_en : pdyn->preDpc.dpc_nsBalNsStrg.hw_btnrT_preWgt_en;
 
     // REG: BAY3D_CTRL3
     if (pmdDyn->hw_btnrT_md_mode == btnr_loAsRatio_hi0_mode) {
@@ -698,7 +719,7 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     pCfg->pre_spnr_hi_wgt_calc_scale = CLIP(tmp, 0, 0xff);
     // REG: BAY3D_PREHIWMM
     tmp = (pdyn->preSpNr.hiNr.hw_btnrT_filtWgt_minLimit) * (1 << 8);
-    pCfg->pre_spnr_hi_filter_wgt_min_limit = CLIP(tmp, 0, 0xff);
+    pCfg->pre_spnr_hi_filter_wgt_min_limit = CLIP(tmp, 1, 0xff);
 
     pCfg->pre_spnr_hi_wgt_calc_offset = 0;
     // REG: BAY3D_PREHISIGOF
@@ -885,9 +906,9 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     if(cvtinfo->isFirstFrame) {
         pre_ob = cvtinfo->blc_res.obcPostTnr.sw_blcT_autoOB_offset;
     }
-    if(psta->sw_fusionIso.sw_btnrT_fusionIso_mode == btnr_limitAdj_mode) {
+    if(psta->frmFusion.isoSwitch.sw_btnrT_fusionIso_mode == btnr_limitAdj_mode) {
         int delta_ob = ABS(cvtinfo->blc_res.obcPostTnr.sw_blcT_autoOB_offset - pre_ob);
-        if(delta_ob >= psta->sw_fusionIso.sw_btnrT_limitAdj_deltaOB) {
+        if(delta_ob >= psta->frmFusion.isoSwitch.sw_btnrT_limitAdj_deltaOB) {
             tmpf = 1;
         }
         if(delta_ob > 0) {
@@ -923,28 +944,28 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     pCfg->sigma_num_th = CLIP(tmp, 0, 0xfffff);
     // REG: BAY3D_MONR
     if (pdyn->outFrmFusion.sw_btnrT_outFrmBase_mode == btnr_curBaseOut_mode) {
-        float hi_scale = pdyn->outFrmFusion.noiseBal_curBaseOut.sw_btnrT_hiNoiseBalNr_scale;												//
-		float md_scale = pdyn->outFrmFusion.noiseBal_curBaseOut.sw_btnrT_midNoiseBalNr_scale;												//
-		float hi_offset = pdyn->outFrmFusion.noiseBal_curBaseOut.hw_btnrT_hiNoiseBalNr_off*(1<<10);
-		float md_offset = pdyn->outFrmFusion.noiseBal_curBaseOut.hw_btnrT_midNoiseBalNr_off*(1<<10);
+        float hi_scale = pdyn->outFrmFusion.noiseBal_curBaseOut.sw_btnrT_hiNoiseBalNr_scale;                                                //
+        float md_scale = pdyn->outFrmFusion.noiseBal_curBaseOut.sw_btnrT_midNoiseBalNr_scale;                                               //
+        float hi_offset = pdyn->outFrmFusion.noiseBal_curBaseOut.hw_btnrT_hiNoiseBalNr_off * (1 << 10);
+        float md_offset = pdyn->outFrmFusion.noiseBal_curBaseOut.hw_btnrT_midNoiseBalNr_off * (1 << 10);
         tmp0 = MIN((sqrt((float)1.0 / pdyn->outFrmFusion.noiseBal_curBaseOut.hw_btnrT_hiNoiseBal_strg) * (1 << 10)), (1 << 10));
         tmp1 = MIN((sqrt((float)1.0 / pdyn->outFrmFusion.noiseBal_curBaseOut.hw_btnrT_midNoiseBal_strg) * (1 << 10)), (1 << 10));
-        pCfg->out_use_hi_noise_bal_nr_strg = MIN((tmp0 + hi_offset)*hi_scale, 4.0*(1<<10));
-        pCfg->out_use_md_noise_bal_nr_strg = MIN((tmp1 + md_offset) * md_scale, 4.0 * (1 << 10));
+        pCfg->out_use_hi_noise_bal_nr_strg = MIN((tmp0 + hi_offset) * hi_scale, 2.0 * (1 << 10));
+        pCfg->out_use_md_noise_bal_nr_strg = MIN((tmp1 + md_offset) * md_scale, 2.0 * (1 << 10));
         pCfg->out_use_hi_noise_bal_nr_off = hi_offset;
-		pCfg->out_use_md_noise_bal_nr_off = md_offset;
+        pCfg->out_use_md_noise_bal_nr_off = md_offset;
     }
     else {
-        float hi_scale = pdyn->outFrmFusion.noiseBal_preBaseOut.sw_btnrT_hiNoiseBalNr_scale;												//
-		float md_scale = pdyn->outFrmFusion.noiseBal_preBaseOut.sw_btnrT_midNoiseBalNr_scale;												//
-		float hi_offset = pdyn->outFrmFusion.noiseBal_preBaseOut.hw_btnrT_hiNoiseBalNr_off*(1<<10);
-		float md_offset = pdyn->outFrmFusion.noiseBal_preBaseOut.hw_btnrT_midNoiseBalNr_off*(1<<10);
+        float hi_scale = pdyn->outFrmFusion.noiseBal_preBaseOut.sw_btnrT_hiNoiseBalNr_scale;                                                //
+        float md_scale = pdyn->outFrmFusion.noiseBal_preBaseOut.sw_btnrT_midNoiseBalNr_scale;                                               //
+        float hi_offset = pdyn->outFrmFusion.noiseBal_preBaseOut.hw_btnrT_hiNoiseBalNr_off * (1 << 10);
+        float md_offset = pdyn->outFrmFusion.noiseBal_preBaseOut.hw_btnrT_midNoiseBalNr_off * (1 << 10);
         tmp0 = MIN((sqrt((float)1.0 / pdyn->outFrmFusion.noiseBal_preBaseOut.hw_btnrT_hiNoiseBal_strg) * (1 << 10)), (1 << 10));
         tmp1 = MIN((sqrt((float)1.0 / pdyn->outFrmFusion.noiseBal_preBaseOut.hw_btnrT_midNoiseBal_strg) * (1 << 10)), (1 << 10));
-        pCfg->out_use_hi_noise_bal_nr_strg = MIN((tmp0 + hi_offset)*hi_scale, 4.0*(1<<10));
-        pCfg->out_use_md_noise_bal_nr_strg = MIN((tmp1 + md_offset) * md_scale, 4.0 * (1 << 10));
+        pCfg->out_use_hi_noise_bal_nr_strg = MIN((tmp0 + hi_offset) * hi_scale, 2.0 * (1 << 10));
+        pCfg->out_use_md_noise_bal_nr_strg = MIN((tmp1 + md_offset) * md_scale, 2.0 * (1 << 10));
         pCfg->out_use_hi_noise_bal_nr_off = hi_offset;
-		pCfg->out_use_md_noise_bal_nr_off = md_offset;
+        pCfg->out_use_md_noise_bal_nr_off = md_offset;
     }
     tmp = (pdyn->locSgmStrg.hw_bnrT_locSgmStrg_maxLimit) * (1 << 8);
     pCfg->gain_out_max_limit = CLIP(tmp, 0, 0xff);
@@ -1022,15 +1043,15 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     /* BAY3D_LOCOEF0 */
     {
         int coeff[5];
-        if (pmdDyn->subLoMd0.diffCh.sw_btnrT_hFiltCfg_mode == btnr_cfgByFiltStrg_mode) {
-            bay_hozi_filter_coeff(pmdDyn->subLoMd0.diffCh.hw_btnrT_hFilt_strg, coeff);
+        if (pmdDyn->subLoMd1.sw_btnrT_hFiltCfg_mode == btnr_cfgByFiltStrg_mode) {
+            bay_hozi_filter_coeff(pmdDyn->subLoMd1.hw_btnrT_hFilt_strg, coeff);
         } else {
             for (i = 0; i < 5; i++)
-                coeff[i] = pmdDyn->subLoMd0.diffCh.hw_btnrT_hFilt_coeff[i];
+                coeff[i] = pmdDyn->subLoMd1.hw_btnrT_hFilt_coeff[i];
         }
-        pCfg->lo_dif_hflt_coeff0 = CLIP(coeff[2], 0, 0x1f);
-        pCfg->lo_dif_hflt_coeff1 = CLIP(coeff[1], 0, 0x1f);
-        pCfg->lo_dif_hflt_coeff2 = CLIP(coeff[0], 0, 0x1f);
+        pCfg->lo_wgt_hflt_coeff0 = CLIP(coeff[2], 0, 0x1f);
+        pCfg->lo_wgt_hflt_coeff1 = CLIP(coeff[1], 0, 0x1f);
+        pCfg->lo_wgt_hflt_coeff2 = CLIP(coeff[0], 0, 0x1f);
     }
 
     {
@@ -1049,25 +1070,25 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     /* BAY3D_LOCOEF1 */
     {
         int coeff[5];
-        if (pmdDyn->subLoMd1.sw_btnrT_hFiltCfg_mode == btnr_cfgByFiltStrg_mode) {
-            bay_hozi_filter_coeff(pmdDyn->subLoMd1.hw_btnrT_hFilt_strg, coeff);
+        if (pmdDyn->subLoMd0.diffCh.sw_btnrT_hFiltCfg_mode == btnr_cfgByFiltStrg_mode) {
+            bay_hozi_filter_coeff(pmdDyn->subLoMd0.diffCh.hw_btnrT_hFilt_strg, coeff);
         } else {
             for (i = 0; i < 5; i++)
-                coeff[i] = pmdDyn->subLoMd1.hw_btnrT_hFilt_coeff[i];
+                coeff[i] = pmdDyn->subLoMd0.diffCh.hw_btnrT_hFilt_coeff[i];
         }
-        pCfg->lo_wgt_hflt_coeff0 = CLIP(coeff[2], 0, 0x1f);
-        pCfg->lo_wgt_hflt_coeff1 = CLIP(coeff[1], 0, 0x1f);
-        pCfg->lo_wgt_hflt_coeff2 = CLIP(coeff[0], 0, 0x1f);
+        pCfg->lo_dif_hflt_coeff0 = CLIP(coeff[2], 0, 0x1f);
+        pCfg->lo_dif_hflt_coeff1 = CLIP(coeff[1], 0, 0x1f);
+        pCfg->lo_dif_hflt_coeff2 = CLIP(coeff[0], 0, 0x1f);
     }
     /* BAY3D_DPC0 */
     pCfg->pre_spnr_dpc_bright_str = CLIP(pdyn->preDpc.dpc_nsBalNsStrg.hw_btnrT_brightDpc_strg, 0, 4);
     pCfg->pre_spnr_dpc_dark_str = CLIP(pdyn->preDpc.dpc_nsBalNsStrg.hw_btnrT_darkDpc_strg, 0, 4);
     pCfg->pre_spnr_dpc_str = CLIP(pdyn->preDpc.dpc_nsBalSfThd.hw_btnrT_dpc_strg, 0, 4);
     tmp = (pCfg->pre_spnr_dpc_flt_mode ? pdyn->preDpc.dpc_nsBalSfThd.hw_btnrT_preWgt_scale :
-        pdyn->preDpc.dpc_nsBalNsStrg.hw_btnrT_preWgt_scale) * (1 << 4);
+           pdyn->preDpc.dpc_nsBalNsStrg.hw_btnrT_preWgt_scale) * (1 << 4);
     pCfg->pre_spnr_dpc_wk_scale = CLIP(tmp, 0, 0xff);
     tmp = (pCfg->pre_spnr_dpc_flt_mode ? pdyn->preDpc.dpc_nsBalSfThd.hw_btnrT_preWgt_offset :
-        pdyn->preDpc.dpc_nsBalNsStrg.hw_btnrT_preWgt_offset) * (1 << 10);
+           pdyn->preDpc.dpc_nsBalNsStrg.hw_btnrT_preWgt_offset) * (1 << 10);
     pCfg->pre_spnr_dpc_wk_offset = CLIP(tmp, 0, 0x3ff);
     /* BAY3D_DPC1 */
     tmp = pdyn->preDpc.dpc_nsBalNsStrg.hw_btnrT_noiseBal_strg * (1 << 10);
@@ -1080,7 +1101,7 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     tmp = MAX((1 - pdyn->preSpNr.loNr.hw_btnrT_loNrOut_alpha) * (1 << 7), 0);
     pCfg->pre_spnr_lo_filter_out_wgt = CLIP(tmp, 0, 0xff);
     tmp = (pdyn->preSpNr.loNr.hw_btnrT_filtWgt_minLimit) * (1 << 8);
-    pCfg->pre_spnr_lo_filter_wgt_min = CLIP(tmp, 0, 0xff);
+    pCfg->pre_spnr_lo_filter_wgt_min = CLIP(tmp, 1, 0xff);
     // REG: BAY3D_MIDBIG0
     tmp = (pmdDyn->subDeepLoMd.hw_btnrT_wgt_offset) * (1 << 8);
     pCfg->md_large_lo_md_wgt_offset = CLIP(tmp, 0, 0xff);
@@ -1100,6 +1121,17 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
             || (pTransParams->transf_mode_scale != pCfg->transf_mode_scale)) {
         bayertnr_logtrans_init(pCfg->transf_mode, pCfg->transf_mode_scale, pTransParams);
     }
+
+    bool update_itransf_tbl = false;
+    if ((pTransParams->transf_mode != pCfg->transf_mode) ||
+        (pTransParams->transf_mode_scale != pCfg->transf_mode_scale) ||
+        (pTransParams->isTransfBypass != pCfg->transf_bypass_en) ||
+        (pTransParams->transf_data_max_limit != pCfg->transf_data_max_limit) ||
+        (pTransParams->itransf_mode_offset != pCfg->itransf_mode_offset) ||
+        (pTransParams->transf_mode_offset != pCfg->transf_mode_offset)) {
+        update_itransf_tbl = true;
+    }
+
     pTransParams->transf_mode = pCfg->transf_mode;
     pTransParams->transf_mode_scale = pCfg->transf_mode_scale;
     pTransParams->transf_mode_offset = pCfg->transf_mode_offset;
@@ -1116,12 +1148,12 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
             pCfg->pix_max_limit  = bayertnr_logtrans(((1 << 20) - 1), pTransParams);;
         }
     }
-    if (cvtinfo->isFirstFrame || (pTransParams->transf_mode != pCfg->transf_mode)
-            || (pTransParams->transf_mode_scale != pCfg->transf_mode_scale)) {
+
+    pTransParams->isTransfBypass = pCfg->transf_bypass_en;
+    if (cvtinfo->isFirstFrame || update_itransf_tbl) {
         rk_autoblc_gen_tbl(pBlcInfo->bayertnr_itransf_tbl, pCfg->pix_max_limit, pTransParams);
     }
 
-    pTransParams->isTransfBypass = pCfg->transf_bypass_en;
     bayertnr_luma2sigmax_config_v41(pTransParams, &cvtinfo->blc_res, cvtinfo->preDGain);
 
     bool auto_sig_curve_spnruse = psta->sigmaEnv.sw_btnrCfg_sigma_mode == btnr_autoSigma_mode;

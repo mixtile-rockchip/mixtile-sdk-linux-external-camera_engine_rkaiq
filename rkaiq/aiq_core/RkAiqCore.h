@@ -104,6 +104,7 @@ public:
     explicit RkAiqAnalyzerCb() {};
     virtual ~RkAiqAnalyzerCb() {};
     virtual void rkAiqCalcDone(SmartPtr<RkAiqFullParamsProxy> &results) = 0;
+    virtual void rkAiqCalcExpDone(SmartPtr<RkAiqExpParamsProxy> &results) = 0;
     virtual void rkAiqCalcFailed(const char* msg) = 0;
 private:
     XCAM_DEAD_COPY (RkAiqAnalyzerCb);

@@ -93,7 +93,7 @@ rk_aiq_user_api2_hsv_QueryStatus(const rk_aiq_sys_ctx_t* sys_ctx, hsv_status_t* 
 
 	return ret;
 }
-
+#if RKAIQ_HAVE_HSV_V10
 static XCamReturn check_hsv_param(ahsv_hsvCalib_t* calibdb){
     int tblAll_len = calibdb->sw_hsvCfg_tblAll_len;
     for (int i = 0;i < tblAll_len;i++) {
@@ -108,6 +108,29 @@ static XCamReturn check_hsv_param(ahsv_hsvCalib_t* calibdb){
     }
     return XCAM_RETURN_NO_ERROR;
 }
+#elif RKAIQ_HAVE_HSV_V11
+static XCamReturn check_hsv_param(ahsv_hsvCalib_t* calibdb, hsv_lutcfg_mode_t hsv_lut_mode) {
+    int tblAll_len = calibdb->sw_hsvCfg_tblAll_len;
+    int lut0_mode = 0, lut1_mode = 0, lut2_mode = 0;
+    for (int i = 0;i < tblAll_len;i++) {
+        if (hsv_lut_mode == hsv_1dAnd2d_mode) {
+                lut0_mode = calibdb->tableAll[i].meshGain.lut1d0.hw_hsvT_lut1d_mode == 3? 1:calibdb->tableAll[i].meshGain.lut1d0.hw_hsvT_lut1d_mode;
+                lut1_mode = calibdb->tableAll[i].meshGain.lut1d1.hw_hsvT_lut1d_mode == 3? 1:calibdb->tableAll[i].meshGain.lut1d1.hw_hsvT_lut1d_mode;
+                lut2_mode = calibdb->tableAll[i].meshGain.lut2d.hw_hsvT_lut2d_mode / 2;
+            } else if (hsv_lut_mode == hsv_only2d_mode) {
+                lut0_mode = calibdb->tableAll[i].meshGain.lut2d.hw_hsvT_lut2d_mode / 2;
+                lut1_mode = calibdb->tableAll[i].meshGain.lut2d1.hw_hsvT_lut2d_mode / 2;
+                lut2_mode = calibdb->tableAll[i].meshGain.lut2d2.hw_hsvT_lut2d_mode / 2;
+            }
+        if (lut0_mode == lut1_mode || lut1_mode == lut2_mode || lut2_mode == lut0_mode) {
+            LOGE("HSV config failed, hsv.calibdb is invaild. Three output channels of hsv lut must be different."
+                "Please configure by hsv.calibdb.tableAll.meshGain.");
+            return XCAM_RETURN_ERROR_FAILED;
+        }
+    }
+    return XCAM_RETURN_NO_ERROR;
+}
+#endif
 
 XCamReturn
 rk_aiq_user_api2_hsv_SetCalib(const rk_aiq_sys_ctx_t* sys_ctx, ahsv_hsvCalib_t* calib)
@@ -117,7 +140,15 @@ rk_aiq_user_api2_hsv_SetCalib(const rk_aiq_sys_ctx_t* sys_ctx, ahsv_hsvCalib_t* 
     CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AHSV);
     RKAIQ_API_SMART_LOCK(sys_ctx);
 
+#if RKAIQ_HAVE_HSV_V10
     if (check_hsv_param(calib) != XCAM_RETURN_NO_ERROR) {
+#elif RKAIQ_HAVE_HSV_V11
+    hsv_api_attrib_t* attr;
+    memset(&attr, 0, sizeof(attr));
+    rk_aiq_user_api2_hsv_GetAttrib(sys_ctx, attr);
+    hsv_lutcfg_mode_t hsv_lut_mode = attr->stAuto.sta.hsvCfg.hw_hsvT_lut_mode;
+    if (check_hsv_param(calib, hsv_lut_mode) != XCAM_RETURN_NO_ERROR) {
+#endif
         return XCAM_RETURN_ERROR_FAILED;
     }
     rk_aiq_sys_ctx_array_t ctx_array = rk_aiq_user_api2_common_getSysCtxArray(sys_ctx);

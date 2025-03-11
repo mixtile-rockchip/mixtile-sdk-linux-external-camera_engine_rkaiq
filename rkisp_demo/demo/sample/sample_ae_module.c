@@ -57,6 +57,8 @@ static void sample_ae_usage()
     printf("\t s) AE:         get aec stats cfg params.\n");
     printf("\t t) AE:         set use subwin aec.\n");
     printf("\t u) AE:         not use subwin aec.\n");
+    printf("\t w) AE:         set frame hdr cfg.\n");
+    printf("\t x) AE:         get frame hdr exp.\n");
 
     printf("\t W) AE:         test default mode.\n");
     printf("\t X) AE:         test sync mode.\n");
@@ -777,6 +779,7 @@ XCamReturn sample_ae_module (const void *arg)
     Uapi_ExpSwAttrV2_t expSwAttr;
     Uapi_ExpSubWin_t ExpSubWin;
     float fps = 0.0f;
+    Uapi_FrameHdrAttr_t FrameHdrAttr;
 
     do {
         sample_ae_usage ();
@@ -926,6 +929,29 @@ XCamReturn sample_ae_module (const void *arg)
             ExpSubWin.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
             rk_aiq_user_api2_ae_setExpSubWinAttr(ctx, ExpSubWin);
             printf("no set exp windows\n\n");
+            break;
+        case 'w':
+            FrameHdrAttr.FrameHdrEn = true;
+            FrameHdrAttr.FrameHdrNum = 3;
+            FrameHdrAttr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
+            rk_aiq_user_api2_ae_setFrameHdrAttr(ctx, FrameHdrAttr);
+            printf("set frame hdr cfg, en=%d, num=%d\n\n", FrameHdrAttr.FrameHdrEn, FrameHdrAttr.FrameHdrNum);
+            break;
+        case 'x':
+            rk_aiq_user_api2_ae_getFrameHdrAttr(ctx, &FrameHdrAttr);
+            printf("get frame hdr exp:\n");
+            if (FrameHdrAttr.FrameHdrEn == false || FrameHdrAttr.FrameHdrNum == 0)
+                printf("pleae set frame hdr cfg first\n");
+            for (int i = 0; i < FrameHdrAttr.FrameHdrNum; i++) {
+                printf("%d: time=%f, gain=%f, ispG=%f, regtime=%d, reggain=%d, dcg=%d, vts=%d\n", i,
+                    FrameHdrAttr.FrameHdrExp[i].exp_real_params.integration_time,
+                    FrameHdrAttr.FrameHdrExp[i].exp_real_params.analog_gain,
+                    FrameHdrAttr.FrameHdrExp[i].exp_real_params.isp_dgain,
+                    FrameHdrAttr.FrameHdrExp[i].exp_sensor_params.coarse_integration_time,
+                    FrameHdrAttr.FrameHdrExp[i].exp_sensor_params.analog_gain_code_global,
+                    FrameHdrAttr.FrameHdrExp[i].exp_real_params.dcg_mode,
+                    FrameHdrAttr.FrameLengthLines[i]);
+            }
             break;
         // TEST SYNC MODE
         case 'W':
@@ -1570,6 +1596,8 @@ static void sample_ae_usage()
     printf("\t t) AE:         set linear synctest.\n\n");
     printf("\t u) AE:         set use subwin aec.\n");
     printf("\t v) AE:         not use subwin aec.\n");
+    printf("\t w) AE:         set frame hdr cfg.\n");
+    printf("\t x) AE:         get frame hdr exp.\n");
 
     printf("\t X) AE:         set exp windows.\n");
     printf("\t Y) AE:         set aec stats cfg params.\n");
@@ -1688,6 +1716,7 @@ XCamReturn sample_ae_module(const void* arg)
     ae_api_expSwAttr_t expSwAttr;
     Uapi_ExpSubWin_t ExpSubWin;
     float fps = 0.0f;
+    Uapi_FrameHdrAttr_t FrameHdrAttr;
 
     do {
         sample_ae_usage();
@@ -1820,7 +1849,6 @@ XCamReturn sample_ae_module(const void* arg)
             rk_aiq_user_api2_ae_setExpSubWinAttr(ctx, ExpSubWin);
             printf("set exp windows[0,0,240,240]\n\n");
             break;
-
         case 'v':
             ExpSubWin.Params.SubWinEn = false;
             ExpSubWin.Params.SubWin.h_offs = 0;
@@ -1831,8 +1859,29 @@ XCamReturn sample_ae_module(const void* arg)
             rk_aiq_user_api2_ae_setExpSubWinAttr(ctx, ExpSubWin);
             printf("no set exp windows\n\n");
             break;
-
-
+        case 'w':
+            FrameHdrAttr.FrameHdrEn = true;
+            FrameHdrAttr.FrameHdrNum = 3;
+            FrameHdrAttr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
+            rk_aiq_user_api2_ae_setFrameHdrAttr(ctx, FrameHdrAttr);
+            printf("set frame hdr cfg, en=%d, num=%d\n\n", FrameHdrAttr.FrameHdrEn, FrameHdrAttr.FrameHdrNum);
+            break;
+        case 'x':
+            rk_aiq_user_api2_ae_getFrameHdrAttr(ctx, &FrameHdrAttr);
+            printf("get frame hdr exp:\n");
+            if (FrameHdrAttr.FrameHdrEn == false || FrameHdrAttr.FrameHdrNum == 0)
+                printf("pleae set frame hdr cfg first\n");
+            for (int i = 0; i < FrameHdrAttr.FrameHdrNum; i++) {
+                printf("%d: time=%f, gain=%f, ispG=%f, regtime=%d, reggain=%d, dcg=%d, vts=%d\n", i,
+                    FrameHdrAttr.FrameHdrExp[i].exp_real_params.integration_time,
+                    FrameHdrAttr.FrameHdrExp[i].exp_real_params.analog_gain,
+                    FrameHdrAttr.FrameHdrExp[i].exp_real_params.isp_dgain,
+                    FrameHdrAttr.FrameHdrExp[i].exp_sensor_params.coarse_integration_time,
+                    FrameHdrAttr.FrameHdrExp[i].exp_sensor_params.analog_gain_code_global,
+                    FrameHdrAttr.FrameHdrExp[i].exp_real_params.dcg_mode,
+                    FrameHdrAttr.FrameLengthLines[i]);
+            }
+            break;
 
         case 'X':
             ExpWin.Params.h_offs = 0;

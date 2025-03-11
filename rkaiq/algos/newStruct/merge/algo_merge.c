@@ -23,10 +23,10 @@
 #include "algo_types_priv.h"
 #include "merge_types_prvt.h"
 #include "xcam_log.h"
-//#include "RkAiqHandle.h"
-
+ //#include "RkAiqHandle.h"
 #include "c_base/aiq_base.h"
 #include "interpolation.h"
+#include "common/rk_aiq_types_priv_c.h"
 // RKAIQ_BEGIN_DECLARE
 
 XCamReturn MergeSelectParam(MergeContext_t* pMergeCtx, mge_param_t* out, int iso);
@@ -120,6 +120,23 @@ static XCamReturn processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outp
             LOGE_AMERGE("%s: It's capturing, using pre frame params\n", __func__);
             pMergeCtx->isCapture = false;
             return XCAM_RETURN_NO_ERROR;
+        }
+        AlgoRstShared_t* xCamAePreRes = merge_proc_param->com.u.proc.res_comb->ae_pre_res_c;
+        RkAiqAlgoPreResAe* pAEPreRes  = NULL;
+        if (xCamAePreRes) {
+            pAEPreRes = (RkAiqAlgoPreResAe*)xCamAePreRes->_data;
+            pMergeCtx->NextCtrlData.ExpoData.EnvLv =
+                    pAEPreRes->ae_pre_res_rk.GlobalEnvLv[1];
+            // Normalize the current envLv for AEC
+            pMergeCtx->NextCtrlData.ExpoData.EnvLv =
+                (pMergeCtx->NextCtrlData.ExpoData.EnvLv - MIN_ENV_LV) /
+                (MAX_ENV_LV - MIN_ENV_LV);
+            pMergeCtx->NextCtrlData.ExpoData.EnvLv =
+                LIMIT_VALUE(pMergeCtx->NextCtrlData.ExpoData.EnvLv, ENVLVMAX, ENVLVMIN);
+        }
+        else {
+            pMergeCtx->NextCtrlData.ExpoData.EnvLv = ENVLVMIN;
+            LOGW_AMERGE("%s: ae Pre result is null!!!\n", __FUNCTION__);
         }
 
         // get LongFrmMode
@@ -269,23 +286,23 @@ static XCamReturn processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outp
     return XCAM_RETURN_NO_ERROR;
 }
 
-const float default_moveCoef_list[] = {0,   0.005, 0.01, 0.05, 0.1, 0.15, 0.2,
+const float default_envlv_list[] = {0,   0.005, 0.01, 0.05, 0.1, 0.15, 0.2,
                                        0.3, 0.4,   0.5,  0.6,  0.8, 1};
-void pre_interp_movecoef(float MoveCoef, float* MoveCoef_list, int num, int* lo, int* hi,
+void pre_interp_envlv(float envlv, float* envlv_list, int num, int* lo, int* hi,
                          float* ratio) {
     int i;
-    float MoveCoef_lo, MoveCoef_hi;
-    if (MoveCoef_list == NULL) {
-        MoveCoef_list = (float*)default_moveCoef_list;
+    float envlv_lo, envlv_hi;
+    if (envlv_list == NULL) {
+        envlv_list = (float*)default_envlv_list;
         num           = 13;
     }
-    if (MoveCoef <= MoveCoef_list[0]) {
+    if (envlv <= envlv_list[0]) {
         *lo    = 0;
         *hi    = 0;
         *ratio = 0.0f;
         return;
     }
-    if (MoveCoef >= MoveCoef_list[num - 1]) {
+    if (envlv >= envlv_list[num - 1]) {
         *lo    = num - 1;
         *hi    = num - 1;
         *ratio = 0.0f;
@@ -293,12 +310,12 @@ void pre_interp_movecoef(float MoveCoef, float* MoveCoef_list, int num, int* lo,
     }
 
     for (i = 1; i < num; i++) {
-        if (MoveCoef < MoveCoef_list[i]) {
+        if (envlv < envlv_list[i]) {
             *lo         = i - 1;
             *hi         = i;
-            MoveCoef_lo = MoveCoef_list[*lo];
-            MoveCoef_hi = MoveCoef_list[*hi];
-            *ratio      = (float)(MoveCoef - MoveCoef_lo) / (MoveCoef_hi - MoveCoef_lo);
+            envlv_lo = envlv_list[*lo];
+            envlv_hi = envlv_list[*hi];
+            *ratio      = (float)(envlv - envlv_lo) / (envlv_hi - envlv_lo);
 
             return;
         }
@@ -322,7 +339,7 @@ XCamReturn MergeSelectParam(MergeContext_t* pMergeCtx, mge_param_t* out, int iso
         pre_interp(iso, (uint32_t *)paut->sta.paraLinkCfg.sw_mgeT_isoLink_val, MERGE_LINK_NUM, &ilow, &ihigh,
                    &ratio);
     } else if (paut->sta.paraLinkCfg.sw_mgeT_paraLink_mode == amge_envLink_mode) {
-        pre_interp_movecoef(pMergeCtx->NextCtrlData.MoveCoef,
+        pre_interp_envlv(pMergeCtx->NextCtrlData.ExpoData.EnvLv,
                             paut->sta.paraLinkCfg.sw_mgeT_envLink_val, MERGE_LINK_NUM, &ilow,
                             &ihigh, &ratio);
     } else {
@@ -405,7 +422,8 @@ XCamReturn MergeSelectParam(MergeContext_t* pMergeCtx, mge_param_t* out, int iso
     pMergeCtx->CurrData.CtrlData.ExpoData.RatioLS = pMergeCtx->NextCtrlData.ExpoData.RatioLS;
     pMergeCtx->CurrData.CtrlData.ExpoData.RatioLM = pMergeCtx->NextCtrlData.ExpoData.RatioLM;
     pMergeCtx->CurrData.CtrlData.ExpoData.SGain   = pMergeCtx->NextCtrlData.ExpoData.SGain;
-    pMergeCtx->CurrData.CtrlData.ExpoData.MGain   = pMergeCtx->NextCtrlData.ExpoData.MGain;
+    pMergeCtx->CurrData.CtrlData.ExpoData.MGain = pMergeCtx->NextCtrlData.ExpoData.MGain;
+    pMergeCtx->CurrData.CtrlData.ExpoData.EnvLv   = pMergeCtx->NextCtrlData.ExpoData.EnvLv;
 
     return XCAM_RETURN_NO_ERROR;
 }

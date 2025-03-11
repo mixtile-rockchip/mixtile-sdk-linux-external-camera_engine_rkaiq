@@ -79,6 +79,17 @@ static XCamReturn _handlerBlc_processing(AiqAlgoHandler_t* pAlgoHandler) {
     }
 
     blc_proc_param->aeIsConverged = pblcHandler->mAeProcRes.IsConverged;
+    rk_aiq_isp_blc_v33_t* blcRes = (rk_aiq_isp_blc_params_t*)pBase->_data;
+    blcRes->aeIsConverged = &pblcHandler->aeIsConverged;
+    blcRes->damping = &pblcHandler->damping;
+    pblcHandler->aeIsConverged = pblcHandler->mAeProcRes.IsConverged;
+    if (pblcHandler->damping && !blc_proc_param->ishdr) {
+        blc_proc_param->damping = true;
+    }
+    else {
+        blc_proc_param->damping = false;
+    }
+
     ret = AiqAlgoHandler_do_processing_common(pAlgoHandler);
 
     blc_proc_res_int->blcRes = (blc_param_t*)pBase->_data;
@@ -91,14 +102,6 @@ static XCamReturn _handlerBlc_processing(AiqAlgoHandler_t* pAlgoHandler) {
     } else {
         shared->res_comb.blc_en       = ((AiqAlgoHandlerBlc_t*)pAlgoHandler)->mLatesten;
         shared->res_comb.blc_proc_res = ((AiqAlgoHandlerBlc_t*)pAlgoHandler)->mLatestparam;
-    }
-
-    rk_aiq_isp_blc_v33_t* blcRes = (rk_aiq_isp_blc_params_t*)pBase->_data;
-    blcRes->aeIsConverged = &pblcHandler->aeIsConverged;
-    blcRes->damping = &pblcHandler->damping;
-    pblcHandler->aeIsConverged = pblcHandler->mAeProcRes.IsConverged;
-    if (pblcHandler->damping && !blc_proc_param->ishdr) {
-        pAlgoHandler->mProcOutParam->cfg_update = true;
     }
 
     RKAIQCORE_CHECK_RET(ret, "blc algo processing failed");

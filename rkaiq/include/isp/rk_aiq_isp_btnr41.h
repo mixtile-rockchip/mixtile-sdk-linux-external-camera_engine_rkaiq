@@ -2322,12 +2322,12 @@ typedef struct btnr_predgainWkArd_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(sw_btnrT_predgainWkArd_en),
         M4_TYPE(bool),
-        M4_DEFAULT(0),
+        M4_DEFAULT(1),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(1),
         M4_GROUP_CTRL(predgainWkArd_en_group),
-        M4_NOTES(The enable bit for debugging pregain\n
+        M4_NOTES(The enable bit for using dynamic/usrConfig pregain\n
         Freq of use: low))  */
     bool sw_btnrT_predgainWkArd_en;
     /* M4_GENERIC_DESC(
@@ -2338,7 +2338,7 @@ typedef struct btnr_predgainWkArd_s {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
-        M4_GROUP(!predgainWkArd_en_group),
+        M4_GROUP(predgainWkArd_en_group),
         M4_GROUP_CTRL(dbgPredgain_mode_group),
         M4_NOTES(Reference enum types.\n
         Freq of use: low))  */
@@ -2349,7 +2349,7 @@ typedef struct btnr_predgainWkArd_s {
         M4_SIZE_EX(1,13),
         M4_RANGE_EX(0,8),
         M4_DEFAULT([1,1,1,1,1,1,1,1,1,1,1,1,1]),
-        M4_GROUP(!predgainWkArd_en_group; dbgPredgain_mode_group:btnr_usrConfig_mode),
+        M4_GROUP(predgainWkArd_en_group; dbgPredgain_mode_group:btnr_usrConfig_mode),
         M4_DIGIT_EX(3),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -2391,6 +2391,7 @@ typedef struct btnr_debug_s {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(1),
+        M4_GROUP(pixDomain_mode_group:btnr_pixLog2Domain_mode),
         M4_NOTES(TODO))  */
     btnr_predgainWkArd_t predgainWkArd;
 } btnr_debug_t;

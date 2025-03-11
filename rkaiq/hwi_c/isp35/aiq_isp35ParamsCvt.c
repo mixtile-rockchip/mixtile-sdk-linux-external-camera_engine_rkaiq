@@ -1189,7 +1189,7 @@ static void convertAiqAwbToIsp33Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_
     if (blc == NULL) {
         LOGW_AWB("%s blc_res is null", __FUNCTION__);
     }
-    float isp_ob_predgain = pCvt->mCommonCvtInfo.preDGain;
+    float isp_ob_predgain = pCvt->mCommonCvtInfo.preDGain_drc;
     ConfigBlc2(blc, awb_meas, isp_dgain, isp_ob_predgain, pCvt->_working_mode, awb_cfg_v35);
     LOGD_AWB("blc2_cfg %d %d,%d,%d,%d", awb_cfg_v35->bls2_en, awb_cfg_v35->bls2_val.r,
              awb_cfg_v35->bls2_val.gr, awb_cfg_v35->bls2_val.gb, awb_cfg_v35->bls2_val.b);
@@ -1637,8 +1637,9 @@ static void convertAiqBtnrToIsp35Params(AiqIspParamsCvt_t* pCvt, aiq_params_base
         pCvt->isp_params.isp_cfg->module_en_update |= ISP3X_MODULE_BAY3D;
         pCvt->isp_params.isp_cfg->module_cfg_update |= ISP3X_MODULE_BAY3D;
     } else {
-        // tnr can't open/close in runtime.
-        pCvt->isp_params.isp_cfg->module_ens |= ISP3X_MODULE_BAY3D;
+        // tnr can't open/close in runtime if not enable in first frame
+        pCvt->isp_params.isp_cfg->module_ens &= ~ISP3X_MODULE_BAY3D;
+        pCvt->isp_params.isp_cfg->module_en_update |= ISP3X_MODULE_BAY3D;
         return;
     }
 
@@ -1850,7 +1851,7 @@ void convertAiqAinrToIsp35Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_t* pBa
         return;
     }
 
-    rk_aiq_ainr_params_cvt(pBase->_data, &pCvt->isp_params, &pCvt->mCommonCvtInfo);
+    rk_aiq_ainr_params_cvt(pBase->_data, &pCvt->isp_params, &pCvt->mCommonCvtInfo, pBase->bypass);
 }
 #endif
 

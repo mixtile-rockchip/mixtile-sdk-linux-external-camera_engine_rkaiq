@@ -2453,112 +2453,12 @@ static int query_ae_state(const rk_aiq_sys_ctx_t* ctx)
     return 0;
 }
 
-static void set_af_manual_meascfg(const rk_aiq_sys_ctx_t* ctx)
-{
-    rk_aiq_af_attrib_t attr;
-    uint16_t gamma_y[RKAIQ_RAWAF_GAMMA_NUM] =
-    {0, 45, 108, 179, 245, 344, 409, 459, 500, 567, 622, 676, 759, 833, 896, 962, 1023};
-#if !defined(ISP_HW_V33)
-    rk_aiq_user_api2_af_GetAttrib(ctx, &attr);
-    attr.AfMode = RKAIQ_AF_MODE_FIXED;
-
-    attr.manual_meascfg.contrast_af_en = 1;
-    attr.manual_meascfg.rawaf_sel = 0; // normal = 0; hdr = 1
-
-    attr.manual_meascfg.window_num = 2;
-    attr.manual_meascfg.wina_h_offs = 2;
-    attr.manual_meascfg.wina_v_offs = 2;
-    attr.manual_meascfg.wina_h_size = 2580;
-    attr.manual_meascfg.wina_v_size = 1935;
-
-    attr.manual_meascfg.winb_h_offs = 1146;
-    attr.manual_meascfg.winb_v_offs = 972;
-    attr.manual_meascfg.winb_h_size = 300;
-    attr.manual_meascfg.winb_v_size = 300;
-
-    attr.manual_meascfg.gamma_flt_en = 1;
-    memcpy(attr.manual_meascfg.gamma_y, gamma_y, RKAIQ_RAWAF_GAMMA_NUM * sizeof(uint16_t));
-
-    attr.manual_meascfg.gaus_flt_en = 1;
-    attr.manual_meascfg.gaus_h0 = 0x20;
-    attr.manual_meascfg.gaus_h1 = 0x10;
-    attr.manual_meascfg.gaus_h2 = 0x08;
-
-    attr.manual_meascfg.afm_thres = 4;
-
-    attr.manual_meascfg.lum_var_shift[0] = 0;
-    attr.manual_meascfg.afm_var_shift[0] = 0;
-    attr.manual_meascfg.lum_var_shift[1] = 4;
-    attr.manual_meascfg.afm_var_shift[1] = 4;
-
-    attr.manual_meascfg.sp_meas.enable = true;
-    attr.manual_meascfg.sp_meas.ldg_xl = 10;
-    attr.manual_meascfg.sp_meas.ldg_yl = 28;
-    attr.manual_meascfg.sp_meas.ldg_kl = (255 - 28) * 256 / 45;
-    attr.manual_meascfg.sp_meas.ldg_xh = 118;
-    attr.manual_meascfg.sp_meas.ldg_yh = 8;
-    attr.manual_meascfg.sp_meas.ldg_kh = (255 - 8) * 256 / 15;
-    attr.manual_meascfg.sp_meas.highlight_th = 245;
-    attr.manual_meascfg.sp_meas.highlight2_th = 200;
-    rk_aiq_user_api2_af_SetAttrib(ctx, &attr);
-#endif
-}
-
-static void print_af_stats(rk_aiq_isp_stats_t *stats_ref)
-{
-    if (stats_ref->frame_id % 30 != 0)
-        return;
-
-    printf("sharpness roia: 0x%llx-0x%08x roib: 0x%x-0x%08x\n",
-           stats_ref->af_stats.roia_sharpness,
-           stats_ref->af_stats.roia_luminance,
-           stats_ref->af_stats.roib_sharpness,
-           stats_ref->af_stats.roib_luminance);
-
-    printf("global_sharpness\n");
-    for (int i = 0; i < 15; i++) {
-        for (int j = 0; j < 15; j++) {
-            printf("0x%08x, ", stats_ref->af_stats.global_sharpness[15 * i + j]);
-        }
-        printf("\n");
-    }
-    printf("lowpass_fv4_4\n");
-    for (int i = 0; i < 15; i++) {
-        for (int j = 0; j < 15; j++) {
-            printf("0x%08x, ", stats_ref->af_stats.lowpass_fv4_4[15 * i + j]);
-        }
-        printf("\n");
-    }
-    printf("lowpass_fv8_8\n");
-    for (int i = 0; i < 15; i++) {
-        for (int j = 0; j < 15; j++) {
-            printf("0x%08x, ", stats_ref->af_stats.lowpass_fv8_8[15 * i + j]);
-        }
-        printf("\n");
-    }
-    printf("lowpass_highlht\n");
-    for (int i = 0; i < 15; i++) {
-        for (int j = 0; j < 15; j++) {
-            printf("0x%08x, ", stats_ref->af_stats.lowpass_highlht[15 * i + j]);
-        }
-        printf("\n");
-    }
-    printf("lowpass_highlht2\n");
-    for (int i = 0; i < 15; i++) {
-        for (int j = 0; j < 15; j++) {
-            printf("0x%08x, ", stats_ref->af_stats.lowpass_highlht2[15 * i + j]);
-        }
-        printf("\n");
-    }
-}
-
 static void* stats_thread(void* args) {
     demo_context_t* ctx =  (demo_context_t*)args;
     XCamReturn ret;
     pthread_detach (pthread_self());
     printf("begin stats thread\n");
 
-    set_af_manual_meascfg(ctx->aiq_ctx);
     while(!_if_quit) {
 #if (USE_NEWSTRUCT == 0)
         rk_aiq_isp_stats_t *stats_ref = NULL;
@@ -2566,7 +2466,6 @@ static void* stats_thread(void* args) {
         if (ret == XCAM_RETURN_NO_ERROR && stats_ref != NULL) {
             printf("get one stats frame id %d \n", stats_ref->frame_id);
             query_ae_state(ctx->aiq_ctx);
-            print_af_stats(stats_ref);
             rk_aiq_uapi2_sysctl_release3AStatsRef(ctx->aiq_ctx, stats_ref);
 #else
         rk_aiq_isp_statistics_t stats_ref;
