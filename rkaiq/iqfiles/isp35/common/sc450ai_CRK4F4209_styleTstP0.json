@@ -182,7 +182,7 @@
 								},
 								"frmRate":	{
 									"sw_aeT_frmRate_mode":	"ae_frmRate_fix_mode",
-									"sw_aeT_frmRate_val":	10
+									"sw_aeT_frmRate_val":	0
 								},
 								"antiFlicker":	{
 									"sw_aeT_antiFlicker_en":	1,
