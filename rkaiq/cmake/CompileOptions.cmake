@@ -107,6 +107,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
         -Wno-psabi
         -Wno-unused
         -Wno-unused-result
+        -Wno-sign-compare
         )
     if (GCC_VERSION VERSION_GREATER 9 OR GCC_VERSION VERSION_EQUAL 9)
         add_compile_options(
