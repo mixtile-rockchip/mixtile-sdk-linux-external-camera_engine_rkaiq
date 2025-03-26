@@ -1017,19 +1017,19 @@ typedef struct __camgroup_uapi {
 typedef struct __af_uapi {
 #if defined(ISP_HW_V20) || defined(ISP_HW_V21)
     // M4_STRUCT_DESC("calib", "normal_ui_style")
-    CalibDbV2_AF_Tuning_Para_t calib;
+    CalibDbV2_AF_Tuning_Para_t attr;
 #endif
 #if defined(ISP_HW_V30)
     // M4_STRUCT_DESC("calib", "normal_ui_style")
-    CalibDbV2_AFV30_Tuning_Para_t calib;
+    CalibDbV2_AFV30_Tuning_Para_t attr;
 #endif
 #if defined(ISP_HW_V32)
     // M4_STRUCT_DESC("calib", "normal_ui_style")
-    CalibDbV2_AFV31_Tuning_Para_t calib;
+    CalibDbV2_AFV31_Tuning_Para_t attr;
 #endif
 #if defined(ISP_HW_V32_LITE)
     // M4_STRUCT_DESC("calib", "normal_ui_style")
-    CalibDbV2_AFV32_Tuning_Para_t calib;
+    CalibDbV2_AFV32_Tuning_Para_t attr;
 #endif
 #if defined(ISP_HW_V39)
     /* M4_GENERIC_DESC(
@@ -1037,7 +1037,7 @@ typedef struct __af_uapi {
        M4_TYPE(struct),
        M4_UI_MODULE(tuning_param),
        M4_REF(/af_v33)) */
-    CalibDbV2_AFV33_t calib;
+    CalibDbV2_AFV33_t attr;
 #endif
 #if defined(ISP_HW_V35)
     /* M4_GENERIC_DESC(
@@ -1045,7 +1045,7 @@ typedef struct __af_uapi {
        M4_TYPE(struct),
        M4_UI_MODULE(tuning_param),
        M4_REF(/af_calib)) */
-    af_param_t calib;
+    af_param_t attr;
 #endif
 } af_uapi_t;
 #endif

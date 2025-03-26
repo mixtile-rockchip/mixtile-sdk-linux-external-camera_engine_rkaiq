@@ -537,6 +537,10 @@ rk_aiq_uapi2_sysctl_rawReproc_preInit(const char* isp_driver,
 void rk_aiq_uapi2_sysctl_setIspParamsDelayCnts(const rk_aiq_sys_ctx_t* sys_ctx, int8_t delay_cnts);
 
 XCamReturn
+rk_aiq_uapi2_sysctl_preInit_rkrawstream_info(const char* sns_ent_name,
+                                             const rk_aiq_rkrawstream_info_t* info);
+
+XCamReturn
 rk_aiq_uapi2_sysctl_setCrop(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_rect_t rect);
 
 /**

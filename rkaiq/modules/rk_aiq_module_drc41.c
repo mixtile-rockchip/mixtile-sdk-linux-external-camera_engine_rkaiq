@@ -18,7 +18,6 @@
 #include "rk_aiq_isp35_modules.h"
 
 #define MAX_AE_DRC_GAIN     (256.0f)
-#define MAX_AE_DRC_GAIN_RV1103B (32.0f)
 #define DRC_GAIN_MAX            (8.0f)
 #define GAINMIN             (1.0f)
 #define PREDGAIN_MAX        (4.0f)
@@ -188,28 +187,19 @@ void rk_aiq_drc41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
         }
     }
 
-    if (cvtinfo->frameNum > 1) {
-        if (L2S_Ratio * drc_gain > MAX_AE_DRC_GAIN_RV1103B) {
+	if (cvtinfo->frameNum > 1) {
+        if (L2S_Ratio * drc_gain > MAX_AE_DRC_GAIN) {
             LOGE_ATMO(
-                "%s:  AERatio(%f)*sw_drcT_toneGain_maxLimit(%f): %f > 32x!!! Please change AE HDR "
+                "%s:  AERatio(%f)*sw_drcT_toneGain_maxLimit(%f): %f > 256x!!! Please change AE HDR "
                 "parameters and DRC sw_drcT_toneGain_maxLimit vaule.\n",
                 __FUNCTION__, L2S_Ratio, drc_gain, L2S_Ratio * drc_gain);
-            if (L2S_Ratio > MAX_AE_DRC_GAIN_RV1103B) {
-                LOGE_ATMO(
-                    "%s:  AERatio: %f > 32x, which leads to the loss of highlight region. Please "
-                    "change AE parameters to decrease AE ratio value.\n",
-                    __FUNCTION__, L2S_Ratio);
-                L2S_Ratio = MAX_AE_DRC_GAIN_RV1103B;
-                drc_gain  = GAINMIN;
-            } else {
-                if (L2S_Ratio < GAINMIN) {
-                    LOGE_ATMO("%s:  AERatio: %f < 1x!!! Please check AE status.\n", __FUNCTION__,
-                              L2S_Ratio);
-                    L2S_Ratio = GAINMIN;
-                }
-                drc_gain = MAX(MAX_AE_DRC_GAIN_RV1103B / L2S_Ratio, GAINMIN);
-                drc_gain = MIN(drc_gain, DRC_GAIN_MAX);
+            if (L2S_Ratio < GAINMIN) {
+                LOGE_ATMO("%s:  AERatio: %f < 1x!!! Please check AE status.\n", __FUNCTION__,
+                          L2S_Ratio);
+                L2S_Ratio = GAINMIN;
             }
+            drc_gain = MAX(MAX_AE_DRC_GAIN / L2S_Ratio, GAINMIN);
+            drc_gain = MIN(drc_gain, DRC_GAIN_MAX);
         }
     }
     if (cvtinfo->frameNum == 1) {

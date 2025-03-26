@@ -618,22 +618,22 @@ RkAiqUapiDesc_t rkaiq_uapidesc_list[] = {
     __RKAIQUAPI_DESC_DEF("/uapi/0/postisp_uapi/info", postisp_status_t, NULL, rk_aiq_user_api2_postisp_QueryStatus),
 #endif
 #if defined(ISP_HW_V20) || defined(ISP_HW_V21)
-    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/calib", CalibDbV2_AF_Tuning_Para_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
+    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/attr", CalibDbV2_AF_Tuning_Para_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
 #endif
 #if defined(ISP_HW_V30)
-    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/calib", CalibDbV2_AFV30_Tuning_Para_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
+    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/attr", CalibDbV2_AFV30_Tuning_Para_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
 #endif
 #if defined(ISP_HW_V32)
-    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/calib", CalibDbV2_AFV31_Tuning_Para_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
+    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/attr", CalibDbV2_AFV31_Tuning_Para_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
 #endif
 #if defined(ISP_HW_V32_LITE)
-    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/calib", CalibDbV2_AFV32_Tuning_Para_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
+    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/attr", CalibDbV2_AFV32_Tuning_Para_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
 #endif
 #if defined(ISP_HW_V39)
-    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/calib", CalibDbV2_AFV33_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
+    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/attr", CalibDbV2_AFV33_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
 #endif
 #if defined(ISP_HW_V35)
-    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/calib", af_param_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
+    __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/attr", af_param_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
 #endif
 #if RKAIQ_HAVE_AINR
     __RKAIQUAPI_DESC_DEF("/uapi/0/ainr_uapi/attr", ainr_api_attrib_t, rk_aiq_user_api2_ainr_SetAttrib, rk_aiq_user_api2_ainr_GetAttrib),

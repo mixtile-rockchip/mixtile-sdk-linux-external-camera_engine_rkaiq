@@ -326,6 +326,7 @@ XCamReturn AiqCamHw_clearStaticCamHwInfo();
 XCamReturn AiqCamHw_initCamHwInfos();
 XCamReturn AiqCamHw_selectIqFile(const char* sns_ent_name, char* iqfile_name);
 const char* AiqCamHw_getBindedSnsEntNmByVd(const char* vd);
+const char* AiqCamHw_getBindedIspDrvNmBySns(const char* sns_ent_name);
 
 void AiqCamHw_setCalib(AiqCamHwBase_t* pCamHw, const CamCalibDbV2Context_t* calibv2);
 XCamReturn AiqCamHw_prepare(AiqCamHwBase_t* pCamHw, uint32_t width, uint32_t height, int mode,

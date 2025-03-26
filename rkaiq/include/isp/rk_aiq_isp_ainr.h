@@ -18,7 +18,7 @@
 #ifndef _RK_AIQ_PARAM_AINR_H_
 #define _RK_AIQ_PARAM_AINR_H_
 
-#define AINR_MODEL_FILENAME_LEN    64
+#define AINR_MODEL_FILENAME_LEN    256
 
 typedef struct ainr_param_calib_s {
     /* M4_GENERIC_DESC(

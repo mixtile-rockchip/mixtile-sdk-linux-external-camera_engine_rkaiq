@@ -144,6 +144,7 @@ public:
     static XCamReturn initCamHwInfos();
     static XCamReturn selectIqFile(const char* sns_ent_name, char* iqfile_name);
     static const char* getBindedSnsEntNmByVd(const char* vd);
+    static const char* getBindedIspDrvNmBySns(const char* sns_ent_name);
 
     // from PollCallback
     virtual XCamReturn poll_event_ready (uint32_t sequence, int type) override;

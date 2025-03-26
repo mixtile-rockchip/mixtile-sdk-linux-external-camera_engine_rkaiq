@@ -415,7 +415,7 @@ typedef struct {
 } rk_aiq_af_focusrange;
 
 typedef struct RkAiqAinrModelBuf_s {
-    char model_file[13][64];
+    char model_file[13][256];
     char *model_buf[13];
 } RkAiqAinrModelBuf_t;
 
@@ -691,6 +691,19 @@ typedef struct rk_aiq_control_preinit_s {
     rk_aiq_control_mode_t mode;
     rk_aiq_ispParamOnlyCrtl_info_t isp_param_only_info;
 } rk_aiq_control_preinit_t;
+
+typedef enum {
+    RK_ISP_RKRAWSTREAM_MODE_INVALID = 0,
+    RK_ISP_RKRAWSTREAM_MODE_HALF_ONLINE,
+    RK_ISP_RKRAWSTREAM_MODE_OFFLINE,
+} rk_aiq_rkrawstream_mode_t;
+
+typedef struct {
+    int width;
+    int height;
+    rk_aiq_format_t format;
+    rk_aiq_rkrawstream_mode_t mode;
+} rk_aiq_rkrawstream_info_t;
 
 #define RK_AIQ_CAM_GROUP_MAX_CAMS (8)
 

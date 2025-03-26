@@ -491,6 +491,61 @@ static int rk_aiq_rawReproc_init(rk_aiq_sys_ctx_t* ctx)
     return 0;
 }
 
+static const char*
+rk_aiq_uapi2_sysctl_getBindedIspDrvNmBySns(const char *sns_ent_name)
+{
+    if (!g_rk_aiq_init_lib) {
+        rk_aiq_init_lib();
+        g_rk_aiq_init_lib = true;
+    }
+
+    return AiqCamHw_getBindedIspDrvNmBySns(sns_ent_name);
+}
+
+XCamReturn
+rk_aiq_uapi2_sysctl_preInit_rkrawstream_info(const char* sns_ent_name,
+                           const rk_aiq_rkrawstream_info_t* info)
+{
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+    if (!sns_ent_name || !info) {
+        LOGE("Invalid input parameter");
+        return XCAM_RETURN_ERROR_PARAM;
+    }
+
+    const char* isp_drv = rk_aiq_uapi2_sysctl_getBindedIspDrvNmBySns(sns_ent_name);
+    if (!isp_drv) {
+        return XCAM_RETURN_ERROR_PARAM;
+    }
+
+	rk_aiq_control_preinit_t ctr_info;
+    memset(&ctr_info, 0, sizeof(rk_aiq_control_preinit_t));
+
+    switch (info->mode)
+    {
+    case RK_ISP_RKRAWSTREAM_MODE_INVALID:
+        ctr_info.mode = RK_AIQ_CONTROL_DEFAULT;
+        break;
+    case RK_ISP_RKRAWSTREAM_MODE_HALF_ONLINE:
+        ctr_info.mode = RK_AIQ_CONTROL_CIS_ISP_PARAM;
+        break;
+    case RK_ISP_RKRAWSTREAM_MODE_OFFLINE:
+        ctr_info.mode = RK_AIQ_CONTROL_ISP_PARAM_ONLY;
+        break;
+    default:
+        ctr_info.mode = RK_AIQ_CONTROL_DEFAULT;
+        break;
+    }
+
+    const char* sns_ret = NULL;
+    sns_ret = rk_aiq_uapi2_sysctl_rawReproc_preInit(isp_drv, ctr_info);
+    if (!sns_ret) {
+        return XCAM_RETURN_ERROR_PARAM;
+    }
+
+    return (ret);
+}
+
 XCamReturn
 rk_aiq_uapi2_sysctl_prepareRkRaw(const rk_aiq_sys_ctx_t* ctx, rk_aiq_raw_prop_t prop)
 {

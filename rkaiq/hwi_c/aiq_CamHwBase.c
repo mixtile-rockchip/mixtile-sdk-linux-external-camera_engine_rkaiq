@@ -6757,6 +6757,38 @@ AiqCamHw_setRawBufNum(AiqCamHwBase_t* pCamHw, uint16_t buf_num)
     return XCAM_RETURN_NO_ERROR;
 }
 
+const char*
+AiqCamHw_getBindedIspDrvNmBySns(const char* sns_ent_name)
+{
+
+    if (strstr(sns_ent_name, "FakeCamera")) {
+        LOGK_CAMHW("%s: get isp driver name by virtual sensor(%s)", __func__, sns_ent_name);
+    }
+
+    SnsFullInfoWraps_t* pItem = g_mSensorHwInfos;
+    rk_sensor_full_info_t* s_info = NULL;
+    while (pItem) {
+        if (strcmp(sns_ent_name, pItem->key) == 0) break;
+        pItem = pItem->next;
+    }
+
+    if (!pItem) {
+        LOGE_CAMHW_SUBM(ISP20HW_SUBM, "can't find sensor %s", sns_ent_name);
+        return NULL;
+    }
+
+    s_info = &pItem->data;
+
+    if (!s_info->isp_info) {
+        LOGE_CAMHW_SUBM(ISP20HW_SUBM,
+            "can't find isp driver name by sensor %s, maybe %s no binded to isp driver",
+            sns_ent_name, sns_ent_name);
+        return NULL;
+    }
+
+    return s_info->isp_info->driver;
+}
+
 static void AiqCamHwBase_initNotifier(AiqCamHwBase_t* pCamHw) {
 #if RKAIQ_HAVE_DUMPSYS
     aiq_notifier_init(&pCamHw->notifier);

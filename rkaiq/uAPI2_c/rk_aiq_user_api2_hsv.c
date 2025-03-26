@@ -143,10 +143,10 @@ rk_aiq_user_api2_hsv_SetCalib(const rk_aiq_sys_ctx_t* sys_ctx, ahsv_hsvCalib_t* 
 #if RKAIQ_HAVE_HSV_V10
     if (check_hsv_param(calib) != XCAM_RETURN_NO_ERROR) {
 #elif RKAIQ_HAVE_HSV_V11
-    hsv_api_attrib_t* attr;
-    memset(&attr, 0, sizeof(attr));
-    rk_aiq_user_api2_hsv_GetAttrib(sys_ctx, attr);
-    hsv_lutcfg_mode_t hsv_lut_mode = attr->stAuto.sta.hsvCfg.hw_hsvT_lut_mode;
+    hsv_status_t status;
+    memset(&status, 0, sizeof(status));
+    ret = rk_aiq_user_api2_hsv_QueryStatus(sys_ctx, &status);
+    hsv_lutcfg_mode_t hsv_lut_mode = status.stMan.sta.hw_hsvT_lut_mode;
     if (check_hsv_param(calib, hsv_lut_mode) != XCAM_RETURN_NO_ERROR) {
 #endif
         return XCAM_RETURN_ERROR_FAILED;

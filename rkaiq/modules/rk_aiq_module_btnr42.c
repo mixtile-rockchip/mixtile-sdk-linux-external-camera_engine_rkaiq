@@ -1089,10 +1089,10 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     pCfg->pre_spnr_dpc_wk_scale = CLIP(tmp, 0, 0xff);
     tmp = (pCfg->pre_spnr_dpc_flt_mode ? pdyn->preDpc.dpc_nsBalSfThd.hw_btnrT_preWgt_offset :
            pdyn->preDpc.dpc_nsBalNsStrg.hw_btnrT_preWgt_offset) * (1 << 10);
-    pCfg->pre_spnr_dpc_wk_offset = CLIP(tmp, 0, 0x3ff);
+    pCfg->pre_spnr_dpc_wk_offset = CLIP(tmp, 0, 0xff);
     /* BAY3D_DPC1 */
     tmp = pdyn->preDpc.dpc_nsBalNsStrg.hw_btnrT_noiseBal_strg * (1 << 10);
-    pCfg->pre_spnr_dpc_nr_bal_str = pCfg->pre_spnr_dpc_flt_mode ? pCfg->pre_spnr_dpc_wk_offset : tmp;
+    pCfg->pre_spnr_dpc_nr_bal_str = pCfg->pre_spnr_dpc_flt_mode ? pdyn->preDpc.dpc_nsBalSfThd.hw_btnrT_preWgt_offset * (1 << 10): tmp;
     tmp = (pdyn->preDpc.dpc_nsBalSfThd.hw_btnrT_softThd_scale) * (1 << 8);
     pCfg->pre_spnr_dpc_soft_thr_scale = CLIP(tmp, 0, 0xfff);
     // REG: BAY3D_PRELOWGT

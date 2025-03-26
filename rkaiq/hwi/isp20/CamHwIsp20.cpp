@@ -1509,6 +1509,31 @@ CamHwIsp20::getBindedSnsEntNmByVd(const char* vd)
     return NULL;
 }
 
+const char*
+CamHwIsp20::getBindedIspDrvNmBySns(const char* sns_ent_name)
+{
+
+    if (strstr(sns_ent_name, "FakeCamera")) {
+        LOGK_CAMHW("%s: get isp driver name by virtual sensor(%s)", __func__, sns_ent_name);
+    }
+
+    std::unordered_map<std::string, SmartPtr<rk_sensor_full_info_t>>::iterator it;
+    if ((it = mSensorHwInfos.find(sns_ent_name)) == mSensorHwInfos.end()) {
+        LOGE_CAMHW_SUBM(ISP20HW_SUBM, "can't find sensor %s", sns_ent_name);
+        return NULL;
+    }
+    rk_sensor_full_info_t *s_info = it->second.ptr();
+
+    if (!s_info->isp_info) {
+        LOGE_CAMHW_SUBM(ISP20HW_SUBM,
+            "can't find isp driver name by sensor %s, maybe %s no binded to isp driver",
+            sns_ent_name, sns_ent_name);
+        return NULL;
+    }
+
+    return s_info->isp_info->driver;
+}
+
 #if defined(ISP_HW_V20)
 XCamReturn
 CamHwIsp20::init_pp(rk_sensor_full_info_t *s_info)
