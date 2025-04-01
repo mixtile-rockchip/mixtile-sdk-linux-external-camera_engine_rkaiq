@@ -5343,7 +5343,7 @@ XCamReturn AiqCamHw_notify_sof(AiqCamHwBase_t* pCamHw, AiqHwEvt_t* sof_evt) {
     return XCAM_RETURN_NO_ERROR;
 }
 
-#if defined(ISP_HW_V39)
+#if defined(ISP_HW_V39) || defined(ISP_HW_V35)
 static void _setIspExp(AiqCamHwBase_t* pCamHw, struct sensor_exposure_cfg* pExpCfg, AiqSensorExpInfo_t* ae_exp)
 {
     rk_aiq_exposure_sensor_descriptor* pSnsDes = &pCamHw->_mSensorDev->_sensor_desc;
@@ -5486,7 +5486,7 @@ retry:
         bool extened_pixel = g_mMultiIspExtendedPixel;
         ispUniteMode       = AiqCamHw_getIspUniteMode(pCamHw);
 
-#if defined(ISP_HW_V39)
+#if defined(ISP_HW_V39) || defined(ISP_HW_V35)
         if (expParam)
             _setIspExp(pCamHw, &isp_params->exposure, expParam);
 #endif
