@@ -126,7 +126,8 @@ typedef enum _camAlgoResultType {
     RESULT_TYPE_HSV_PARAM,
     // hold postisp params
     RESULT_TYPE_POSTISP_PARAM,
-    RESULT_TYPE_AINR_PARAM,
+    RESULT_TYPE_AIBNR_PARAM,
+    RESULT_TYPE_AMTD_PARAM,
     RESULT_TYPE_MAX_PARAM,
 } camAlgoResultType;
 
@@ -636,7 +637,7 @@ extern int g_rkaiq_isp_hw_ver;
 #endif  // AIQ_UNUSED_PARAM
 
 // 函数用于将补码表示的整数转换为真值，指定符号位位置
-static inline int32_t c2trval(int signBitPosition,uint32_t complement)
+static inline int32_t c2trval(int signBitPosition, uint32_t complement)
 {
     // 计算符号掩码，只保留符号位
     uint32_t signMask = 1 << signBitPosition;

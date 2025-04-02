@@ -50,7 +50,7 @@ enum XCamMessageType {
     XCAM_MESSAGE_YNR_PROC_RES_OK,
     XCAM_MESSAGE_VICAP_POLL_SCL_OK,
     XCAM_MESSAGE_TNR_STATS_OK,
-    XCAM_MESSAGE_AINR_PROC_RES_OK,
+    XCAM_MESSAGE_AIBNR_PROC_RES_OK,
     XCAM_MESSAGE_MAX,
 };
 
@@ -85,7 +85,7 @@ static const char* MessageType2Str[XCAM_MESSAGE_MAX] = {
     [XCAM_MESSAGE_YNR_PROC_RES_OK]     = "YNR_PROC_RES",
     [XCAM_MESSAGE_VICAP_POLL_SCL_OK]   = "VICAP_POLL_SCL",
     [XCAM_MESSAGE_TNR_STATS_OK]        = "TNR_STATS",
-    [XCAM_MESSAGE_AINR_PROC_RES_OK]    = "AINR_PROC_RES",
+    [XCAM_MESSAGE_AIBNR_PROC_RES_OK]    = "AIBNR_PROC_RES",
 };
 
 typedef struct RkAiqGrpCondition_s {
@@ -198,7 +198,7 @@ static const char* algo_str_map_array[RK_AIQ_ALGO_TYPE_MAX] = {
     [RK_AIQ_ALGO_TYPE_AHISTEQ]=        "Histeq"       ,
     [RK_AIQ_ALGO_TYPE_AENH]=        "Enh"       ,
     [RK_AIQ_ALGO_TYPE_AHSV]=        "Hsv"       ,
-    [RK_AIQ_ALGO_TYPE_AINR]=        "Ainr"       ,
+    [RK_AIQ_ALGO_TYPE_AIBNR]=        "Aibnr"       ,
     // clang-format oon
 };
 

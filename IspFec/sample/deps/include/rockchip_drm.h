@@ -30,7 +30,7 @@
 #define _ROCKCHIP_DRM_H_
 
 #include <stdint.h>
-#include "drm.h"
+#include <drm.h>
 
 /**
  * User-desired buffer creation information structure.

@@ -31,6 +31,7 @@ extern sensor_info_share_t g_rk1608_share_inf;
 
 #if RKAIQ_HAVE_DUMPSYS
 static int __dump_mods(void* self, st_string* result, int argc, void* argv[]);
+static int __dump_raw(void* self, st_string* result, int argc, void* argv[]);
 #endif
 
 static XCamReturn hwResCb(void* pCtx, AiqHwEvt_t* hwres)
@@ -158,10 +159,10 @@ typedef rkisp_isp2x_stat_buffer rkisp_isp_stat_buffer;
         }
     }
     else if (hwres->type == ISP_POLL_AIISP) {
-#if RKAIQ_HAVE_AINR
+#if RKAIQ_HAVE_AIBNR
         AiqHwAinnEvt_t *ainnEvt = (AiqHwAinnEvt_t *)hwres;
 
-        AinrManager_hdlEvent(&pAiqManager->mAinrManager, ainnEvt);
+        AibnrManager_hdlEvent(&pAiqManager->mAibnrManager, ainnEvt);
 #else
         AiqHwAiispEvt_t* aiisp_data = (AiqHwAiispEvt_t *)hwres;
         if (pAiqManager->mAiispCtx.mAiispEvtcb) {
@@ -189,15 +190,15 @@ typedef rkisp_isp2x_stat_buffer rkisp_isp_stat_buffer;
         }
 #endif
     }
-#if RKAIQ_HAVE_AINR
-    else if (hwres->type == ISP_POLL_AINR_DONE) {
-        if (AinrManager_isNeedRknn(&pAiqManager->mAinrManager))
+#if RKAIQ_HAVE_AIBNR
+    else if (hwres->type == ISP_POLL_AIBNR_DONE) {
+        if (AibnrManager_isNeedRknn(&pAiqManager->mAibnrManager))
             RknnManager_hdlEvent(&pAiqManager->mRknnManager, (AiqHwAinnEvt_t *)hwres);
         else
-            AinrManager_hdlEvent(&pAiqManager->mAinrManager, (AiqHwAinnEvt_t *)hwres);
+            AibnrManager_hdlEvent(&pAiqManager->mAibnrManager, (AiqHwAinnEvt_t *)hwres);
     }
     else if (hwres->type == ISP_POLL_RKNN_DONE) {
-        AinrManager_hdlEvent(&pAiqManager->mAinrManager, (AiqHwAinnEvt_t *)hwres);
+        AibnrManager_hdlEvent(&pAiqManager->mAibnrManager, (AiqHwAinnEvt_t *)hwres);
     }
 #endif
     else if (hwres->type == ISP_POLL_TX) {
@@ -497,8 +498,8 @@ XCamReturn AiqManager_applyAnalyzerResult(AiqManager_t* pAiqManager, AiqFullPara
 #if RKAIQ_HAVE_LDC
     APPLY_ANALYZER_RESULT(Ldc, LDC);
 #endif
-#if RKAIQ_HAVE_AINR
-    APPLY_ANALYZER_RESULT(Ainr, AINR);
+#if RKAIQ_HAVE_AIBNR
+    APPLY_ANALYZER_RESULT(Aibnr, AIBNR);
 #endif
 
 	ret = AiqCamHw_applyAnalyzerResultList(pAiqManager->mCamHw, pAiqManager->mParamsList);
@@ -678,10 +679,11 @@ XCamReturn AiqManager_init(AiqManager_t* pAiqManager, const char* sns_ent_name, 
 
 #if RKAIQ_HAVE_DUMPSYS
         pAiqManager->dump_mods = __dump_mods;
+        pAiqManager->dump_raw = __dump_raw;
 #endif
 
-#if RKAIQ_HAVE_AINR
-    AinrManager_init(&pAiqManager->mAinrManager);
+#if RKAIQ_HAVE_AIBNR
+    AibnrManager_init(&pAiqManager->mAibnrManager);
 #endif
     RknnManager_init(&pAiqManager->mRknnManager);
 
@@ -753,8 +755,8 @@ XCamReturn AiqManager_prepare(AiqManager_t* pAiqManager, uint32_t width, uint32_
         AiqCamHw_getIspUniteMode(pAiqManager->mCamHw));
     ret = AiqCore_prepare(pAiqManager->mRkAiqAnalyzer, &sensor_des, working_mode_hw);
     RKAIQMNG_CHECK_RET(ret, "analyzer prepare error %d", ret);
-#if RKAIQ_HAVE_AINR
-    AinrManager_prepare(&pAiqManager->mAinrManager,
+#if RKAIQ_HAVE_AIBNR
+    AibnrManager_prepare(&pAiqManager->mAibnrManager,
                         pAiqManager->mCamHw,
                         pAiqManager->mCalibDbV2,
                         sensor_des.isp_acq_width,
@@ -805,9 +807,9 @@ XCamReturn AiqManager_start(AiqManager_t* pAiqManager)
 
     ret = AiqCamHw_start(pAiqManager->mCamHw);
     RKAIQMNG_CHECK_RET(ret, "camhw start error %d", ret);
-#if RKAIQ_HAVE_AINR
-    AinrManager_start(&pAiqManager->mAinrManager);
-    RKAIQMNG_CHECK_RET(ret, "AinrManager start error %d", ret);
+#if RKAIQ_HAVE_AIBNR
+    AibnrManager_start(&pAiqManager->mAibnrManager);
+    RKAIQMNG_CHECK_RET(ret, "AibnrManager start error %d", ret);
 #endif
     RknnManager_start(&pAiqManager->mRknnManager);
     RKAIQMNG_CHECK_RET(ret, "RknnManager start error %d", ret);
@@ -837,9 +839,9 @@ XCamReturn AiqManager_stop(AiqManager_t* pAiqManager, bool keep_ext_hw_st)
     AiqCamHw_keepHwStAtStop(pAiqManager->mCamHw, keep_ext_hw_st);
     ret = AiqCamHw_stop(pAiqManager->mCamHw);
     RKAIQMNG_CHECK_RET(ret, "camhw stop error %d", ret);
-#if RKAIQ_HAVE_AINR
-    AinrManager_stop(&pAiqManager->mAinrManager);
-    RKAIQMNG_CHECK_RET(ret, "AinrManager stop error %d", ret);
+#if RKAIQ_HAVE_AIBNR
+    AibnrManager_stop(&pAiqManager->mAibnrManager);
+    RKAIQMNG_CHECK_RET(ret, "AibnrManager stop error %d", ret);
 #endif
     RknnManager_stop(&pAiqManager->mRknnManager);
     RKAIQMNG_CHECK_RET(ret, "RknnManager stop error %d", ret);
@@ -888,8 +890,8 @@ XCamReturn AiqManager_deinit(AiqManager_t* pAiqManager)
 	}
 
     GlobalParamsManager_deinit(&pAiqManager->mGlobalParamsManager);
-#if RKAIQ_HAVE_AINR
-    AinrManager_deinit(&pAiqManager->mAinrManager);
+#if RKAIQ_HAVE_AIBNR
+    AibnrManager_deinit(&pAiqManager->mAibnrManager);
 #endif
     RknnManager_deinit(&pAiqManager->mRknnManager);
 
@@ -915,8 +917,8 @@ XCamReturn AiqManager_updateCalibDb(AiqManager_t* pAiqManager, const CamCalibDbV
 
     *pAiqManager->mCalibDbV2 = *(CamCalibDbV2Context_t*)newCalibDb;
     AiqCamHw_setCalib(pAiqManager->mCamHw, newCalibDb);
-#if RKAIQ_HAVE_AINR
-    AinrManager_setCalib(&pAiqManager->mAinrManager, pAiqManager->mCalibDbV2);
+#if RKAIQ_HAVE_AIBNR
+    AibnrManager_setCalib(&pAiqManager->mAibnrManager, pAiqManager->mCalibDbV2);
 #endif
 
     ret = AiqCore_setCalib(pAiqManager->mRkAiqAnalyzer, pAiqManager->mCalibDbV2);
@@ -1046,8 +1048,8 @@ XCamReturn AiqManager_calibTuning(AiqManager_t* pAiqManager, CamCalibDbV2Context
         (strstr(change_list->moduleNames[0], "ae") || strstr(change_list->moduleNames[0], "wb") || strstr(change_list->moduleNames[0], "af")))
         need_check = false;
     GlobalParamsManager_switchCalibDb(&pAiqManager->mGlobalParamsManager, aiqCalib, need_check);
-#if RKAIQ_HAVE_AINR
-    AinrManager_setCalib(&pAiqManager->mAinrManager, aiqCalib);
+#if RKAIQ_HAVE_AIBNR
+    AibnrManager_setCalib(&pAiqManager->mAibnrManager, aiqCalib);
 #endif
     ret = AiqCore_setCalib(pAiqManager->mRkAiqAnalyzer, aiqCalib);
 
@@ -1118,4 +1120,26 @@ static int __dump_mods(void* self, st_string* result, int argc, void* argv[]) {
 
     return 0;
 }
+
+static int __dump_raw(void* self, st_string* result, int argc, void* argv[]) {
+    int ret = -1;
+    AiqManager_t* mgr = (AiqManager_t*)self;
+
+#if RKAIQ_HAVE_AIBNR
+    if (!strcmp(argv[1], "aibnr")) {
+        int dump_num = atoi(argv[2]);
+
+        ret = AibnrManager_dumpRaw(&mgr->mAibnrManager, dump_num);
+        if (ret)
+            aiq_string_printf(result, "set dump raw flag failed\n");
+        else
+            aiq_string_printf(result, "set dump raw flag success\n");
+
+        aiq_string_printf(result, "\n");
+    }
+#endif
+
+    return ret;
+}
+
 #endif

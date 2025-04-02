@@ -1837,9 +1837,9 @@ void convertAiqDrcToIsp35Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_t* pBas
 }
 #endif
 
-#if RKAIQ_HAVE_AINR
-void convertAiqAinrToIsp35Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_t* pBase) {
-    pCvt->mAinrParams = (aiq_params_base_t*)pBase;
+#if RKAIQ_HAVE_AIBNR
+void convertAiqAibnrToIsp35Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_t* pBase) {
+    pCvt->mAibnrParams = (aiq_params_base_t*)pBase;
 
     if (pBase->en) {
         pCvt->isp_params.isp_cfg->module_ens |= ISP35_MODULE_AI;
@@ -1851,7 +1851,7 @@ void convertAiqAinrToIsp35Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_t* pBa
         return;
     }
 
-    rk_aiq_ainr_params_cvt(pBase->_data, &pCvt->isp_params, &pCvt->mCommonCvtInfo, pBase->bypass);
+    rk_aiq_aibnr_params_cvt(pBase->_data, &pCvt->isp_params, &pCvt->mCommonCvtInfo, pBase->bypass);
 }
 #endif
 
@@ -1910,8 +1910,8 @@ static const struct params_cvt_info_isp35 params_cvts_isp35[] = {
 #if RKAIQ_HAVE_RGBIR_REMOSAIC_V10
     CVT_INFO(RESULT_TYPE_RGBIR_PARAM, convertAiqRgbirToIsp39Params),
 #endif
-#if RKAIQ_HAVE_AINR
-    CVT_INFO(RESULT_TYPE_AINR_PARAM, convertAiqAinrToIsp35Params),
+#if RKAIQ_HAVE_AIBNR
+    CVT_INFO(RESULT_TYPE_AIBNR_PARAM, convertAiqAibnrToIsp35Params),
 #endif
 };
 

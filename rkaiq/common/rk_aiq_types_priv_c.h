@@ -510,7 +510,7 @@ static const char* Cam3aResultType2Str[RESULT_TYPE_MAX_PARAM] = {
     [RESULT_TYPE_AESTATS_PARAM]  = "AEC",
     [RESULT_TYPE_TEXEST_PARAM]   = "TEXEST",
     [RESULT_TYPE_POSTISP_PARAM]  = "POSTISP",
-    [RESULT_TYPE_AINR_PARAM]     = "AINR",
+    [RESULT_TYPE_AIBNR_PARAM]     = "AIBNR",
 };
 
 static const char* AnalyzerGroupType2Str[RK_AIQ_CORE_ANALYZE_MAX] = {
@@ -636,7 +636,7 @@ typedef enum CamThreadType_e {
     VICAP_WITH_RK1608_RESET_EVT,
     VICAP_POLL_SCL,
     ISP_POLL_AIISP,
-    ISP_POLL_AINR_DONE,
+    ISP_POLL_AIBNR_DONE,
     ISP_POLL_RKNN_DONE,
     ISP_POLL_POST_MAX,
 } CamThreadType_t;

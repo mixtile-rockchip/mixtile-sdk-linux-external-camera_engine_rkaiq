@@ -1598,6 +1598,8 @@ XCamReturn rk_aiq_user_api2_ae_getRKAeStats(
     }
     return(ret);
 }
+
+
 #endif
 
 #endif

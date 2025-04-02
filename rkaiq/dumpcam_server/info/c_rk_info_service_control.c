@@ -101,7 +101,7 @@ enum dump_mod_type {
     DUMP_AIQ_MOD_ENH,
     DUMP_AIQ_MOD_TEXEST,
     DUMP_AIQ_MOD_HSV,
-    DUMP_AIQ_MOD_AINR,
+    DUMP_AIQ_MOD_AIBNR,
     DUMP_AIQ_MOD_MAX,
 
     DUMP_AIQ_MAX,
@@ -168,8 +168,8 @@ static struct dump_mod_descr aiq_modules[] = {
 #if RKAIQ_HAVE_HSV
     { DUMP_AIQ_MOD_HSV,         "hsv",          { NULL, NULL }, AIQInfo_dumpIspModHelp },
 #endif
-#if RKAIQ_HAVE_AINR
-    { DUMP_AIQ_MOD_AINR,        "ainr",         { NULL, NULL }, AIQInfo_dumpIspModHelp },
+#if RKAIQ_HAVE_AIBNR
+    { DUMP_AIQ_MOD_AIBNR,        "aibnr",         { NULL, NULL }, AIQInfo_dumpIspModHelp },
 #endif
     { DUMP_AIQ_MOD_MAX,         "max",          { NULL, NULL }, AIQInfo_dumpIspModHelp },
 
@@ -506,6 +506,37 @@ void AIQInfoServiceControl_dumpMultiModule(AIQInfoServiceControl* const me, st_s
     return;
 }
 
+static void AIQRawDump(st_string* result, int argc, void* argv[]) {
+    RKAIQRegistry* registery = RKAIQRegistry_get();
+    if (!registery) return;
+
+    rk_aiq_sys_ctx_t* ctx = registery->mArray[0];
+    if (!ctx) return;
+
+    if (argc < 3) {
+        aiq_string_printf(result, "\ninput param error\n");
+        aiq_string_printf(result, "\n");
+        return;
+    }
+
+    int dump_camid = atoi(argv[0]);
+
+    if (ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
+        const rk_aiq_camgroup_ctx_t* grpCtx = (rk_aiq_camgroup_ctx_t*)ctx;
+        for (int i = 0; i < RK_AIQ_CAM_GROUP_MAX_CAMS; i++) {
+            if (dump_camid == i || dump_camid == -1)
+                grpCtx->cam_ctxs_array[i]->_rkAiqManager->dump_raw(grpCtx->cam_ctxs_array[i]->_rkAiqManager, result, argc, argv);
+        }
+    } else if (ctx->cam_type == RK_AIQ_CAM_TYPE_SINGLE) {
+        for (int i = 0; i < registery->mCnt; i++) {
+            if (dump_camid == i || dump_camid == -1)
+                registery->mArray[i]->_rkAiqManager->dump_raw(registery->mArray[i]->_rkAiqManager, result, argc, argv);
+        }
+    }
+
+    return;
+}
+
 void AIQInfoServiceControl_onReceived(AIQInfoServiceControl *const me,\
                                      AIQIPCRequest *request, AIQIPCResponse *response) {
     c_AIQJsonObject json = RK_NULL;
@@ -526,6 +557,8 @@ void AIQInfoServiceControl_onReceived(AIQInfoServiceControl *const me,\
         AIQInfoServiceControl_dumpAllModule(me, stResult, moduleArgsNum, (void **)moduleArgsValue);
         response->setContent(response, string_body(stResult), string_len(stResult));
     } else if (!strcmp(moudleName, "record")) {
+        AIQRawDump(stResult, moduleArgsNum, (void**)moduleArgsValue);
+        response->setContent(response, string_body(stResult), string_len(stResult));
     } else if (!strcmp(moudleName, "log")) {
         xcam_dump_log(stResult, moduleArgsNum, (void**)moduleArgsValue);
         response->setContent(response, string_body(stResult), string_len(stResult));

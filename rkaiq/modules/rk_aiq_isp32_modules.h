@@ -61,8 +61,8 @@ typedef struct {
     struct rkmodule_lsc_inf *otp_lsc;
     struct rkmodule_af_inf *otp_af;
     struct rkmodule_pdaf_inf *otp_pdaf;
-#if RKAIQ_HAVE_AINR
-    RkAiqAinrModelBuf_t ainrModel;
+#if RKAIQ_HAVE_AIBNR
+    RkAiqAibnrModelBuf_t aibnrModel;
 #endif
     RKAiqAecExpInfo_t *ae_exp;
     blc_res_cvt_t blc_res;

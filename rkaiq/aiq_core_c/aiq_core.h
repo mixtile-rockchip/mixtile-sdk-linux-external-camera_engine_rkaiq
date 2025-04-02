@@ -148,6 +148,7 @@ typedef struct RkAiqAlgosGroupShared_s {
     rk_aiq_scale_raw_info_t scaleRawInfo;
     // AiqFullParams_t*
     AiqFullParams_t* fullParams;
+    AmtdProcResult_t amtdRes;
 } RkAiqAlgosGroupShared_t;
 
 enum rk_aiq_core_state_e {
@@ -389,7 +390,7 @@ void AiqCore_setResrcPath(AiqCore_t* pAiqCore, const char* rp);
 
 #define AiqCore_isRunningState(pAiqCore) \
     (pAiqCore->mState == RK_AIQ_CORE_STATE_RUNNING)
-    
+
 void AiqCore_setShareMemOps(AiqCore_t* pAiqCore, isp_drv_share_mem_ops_t* mem_ops);
 XCamReturn AiqCore_setCalib(AiqCore_t* pAiqCore, const CamCalibDbV2Context_t* aiqCalib);
 XCamReturn AiqCore_calibTuning(AiqCore_t* pAiqCore, const CamCalibDbV2Context_t* aiqCalib,
@@ -400,7 +401,7 @@ XCamReturn AiqCore_set_sp_resolution(AiqCore_t* pAiqCore, int* width, int* heigh
                                      int* aligned_h);
 
 #define AiqCore_setMulCamConc(pAiqCore, cc) \
-	pAiqCore->mAlogsComSharedParams.is_multi_sensor = cc;
+    pAiqCore->mAlogsComSharedParams.is_multi_sensor = cc;
 
 #define AiqCore_setCamPhyId(pAiqCore, phyId) \
         pAiqCore->mAlogsComSharedParams.mCamPhyId = phyId;

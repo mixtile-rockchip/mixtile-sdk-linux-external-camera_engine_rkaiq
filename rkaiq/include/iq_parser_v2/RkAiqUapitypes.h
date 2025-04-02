@@ -571,11 +571,11 @@ typedef struct {
        M4_ALIAS(attr),
        M4_TYPE(struct),
        M4_UI_MODULE(tuning_param),
-       M4_REF(/ainr)) */
-    ainr_api_attrib_t attr;
+       M4_REF(/aibnr)) */
+    aibnr_api_attrib_t attr;
     // M4_STRUCT_DESC("info", "tuning_status")
-    ainr_status_t info;
-} ainr_uapi_t;
+    aibnr_status_t info;
+} aibnr_uapi_t;
 #endif
 
 typedef struct __aiq_scene {
@@ -1221,8 +1221,8 @@ typedef struct __aiq_uapi_t {
     af_uapi_t af_uapi;
 #endif
 #if defined(ISP_HW_V35)
-    // M4_STRUCT_DESC("ainr_uapi", "iso_list_template")
-    ainr_uapi_t ainr_uapi;
+    // M4_STRUCT_DESC("aibnr_uapi", "iso_list_template")
+    aibnr_uapi_t aibnr_uapi;
 #endif
 } RkaiqUapi_t;
 

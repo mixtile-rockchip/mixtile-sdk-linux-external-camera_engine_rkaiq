@@ -929,8 +929,8 @@ typedef struct shp_edgeExtra_s {
         M4_ALIAS(edgeLpf_coeff),
         M4_TYPE(f32),
         M4_SIZE_EX(1,10),
-        M4_RANGE_EX(0,1.0),
-        M4_DEFAULT([0.0467, 0.0412, 0.0364, 0.0283, 0.0250, 0.0172, 0.0152, 0.0134, 0.0092, 0.0049]),
+        M4_RANGE_EX(-1.0,1.0),
+        M4_DEFAULT([0.9533, -0.0412, -0.0364, -0.0283, -0.0250, -0.0172, -0.0152, -0.0134, -0.0092, -0.0049]),
         M4_DIGIT_EX(3),
         M4_FP_EX(0,1,7),
         M4_HIDE_EX(0),
@@ -938,7 +938,7 @@ typedef struct shp_edgeExtra_s {
         M4_ORDER(1),
         M4_GROUP(edgeLpf_filtCfg_mode_group:shp_cfgByFiltCoeff_mode),
         M4_NOTES(The spatial filter kernel of bifilter . Only valid on shp_cfgByFiltCoeff_mode.\n
-        coeff[0] + 4*coeff[1] + 4*coeff[2] == 1.0 .\n
+        coeff[0] + 4*coeff[1] + 4*coeff[2] + 4*coeff[3] + 8*coeff[4] + 4*coeff[5] + 4*coeff[6] + 8*coeff[7] + 8*coeff[8] + 4*coeff[9] = 0.\n
         Freq of use: low))  */
     // @reg: hw_shp_edgeLpf_coeff0~hw_shp_edgeLpf_coeff9
     float hw_shpT_bpfSpatial_wgt[10];

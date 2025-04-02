@@ -66,10 +66,10 @@ static char log_file_name[LOG_FILE_NAME_MAX_LENGTH] = {0};
  * bit:      48          46       45          44       43       42        41          40
  * meaning:  [IPC]   [RKSTREAM] [GROUPAEC] [AWBGROUP]  [CAMGROUP]   [ACAC]    [AMD]   [AMERGE]
  *
- * bit:                                                                       49        48
- * meaning:                                                                 [ARGBIR]   [AFD]
+ * bit:                                                                     49        48
+ * meaning:                                                                [ARGBIR]   [AFD]
  *
- * bit:     [63-50]
+ * bit:     [63-51]
  * meaning:  [U]
  *
  * [U] means unused now.
@@ -151,7 +151,8 @@ xcore_cam_log_module_info_t g_xcore_log_infos[XCORE_LOG_MODULE_MAX] = {
     {"ALDC", XCORE_LOG_LEVEL_ERR, 0xff},       // XCORE_LOG_MODULE_ALDC
     {"AHISTEQ", XCORE_LOG_LEVEL_ERR, 0xff},    // XCORE_LOG_MODULE_HISTEQ
     {"AHSV", XCORE_LOG_LEVEL_ERR, 0xff},     // XCORE_LOG_MODULE_AHSV
-    {"AINR", XCORE_LOG_LEVEL_ERR, 0xff},     // XCORE_LOG_MODULE_AINR
+    {"AIBNR", XCORE_LOG_LEVEL_ERR, 0xff},     // XCORE_LOG_MODULE_AIBNR
+    {"AMTD", XCORE_LOG_LEVEL_ERR, 0xff},     // XCORE_LOG_MODULE_AMTD
 };
 
 bool xcam_get_enviroment_value(const char* variable, unsigned long long* value)
@@ -254,11 +255,11 @@ char* timeString() {
     static char timeStr[64];
     sprintf(timeStr, "%.2d:%.2d:%.2d."
 #ifdef __UCLIBC_USE_TIME64__
-			"%.6lld",
+            "%.6lld",
 #else
-			"%.6ld",
+            "%.6ld",
 #endif
-			timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, tv.tv_usec);
+            timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, tv.tv_usec);
     return timeStr;
 }
 
@@ -268,7 +269,7 @@ static const char g_level_strs[] = {
 
 void xcam_print_log (int module, int level, const char* format, ...) {
     if ((g_cam_engine_log_level & 0xf) == 0) return;
-    char buffer[XCAM_MAX_STR_SIZE] = {g_level_strs[level],':'};
+    char buffer[XCAM_MAX_STR_SIZE] = {g_level_strs[level], ':'};
     va_list va_list;
     va_start (va_list, format);
     vsnprintf (buffer + 2, XCAM_MAX_STR_SIZE - 2, format, va_list);
@@ -469,8 +470,8 @@ int xcam_dump_log(st_string* result, int argc, void* argv[]) {
                 BIT_ULL(XCORE_LOG_MODULE_AHSV), 0),
         OPT_BIT('F', "csm", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_ACSM].module_name, NULL,
                 BIT_ULL(XCORE_LOG_MODULE_ACSM), 0),
-        OPT_BIT('G', "ainr", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_AINR].module_name, NULL,
-                BIT_ULL(XCORE_LOG_MODULE_AINR), 0),
+        OPT_BIT('G', "aibnr", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_AIBNR].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_AIBNR), 0),
         OPT_BOOLEAN('\0', "help", NULL, "show this help message and exit", dbg_help_cb, 0,
                     OPT_NONEG),
         OPT_END(),

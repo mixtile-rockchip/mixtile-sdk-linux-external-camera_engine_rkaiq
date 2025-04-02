@@ -10,6 +10,9 @@ PROJECT(IspFec)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+include(CheckGlibc)
+CHECK_GLIBC_VERSION()
+
 include(BuildOptions)
 include(CompileOptions)
 include(GNUInstallDirs)

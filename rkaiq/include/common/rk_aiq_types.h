@@ -414,10 +414,10 @@ typedef struct {
     int max_pos;
 } rk_aiq_af_focusrange;
 
-typedef struct RkAiqAinrModelBuf_s {
+typedef struct RkAiqAibnrModelBuf_s {
     char model_file[13][256];
     char *model_buf[13];
-} RkAiqAinrModelBuf_t;
+} RkAiqAibnrModelBuf_t;
 
 // sensor
 typedef struct {

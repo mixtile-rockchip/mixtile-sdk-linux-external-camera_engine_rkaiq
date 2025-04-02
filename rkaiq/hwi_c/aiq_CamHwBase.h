@@ -50,8 +50,8 @@ typedef struct AiqPdafStreamProcUnit_s AiqPdafStreamProcUnit_t;
 typedef struct AiqRawStreamCapUnit_s AiqRawStreamCapUnit_t;
 typedef struct AiqRawStreamProcUnit_s AiqRawStreamProcUnit_t;
 typedef struct AiqManager_s AiqManager_t;
-#if RKAIQ_HAVE_AINR
-typedef struct AinrManager_s AinrManager_t;
+#if RKAIQ_HAVE_AIBNR
+typedef struct AibnrManager_s AibnrManager_t;
 #endif
 
 enum cam_hw_state_e {
@@ -276,28 +276,28 @@ typedef struct AiqCamHwBase_s {
     XCamReturn (*read_aiisp_result)(AiqCamHwBase_t* pCamHw, rk_aiq_aiisp_t* aiisp_evt);
     XCamReturn(*aiisp_processing)(AiqCamHwBase_t* pCamHw, rk_aiq_aiisp_t* aiisp_evt);
 
-#if RKAIQ_HAVE_AINR
+#if RKAIQ_HAVE_AIBNR
     bool use_ainn;
-    RkAiqAinrModelBuf_t mAinrModel;
-    AiqAinrIspStream_t*   mAinrIspStream;
-    AiqAinrAiispStream_t* mAinrAiispStream;
-    struct rkisp_aiisp_cfg mAinr_cfg;
-    struct rkaiisp_param_info mAinrParamInfo;
-    AinrManager_t* mAinrManager;
-    bool mAinrBufPoolInit;
-    XCamReturn (*ainr_init)(AiqCamHwBase_t* pCamHw, AinrManager_t* pAinrManager, struct rkisp_aiisp_cfg *ainr_cfg);
-    XCamReturn (*ainr_prepare)(AiqCamHwBase_t* pCamHw);
-    XCamReturn (*ainr_start)(AiqCamHwBase_t* pCamHw);
-    XCamReturn (*ainr_stop)(AiqCamHwBase_t* pCamHw);
-    XCamReturn (*ainr_deinit)(AiqCamHwBase_t* pCamHw);
-    XCamReturn (*ainr_getParamsBuf)(AiqCamHwBase_t* pCamHw, AiqV4l2Buffer_t** pV4l2Buf);
-    XCamReturn (*ainr_updateParams)(AiqCamHwBase_t* pCamHw, AiqV4l2Buffer_t* pV4l2Buf);
-    XCamReturn (*ainr_doNrnn)(AiqCamHwBase_t* pCamHw, struct rkisp_aiisp_st *isp_out);
-    XCamReturn (*ainr_doIspBe)(AiqCamHwBase_t* pCamHw, struct rkisp_aiisp_st *isp_in);
-    XCamReturn (*ainr_getIspBufInf)(AiqCamHwBase_t* pCamHw, struct rkisp_bnr_buf_info *bnr_buf);
-    XCamReturn (*ainr_setIspBufInf)(AiqCamHwBase_t* pCamHw, struct rkaiisp_ispbuf_info *ispbuf_info);
-    XCamReturn (*ainr_setParamInf)(AiqCamHwBase_t* pCamHw, struct rkaiisp_param_info *param_info);
-    XCamReturn (*ainr_setModelInf)(AiqCamHwBase_t* pCamHw, RkAiqAinrModelBuf_t *pAinrModel);
+    RkAiqAibnrModelBuf_t mAibnrModel;
+    AiqAibnrIspStream_t*   mAibnrIspStream;
+    AiqAibnrAiispStream_t* mAibnrAiispStream;
+    struct rkisp_aiisp_cfg mAibnr_cfg;
+    struct rkaiisp_param_info mAibnrParamInfo;
+    AibnrManager_t* mAibnrManager;
+    bool mAibnrBufPoolInit;
+    XCamReturn (*aibnr_init)(AiqCamHwBase_t* pCamHw, AibnrManager_t* pAibnrManager, struct rkisp_aiisp_cfg *aibnr_cfg);
+    XCamReturn (*aibnr_prepare)(AiqCamHwBase_t* pCamHw);
+    XCamReturn (*aibnr_start)(AiqCamHwBase_t* pCamHw);
+    XCamReturn (*aibnr_stop)(AiqCamHwBase_t* pCamHw);
+    XCamReturn (*aibnr_deinit)(AiqCamHwBase_t* pCamHw);
+    XCamReturn (*aibnr_getParamsBuf)(AiqCamHwBase_t* pCamHw, AiqV4l2Buffer_t** pV4l2Buf);
+    XCamReturn (*aibnr_updateParams)(AiqCamHwBase_t* pCamHw, AiqV4l2Buffer_t* pV4l2Buf);
+    XCamReturn (*aibnr_doNrnn)(AiqCamHwBase_t* pCamHw, struct rkisp_aiisp_st *isp_out);
+    XCamReturn (*aibnr_doIspBe)(AiqCamHwBase_t* pCamHw, struct rkisp_aiisp_st *isp_in);
+    XCamReturn (*aibnr_getIspBufInf)(AiqCamHwBase_t* pCamHw, struct rkisp_bnr_buf_info *bnr_buf);
+    XCamReturn (*aibnr_setIspBufInf)(AiqCamHwBase_t* pCamHw, struct rkaiisp_ispbuf_info *ispbuf_info);
+    XCamReturn (*aibnr_setParamInf)(AiqCamHwBase_t* pCamHw, struct rkaiisp_param_info *param_info);
+    XCamReturn (*aibnr_setModelInf)(AiqCamHwBase_t* pCamHw, RkAiqAibnrModelBuf_t *pAibnrModel);
 #endif
 
     // dumpsys

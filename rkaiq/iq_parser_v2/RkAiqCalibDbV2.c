@@ -970,7 +970,7 @@ RkAiqAlgoType_t CamCalibDbString2algostype(const char *str) {
         {"wb_v32", RK_AIQ_ALGO_TYPE_AWB},
         {"yuvme_v1", RK_AIQ_ALGO_TYPE_AMD},
 
-        {"ainr", RK_AIQ_ALGO_TYPE_AINR},
+        {"aibnr", RK_AIQ_ALGO_TYPE_AIBNR},
     };
 
     RkAiqAlgoType_t ret = RK_AIQ_ALGO_TYPE_NONE;

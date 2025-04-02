@@ -744,7 +744,7 @@ typedef struct btnr_subDeepLoMd_dyn_s {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
-        M4_GROUP(dLoMd_en_group),
+        M4_GROUP(dLoMd_en_group&&md_en_group&&loMd_en_group&&(loMd_mode_group:btnr_allSubLoMdMix_mode|btnr_subDeepLoMdOnly_mode)),
         M4_NOTES(Large low motion detection use for next frame motion detection offset.\n
         Freq of use: high))  */
     // reg: hw_btnr_mdLargeLoMdWgt_scale
@@ -759,7 +759,7 @@ typedef struct btnr_subDeepLoMd_dyn_s {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
-        M4_GROUP(dLoMd_en_group),
+        M4_GROUP(dLoMd_en_group&&md_en_group&&loMd_en_group&&(loMd_mode_group:btnr_allSubLoMdMix_mode|btnr_subDeepLoMdOnly_mode)),
         M4_NOTES(Large low motion detection use for next frame motion detection scale.\n
         Freq of use: high))  */
     // reg: hw_btnr_mdLargeLoMdWgt_offset
@@ -2376,7 +2376,7 @@ typedef struct btnr_sigma_static_s {
         M4_ORDER(0),
         M4_GROUP_CTRL(autoSigma_mode_group),
         M4_NOTES(Configure the mode of sigma data used by the filter\n
-        Freq of use: high))  */
+        Freq of use: low))  */
     btnr_sigma_mode_t sw_btnrCfg_sigma_mode;
     /* M4_GENERIC_DESC(
         M4_ALIAS(hw_btnr_tnrAutoSigmaCountTh),

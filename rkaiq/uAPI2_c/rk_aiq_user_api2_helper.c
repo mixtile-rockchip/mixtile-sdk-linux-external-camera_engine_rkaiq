@@ -635,9 +635,9 @@ RkAiqUapiDesc_t rkaiq_uapidesc_list[] = {
 #if defined(ISP_HW_V35)
     __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/attr", af_param_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
 #endif
-#if RKAIQ_HAVE_AINR
-    __RKAIQUAPI_DESC_DEF("/uapi/0/ainr_uapi/attr", ainr_api_attrib_t, rk_aiq_user_api2_ainr_SetAttrib, rk_aiq_user_api2_ainr_GetAttrib),
-    __RKAIQUAPI_DESC_DEF("/uapi/0/ainr_uapi/info", ainr_status_t, NULL, rk_aiq_user_api2_ainr_QueryStatus),
+#if RKAIQ_HAVE_AIBNR
+    __RKAIQUAPI_DESC_DEF("/uapi/0/aibnr_uapi/attr", aibnr_api_attrib_t, rk_aiq_user_api2_aibnr_SetAttrib, rk_aiq_user_api2_aibnr_GetAttrib),
+    __RKAIQUAPI_DESC_DEF("/uapi/0/aibnr_uapi/info", aibnr_status_t, NULL, rk_aiq_user_api2_aibnr_QueryStatus),
 #endif
 };
 /***********************END OF CUSTOM AREA**************************/

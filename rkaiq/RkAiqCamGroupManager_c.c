@@ -425,11 +425,11 @@ static XCamReturn AiqCamGroupManager_reProcess(AiqCamGroupManager_t* pCamGrpMan,
 				(rk_aiq_isp_gain_params_t*)(aiqParams->pParamsArray[RESULT_TYPE_GAIN_PARAM]->_data);
 #endif
 
-#if RKAIQ_HAVE_AINR
-            if (!aiqParams->pParamsArray[RESULT_TYPE_AINR_PARAM])
+#if RKAIQ_HAVE_AIBNR
+            if (!aiqParams->pParamsArray[RESULT_TYPE_AIBNR_PARAM])
                 RET_FAILED();
-            scam_3a_res->isp_ainr_params =
-                (rk_aiq_isp_ainr_params_t*)(aiqParams->pParamsArray[RESULT_TYPE_AINR_PARAM]->_data);
+            scam_3a_res->isp_aibnr_params =
+                (rk_aiq_isp_aibnr_params_t*)(aiqParams->pParamsArray[RESULT_TYPE_AIBNR_PARAM]->_data);
 #endif
 
             // copy otp info
@@ -1150,8 +1150,8 @@ void AiqCamGroupManager_RelayAiqCoreResults(AiqCamGroupManager_t* pCamGrpMan, Ai
     SET_TO_CAMGROUP(Yme, MOTION);
     SET_TO_CAMGROUP(AeStats, AESTATS);
 #endif
-#if RKAIQ_HAVE_AINR
-    SET_TO_CAMGROUP(Ainr, AINR);
+#if RKAIQ_HAVE_AIBNR
+    SET_TO_CAMGROUP(Aibnr, AIBNR);
 #endif
 	AiqCamGroupManager_putGroupCamResult(pCamGrpMan, camGroupRes);
 }

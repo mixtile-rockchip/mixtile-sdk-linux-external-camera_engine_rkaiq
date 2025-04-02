@@ -21,6 +21,7 @@
 #include "ae/rk_aiq_algo_ae_itf.h"
 #include "af/rk_aiq_algo_af_itf.h"
 #include "afd/rk_aiq_algo_afd_itf.h"
+#include "amtd/rk_aiq_algo_amtd_itf.h"
 #include "newStruct/demosaic/include/demosaic_algo_api.h"
 #include "newStruct/bayertnr/include/bayertnr_algo_api.h"
 #include "newStruct/gamma/include/gamma_algo_api.h"
@@ -255,10 +256,12 @@ static struct RkAiqAlgoDesCommExt g_default_3a_des[] = {
     { &g_RkIspAlgoDescLdch.common,         RK_AIQ_CORE_ANALYZE_OTHER,  0, 0, 0,    otherGrpCondsV3x },
 #endif
 #endif
-#if RKAIQ_HAVE_AINR
-    { &g_RkIspAlgoDescAinr.common,         RK_AIQ_CORE_ANALYZE_GRP0,	 0,  1,  0, grp0Conds		   },
+#if RKAIQ_HAVE_AIBNR
+    { &g_RkIspAlgoDescAibnr.common,         RK_AIQ_CORE_ANALYZE_GRP0,    0,  1,  0, grp0Conds          },
 #endif
-
+#if (RKAIQ_HAVE_AMTD_V1)
+    { &g_RkIspAlgoDescAmtd.common,      RK_AIQ_CORE_ANALYZE_AE,     0, 0, 0,    {grp_conds_array_info(aeGrpCondV3x)}},
+#endif
     { NULL,                                 RK_AIQ_CORE_ANALYZE_ALL,    0, 0, 0,    {0, 0}             },
     // clang-format on
 };

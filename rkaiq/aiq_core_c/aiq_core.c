@@ -401,9 +401,9 @@ static XCamReturn newAiqParamPool(AiqCore_t* pAiqCore, int type) {
             NEW_PARAMS_POOL(RESULT_TYPE_LDC_PARAM, rk_aiq_isp_ldc_params_t);
 #endif
             break;
-#if RKAIQ_HAVE_AINR
-        case RK_AIQ_ALGO_TYPE_AINR:
-            NEW_PARAMS_POOL(RESULT_TYPE_AINR_PARAM, rk_aiq_isp_ainr_params_t);
+#if RKAIQ_HAVE_AIBNR
+        case RK_AIQ_ALGO_TYPE_AIBNR:
+            NEW_PARAMS_POOL(RESULT_TYPE_AIBNR_PARAM, rk_aiq_isp_aibnr_params_t);
             break;
 #endif
         default:
@@ -697,11 +697,11 @@ static uint64_t getReqAlgoResMask(AiqCore_t* pAiqCore, int algoType) {
 		case RK_AIQ_ALGO_TYPE_ALDC:
             tmp |= 1ULL << RESULT_TYPE_LDC_PARAM;
 			break;
-		#if RKAIQ_HAVE_AINR
-        case RK_AIQ_ALGO_TYPE_AINR:
-            tmp |= 1ULL << RESULT_TYPE_AINR_PARAM;
+#if RKAIQ_HAVE_AIBNR
+        case RK_AIQ_ALGO_TYPE_AIBNR:
+            tmp |= 1ULL << RESULT_TYPE_AIBNR_PARAM;
             break;
-		#endif
+#endif
         default:
             break;
     }
@@ -1631,9 +1631,9 @@ static XCamReturn getAiqParamsBuffer(AiqCore_t* pAiqCore, AiqFullParams_t* aiqPa
             NEW_PARAMS_BUFFER(LDC);
 #endif
 			break;
-        case RK_AIQ_ALGO_TYPE_AINR:
-#if RKAIQ_HAVE_AINR
-            NEW_PARAMS_BUFFER(AINR);
+        case RK_AIQ_ALGO_TYPE_AIBNR:
+#if RKAIQ_HAVE_AIBNR
+            NEW_PARAMS_BUFFER(AIBNR);
 #endif
             break;
         default:
@@ -3052,7 +3052,7 @@ static struct iqModStrToAlgoMap_s iqModuleStrToAlgoEnumMap[] = {
 	{"argbir", RK_AIQ_ALGO_TYPE_ARGBIR},
 	{"rgbir", RK_AIQ_ALGO_TYPE_ARGBIR},
 	{"ldc", RK_AIQ_ALGO_TYPE_ALDC},
-    {"ainr", RK_AIQ_ALGO_TYPE_AINR},
+    {"aibnr", RK_AIQ_ALGO_TYPE_AIBNR},
 };
 
 static void mapModStrListToEnum(AiqCore_t* pAiqCore, TuningCalib* change_name_list) {
@@ -3530,10 +3530,10 @@ static XCamReturn fixAiqParamsIsp(AiqCore_t* pAiqCore, AiqFullParams_t* aiqParam
     }
 
     if (pBlcBase && pBlcBase->is_update) {
-#if RKAIQ_HAVE_AINR
-        aiq_params_base_t* pAinrBase = aiqParams->pParamsArray[RESULT_TYPE_AINR_PARAM];
-        if (pAinrBase && !pAinrBase->is_update) {
-            pAinrBase->is_update = true;
+#if RKAIQ_HAVE_AIBNR
+        aiq_params_base_t* pAibnrBase = aiqParams->pParamsArray[RESULT_TYPE_AIBNR_PARAM];
+        if (pAibnrBase && !pAibnrBase->is_update) {
+            pAibnrBase->is_update = true;
         }
 #endif
     }
@@ -3815,7 +3815,7 @@ static int AiqCore_algosDump(void* self, st_string* result, int argc, void* argv
                         "dump texest module info ", NULL, 0, 0),
             OPT_BOOLEAN('U', "hsv", &dump_args[AIQ_NOTIFIER_MATCH_HSV], "dump hsv module info",
                         NULL, 0, 0),
-            OPT_BOOLEAN('V', "ainr", &dump_args[AIQ_NOTIFIER_MATCH_AINR], "dump ainr module info",
+            OPT_BOOLEAN('V', "aibnr", &dump_args[AIQ_NOTIFIER_MATCH_AIBNR], "dump aibnr module info",
                         NULL, 0, 0),
             OPT_BOOLEAN('\0', "help", NULL, "show this help message and exit", dbg_help_cb, 0,
                         OPT_NONEG),

@@ -231,8 +231,8 @@ typedef struct rk_aiq_singlecam_3a_result_s {
             RK_YUVME_Fix_V1_t*  _ayuvme_procRes_v1;
         };
     } ayuvme;
-#if RKAIQ_HAVE_AINR
-    rk_aiq_isp_ainr_params_t *isp_ainr_params;
+#if RKAIQ_HAVE_AIBNR
+    rk_aiq_isp_aibnr_params_t *isp_aibnr_params;
 #endif
 
     //otp info

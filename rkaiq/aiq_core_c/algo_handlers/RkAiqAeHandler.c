@@ -189,6 +189,7 @@ static XCamReturn _handlerAe_preProcess(AiqAlgoHandler_t* pAlgoHandler) {
             aiqMutex_unlock(&pAeHdl->mGetAfdResMutex);
         }
     }
+    ae_pre_int->amtdRes = shared->amtdRes;
 
     RkAiqAlgoDescription* des = (RkAiqAlgoDescription*)pAlgoHandler->mDes;
     if (!AiqCore_isGroupAlgo(pAlgoHandler->mAiqCore, pAlgoHandler->mDes->type)) {
@@ -1165,4 +1166,3 @@ XCamReturn AiqAlgoHandlerAe_setStatsApiCfg(AiqAlgoHandlerAe_t* pAeHdl, rk_aiq_op
     aiqMutex_unlock(&pHdl->mCfgMutex);
     return XCAM_RETURN_NO_ERROR;
 }
-

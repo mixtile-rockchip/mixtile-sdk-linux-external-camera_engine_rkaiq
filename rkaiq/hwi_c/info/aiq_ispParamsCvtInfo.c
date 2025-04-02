@@ -1288,7 +1288,7 @@ void cvt_isp_params_dump_aec_attr(AiqIspParamsCvt_t* self, st_string* result) {
 #endif
 }
 
-void cvt_isp_params_dump_ainr_attr(AiqIspParamsCvt_t* self, st_string* result)
+void cvt_isp_params_dump_aibnr_attr(AiqIspParamsCvt_t* self, st_string* result)
 {
     char buffer[MAX_LINE_LENGTH] = {0};
 
@@ -1411,7 +1411,7 @@ static const struct params_cvt_dump_info params_dump_cvts[] = {
 #endif
     CVT_DUMP_INFO(RESULT_TYPE_LDC_PARAM, cvt_isp_params_dump_ldc_attr),
 #if defined(ISP_HW_V35)
-    CVT_DUMP_INFO(RESULT_TYPE_AINR_PARAM, cvt_isp_params_dump_ainr_attr),
+    CVT_DUMP_INFO(RESULT_TYPE_AIBNR_PARAM, cvt_isp_params_dump_aibnr_attr),
 #endif
 };
 

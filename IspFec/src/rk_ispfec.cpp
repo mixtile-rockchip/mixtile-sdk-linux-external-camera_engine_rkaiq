@@ -80,7 +80,7 @@ _load_mesh(const char* file, void* vir_addr, size_t size)
         size_t len = ftell(fp);
         rewind(fp);
 
-        if (len > size) printf("E: mesh file len %lu > buf size %lu\n", len, size);
+        if (len > size) printf("E: mesh file len %zu > buf size %zu\n", len, size);
 #if 0
         void* map = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, dstFd, 0);
 
@@ -90,15 +90,15 @@ _load_mesh(const char* file, void* vir_addr, size_t size)
         } else {
             size_t rd_size = fread(map, 1, len, fp);
             if (rd_size < len)
-                printf("file read size:%lu < %lu \n", rd_size, len);
+                printf("file read size:%zu < %zu \n", rd_size, len);
             munmap(map, len);
         }
 #else
         size_t rd_size = fread(vir_addr, 1, len, fp);
         if (rd_size < len)
-            printf("file read size:%lu < %lu \n", rd_size, len);
+            printf("file read size:%zu < %zu \n", rd_size, len);
 
-        printf("mesh file len %lu, read size %lu\n", len, rd_size);
+        printf("mesh file len %zu, read size %zu\n", len, rd_size);
 #endif
         fclose(fp);
     } else {
@@ -364,6 +364,7 @@ rk_ispfec_api_process(rk_ispfec_ctx_t* ctx, int src_fd, int dst_fd)
 
     memcpy(&param.bg_val, &ctx->_cfg.bg_val, sizeof(rk_ispfec_bg_val));
 
+#if 0
     printf("%dx%d->%dx%d format(in:%c%c%c%c out:%c%c%c%c)\n", param.in_width, param.in_height,
            param.out_width, param.out_height, param.in_fourcc, param.in_fourcc >> 8,
            param.in_fourcc >> 16, param.in_fourcc >> 24, param.out_fourcc, param.out_fourcc >> 8,
@@ -375,6 +376,7 @@ rk_ispfec_api_process(rk_ispfec_ctx_t* ctx, int src_fd, int dst_fd)
     printf("in_stride:%d, out_stride:%d\n", param.buf_cfg.in_stride, param.buf_cfg.out_stride);
 
     printf("bg_val: %d,%d,%d\n", param.bg_val.bg_y, param.bg_val.bg_u, param.bg_val.bg_v);
+#endif
 #else
     param.in_width      = ctx->_cfg.in_width;
     param.in_height     = ctx->_cfg.in_height;
@@ -426,8 +428,10 @@ int rk_ispfec_api_calFecMeshsize(int width, int height) {
 
     int lut_size = lut_w * lut_h;
 
+#if 0
     printf("LUT width: %d, LUT height: %d\n", lut_w, lut_h);
     printf("LUT size: %d\n", lut_size);
+#endif
 
     return lut_size;
 }

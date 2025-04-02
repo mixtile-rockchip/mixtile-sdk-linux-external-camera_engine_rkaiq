@@ -860,10 +860,13 @@
  * - improve dumpcam
  * v6.0x30.0
  * - support isp35 
+ * v6.0x30.1
+ * - support AMTD algo
+ * - isp35 iq: modify ainr to aibnr
  */
 
-#define RK_AIQ_VERSION_REAL_V "v6.0x30.0"
-#define RK_AIQ_RELEASE_DATE "2025-03-24"
+#define RK_AIQ_VERSION_REAL_V "v6.0x30.1"
+#define RK_AIQ_RELEASE_DATE "2025-04-02"
 
 #define RK_AIQ_IQ_HEAD_VERSION_REAL_V "v1.0.2"
 

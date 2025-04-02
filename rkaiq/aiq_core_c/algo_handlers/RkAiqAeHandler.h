@@ -16,6 +16,9 @@
 #ifndef _AIQ_ALGO_HANDLE_AE_C_H_
 #define _AIQ_ALGO_HANDLE_AE_C_H_
 
+#include "aiq_pool.h"
+#include "aiq_list.h"
+
 #include "aiq_algo_handler.h"
 #include "algos/ae/rk_aiq_uapi_ae_int_types_v2.h"
 

@@ -127,7 +127,8 @@
 			"FNumber":	1.6,
 			"EFL":	5.2,
 			"LensT":	90,
-			"IRCutT":	90
+			"IRCutT":	90,
+			"PixelSize":	1.25
 		}
 	},
 	"main_scene":	[{
@@ -188,6 +189,15 @@
 									"sw_aeT_antiFlicker_en":	1,
 									"sw_aeT_antiFlicker_freq":	"ae_antiFlicker_50hz_freq",
 									"sw_aeT_antiFlicker_mode":	"ae_antiFlicker_auto_mode"
+								},
+								"deMotionBlur":	{
+									"sw_aeT_deMotionBlur_en":	0,
+									"dyStrg":	{
+										"sw_aeT_dyStrg_len":	6,
+										"sw_aeT_expLevel_dot":	[0, 0.05, 0.1, 0.5, 1, 2],
+										"sw_aeT_deBlurScale_dot":	[1,1, 1, 1, 1, 1],
+										"sw_aeT_deBlurMinLim_dot":	[20, 20,20, 10, 10, 10]
+									}
 								},
 								"envLvCalib":	{
 									"sw_aeT_envCalib_en":	0,
@@ -16912,6 +16922,15 @@
 									"sw_aeT_antiFlicker_en":	1,
 									"sw_aeT_antiFlicker_freq":	"ae_antiFlicker_50hz_freq",
 									"sw_aeT_antiFlicker_mode":	"ae_antiFlicker_auto_mode"
+								},
+								"deMotionBlur":	{
+									"sw_aeT_deMotionBlur_en":	0,
+									"dyStrg":	{
+										"sw_aeT_dyStrg_len":	6,
+										"sw_aeT_expLevel_dot":	[0, 0.05, 0.1, 0.5, 1, 2],
+										"sw_aeT_deBlurScale_dot":	[1,1, 1, 1, 1, 1],
+										"sw_aeT_deBlurMinLim_dot":	[20, 20,20, 10, 10, 10]
+									}
 								},
 								"envLvCalib":	{
 									"sw_aeT_envCalib_en":	0,

@@ -48,7 +48,9 @@
 #include "algo_handlers/RkAiqEnhHandler.h"
 #include "algo_handlers/RkAiqHsvHandler.h"
 #include "algo_handlers/RkAiqLdcHandler.h"
-#include "algo_handlers/RkAiqAinrHandler.h"
+#include "algo_handlers/RkAiqAibnrHandler.h"
+#include "algo_handlers/RkAiqAmtdHandler.h"
+
 
 typedef AiqAlgoHandler_t* (*pAiqAlgoHandler_construct)(RkAiqAlgoDesComm* des, AiqCore_t* aiqCore);
 typedef void (*pAiqAlgoHandler_destruct)(AiqAlgoHandler_t* pAlgoHandler);
@@ -106,9 +108,13 @@ struct {
 #if RKAIQ_HAVE_LDC
     {RK_AIQ_ALGO_TYPE_ALDC, AiqAlgoHandlerLdc_constructor, AiqAlgoHandler_destructor},
 #endif
-#if RKAIQ_HAVE_AINR
-    {RK_AIQ_ALGO_TYPE_AINR, AiqAlgoHandlerAinr_constructor, AiqAlgoHandler_destructor},
+#if RKAIQ_HAVE_AIBNR
+    {RK_AIQ_ALGO_TYPE_AIBNR, AiqAlgoHandlerAibnr_constructor, AiqAlgoHandler_destructor},
 #endif
+#if RKAIQ_HAVE_AMTD
+    {RK_AIQ_ALGO_TYPE_AMTD, AiqAlgoHandlerAmtd_constructor, AiqAlgoHandler_destructor},
+#endif
+
 };
 
 // global handlers info end
@@ -126,7 +132,7 @@ XCamReturn AiqAlgoHandler_constructor(AiqAlgoHandler_t* pAlgoHandler, RkAiqAlgoD
         sharedCom->ctxCfigs[des->type].cid = aiqCore->mAlogsComSharedParams.mCamPhyId;
         des->create_context(&pAlgoHandler->mAlgoCtx,
                             (const AlgoCtxInstanceCfg*)(&sharedCom->ctxCfigs[des->type]));
-	}
+    }
     pAlgoHandler->mConfig                 = NULL;
     pAlgoHandler->mPreInParam             = NULL;
     pAlgoHandler->mPreOutParam            = NULL;
@@ -146,7 +152,7 @@ XCamReturn AiqAlgoHandler_constructor(AiqAlgoHandler_t* pAlgoHandler, RkAiqAlgoD
     pAlgoHandler->postProcess             = NULL;
     pAlgoHandler->preProcess              = NULL;
 
-	return XCAM_RETURN_NO_ERROR;
+    return XCAM_RETURN_NO_ERROR;
 }
 
 void AiqAlgoHandler_destructor(AiqAlgoHandler_t* pAlgoHandler) {
@@ -253,7 +259,7 @@ XCamReturn AiqAlgoHandler_postProcess(AiqAlgoHandler_t* pAlgoHandler) {
 }
 
 XCamReturn AiqAlgoHandler_configInparamsCom(AiqAlgoHandler_t* pAlgoHandler, RkAiqAlgoCom* com,
-                                            int type) {
+        int type) {
     RkAiqAlgosGroupShared_t* shared =
         (RkAiqAlgosGroupShared_t*)(pAlgoHandler->mAlogsGroupSharedParams);
 
@@ -292,7 +298,9 @@ void AiqAlgoHandler_setEnable(AiqAlgoHandler_t* pAlgoHandler, bool enable) {
     pAlgoHandler->mEnable = enable;
 }
 
-bool AiqAlgoHandler_getEnable(AiqAlgoHandler_t* pAlgoHandler) { return pAlgoHandler->mEnable; }
+bool AiqAlgoHandler_getEnable(AiqAlgoHandler_t* pAlgoHandler) {
+    return pAlgoHandler->mEnable;
+}
 
 void AiqAlgoHandler_setReConfig(AiqAlgoHandler_t* pAlgoHandler, bool reconfig) {
     pAlgoHandler->mReConfig = reconfig;
@@ -320,7 +328,9 @@ void AiqAlgoHandler_setGroupId(AiqAlgoHandler_t* pAlgoHandler, int32_t gId) {
     pAlgoHandler->mGroupId = gId;
 }
 
-int32_t AiqAlgoHandler_getGroupId(AiqAlgoHandler_t* pAlgoHandler) { return pAlgoHandler->mGroupId; }
+int32_t AiqAlgoHandler_getGroupId(AiqAlgoHandler_t* pAlgoHandler) {
+    return pAlgoHandler->mGroupId;
+}
 
 void AiqAlgoHandler_setNextHdl(AiqAlgoHandler_t* pAlgoHandler, AiqAlgoHandler_t* next) {
     pAlgoHandler->mNextHdl = next;
@@ -388,7 +398,7 @@ XCamReturn AiqAlgoHandler_do_processing_common(AiqAlgoHandler_t* pAlgoHandler)
     GlobalParamsManager_t * globalParamsManager = pAlgoHandler->mAiqCore->mGlobalParamsManger;
     GlobalParamsManager_lockAlgoParam(globalParamsManager, pAlgoHandler->mResultType);
     if (globalParamsManager && !GlobalParamsManager_isFullManualMode(globalParamsManager) &&
-        GlobalParamsManager_isManualLocked(globalParamsManager, pAlgoHandler->mResultType)) {
+            GlobalParamsManager_isManualLocked(globalParamsManager, pAlgoHandler->mResultType)) {
         rk_aiq_global_params_wrap_t wrap_param;
         wrap_param.type           = pAlgoHandler->mResultType;
         wrap_param.man_param_size = pAlgoHandler->mResultSize;
@@ -397,7 +407,7 @@ XCamReturn AiqAlgoHandler_do_processing_common(AiqAlgoHandler_t* pAlgoHandler)
         XCamReturn ret1           = GlobalParamsManager_getAndClearPendingLocked(globalParamsManager, &wrap_param);
         if (ret1 == XCAM_RETURN_NO_ERROR) {
             LOGK("%s: %p, man en:%d, bypass:%d", ResTypeStr,
-                    &proc_res->en, wrap_param.en, wrap_param.bypass);
+                 &proc_res->en, wrap_param.en, wrap_param.bypass);
             proc_res->en = wrap_param.en;
             proc_res->bypass = wrap_param.bypass;
             proc_res->cfg_update = true;
@@ -450,9 +460,9 @@ XCamReturn AiqAlgoHandler_genIspResult_byType(AiqAlgoHandler_t* pAlgoHandler,
 
     void* algo_param = (void*)pBase->_data;
     aiq_params_base_t* pCurBase = cur_params->pParamsArray[restype];
-    void* cur_algo_param = NULL; 
-	if (pCurBase)
-		cur_algo_param = (void*)pCurBase->_data;
+    void* cur_algo_param = NULL;
+    if (pCurBase)
+        cur_algo_param = (void*)pCurBase->_data;
 
     if (sharedCom->init) {
         pBase->frame_id = 0;
@@ -493,7 +503,7 @@ XCamReturn AiqAlgoHandler_genIspResult_byType(AiqAlgoHandler_t* pAlgoHandler,
             LOGE("%s: no latest params !", ResTypeStr);
             pBase->is_update = false;
         }
-        LOGD("%s: [%d] params from latest [%d]",ResTypeStr, shared->frameId, pAlgoHandler->mSyncFlag);
+        LOGD("%s: [%d] params from latest [%d]", ResTypeStr, shared->frameId, pAlgoHandler->mSyncFlag);
     } else {
         // do nothing, result in buf needn't update
         pBase->is_update = false;

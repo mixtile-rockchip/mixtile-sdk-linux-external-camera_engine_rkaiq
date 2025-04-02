@@ -644,24 +644,24 @@ static void init_withCalib(GlobalParamsManager_t* pMan)
         LOGE("no postisp calib !");
     }
 #endif
-#if RKAIQ_HAVE_AINR
-    wrap_ptr = &pMan->mGlobalParams[RESULT_TYPE_AINR_PARAM];
-    ainr_api_attrib_t* ainr_calib = (ainr_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(
-                (void*)(pMan->mCalibDb), ainr));
-    if (ainr_calib) {
-        wrap_ptr->opMode = &ainr_calib->opMode;
-        wrap_ptr->en = &ainr_calib->en;
-        wrap_ptr->bypass = &ainr_calib->bypass;
-        wrap_ptr->man_param_ptr = &ainr_calib->stMan;
-        wrap_ptr->aut_param_ptr = &ainr_calib->stAuto;
-        pMan->mIsGlobalModulesUpdateBits |= ((uint64_t)1) << RESULT_TYPE_AINR_PARAM;
-        if (ainr_calib->opMode == RK_AIQ_OP_MODE_INVALID) {
-            ainr_calib->opMode = RK_AIQ_OP_MODE_MANUAL;
+#if RKAIQ_HAVE_AIBNR
+    wrap_ptr = &pMan->mGlobalParams[RESULT_TYPE_AIBNR_PARAM];
+    aibnr_api_attrib_t* aibnr_calib = (aibnr_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(
+                (void*)(pMan->mCalibDb), aibnr));
+    if (aibnr_calib) {
+        wrap_ptr->opMode = &aibnr_calib->opMode;
+        wrap_ptr->en = &aibnr_calib->en;
+        wrap_ptr->bypass = &aibnr_calib->bypass;
+        wrap_ptr->man_param_ptr = &aibnr_calib->stMan;
+        wrap_ptr->aut_param_ptr = &aibnr_calib->stAuto;
+        pMan->mIsGlobalModulesUpdateBits |= ((uint64_t)1) << RESULT_TYPE_AIBNR_PARAM;
+        if (aibnr_calib->opMode == RK_AIQ_OP_MODE_INVALID) {
+            aibnr_calib->opMode = RK_AIQ_OP_MODE_MANUAL;
         }
-        LOGK("Module ainr: opMode:%d,en:%d,bypass:%d,man_ptr:%p",
+        LOGK("Module aibnr: opMode:%d,en:%d,bypass:%d,man_ptr:%p",
              *wrap_ptr->opMode, *wrap_ptr->en, *wrap_ptr->bypass, wrap_ptr->man_param_ptr);
     } else {
-        LOGE("no ainr calib !");
+        LOGE("no aibnr calib !");
     }
 #endif
 #endif

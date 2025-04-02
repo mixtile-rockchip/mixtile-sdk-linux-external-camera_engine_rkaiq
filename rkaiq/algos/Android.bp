@@ -84,6 +84,7 @@ subdirs = [
     "algos/af",
     "algos/asd",
     "algos/afd",
+    "algos/amtd",
     "algos/newStruct",
 ]
 

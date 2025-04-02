@@ -80,8 +80,8 @@
 #include "rkpostisp_head_v2.h"
 #include "isp/rk_aiq_isp_rgbir10.h"
 #include "algos/rk_aiq_api_types_rgbir.h"
-#include "isp/rk_aiq_isp_ainr.h"
-#include "algos/rk_aiq_api_types_ainr.h"
+#include "isp/rk_aiq_isp_aibnr.h"
+#include "algos/rk_aiq_api_types_aibnr.h"
 #include "isp/rk_aiq_isp_af33.h"
 //#include "algos/rk_aiq_api_types_af.h"
 RKAIQ_BEGIN_DECLARE
@@ -161,8 +161,8 @@ typedef struct {
     rgbir_api_attrib_t rgbir;
     // M4_STRUCT_DESC("af_calib", "normal_ui_style")
     af_param_t af_calib;
-    // M4_STRUCT_DESC("ainr", "normal_ui_style")
-    ainr_api_attrib_t ainr;
+    // M4_STRUCT_DESC("aibnr", "normal_ui_style")
+    aibnr_api_attrib_t aibnr;
 } CamCalibDbV2ContextIsp35_t;
 
 RKAIQ_END_DECLARE

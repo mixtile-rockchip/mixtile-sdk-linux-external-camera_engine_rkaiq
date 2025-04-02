@@ -147,7 +147,7 @@ struct AiqIspParamsCvt_s {
     aiq_params_base_t* mAeParams;
     aiq_params_base_t* mAwbParams;
     aiq_params_base_t* mAfParams;
-    aiq_params_base_t* mAinrParams;
+    aiq_params_base_t* mAibnrParams;
     bool _lsc_en;
 #if defined(ISP_HW_V32) || defined(ISP_HW_V32_LITE)
     struct isp32_isp_meas_cfg mLatestMeasCfg;

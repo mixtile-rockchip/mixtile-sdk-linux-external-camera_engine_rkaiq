@@ -68,9 +68,11 @@
 #include "xcore/base/xcam_buffer.h"
 #include "algos/ae/rk_aiq_types_ae_algo_int.h"
 #include "algos/afd/rk_aiq_types_afd_algo_int.h"
+#include "algos/amtd/rk_aiq_types_amtd_algo_int.h"
 #include "awb/rk_aiq_types_awb_algo_int.h"
 
-#include "newStruct/ainr/include/ainr_algo_api.h"
+#include "newStruct/aibnr/include/aibnr_algo_api.h"
+#include "c_base/aiq_list.h"
 
 
 typedef struct Aynr_ProcResult_V3_s Aynr_ProcResult_V3_t;
@@ -187,6 +189,7 @@ typedef struct _RkAiqAlgoPreAe {
         RKAiqAecStatsV25_t*     aecStatsV25Buf;
     };
     bool af_prior;
+    AmtdProcResult_t amtdRes;
 } RkAiqAlgoPreAe;
 
 typedef struct _RkAiqAlgoProcAe {
@@ -239,6 +242,30 @@ typedef struct _RkAiqAlgoProcResAfd {
     RkAiqAlgoResCom res_com;
     AfdProcResult_t afdRes;
 } RkAiqAlgoProcResAfd;
+
+// amtd
+typedef struct _RkAiqAlgoConfigAmtd {
+    RkAiqAlgoCom com;
+} RkAiqAlgoConfigAmtd;
+
+typedef struct _RkAiqAlgoPreAmtd {
+    RkAiqAlgoCom com;
+    AiqList_t* amdImuList;
+} RkAiqAlgoPreAmtd;
+
+typedef struct _RkAiqAlgoPreResAmtd {
+    RkAiqAlgoResCom res_com;
+} RkAiqAlgoPreResAmtd;
+
+typedef struct _RkAiqAlgoProcAmtd {
+    RkAiqAlgoCom com;
+    AiqList_t* amdImuList;
+} RkAiqAlgoProcAmtd;
+
+typedef struct _RkAiqAlgoProcResAmtd {
+    RkAiqAlgoResCom res_com;
+    AmtdProcResult_t amtdRes;
+} RkAiqAlgoProcResAmtd;
 
 
 // acsm
@@ -660,23 +687,24 @@ typedef struct _RkAiqAlgoProcLdc {
 } RkAiqAlgoProcLdc;
 #endif
 
-// ainr
-typedef struct rk_aiq_isp_ainr_params_s {
-    ainr_param_t ainr_param;
+// aibnr
+typedef struct rk_aiq_isp_aibnr_params_s {
+    aibnr_param_t aibnr_param;
     bool is_bypass;
+    bool is_hdr;
     uint16_t prev_blacklvl;
     uint16_t post_blacklvl;
     uint16_t sw_in_comp_y[33];
     uint16_t sw_out_decomp_y[33];
-} rk_aiq_isp_ainr_params_t;
+} rk_aiq_isp_aibnr_params_t;
 
 typedef struct {
     RkAiqAlgoResCom res_com;
-    ainr_param_t* ainrRes;
-} RkAiqAlgoProcResAinr;
+    aibnr_param_t* aibnrRes;
+} RkAiqAlgoProcResAibnr;
 
 typedef struct {
     RkAiqAlgoCom com;
-} RkAiqAlgoProcAinr;
+} RkAiqAlgoProcAibnr;
 
 #endif

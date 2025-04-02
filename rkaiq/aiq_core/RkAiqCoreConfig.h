@@ -59,7 +59,7 @@ inline std::string AlgoTypeToString(RkAiqAlgoType_t type) {
 #endif
         { RK_AIQ_ALGO_TYPE_ATMO,        "Atmo"      },
         { RK_AIQ_ALGO_TYPE_ANR,         "Anr"       },
-        
+
 #if USE_NEWSTRUCT
         { RK_AIQ_ALGO_TYPE_ADEBAYER,    "Dm"  },
         { RK_AIQ_ALGO_TYPE_ADPCC,       "Dpcc"  },
@@ -160,6 +160,7 @@ inline std::string AlgoTypeToString(RkAiqAlgoType_t type) {
 #endif
         { RK_AIQ_ALGO_TYPE_ALDC,        "Aldc"      },
         { RK_AIQ_ALGO_TYPE_AHISTEQ,     "Ahisteq"  },
+        { RK_AIQ_ALGO_TYPE_AMTD,        "Amtd"      },
         // clang-format oon
     };
 

@@ -410,7 +410,7 @@ static calibdb_ctx_member_offset_info_t info_CamCalibDbV2ContextIsp35_t[] = {
     {"postisp", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(postisp)},
     {"rgbir", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(rgbir)},
     {"af_calib", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(af_calib)},
-    {"ainr", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(ainr)},
+    {"aibnr", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(aibnr)},
     {NULL, 0},
 };
 #endif

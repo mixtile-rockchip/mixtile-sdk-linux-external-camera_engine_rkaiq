@@ -95,7 +95,8 @@
 #include "isp/rk_aiq_stats_af33.h"
 #include "uAPI2/rk_aiq_user_api2_af.h"
 #include "uAPI2/rk_aiq_user_api2_postisp.h"
-#include "isp/rk_aiq_isp_ainr.h"
-#include "uAPI2/rk_aiq_user_api2_ainr.h"
+#include "isp/rk_aiq_isp_aibnr.h"
+#include "uAPI2/rk_aiq_user_api2_aibnr.h"
+#include "uAPI2/rk_aiq_user_api2_amtd.h"
 
 #endif
