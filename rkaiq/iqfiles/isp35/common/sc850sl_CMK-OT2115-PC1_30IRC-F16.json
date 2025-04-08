@@ -19396,6 +19396,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19424,6 +19425,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19452,6 +19454,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19480,6 +19483,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19508,6 +19512,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19536,6 +19541,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19564,6 +19570,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19592,6 +19599,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19620,6 +19628,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19648,6 +19657,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19676,6 +19686,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19704,6 +19715,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19732,6 +19744,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19771,6 +19784,7 @@
 										"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 										"sw_aiBnrT_nonLinear_scale":	0.7,
 										"sw_aiBnrT_nonLinear_ratio":	0.5,
+										"sw_aiBnrT_nonLinear_adjust":	1.0,
 										"sw_aiBnrT_model_file":	"iso50.bin",
 										"sw_aiBnrT_doRknn_en":	0
 									}
@@ -38910,6 +38924,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -38938,6 +38953,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -38966,6 +38982,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -38994,6 +39011,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39022,6 +39040,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39050,6 +39069,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39078,6 +39098,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39106,6 +39127,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39134,6 +39156,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39162,6 +39185,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39190,6 +39214,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39218,6 +39243,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39246,6 +39272,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1.0,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39285,6 +39312,7 @@
 										"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 										"sw_aiBnrT_nonLinear_scale":	0.7,
 										"sw_aiBnrT_nonLinear_ratio":	0.5,
+										"sw_aiBnrT_nonLinear_adjust":	1.0,
 										"sw_aiBnrT_model_file":	"iso50.bin",
 										"sw_aiBnrT_doRknn_en":	0
 									}

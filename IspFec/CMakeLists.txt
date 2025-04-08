@@ -19,7 +19,7 @@ include(GNUInstallDirs)
 
 configure_file(
     "${PROJECT_SOURCE_DIR}/cmake/rkfec_config.h.in"
-    "${PROJECT_SOURCE_DIR}/include/rkfec_config.h"
+    "${PROJECT_BINARY_DIR}/.rkfec_config.h"
     )
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -37,6 +37,7 @@ set(RK_ISPFEC_LIB_DIR ${RK_ISPFEC_INSTALLED_DIR}/lib)
 message("rkIspFec lib path" ${RK_ISPFEC_LIB_DIR})
 
 include_directories(
+    ${PROJECT_BINARY_DIR}
     ./
     include/
     include_prv/

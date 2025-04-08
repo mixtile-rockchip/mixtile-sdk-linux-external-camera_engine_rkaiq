@@ -56,14 +56,14 @@ static void printParam(AibnrContext_t *pAibnrCtx, aibnr_param_t* out, int iso)
               tunning->sw_aiBnrT_noiseAddMot_offset, tunning->sw_aiBnrT_noiseAddMot_coeff,
               tunning->sw_aiBnrT_noiseAddLuma_offset, tunning->sw_aiBnrT_noiseAddLuma_coeff);
 
-    LOGD_AIBNR("sw_aiBnrT_noiseAddLumaClip_th=%f sw_aiBnrT_noiseAddLumaStatic_th=%f sw_aiBnrT_nonLinear_scale=%f sw_aiBnrT_nonLinear_ratio=%f",
+    LOGD_AIBNR("sw_aiBnrT_noiseAddLumaClip_th=%f sw_aiBnrT_noiseAddLumaStatic_th=%f sw_aiBnrT_nonLinear_scale=%f sw_aiBnrT_nonLinear_ratio=%f sw_aiBnrT_nonLinear_adjust=%f",
               tunning->sw_aiBnrT_noiseAddLumaClip_th, tunning->sw_aiBnrT_noiseAddLumaStatic_th,
-              tunning->sw_aiBnrT_nonLinear_scale, tunning->sw_aiBnrT_nonLinear_ratio);
+              tunning->sw_aiBnrT_nonLinear_scale, tunning->sw_aiBnrT_nonLinear_ratio, tunning->sw_aiBnrT_nonLinear_adjust);
 
-    LOGD_AIBNR("sw_aiBnrCfg_model_dir %s sw_aiBnrT_model_file=%s sw_aiBnrT_doRknn_en=%d",
+    LOGD_AIBNR("sw_aiBnrCfg_model_dir=%s sw_aiBnrT_model_file=%s sw_aiBnrT_doRknn_en=%d",
               sta->model_dir.sw_aiBnrCfg_model_dir, tunning->sw_aiBnrT_model_file, tunning->sw_aiBnrT_doRknn_en);
 
-    LOGD_AIBNR("sw_aiBnrT_showGain_en %d",
+    LOGD_AIBNR("sw_aiBnrT_showGain_en=%d",
               sta->debug.sw_aiBnrT_showGain_en);
 }
 
@@ -138,6 +138,8 @@ XCamReturn AibnrSelectParam
                     paut->dyn[ilow].tunning.sw_aiBnrT_nonLinear_scale, paut->dyn[ihigh].tunning.sw_aiBnrT_nonLinear_scale, ratio);
     tunning->sw_aiBnrT_nonLinear_ratio = interpolation_f32(
                     paut->dyn[ilow].tunning.sw_aiBnrT_nonLinear_ratio, paut->dyn[ihigh].tunning.sw_aiBnrT_nonLinear_ratio, ratio);
+    tunning->sw_aiBnrT_nonLinear_adjust = interpolation_f32(
+                    paut->dyn[ilow].tunning.sw_aiBnrT_nonLinear_adjust, paut->dyn[ihigh].tunning.sw_aiBnrT_nonLinear_adjust, ratio);
 
     printParam(pAibnrCtx, out, iso);
     return XCAM_RETURN_NO_ERROR;
@@ -417,6 +419,12 @@ static int dump(const RkAiqAlgoCom* self, st_string* result)
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "sw_aiBnrT_nonLinear_ratio=%f",
             tunning->sw_aiBnrT_nonLinear_ratio);
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+    snprintf(buffer, MAX_LINE_LENGTH, "sw_aiBnrT_nonLinear_adjust=%f",
+            tunning->sw_aiBnrT_nonLinear_adjust);
     aiq_string_printf(result, buffer);
     aiq_string_printf(result, "\n");
 

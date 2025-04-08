@@ -72,15 +72,14 @@ static int getKwtMaxSize(char *model_buf, uint32_t *kwt_size)
     return ret;
 }
 
-static int getParamInfo(AibnrManager_t* pAibnrManager, struct rkaiisp_param_info *param_info)
+static int getParamInfo(AibnrManager_t* pAibnrManager, AibnrModelBuf_t *pAibnrModelBuf, struct rkaiisp_param_info *param_info)
 {
     uint32_t kwt_size, max_size;
-    RkAiqAibnrModelBuf_t *pAibnrModel = &pAibnrManager->mAibnrModel;
 
     max_size = 0;
     for (int i = 0; i < AIBNR_ISO_STEP_MAX; i++) {
-        if (getKwtMaxSize(pAibnrModel->model_buf[i], &kwt_size) != 0) {
-            LOGE_AIBNR("%s: get param info(%s) failed!", __func__, pAibnrModel->model_file[i]);
+        if (getKwtMaxSize(pAibnrModelBuf->model_buf[i], &kwt_size) != 0) {
+            LOGE_AIBNR("%s: get param info(%s) failed!", __func__, pAibnrModelBuf->model_file[i]);
         }
 
         if (kwt_size > max_size)
@@ -178,7 +177,6 @@ static int checkModelSum(char *model_file, char *model_buf, size_t file_len)
 
     if (checksum != realsum) {
         LOGE_AIBNR("model(%s) sum check error 0x%x, 0x%x", model_file, checksum, realsum);
-        XCAM_ASSERT(false);
         return -1;
     }
 
@@ -227,24 +225,19 @@ static int checkModelCfg(struct rkaiisp_model_cfg *model_cfg)
     return 0;
 }
 
-static XCamReturn readModel(AibnrManager_t* pAibnrManager, CamCalibDbV2Context_t* pCalibDbV2)
+static XCamReturn readModel(AibnrManager_t* pAibnrManager, CamCalibDbV2Context_t* pCalibDbV2,
+                            AibnrModelBuf_t* aibnrModelBuf, RkAiqAibnrModelInfo_t* aibnrModelInfo)
 {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
-    RkAiqAibnrModelBuf_t *aibnr_model = &pAibnrManager->mAibnrModel;
     aibnr_api_attrib_t *aibnr_attrib = (aibnr_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(pCalibDbV2, aibnr));
     aibnr_params_static_t* psta = &(aibnr_attrib->stAuto.sta);
     uint32_t model_max_runcnt = 0;
 
-    for (int i = 0; i < AIBNR_ISO_STEP_MAX; i++) {
-        if (aibnr_model->model_buf[i] != NULL) {
-            free(aibnr_model->model_buf[i]);
-            aibnr_model->model_buf[i] = NULL;
-        }
-    }
-
     if (!aibnr_attrib->en)
         return XCAM_RETURN_BYPASS;
 
+    memset(aibnrModelBuf, 0, sizeof(*aibnrModelBuf));
+    memset(aibnrModelInfo, 0, sizeof(*aibnrModelInfo));
     for (int i = 0; i < AIBNR_ISO_STEP_MAX; i++) {
         aibnr_param_dyn_t* pdyn = &(aibnr_attrib->stAuto.dyn[i]);
         aibnr_param_tunning_t *tunning = &pdyn->tunning;
@@ -270,7 +263,6 @@ static XCamReturn readModel(AibnrManager_t* pAibnrManager, CamCalibDbV2Context_t
             if (runcnt != 3 && runcnt != 4 && runcnt != 8) {
                 LOGE_AIBNR("%s(%d): %s: runcnt(%d) is error\n",
                     __FUNCTION__, __LINE__, model_file, runcnt);
-                XCAM_ASSERT(false);
                 return XCAM_RETURN_ERROR_FILE;
             }
 
@@ -281,7 +273,6 @@ static XCamReturn readModel(AibnrManager_t* pAibnrManager, CamCalibDbV2Context_t
             if (file_size != correct_size) {
                 LOGE_AIBNR("%s(%d): %s: file size(%d, %d) is error\n",
                     __FUNCTION__, __LINE__, model_file, file_size, correct_size);
-                XCAM_ASSERT(false);
                 return XCAM_RETURN_ERROR_FILE;
             }
 
@@ -289,21 +280,38 @@ static XCamReturn readModel(AibnrManager_t* pAibnrManager, CamCalibDbV2Context_t
                 if (checkModelCfg(&model_info.model_cfg[j]) != 0) {
                     LOGE_AIBNR("%s(%d): %s: model info check failure\n",
                         __FUNCTION__, __LINE__, model_file);
-                    XCAM_ASSERT(false);
                     return XCAM_RETURN_ERROR_FILE;
                 }
             }
 
-            aibnr_model->model_buf[i] = aiq_malloc(file_size);
-            if (aibnr_model->model_buf[i]) {
+            aibnrModelBuf->model_buf[i] = aiq_malloc(file_size);
+            if (aibnrModelBuf->model_buf[i]) {
                 fseek(fp, 0, 0);
-                fread(aibnr_model->model_buf[i], 1, file_size, fp);
+                fread(aibnrModelBuf->model_buf[i], 1, file_size, fp);
                 fclose(fp);
-                strcpy(aibnr_model->model_file[i], model_file);
-                checkModelSum(aibnr_model->model_file[i], aibnr_model->model_buf[i], file_size);
+                strcpy(aibnrModelBuf->model_file[i], model_file);
+                if (checkModelSum(aibnrModelBuf->model_file[i], aibnrModelBuf->model_buf[i], file_size) != 0) {
+                    aiq_free(aibnrModelBuf->model_buf[i]);
+                    aibnrModelBuf->model_buf[i] = NULL;
+                }
             }
         } else {
             LOGE_AIBNR("read aiisp model file(%s) failed !", model_file);
+        }
+    }
+    aibnrModelBuf->valid = true;
+    for (int i = 0; i < AIBNR_ISO_STEP_MAX; i++) {
+        if (!aibnrModelBuf->model_buf[i])
+            aibnrModelBuf->valid = false;
+    }
+
+    struct rkaiisp_model_info *model_info;
+    if (aibnrModelBuf->valid) {
+        for (int i = 0; i < AIBNR_ISO_STEP_MAX; i++) {
+            model_info = (struct rkaiisp_model_info *)aibnrModelBuf->model_buf[i];
+
+            strcpy(aibnrModelInfo->model_file[i], aibnrModelBuf->model_file[i]);
+            aibnrModelInfo->quant_val[i] = model_info->model_qr;
         }
     }
 
@@ -315,7 +323,10 @@ static XCamReturn readModel(AibnrManager_t* pAibnrManager, CamCalibDbV2Context_t
 XCamReturn AibnrManager_setCalib(AibnrManager_t* pAibnrManager, CamCalibDbV2Context_t* pCalibDbV2)
 {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    AibnrModelBuf_t *aibnrModelBuf = &pAibnrManager->mAibnrModelBuf;
     struct rkaiisp_param_info param_info;
+    AibnrModelBuf_t tmpAibnrModelBuf;
+    RkAiqAibnrModelInfo_t tmpAibnrModelInfo;
 
     pAibnrManager->pCalibDbV2 = pCalibDbV2;
 
@@ -324,13 +335,30 @@ XCamReturn AibnrManager_setCalib(AibnrManager_t* pAibnrManager, CamCalibDbV2Cont
         return XCAM_RETURN_BYPASS;
     }
 
-    readModel(pAibnrManager, pCalibDbV2);
-    getParamInfo(pAibnrManager, &param_info);
+    readModel(pAibnrManager, pCalibDbV2, &tmpAibnrModelBuf, &tmpAibnrModelInfo);
+    if (!tmpAibnrModelBuf.valid) {
+        LOGE_AIBNR("%s: readModel is error.", __func__);
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+    getParamInfo(pAibnrManager, &tmpAibnrModelBuf, &param_info);
+
     if (param_info.para_size > pAibnrManager->param_info.para_size) {
         LOGE_AIBNR("para_size(%d) in new calib is too big!", param_info.para_size, pAibnrManager->param_info.para_size);
-        XCAM_ASSERT(false);
+        return XCAM_RETURN_ERROR_FAILED;
     }
-    pAibnrManager->pCamHw->aibnr_setModelInf(pAibnrManager->pCamHw, &pAibnrManager->mAibnrModel);
+
+    aiqMutex_lock(&pAibnrManager->model_buf_mutex);
+    for (int i = 0; i < AIBNR_ISO_STEP_MAX; i++) {
+        if (aibnrModelBuf->model_buf[i] != NULL) {
+            aiq_free(aibnrModelBuf->model_buf[i]);
+            aibnrModelBuf->model_buf[i] = NULL;
+        }
+    }
+    *aibnrModelBuf = tmpAibnrModelBuf;
+    pAibnrManager->mAibnrModelInfo = tmpAibnrModelInfo;
+    pAibnrManager->param_info = param_info;
+    pAibnrManager->pCamHw->aibnr_setModelInf(pAibnrManager->pCamHw, &pAibnrManager->mAibnrModelInfo);
+    aiqMutex_unlock(&pAibnrManager->model_buf_mutex);
 
     return ret;
 }
@@ -341,6 +369,10 @@ XCamReturn AibnrManager_prepare(AibnrManager_t* pAibnrManager, AiqCamHwBase_t* p
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
     aibnr_api_attrib_t *aibnr_attrib = (aibnr_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(pCalibDbV2, aibnr));
     struct rkaiisp_ispbuf_info *ispbuf_info = &pAibnrManager->ispbuf_info;
+    AibnrModelBuf_t *aibnrModelBuf = &pAibnrManager->mAibnrModelBuf;
+    struct rkaiisp_param_info param_info;
+    RkAiqAibnrModelInfo_t tmpAibnrModelInfo;
+    AibnrModelBuf_t tmpAibnrModelBuf;
 
     pAibnrManager->is_enable       = aibnr_attrib->en;
     pAibnrManager->is_param_update = false;
@@ -356,14 +388,32 @@ XCamReturn AibnrManager_prepare(AibnrManager_t* pAibnrManager, AiqCamHwBase_t* p
     }
 
     memset(&pAibnrManager->last_aibnr_params, 0, sizeof(pAibnrManager->last_aibnr_params));
-    readModel(pAibnrManager, pCalibDbV2);
-    getParamInfo(pAibnrManager, &pAibnrManager->param_info);
+    readModel(pAibnrManager, pCalibDbV2, &tmpAibnrModelBuf, &tmpAibnrModelInfo);
+    if (!tmpAibnrModelBuf.valid) {
+        LOGE_AIBNR("%s: readModel is error.", __func__);
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+    getParamInfo(pAibnrManager, &tmpAibnrModelBuf, &param_info);
+
+    aiqMutex_lock(&pAibnrManager->model_buf_mutex);
+    for (int i = 0; i < AIBNR_ISO_STEP_MAX; i++) {
+        if (aibnrModelBuf->model_buf[i] != NULL) {
+            aiq_free(aibnrModelBuf->model_buf[i]);
+            aibnrModelBuf->model_buf[i] = NULL;
+        }
+    }
+    *aibnrModelBuf = tmpAibnrModelBuf;
+    pAibnrManager->mAibnrModelInfo = tmpAibnrModelInfo;
+    pAibnrManager->param_info = param_info;
+    aiqMutex_unlock(&pAibnrManager->model_buf_mutex);
 
     pAibnrManager->mAibnrCfg.mode = (AIBNR_AIISP_MODE == BOTHEVENT_TO_AIQ) ? 1 : 2;
     pAibnrManager->mAibnrCfg.wr_linecnt = isp_acq_height;
     pAibnrManager->mAibnrCfg.rd_linecnt = isp_acq_height;
-    pAibnrManager->pCamHw->aibnr_init(pAibnrManager->pCamHw, pAibnrManager, &pAibnrManager->mAibnrCfg);
-    pAibnrManager->pCamHw->aibnr_setModelInf(pAibnrManager->pCamHw, &pAibnrManager->mAibnrModel);
+    ret = pAibnrManager->pCamHw->aibnr_init(pAibnrManager->pCamHw, pAibnrManager, &pAibnrManager->mAibnrCfg);
+    if (ret)
+        LOGE_AIBNR("%s: can not init aibnr.", __func__);
+    pAibnrManager->pCamHw->aibnr_setModelInf(pAibnrManager->pCamHw, &pAibnrManager->mAibnrModelInfo);
     pAibnrManager->pCamHw->aibnr_setParamInf(pAibnrManager->pCamHw, &pAibnrManager->param_info);
 
     for (int i = 0; i < AIBNR_AIISP_BUF_CNT; i++)
@@ -424,7 +474,7 @@ static XCamReturn munmap_ispbuf(struct rkisp_bnr_buf_info *bnr_buf, ispbuf_addr_
             munmap(ispbuf_addr[i].gain_addr, gain_inf->buf_size);
             ispbuf_addr[i].gain_addr = NULL;
         }
-        if (ispbuf_addr[i].gain_addr != NULL) {
+        if (ispbuf_addr[i].aiisp_addr != NULL) {
             aiisp_inf = &bnr_buf->u.v35.aiisp;
             munmap(ispbuf_addr[i].aiisp_addr, aiisp_inf->buf_size);
             ispbuf_addr[i].gain_addr = NULL;
@@ -451,9 +501,13 @@ XCamReturn AibnrManager_updateParams(AibnrManager_t* pAibnrManager, rk_aiq_isp_a
     pAibnrManager->is_bypass = isp_aibnr_params->is_bypass;
 
     if (!pAibnrManager->is_parambuf_prepare) {
-        pAibnrManager->pCamHw->aibnr_init(pAibnrManager->pCamHw, pAibnrManager, &pAibnrManager->mAibnrCfg);
+        ret = pAibnrManager->pCamHw->aibnr_init(pAibnrManager->pCamHw, pAibnrManager, &pAibnrManager->mAibnrCfg);
+        if (ret)
+            LOGE_AIBNR("%s: can not init aibnr.", __func__);
         pAibnrManager->pCamHw->aibnr_setIspBufInf(pAibnrManager->pCamHw, &pAibnrManager->ispbuf_info);
-        pAibnrManager->pCamHw->aibnr_prepare(pAibnrManager->pCamHw);
+        ret = pAibnrManager->pCamHw->aibnr_prepare(pAibnrManager->pCamHw);
+        if (ret)
+            LOGE_AIBNR("%s: can not prepare aibnr.", __func__);
         mmap_ispbuf(&pAibnrManager->ispbuf_info.bnr_buf, pAibnrManager->ispbuf_addr);
         pAibnrManager->is_parambuf_prepare = true;
     }
@@ -487,15 +541,17 @@ XCamReturn AibnrManager_updateParams(AibnrManager_t* pAibnrManager, rk_aiq_isp_a
             struct rkaiisp_model_info *model_info;
             int i;
 
+            aiqMutex_lock(&pAibnrManager->model_buf_mutex);
             for (i = 0; i < AIBNR_ISO_STEP_MAX; i++) {
-                if (strcmp(pAibnrManager->mAibnrModel.model_file[i], model_file) == 0) {
-                    model_info = (struct rkaiisp_model_info *)pAibnrManager->mAibnrModel.model_buf[i];
+                if (strcmp(pAibnrManager->mAibnrModelBuf.model_file[i], model_file) == 0) {
+                    model_info = (struct rkaiisp_model_info *)pAibnrManager->mAibnrModelBuf.model_buf[i];
                     break;
                 }
             }
 
             if (i >= AIBNR_ISO_STEP_MAX) {
                 LOGE_AIBNR("can not find model file %s", model_file);
+                aiqMutex_unlock(&pAibnrManager->model_buf_mutex);
                 return XCAM_RETURN_ERROR_FAILED;
             }
 
@@ -511,6 +567,7 @@ XCamReturn AibnrManager_updateParams(AibnrManager_t* pAibnrManager, rk_aiq_isp_a
                 aiisp_cfg->kwt_cfg.kwt_offet[i] = offset;
                 memcpy(pKwtBuffer, (char *)model_info + model_info->kwt_cfg.kwt_offet[i], model_info->kwt_cfg.kwt_pad_size[i]);
             }
+            aiqMutex_unlock(&pAibnrManager->model_buf_mutex);
 
             aiisp_cfg->module_update |= RKAIISP_MODEL_UPDATE;
         }
@@ -539,7 +596,9 @@ XCamReturn AibnrManager_start(AibnrManager_t* pAibnrManager)
     }
 
     pAibnrManager->is_start = true;
-    pAibnrManager->pCamHw->aibnr_start(pAibnrManager->pCamHw);
+    ret = pAibnrManager->pCamHw->aibnr_start(pAibnrManager->pCamHw);
+    if (ret)
+        LOGE_AIBNR("%s: can not start aibnr.", __func__);
 
     return ret;
 }
@@ -553,7 +612,9 @@ XCamReturn AibnrManager_stop(AibnrManager_t* pAibnrManager)
         return XCAM_RETURN_BYPASS;
     }
 
-    pAibnrManager->pCamHw->aibnr_stop(pAibnrManager->pCamHw);
+    ret = pAibnrManager->pCamHw->aibnr_stop(pAibnrManager->pCamHw);
+    if (ret)
+        LOGE_AIBNR("%s: can not stop aibnr.", __func__);
     pAibnrManager->is_start = false;
     pAibnrManager->is_parambuf_prepare = false;
     memset(&pAibnrManager->last_aibnr_params, 0, sizeof(pAibnrManager->last_aibnr_params));
@@ -568,16 +629,17 @@ XCamReturn AibnrManager_stop(AibnrManager_t* pAibnrManager)
 XCamReturn AibnrManager_deinit(AibnrManager_t* pAibnrManager)
 {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
-    RkAiqAibnrModelBuf_t *aibnr_model = &pAibnrManager->mAibnrModel;
+    AibnrModelBuf_t *aibnrModelBuf = &pAibnrManager->mAibnrModelBuf;
 
     for (int i = 0; i < AIBNR_ISO_STEP_MAX; i++) {
-        if (aibnr_model->model_buf[i] != NULL) {
-            free(aibnr_model->model_buf[i]);
-            aibnr_model->model_buf[i] = NULL;
+        if (aibnrModelBuf->model_buf[i] != NULL) {
+            aiq_free(aibnrModelBuf->model_buf[i]);
+            aibnrModelBuf->model_buf[i] = NULL;
         }
     }
     aiqMutex_deInit(&pAibnrManager->idx_pool_mutex);
     aiqMutex_deInit(&pAibnrManager->iq_param_mutex);
+    aiqMutex_deInit(&pAibnrManager->model_buf_mutex);
 
     return ret;
 }
@@ -742,13 +804,15 @@ static XCamReturn AibnrManager_doIspBe(AibnrManager_t* pAibnrManager, struct rki
 
         aiqMutex_lock(&pAibnrManager->iq_param_mutex);
         isp_aibnr_params = &pAibnrManager->last_aibnr_params;
-
         sprintf(dump_file, "%s/%s",
                 isp_aibnr_params->aibnr_param.sta.model_dir.sw_aiBnrCfg_model_dir,
                 isp_aibnr_params->aibnr_param.dyn.tunning.sw_aiBnrT_model_file);
+        aiqMutex_unlock(&pAibnrManager->iq_param_mutex);
+
+        aiqMutex_lock(&pAibnrManager->model_buf_mutex);
         for (i = 0; i < AIBNR_ISO_STEP_MAX; i++) {
-            if (strcmp(pAibnrManager->mAibnrModel.model_file[i], dump_file) == 0) {
-                model_info = (struct rkaiisp_model_info *)pAibnrManager->mAibnrModel.model_buf[i];
+            if (strcmp(pAibnrManager->mAibnrModelBuf.model_file[i], dump_file) == 0) {
+                model_info = (struct rkaiisp_model_info *)pAibnrManager->mAibnrModelBuf.model_buf[i];
                 break;
             }
         }
@@ -765,7 +829,7 @@ static XCamReturn AibnrManager_doIspBe(AibnrManager_t* pAibnrManager, struct rki
                 write_file(dump_file, pKwtBuffer, model_info->kwt_cfg.kwt_pad_size[i]);
             }
         }
-        aiqMutex_unlock(&pAibnrManager->iq_param_mutex);
+        aiqMutex_unlock(&pAibnrManager->model_buf_mutex);
     }
 
     aiqMutex_lock(&pAibnrManager->iq_param_mutex);
@@ -905,6 +969,7 @@ XCamReturn AibnrManager_init(AibnrManager_t* pAibnrManager)
     memset(pAibnrManager, 0, sizeof(AibnrManager_t));
     aiqMutex_init(&pAibnrManager->idx_pool_mutex);
     aiqMutex_init(&pAibnrManager->iq_param_mutex);
+    aiqMutex_init(&pAibnrManager->model_buf_mutex);
 
     return ret;
 }

@@ -143,8 +143,7 @@ static void rk_aiq_aibnr_params_print(struct isp35_ai_cfg* ai_cfg)
 void rk_aiq_aibnr_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t *cvtinfo, bool bypass)
 {
     struct isp35_ai_cfg* ai_cfg = &isp_params->isp_cfg->others.ai_cfg;
-    RkAiqAibnrModelBuf_t *pAibnrModel = &cvtinfo->aibnrModel;
-    struct rkaiisp_model_info *model_info;
+    RkAiqAibnrModelInfo_t *pAibnrModelInfo = &cvtinfo->aibnrModelInfo;
     int i;
 
     rk_aiq_isp_aibnr_params_t *isp_aibnr_param = (rk_aiq_isp_aibnr_params_t *) attr;
@@ -224,6 +223,7 @@ void rk_aiq_aibnr_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
     float log_offset      = hw_btnrCfg_trans_offset;
     float nonlinear_scale = tunning->sw_aiBnrT_nonLinear_scale;
     float nonlinear_ratio = tunning->sw_aiBnrT_nonLinear_ratio;
+    float nonlinear_adjust = tunning->sw_aiBnrT_nonLinear_adjust;
     if (btnrCfg_pixDomain_mode == btnr_pixLog2Domain_mode) {
         logMax     = (log2(log_offset + (1 << 12) * hdrLS_ratio * preDgain) - log2(log_offset)) * (1 << 12) / (1 << 16);
         logScale = nonlinear_scale / logMax;
@@ -269,6 +269,11 @@ void rk_aiq_aibnr_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
         if (btnrCfg_pixDomain_mode == btnr_pixLinearDomain_mode)
         {
             x = nonLinear(x, 0, nonlinear_ratio, nonlinear_scale);
+
+            float a = 1.604;
+            float b = -0.7553;
+            float dx = a * pow(MAX(i, 1), b);
+            x = x + dx / AIBNR_NPU_FEATURE_MAX_1023 * nonlinear_adjust;
         }
         else
         {
@@ -306,16 +311,15 @@ void rk_aiq_aibnr_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
 
     sprintf(model_file, "%s/%s", psta->model_dir.sw_aiBnrCfg_model_dir, tunning->sw_aiBnrT_model_file);
     for (i = 0; i < AIBNR_ISO_STEP_MAX; i++) {
-        if (strcmp(pAibnrModel->model_file[i], model_file) == 0) {
-            model_info = (struct rkaiisp_model_info *)pAibnrModel->model_buf[i];
-            quant_val = model_info->model_qr;
+        if (strcmp(pAibnrModelInfo->model_file[i], model_file) == 0) {
+            quant_val = pAibnrModelInfo->quant_val[i];
             break;
         }
     }
 
     if (i >= AIBNR_ISO_STEP_MAX) {
-        LOGE_AIBNR("can not find model file %s", model_file);
-        XCAM_ASSERT(false);
+        quant_val = pAibnrModelInfo->quant_val[0];
+        LOGE_AIBNR("can not find model file %s, quant_val %f", model_file, quant_val);
     }
 
     for (int i = 0; i < AIBNR_SIGMA_LUT_ROW_LEN_9; i++) {

@@ -3483,6 +3483,25 @@ static XCamReturn fixAiqParamsIsp(AiqCore_t* pAiqCore, AiqFullParams_t* aiqParam
         pHisteqBase->is_update = true;
     }
 #endif
+
+#if defined(ISP_HW_V35)
+    aiq_params_base_t* pIeBase    = aiqParams->pParamsArray[RESULT_TYPE_IE_PARAM];
+    aiq_params_base_t* pCnrBase   = aiqParams->pParamsArray[RESULT_TYPE_UVNR_PARAM];
+    aiq_params_base_t* pEnhBase   = aiqParams->pParamsArray[RESULT_TYPE_ENH_PARAM];
+    aiq_params_base_t* pYnrBase   = aiqParams->pParamsArray[RESULT_TYPE_YNR_PARAM];
+    if (pIeBase && pIeBase->is_update) {
+        if (pCnrBase && !pCnrBase->is_update) {
+            pCnrBase->is_update = true;
+        }
+        if (pEnhBase && !pEnhBase->is_update) {
+            pEnhBase->is_update = true;
+        }
+        if (pYnrBase && !pYnrBase->is_update) {
+            pYnrBase->is_update = true;
+        }
+    }
+#endif
+
     aiq_params_base_t* pDrcBase  = aiqParams->pParamsArray[RESULT_TYPE_DRC_PARAM];
     aiq_params_base_t* pAwbBase  = aiqParams->pParamsArray[RESULT_TYPE_AWB_PARAM];
     aiq_params_base_t* pBlcBase  = aiqParams->pParamsArray[RESULT_TYPE_BLC_PARAM];

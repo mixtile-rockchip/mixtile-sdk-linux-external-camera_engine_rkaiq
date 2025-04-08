@@ -39,6 +39,8 @@ enum Option {
     // clang-format off
     OptSetVideoFormat = 'v',
     OptSetVideoOutFormat = 'x',
+    OptSetFps = 'f',
+    OptSilent = 's',
     OptHelp = 'z',
 
     OptStreamCount = 128,
@@ -49,7 +51,6 @@ enum Option {
     OptBorderMode,
     OptCrossBufMode,
     OptSetBgVal,
-    OptSilent,
     OptLast = 512
     // clang-format on
 };

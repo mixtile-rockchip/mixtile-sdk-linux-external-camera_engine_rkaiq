@@ -47,6 +47,21 @@ if (ENABLE_SAMPLE_ISPFEC)
     install(TARGETS sample_fec RUNTIME DESTINATION bin)
 endif()
 
+if (ENABLE_SAMPLE_ISPFEC_MULTI)
+    set (SAMPLE_FEC_MULTI_SRCS
+         ${CMAKE_SOURCE_DIR}/sample/sample_fec_multi.c
+         ${CMAKE_SOURCE_DIR}/sample/sample_drm_buffer.c
+        )
+
+    include_directories(sample ${ISPFEC_INCLUDE_DIR})
+    link_directories("${ISPFEC_LIB_DIR}" "${LOCAL_DRM_LIB_DIR}")
+
+    add_executable(sample_fec_multi ${SAMPLE_FEC_MULTI_SRCS})
+    target_link_libraries(sample_fec_multi ${ISPFEC_LIB} drm -lpthread)
+
+    install(TARGETS sample_fec_multi RUNTIME DESTINATION bin)
+endif()
+
 if (ENABLE_SAMPLE_FEC_FOR_AVSP)
     set (SAMPLE_FOR_AVSP_FEC_SRCS
          ${CMAKE_SOURCE_DIR}/sample/sample_fec_for_avsp.c

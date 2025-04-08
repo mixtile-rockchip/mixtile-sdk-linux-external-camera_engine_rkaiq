@@ -42,6 +42,12 @@ typedef struct ispbuf_addr_s {
     char *aiisp_addr;
 } ispbuf_addr_t;
 
+typedef struct AibnrModelBuf_s {
+    bool valid;
+    char model_file[AIBNR_ISO_STEP_MAX][AIBNR_MODEL_PATH_LEN];
+    char *model_buf[AIBNR_ISO_STEP_MAX];
+} AibnrModelBuf_t;
+
 typedef struct AibnrManager_s AibnrManager_t;
 typedef struct AibnrManager_s {
     bool is_enable;
@@ -59,7 +65,8 @@ typedef struct AibnrManager_s {
     struct rkisp_aiisp_st isp_out;
     struct rkisp_aiisp_st isp_in;
     struct rkisp_aiisp_cfg mAibnrCfg;
-    RkAiqAibnrModelBuf_t mAibnrModel;
+    AibnrModelBuf_t mAibnrModelBuf;
+    RkAiqAibnrModelInfo_t mAibnrModelInfo;
     CamCalibDbV2Context_t* pCalibDbV2;
     AiqCamHwBase_t* pCamHw;
 
@@ -67,6 +74,7 @@ typedef struct AibnrManager_s {
     bool aiisp_idx_pool[AIBNR_AIISP_BUF_CNT];
     AiqMutex_t idx_pool_mutex;
     AiqMutex_t iq_param_mutex;
+    AiqMutex_t model_buf_mutex;
 
 } AibnrManager_t;
 

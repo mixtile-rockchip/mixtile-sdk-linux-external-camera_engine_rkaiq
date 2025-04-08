@@ -15,13 +15,26 @@
  *
  */
 
+/**
+ * Example Command:
+ *
+ * sample_fec --set-fmt-video=width=3840,height=2160,pixelformat=NV12 \
+ *            --set-fmt-video-out=width=3840,height=2160,pixelformat=NV12 \
+ *            --stream-count 3 \
+ *            --border-mode 0 \
+ *            --cross-buf-mode 0 \
+ *            --stream-from "/data/pic_33_0_0_3840_2160.bin" \
+ *            --stream-to "/data/output_pic_33_0_0_3840_2160.bin" \
+ *            --mesh-from "/data/mesh.bin"
+ *
+ */
+
 #include "sample_fec.h"
 
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
-// #include <linux/videodev2.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +42,8 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <inttypes.h>
+#include <termios.h>
+#include <pthread.h>
 
 #include "rk_ispfec_api.h"
 #ifdef RKFEC_HW_V20
@@ -75,6 +90,9 @@ struct rkfec_buffer g_rkfec_buf_yfra;
 struct mem_ops* cur_mem_pos;
 static int dma_node_fd = -1;
 
+static int target_fps = 30;
+static long target_interval_ns = 33333333L;
+
 #define IS_DMA_INVALID() (dma_node_fd < 0)
 
 static struct option long_options[] = {
@@ -91,6 +109,7 @@ static struct option long_options[] = {
     {"border-mode", required_argument, NULL, OptBorderMode},
     {"cross-buf-mode", required_argument, NULL, OptCrossBufMode},
     {"set-bg-val", required_argument, NULL, OptSetBgVal},
+    {"fps", required_argument, NULL, OptSetFps},
     {0, 0, 0, 0}
     // clang-format on
 };
@@ -118,6 +137,7 @@ void common_usage(void) {
         "  --set-bg-val <val> y=<y>,u=<u>,v=<v>\n"
         "                     fill with the bg_val."
         "  -s, --silent       subpress debug log.\n"
+        "  -f, --fps <val>    set fps(1-1000).\n"
         "  -h, --help         display this help message.\n");
 }
 
@@ -255,7 +275,7 @@ free_drm_buf_mesh:
 #else
     cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_yfra);
 free_drm_buf_yint:
-    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_yfra);
+    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_yint);
 free_drm_buf_xfra:
     cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_xfra);
 free_drm_buf_xint:
@@ -272,7 +292,7 @@ void deinit_ispfec_bufs() {
     cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_mesh);
 #else
     cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_yfra);
-    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_yfra);
+    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_yint);
     cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_xfra);
     cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_xint);
 #endif
@@ -325,7 +345,7 @@ int do_handle_fec(FILE* fout) {
         return -1;
     }
 
-    if (fout) {
+    if (fout && stream_count > 0) {
         ret = write_buffer_to_file(fout, g_rkfec_buf_pic_out.map, g_rkfec_buf_pic_out.size);
 
         if (ret <= 0) {
@@ -532,6 +552,13 @@ int32_t main(int argc, char** argv) {
                 ret = parse_bg_val(optarg, &bg_val.bg_y, &bg_val.bg_u, &bg_val.bg_v);
                 if (ret < 0) printf("Failed to parse bg_val\n");
                 break;
+            case OptSetFps:
+                target_fps = atoi(optarg);
+                if (target_fps < 1 || target_fps > 1000) {
+                     stderr_info("Invalid fps %d\n", target_fps);
+                }
+                target_interval_ns = 1000000000L / target_fps;
+                break;
             default:
                 break;
         }
@@ -602,11 +629,21 @@ int32_t main(int argc, char** argv) {
 
     fout = open_output_file();
 
+    struct timespec next;
+    clock_gettime(CLOCK_MONOTONIC, &next);
+
     while (1) {
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next, NULL);
+
         ret = do_handle_fec(fout);
         if (ret < 0) break;
 
-        FEC_STATIC_FPS_CALCULATION(sample_fec, 30);
+        next.tv_nsec += target_interval_ns;
+        const long carry = next.tv_nsec / 1000000000L;
+        next.tv_sec += carry;
+        next.tv_nsec = next.tv_nsec % 1000000000L;
+
+        FEC_STATIC_FPS_CALCULATION(sample_fec, target_fps);
     }
 
 clean_up:

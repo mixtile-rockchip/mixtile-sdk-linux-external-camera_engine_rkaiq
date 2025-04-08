@@ -186,31 +186,20 @@ RkIspFecHwMgr::selectFecHw()
 
     int ret = pthread_mutex_lock (&mMutex);
 
-    if (mFecHw[0] && !mIsFecHwWking[0]) {
-        fecHw = 0;
-        mIsFecHwWking[0] = true;
-    } else if (mFecHw[1] && !mIsFecHwWking[1]) {
-        fecHw = 1;
-        mIsFecHwWking[1] = true;
-    } else {
-#if 0
-        // wait for fecHw0
-        ret = pthread_cond_wait (&mCond, &mMutex);
-        fecHw = 0;
-        mIsFecHwWking[0] = true;
-#else
-        while (mIsFecHwWking[0] && mIsFecHwWking[1])
-            ret = pthread_cond_wait (&mCond, &mMutex);
-
-        if (!mIsFecHwWking[0]) {
-            fecHw = 0;
-            mIsFecHwWking[0] = true;
-        } else {
-            fecHw = 1;
-            mIsFecHwWking[1] = true;
+    while (fecHw == -1) {
+        for (int i = 0; i < mFecVdNum; i++) {
+            if (mFecHw[i] && !mIsFecHwWking[i]) {
+                fecHw = i;
+                mIsFecHwWking[i] = true;
+                break;
+            }
         }
-#endif
+
+        if (fecHw == -1) {
+            ret = pthread_cond_wait(&mCond, &mMutex);
+        }
     }
+
     ret = pthread_mutex_unlock (&mMutex);
 
     return fecHw;

@@ -17,7 +17,7 @@
 RKAIQ_BEGIN_DECLARE
 
 XCamReturn
-rk_aiq_user_api2_amtd_setImuData(const rk_aiq_sys_ctx_t* sys_ctx, GDC_SENSOR_INFO_S* data)
+rk_aiq_user_api2_amtd_setImuData(const rk_aiq_sys_ctx_t* sys_ctx, AiqImuData_t* data)
 {
     RKAIQ_API_SMART_LOCK(sys_ctx);
     XCamReturn ret = XCAM_RETURN_NO_ERROR;

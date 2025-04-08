@@ -27,6 +27,34 @@ algo_hsv_GetCalib
     ahsv_hsvCalib_t* calib
 );
 
+XCamReturn
+algo_hsv_SetSatStrth
+(
+    RkAiqAlgoContext* ctx,
+    ahsv_satStrg_t* strg
+);
+
+XCamReturn
+algo_hsv_GetSatStrth
+(
+    RkAiqAlgoContext* ctx,
+    ahsv_satStrg_t* strg
+);
+
+XCamReturn
+algo_hsv_SetHueOffset
+(
+    RkAiqAlgoContext* ctx,
+    ahsv_hueOffset_t* offset
+);
+
+XCamReturn
+algo_hsv_getHueOffset
+(
+    RkAiqAlgoContext* ctx,
+    ahsv_hueOffset_t* offset
+);
+
 extern RkAiqAlgoDescription g_RkIspAlgoDescHsv;
 XCAM_END_DECLARE
 

@@ -1983,11 +1983,25 @@ static void parse_args(int argc, char **argv, demo_context_t *ctx)
             ctx->orpRawH = raw_height;
 
             char* raw_fmt_pix_start = strstr(raw_fmt_h_start, ":") + 1;
-            strcpy(ctx->orpRawFmt, raw_fmt_pix_start);
+            char* raw_fmt_pix_end = strstr(raw_fmt_pix_start, ",");
+            char* rawbuf_type = NULL;
+            if (raw_fmt_pix_end) {
+                size_t fmt_len = raw_fmt_pix_end - raw_fmt_pix_start;
+                size_t max_fmt_len = sizeof(ctx->orpRawFmt) - 1;
+                if (fmt_len > max_fmt_len) {
+                    printf("WARNING: orpRawFmt truncated from %zu to %zu\n", fmt_len, max_fmt_len);
+                    fmt_len = max_fmt_len;
+                }
+                strncpy(ctx->orpRawFmt, raw_fmt_pix_start, fmt_len);
+                ctx->orpRawFmt[fmt_len] = '\0';
+                rawbuf_type = raw_fmt_pix_end + 1;
+            }  else {
+                strncpy(ctx->orpRawFmt, raw_fmt_pix_start, sizeof(ctx->orpRawFmt)-1);
+                ctx->orpRawFmt[sizeof(ctx->orpRawFmt)-1] = '\0';
+                rawbuf_type = NULL;
+            }
 
-            char* rawbuf_type = strstr(raw_fmt_pix_start, ",");
             if (rawbuf_type) {
-                rawbuf_type += 1;
                 if (!strcmp(rawbuf_type, "RAW_ADDR"))
                     ctx->orpRawBufType = RK_AIQ_RAW_ADDR;
                 else if (!strcmp(rawbuf_type, "RAW_FD"))

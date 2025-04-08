@@ -445,12 +445,12 @@ typedef struct AfdPeakRes_s {
     RKAiqAecExpInfo_t       expinfo[2];
 } AfdPeakRes_t;
 
-typedef struct rkGDC_SENSOR_INFO_S {
+typedef struct AiqImuData_s {
     long long s64Timestamp; // unit: ns
     double    dTemp;
     double    dGyroData[3];
     double    dAccData[3];
-} GDC_SENSOR_INFO_S;
+} AiqImuData_t;
 
 typedef enum  RawStatsChnEn_e {
     RAWSTATS_CHN_Y_EN       = 0b0001,

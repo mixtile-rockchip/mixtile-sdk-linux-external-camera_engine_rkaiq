@@ -62,7 +62,7 @@ typedef struct {
     struct rkmodule_af_inf *otp_af;
     struct rkmodule_pdaf_inf *otp_pdaf;
 #if RKAIQ_HAVE_AIBNR
-    RkAiqAibnrModelBuf_t aibnrModel;
+    RkAiqAibnrModelInfo_t aibnrModelInfo;
 #endif
     RKAiqAecExpInfo_t *ae_exp;
     blc_res_cvt_t blc_res;
@@ -99,6 +99,7 @@ typedef struct {
     int blc0_diff;
     uint16_t isp_ob_offset;
     uint16_t isp_ob_offset1;
+    bool ieEn;
 } common_cvt_info_t;
 
 typedef struct {

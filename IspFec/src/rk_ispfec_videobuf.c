@@ -28,7 +28,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-#include "rkfec_config.h"
+#include ".rkfec_config.h"
 #ifdef RKFEC_HW_V20
 #include "rk-fec-config.h"
 #else

@@ -278,7 +278,7 @@ typedef struct AiqCamHwBase_s {
 
 #if RKAIQ_HAVE_AIBNR
     bool use_ainn;
-    RkAiqAibnrModelBuf_t mAibnrModel;
+    RkAiqAibnrModelInfo_t mAibnrModelInfo;
     AiqAibnrIspStream_t*   mAibnrIspStream;
     AiqAibnrAiispStream_t* mAibnrAiispStream;
     struct rkisp_aiisp_cfg mAibnr_cfg;
@@ -297,7 +297,7 @@ typedef struct AiqCamHwBase_s {
     XCamReturn (*aibnr_getIspBufInf)(AiqCamHwBase_t* pCamHw, struct rkisp_bnr_buf_info *bnr_buf);
     XCamReturn (*aibnr_setIspBufInf)(AiqCamHwBase_t* pCamHw, struct rkaiisp_ispbuf_info *ispbuf_info);
     XCamReturn (*aibnr_setParamInf)(AiqCamHwBase_t* pCamHw, struct rkaiisp_param_info *param_info);
-    XCamReturn (*aibnr_setModelInf)(AiqCamHwBase_t* pCamHw, RkAiqAibnrModelBuf_t *pAibnrModel);
+    XCamReturn (*aibnr_setModelInf)(AiqCamHwBase_t* pCamHw, RkAiqAibnrModelInfo_t *pAibnrModelInfo);
 #endif
 
     // dumpsys

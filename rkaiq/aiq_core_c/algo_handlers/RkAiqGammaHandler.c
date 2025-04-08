@@ -81,6 +81,17 @@ AiqAlgoHandler_t* AiqAlgoHandlerGamma_constructor(RkAiqAlgoDesComm* des, AiqCore
 	return pHdl;
 }
 
+XCamReturn AiqGammaHandler_setStrength(AiqGammaHandler_t* pHdlGamma, int strg)
+{
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    aiqMutex_lock(&pHdlGamma->mCfgMutex);
+    ret = algo_gamma_SetStrength(pHdlGamma->mAlgoCtx, strg);
+    aiqMutex_unlock(&pHdlGamma->mCfgMutex);
+
+    EXIT_ANALYZER_FUNCTION();
+	return ret;
+}
+
 #if 0
 XCamReturn AiqGammaHandler_setAttrib(AiqGammaHandler_t* pHdlGamma, gamma_api_attrib_t* attr)
 {

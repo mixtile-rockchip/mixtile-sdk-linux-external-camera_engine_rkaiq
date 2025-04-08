@@ -71,6 +71,10 @@ typedef struct {
     hsv_meshGain_t damped_lut;
 
     bool is_calib_update;
+
+    ahsv_satStrg_t strg;
+    ahsv_hueOffset_t offset;
+    bool isReCal_;
 } HsvContext_t;
 
 XCamReturn Ahsv_prepare(RkAiqAlgoCom* params);

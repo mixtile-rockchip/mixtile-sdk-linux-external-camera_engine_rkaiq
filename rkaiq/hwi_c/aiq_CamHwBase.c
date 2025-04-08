@@ -1675,6 +1675,9 @@ static XCamReturn _poll_buffer_ready(void* ctx, AiqHwEvt_t* evt, int dev_index) 
 #if RKAIQ_HAVE_AIBNR
 static XCamReturn AiqCamHw_aibnr_init(AiqCamHwBase_t* pCamHw, AibnrManager_t* pAibnrManager, struct rkisp_aiisp_cfg *aibnr_cfg)
 {
+    if (!pCamHw->mAiIspDev)
+        return XCAM_RETURN_ERROR_FAILED;
+
     pCamHw->mAibnr_cfg = *aibnr_cfg;
     pCamHw->mAibnrManager = pAibnrManager;
 
@@ -1702,13 +1705,20 @@ static XCamReturn AiqCamHw_aibnr_init(AiqCamHwBase_t* pCamHw, AibnrManager_t* pA
 
 static XCamReturn AiqCamHw_aibnr_prepare(AiqCamHwBase_t* pCamHw)
 {
-    AiqV4l2Device_prepare(pCamHw->mAiIspDev);
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
 
-    return XCAM_RETURN_NO_ERROR;
+    if (pCamHw->mAiIspDev)
+        AiqV4l2Device_prepare(pCamHw->mAiIspDev);
+    else
+        ret = XCAM_RETURN_ERROR_FAILED;
+
+    return ret;
 }
 
 static XCamReturn AiqCamHw_aibnr_start(AiqCamHwBase_t* pCamHw)
 {
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
     if (pCamHw->mAibnrIspStream) {
         AiqStream_t* stream = (AiqStream_t*)(pCamHw->mAibnrIspStream);
         stream->setCamPhyId(stream, pCamHw->mCamPhyId);
@@ -1720,13 +1730,18 @@ static XCamReturn AiqCamHw_aibnr_start(AiqCamHwBase_t* pCamHw)
         stream->start(stream);
     }
 
-    AiqV4l2Device_start(pCamHw->mAiIspDev, true);
+    if (pCamHw->mAiIspDev)
+        AiqV4l2Device_start(pCamHw->mAiIspDev, true);
+    else
+        ret = XCAM_RETURN_ERROR_FAILED;
 
-    return XCAM_RETURN_NO_ERROR;
+    return ret;
 }
 
 static XCamReturn AiqCamHw_aibnr_stop(AiqCamHwBase_t* pCamHw)
 {
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
     if (pCamHw->mAibnrIspStream) {
         pCamHw->mAibnrIspStream->_base.stop(&pCamHw->mAibnrIspStream->_base);
     }
@@ -1735,9 +1750,12 @@ static XCamReturn AiqCamHw_aibnr_stop(AiqCamHwBase_t* pCamHw)
         pCamHw->mAibnrAiispStream->_base.stop(&pCamHw->mAibnrAiispStream->_base);
     }
 
-    AiqV4l2Device_stop(pCamHw->mAiIspDev);
+    if (pCamHw->mAiIspDev)
+        AiqV4l2Device_stop(pCamHw->mAiIspDev);
+    else
+        ret = XCAM_RETURN_ERROR_FAILED;
 
-    return XCAM_RETURN_NO_ERROR;
+    return ret;
 }
 
 static XCamReturn AiqCamHw_aibnr_deinit(AiqCamHwBase_t* pCamHw)
@@ -1763,7 +1781,17 @@ static XCamReturn AiqCamHw_aibnr_deinit(AiqCamHwBase_t* pCamHw)
         pCamHw->mAibnrAiispStream = NULL;
     }
 
-    AiqV4l2Device_deinit(pCamHw->mAiIspDev);
+    if (pCamHw->mAiIspSubDev) {
+        AiqV4l2SubDevice_deinit(pCamHw->mAiIspSubDev);
+        aiq_free(pCamHw->mAiIspSubDev);
+        pCamHw->mAiIspSubDev = NULL;
+    }
+
+    if (pCamHw->mAiIspDev) {
+        AiqV4l2Device_deinit(pCamHw->mAiIspDev);
+        aiq_free(pCamHw->mAiIspDev);
+        pCamHw->mAiIspDev = NULL;
+    }
 
     return XCAM_RETURN_NO_ERROR;
 }
@@ -1782,7 +1810,7 @@ static XCamReturn AiqCamHw_aibnr_getParamsBuf(AiqCamHwBase_t* pCamHw, AiqV4l2Buf
             ret = XCAM_RETURN_ERROR_PARAM;
         }
     } else {
-        ret = XCAM_RETURN_BYPASS;
+        ret = XCAM_RETURN_ERROR_FAILED;
     }
 
     return ret;
@@ -1886,9 +1914,9 @@ static XCamReturn AiqCamHw_aibnr_setParamInf(AiqCamHwBase_t* pCamHw, struct rkai
     return XCAM_RETURN_NO_ERROR;
 }
 
-static XCamReturn AiqCamHw_aibnr_setModelInf(AiqCamHwBase_t* pCamHw, RkAiqAibnrModelBuf_t *pAibnrModel)
+static XCamReturn AiqCamHw_aibnr_setModelInf(AiqCamHwBase_t* pCamHw, RkAiqAibnrModelInfo_t *pAibnrModelInfo)
 {
-    memcpy(&pCamHw->_mIspParamsCvt->mCommonCvtInfo.aibnrModel, pAibnrModel, sizeof(RkAiqAibnrModelBuf_t));
+    memcpy(&pCamHw->_mIspParamsCvt->mCommonCvtInfo.aibnrModelInfo, pAibnrModelInfo, sizeof(RkAiqAibnrModelInfo_t));
     return XCAM_RETURN_NO_ERROR;
 }
 #endif
@@ -2252,25 +2280,26 @@ XCamReturn AiqCamHwBase_init(AiqCamHwBase_t* pCamHw, const char* sns_ent_name) {
     pCamHw->aibnr_setParamInf  = AiqCamHw_aibnr_setParamInf;
     pCamHw->aibnr_setModelInf  = AiqCamHw_aibnr_setModelInf;
 
-    pCamHw->mAiIspDev = (AiqV4l2Device_t*)aiq_mallocz(sizeof(AiqV4l2Device_t));
-    if (!pCamHw->mAiIspDev) {
-        LOGE_CAMHW_SUBM(ISP20HW_SUBM, "%d: alloc fail !", __LINE__);
-        goto fail;
-    }
     if (s_info->aiisp_info) {
+        pCamHw->mAiIspDev = (AiqV4l2Device_t*)aiq_mallocz(sizeof(AiqV4l2Device_t));
+        if (!pCamHw->mAiIspDev) {
+            LOGE_CAMHW_SUBM(ISP20HW_SUBM, "%d: alloc fail !", __LINE__);
+            goto fail;
+        }
         AiqV4l2Device_init(pCamHw->mAiIspDev, s_info->aiisp_info->video_path);
         pCamHw->mAiIspDev->open(pCamHw->mAiIspDev, false);
-    }
 
-    pCamHw->mAiIspSubDev = (AiqV4l2SubDevice_t*)aiq_mallocz(sizeof(AiqV4l2SubDevice_t));
-    if (!pCamHw->mAiIspSubDev) {
-        LOGE_CAMHW_SUBM(ISP20HW_SUBM, "%d: alloc fail !", __LINE__);
-        goto fail;
-    }
-    if (s_info->aiisp_info) {
+        pCamHw->mAiIspSubDev = (AiqV4l2SubDevice_t*)aiq_mallocz(sizeof(AiqV4l2SubDevice_t));
+        if (!pCamHw->mAiIspSubDev) {
+            LOGE_CAMHW_SUBM(ISP20HW_SUBM, "%d: alloc fail !", __LINE__);
+            goto fail;
+        }
         AiqV4l2SubDevice_init(pCamHw->mAiIspSubDev, s_info->aiisp_info->subdev_path);
         pCamHw->mAiIspSubDev->_v4l_base.open(&pCamHw->mAiIspSubDev->_v4l_base, false);
+    } else {
+        LOGE_CAMHW_SUBM(ISP20HW_SUBM, "%d: can not find aiisp device !", __LINE__);
     }
+
 #endif
 
     pCamHw->mPollCb._pCtx             = pCamHw;
@@ -6399,6 +6428,28 @@ static XCamReturn AiqCamHw_process_restriction(AiqCamHwBase_t* pCamHw, void* isp
             isp_params->others.bay3d_cfg.iirsparse_en     = 1;
             isp_params->others.bay3d_cfg.transf_bypass_en = 1;
         }
+    }
+#endif
+
+#if defined(ISP_HW_V35)
+    // isp35 ie use cnr module's uv_dis and exgain_bypass
+    if ((isp_params->module_cfg_update & ISP2X_MODULE_CNR) ||
+        (isp_params->module_en_update & ISP2X_MODULE_IE)) {
+        bool old_en_ie = !!(pCamHw->_isp_module_ens & ISP2X_MODULE_IE);
+        bool new_en_ie =
+            !!(isp_params->module_en_update & ISP2X_MODULE_IE) ? !!(isp_params->module_ens & ISP2X_MODULE_IE) : old_en_ie;
+
+        if (new_en_ie) {
+            isp_params->others.cnr_cfg.uv_dis        = 1;
+            isp_params->others.cnr_cfg.exgain_bypass = 1;
+        } else {
+            isp_params->others.cnr_cfg.uv_dis        = 0;
+            isp_params->others.cnr_cfg.exgain_bypass = 0;
+        }
+        LOGD_CAMHW("%s set ie by cnr uv_dis %d exgain_bypass %d cnr_update %d",
+            __func__, isp_params->others.cnr_cfg.uv_dis,
+            isp_params->others.cnr_cfg.exgain_bypass,
+            !!(isp_params->module_cfg_update & ISP2X_MODULE_CNR));
     }
 #endif
 

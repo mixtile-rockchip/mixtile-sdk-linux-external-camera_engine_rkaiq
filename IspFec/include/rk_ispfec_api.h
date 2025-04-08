@@ -18,7 +18,7 @@
 #ifndef _RK_ISPFEC_API_H_
 #define _RK_ISPFEC_API_H_
 
-#include "rkfec_config.h"
+#include ".rkfec_config.h"
 
 #ifdef __cplusplus
 extern "C" {

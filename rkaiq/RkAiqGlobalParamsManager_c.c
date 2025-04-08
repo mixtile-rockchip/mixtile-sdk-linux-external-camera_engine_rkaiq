@@ -1367,6 +1367,14 @@ XCamReturn GlobalParamsManager_checkAlgoEnableBypass(GlobalParamsManager_t* pMan
                     "The cnr doesn't support bypass feature, so you can set cnr.hiNr_bifilt.bifiltOut_alpha instead");
             return XCAM_RETURN_ERROR_FAILED;
         }
+#if defined(ISP_HW_V35)
+        if (*en == 0 && *pMan->mGlobalParams[RESULT_TYPE_IE_PARAM].en) {
+            LOGE("The ie is enabled, cnr can't be disabled. ie use cnr module's uv_dis param to set img to gray");
+            socket_client_setNote(pMan->_socket, IPC_RET_UAPI_ERROR,
+                "The ie is enabled, cnr can't be disabled. ie use cnr module's uv_dis param to set img to gray");
+            return XCAM_RETURN_ERROR_FAILED;
+        }
+#endif
     }
 
     if (type == RESULT_TYPE_BLC_PARAM || type == RESULT_TYPE_DPCC_PARAM || type == RESULT_TYPE_CCM_PARAM ||

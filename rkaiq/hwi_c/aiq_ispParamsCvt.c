@@ -62,6 +62,17 @@ static void AiqIspParamsCvt_checkModuleEnable(AiqIspParamsCvt_t* pCvt, AiqList_t
     aiq_params_base_t* enhResult =
         AiqIspParamsCvt_get_3a_result(pCvt, results, RESULT_TYPE_ENH_PARAM);
 #endif
+#if defined(ISP_HW_V35)
+    aiq_params_base_t* ieResult =
+        AiqIspParamsCvt_get_3a_result(pCvt, results, RESULT_TYPE_IE_PARAM);
+    if (ieResult != NULL) {
+        pCvt->mCommonCvtInfo.ieEn = ieResult->en;
+    }
+    if (pCvt->mCommonCvtInfo.ieEn && cnrResult != NULL && !cnrResult->en) {
+        cnrResult->en = true;
+        LOGW_ANR("ie use cnr module disable uv, so cnr must be enabled when ie is enabled");
+    }
+#endif
     bool update_vaild = false;
 #if ISP_HW_V39
     if (ynrResult!= NULL && cnrResult != NULL && sharpResult != NULL) {

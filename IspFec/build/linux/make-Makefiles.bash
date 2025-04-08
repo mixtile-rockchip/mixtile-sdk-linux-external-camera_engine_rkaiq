@@ -23,6 +23,7 @@ cmake -G "Ninja" \
     -DRKFEC_HW_VERSION=${RKFEC_HW_VERSION} \
     -DCMAKE_INSTALL_PREFIX="installed" \
     -DENABLE_SAMPLE_ISPFEC=ON \
+    -DENABLE_SAMPLE_ISPFEC_MULTI=ON \
     $SOURCE_PATH \
 && ninja -j$(nproc) \
 && ninja install

@@ -33,7 +33,7 @@ typedef struct AiqAmtdHandler_s {
 AiqAlgoHandler_t* AiqAlgoHandlerAmtd_constructor(RkAiqAlgoDesComm* des, AiqCore_t* aiqCore);
 
 XCamReturn
-AiqAlgoHandlerAmtd_setImuData(AiqAmtdHandler_t* pAmtdHdl, GDC_SENSOR_INFO_S* data);
+AiqAlgoHandlerAmtd_setImuData(AiqAmtdHandler_t* pAmtdHdl, AiqImuData_t* data);
 
 
 #endif

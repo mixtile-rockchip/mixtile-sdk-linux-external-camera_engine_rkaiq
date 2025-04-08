@@ -187,4 +187,106 @@ rk_aiq_user_api2_hsv_GetCalib(const rk_aiq_sys_ctx_t* sys_ctx, ahsv_hsvCalib_t* 
         
 }
 
+XCamReturn rk_aiq_user_api2_setHsvSatStrth(const rk_aiq_sys_ctx_t* sys_ctx, ahsv_satStrg_t ctrl)
+{
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    CHECK_USER_API_ENABLE2(sys_ctx);
+    CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AHSV);
+    RKAIQ_API_SMART_LOCK(sys_ctx);
+
+	hsv_status_t status;
+    memset(&status, 0, sizeof(status));
+    ret = rk_aiq_user_api2_hsv_QueryStatus(sys_ctx, &status);
+#if RKAIQ_HAVE_HSV_V11
+    hsv_lutcfg_mode_t hsv_lut_mode = status.stMan.sta.hw_hsvT_lut_mode;
+    if (hsv_lut_mode == 0) {
+        if (status.stMan.dyn.lut1d0.hw_hsvT_lut1d_mode == 1) {
+            LOGE_AHSV("SetSatStrth failed, please set hsv.lut1d0 to hsv_lut1d_s2sDiff_mode");
+            return XCAM_RETURN_ERROR_FAILED;
+        } else if (status.stMan.dyn.lut1d1.hw_hsvT_lut1d_mode == 1) {
+            LOGE_AHSV("SetSatStrth failed, please set hsv.lut1d1 to hsv_lut1d_s2sDiff_mode");
+            return XCAM_RETURN_ERROR_FAILED;
+        }
+    }
+#else
+    if (status.stMan.dyn.lut1d0.hw_hsvT_lut1d_mode == 1) {
+        LOGE_AHSV("SetSatStrth failed, please set hsv.lut1d0 to hsv_lut1d_s2sDiff_mode");
+        return XCAM_RETURN_ERROR_FAILED;
+    } else if (status.stMan.dyn.lut1d1.hw_hsvT_lut1d_mode == 1) {
+        LOGE_AHSV("SetSatStrth failed, please set hsv.lut1d1 to hsv_lut1d_s2sDiff_mode");
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+#endif
+
+    rk_aiq_sys_ctx_array_t ctx_array = rk_aiq_user_api2_common_getSysCtxArray(sys_ctx);
+    
+    for (int i = 0; i < ctx_array.num; i++) {
+         AiqAlgoHandler_t* algo_handle =
+		    ctx_array.ctx[i]->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
+        if (algo_handle) {
+            ret = AiqHsvHandler_setSatStrth((AiqHsvHandler_t*)algo_handle, &ctrl);
+        } else {
+            ret = XCAM_RETURN_ERROR_FAILED;
+            LOGE_AHSV("ctx[%d]: SetSatStrth failed!", i);
+        }
+    }
+    return ret;
+}
+
+XCamReturn rk_aiq_user_api2_getHsvSatStrth(const rk_aiq_sys_ctx_t* sys_ctx, ahsv_satStrg_t *ctrl)
+{
+    CHECK_USER_API_ENABLE2(sys_ctx);
+    CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AHSV);
+    RKAIQ_API_SMART_LOCK(sys_ctx);
+
+	const rk_aiq_sys_ctx_t* ctx = rk_aiq_user_api2_common_getSysCtx(sys_ctx);
+    AiqAlgoHandler_t* algo_handle =
+		ctx->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
+
+	if (algo_handle) 
+        return AiqHsvHandler_getSatStrth((AiqHsvHandler_t*)algo_handle, ctrl);
+    else {
+        LOGE_AHSV("GetSatStrth failed!");
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+}
+
+XCamReturn rk_aiq_user_api2_setHsvHueOffset(const rk_aiq_sys_ctx_t* sys_ctx, ahsv_hueOffset_t ctrl)
+{
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    CHECK_USER_API_ENABLE2(sys_ctx);
+    CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AHSV);
+    RKAIQ_API_SMART_LOCK(sys_ctx);
+	rk_aiq_sys_ctx_array_t ctx_array = rk_aiq_user_api2_common_getSysCtxArray(sys_ctx);
+    for (int i = 0; i < ctx_array.num; i++) {
+         AiqAlgoHandler_t* algo_handle =
+		    ctx_array.ctx[i]->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
+        if (algo_handle) {
+            ret = AiqHsvHandler_setHueOffset((AiqHsvHandler_t*)algo_handle, &ctrl);
+        } else {
+            ret = XCAM_RETURN_ERROR_FAILED;
+            LOGE_AHSV("ctx[%d]: SetHueOffset failed!", i);
+        }
+    }
+    return ret;
+}
+
+XCamReturn rk_aiq_user_api2_getHsvHueOffset(const rk_aiq_sys_ctx_t* sys_ctx, ahsv_hueOffset_t *ctrl)
+{
+    CHECK_USER_API_ENABLE2(sys_ctx);
+    CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AHSV);
+    RKAIQ_API_SMART_LOCK(sys_ctx);
+
+	const rk_aiq_sys_ctx_t* ctx = rk_aiq_user_api2_common_getSysCtx(sys_ctx);
+    AiqAlgoHandler_t* algo_handle =
+		ctx->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
+
+	if (algo_handle) 
+        return AiqHsvHandler_getHueOffset((AiqHsvHandler_t*)algo_handle, ctrl);
+    else {
+        LOGE_AHSV("GetHueOffset failed!");
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+}
+
 RKAIQ_END_DECLARE

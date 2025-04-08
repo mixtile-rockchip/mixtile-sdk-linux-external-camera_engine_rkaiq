@@ -43,7 +43,7 @@ static void _handlerAmtd_init(AiqAlgoHandler_t* pHdl) {
     AiqAmtdHandler_t* pAmtdHdl = (AiqAmtdHandler_t*)pHdl;
     AiqPoolConfig_t imuData;
     imuData._item_nums = 200;
-    imuData._item_size = sizeof(GDC_SENSOR_INFO_S);
+    imuData._item_size = sizeof(AiqImuData_t);
     imuData._name = "ImuDataPool";
     pAmtdHdl->mImuDataPool = aiqPool_init(&imuData);
 
@@ -158,7 +158,7 @@ static XCamReturn _handlerAmtd_processing(AiqAlgoHandler_t* pAlgoHandler) {
         AIQ_LIST_FOREACH(pAmtdHdl->mUsedImuList, pItem, rm) {
             AiqPoolItem_t *pPoolItem = *(AiqPoolItem_t **)(pItem->_pData);
             pItem = aiqList_erase_item_locked(pAmtdHdl->mUsedImuList, pItem);
-            GDC_SENSOR_INFO_S *imuData = (GDC_SENSOR_INFO_S *)pPoolItem->_pData;
+            AiqImuData_t *imuData = (AiqImuData_t *)pPoolItem->_pData;
             aiqPoolItem_unref(pPoolItem);
             rm    = true;
         }
@@ -206,14 +206,14 @@ static XCamReturn _handlerAmtd_genIspResult(AiqAlgoHandler_t* pAlgoHandler, AiqF
 }
 
 XCamReturn
-AiqAlgoHandlerAmtd_setImuData(AiqAmtdHandler_t* pAmtdHdl, GDC_SENSOR_INFO_S *data) {
+AiqAlgoHandlerAmtd_setImuData(AiqAmtdHandler_t* pAmtdHdl, AiqImuData_t *data) {
 
     AiqPoolItem_t *pItem = aiqPool_getFree(pAmtdHdl->mImuDataPool);
     if (!pItem) {
         return XCAM_RETURN_BYPASS;
     }
 
-    memcpy(pItem->_pData, data, sizeof(GDC_SENSOR_INFO_S));
+    memcpy(pItem->_pData, data, sizeof(AiqImuData_t));
     aiqMutex_lock(&pAmtdHdl->_base.mCfgMutex);
     aiqList_push(pAmtdHdl->mImuDataList, &pItem);
     aiqMutex_unlock(&pAmtdHdl->_base.mCfgMutex);
