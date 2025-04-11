@@ -231,6 +231,7 @@ AiqAlgoHandler_t* AiqAlgoHandlerAmtd_constructor(RkAiqAlgoDesComm* des, AiqCore_
     pHdl->genIspResult = _handlerAmtd_genIspResult;
     pHdl->prepare      = _handlerAmtd_prepare;
     pHdl->init         = _handlerAmtd_init;
+    pHdl->deinit       = _handlerAmtd_deinit;
     ((AiqAmtdHandler_t*)pHdl)->mAmtdSyncAly  = true;
     return pHdl;
 }
