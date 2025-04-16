@@ -172,6 +172,7 @@ typedef struct AiqCamHwBase_s {
     AiqV4l2SubDevice_t* mVicapItfDev;
     AiqV4l2Device_t* mAiIspDev;
     AiqV4l2SubDevice_t* mAiIspSubDev;
+    AiqV4l2SubDevice_t* mAiIspCoreDev;
     AiqHwResListener_t _hwResListener;
     calib_infos_t _cur_calib_infos;
     int _hdr_mode;

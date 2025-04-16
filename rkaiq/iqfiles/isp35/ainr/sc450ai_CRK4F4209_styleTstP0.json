@@ -120,7 +120,7 @@
 		},
 		"CISMinFps":	6,
 		"CISFlip":	3,
-		"iso_list":	[50, 100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200, 102400, 192000]
+		"iso_list":	[50, 100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200, 102400, 204800]
 	},
 	"module_calib":	{
 		"sensor_module":	{
@@ -14631,11 +14631,6 @@
 									"debug":	{
 										"sw_shpT_dbgOut_en":	0,
 										"hw_shpT_dbgOut_mode":	"shp_detailPosLimit_mode"
-									},
-									"lowPowerCfg":	{
-										"detailShpLP":	{
-											"hw_shpCfg_lp_en":	0
-										}
 									}
 								},
 								"dyn":	[{
@@ -14673,7 +14668,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltCoeff_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.4576, 0.044, -0.0301, -0.0376, -0.0337, -0.0232]
 											},
 											"glbShpStrg":	{
@@ -14915,7 +14913,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltCoeff_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.4576, 0.044, -0.0301, -0.0376, -0.0337, -0.0232]
 											},
 											"glbShpStrg":	{
@@ -15157,7 +15158,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltCoeff_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.4576, 0.044, -0.0301, -0.0376, -0.0337, -0.0232]
 											},
 											"glbShpStrg":	{
@@ -15399,7 +15403,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltCoeff_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.4576, 0.044, -0.0301, -0.0376, -0.0337, -0.0232]
 											},
 											"glbShpStrg":	{
@@ -15641,7 +15648,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltCoeff_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.4576, 0.044, -0.0301, -0.0376, -0.0337, -0.0232]
 											},
 											"glbShpStrg":	{
@@ -15883,7 +15893,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltCoeff_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.4576, 0.044, -0.0301, -0.0376, -0.0337, -0.0232]
 											},
 											"glbShpStrg":	{
@@ -16125,7 +16138,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltCoeff_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.4576, 0.044, -0.0301, -0.0376, -0.0337, -0.0232]
 											},
 											"glbShpStrg":	{
@@ -16367,7 +16383,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltCoeff_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.4576, 0.044, -0.0301, -0.0376, -0.0337, -0.0232]
 											},
 											"glbShpStrg":	{
@@ -16609,7 +16628,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltCoeff_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.4576, 0.044, -0.0301, -0.0376, -0.0337, -0.0232]
 											},
 											"glbShpStrg":	{
@@ -16851,7 +16873,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltCoeff_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.4576, 0.044, -0.0301, -0.0376, -0.0337, -0.0232]
 											},
 											"glbShpStrg":	{
@@ -17093,7 +17118,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltCoeff_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.4576, 0.044, -0.0301, -0.0376, -0.0337, -0.0232]
 											},
 											"glbShpStrg":	{
@@ -17335,7 +17363,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltCoeff_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.5548, -0.111, -0.0277, 0, 0, 0]
 											},
 											"glbShpStrg":	{
@@ -17577,7 +17608,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltCoeff_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.5548, -0.111, -0.0277, 0, 0, 0]
 											},
 											"glbShpStrg":	{
@@ -17799,11 +17833,6 @@
 									"debug":	{
 										"sw_shpT_dbgOut_en":	0,
 										"hw_shpT_dbgOut_mode":	"shp_texEst_mode"
-									},
-									"lowPowerCfg":	{
-										"detailShpLP":	{
-											"hw_shpCfg_lp_en":	0
-										}
 									}
 								},
 								"dyn":	{
@@ -17841,7 +17870,10 @@
 									"eHfDetailShp":	{
 										"detailExtra_hpf":	{
 											"sw_shpT_filtCfg_mode":	"shp_cfgByFiltStrg_mode",
-											"sw_shpT_filtSpatial_strg":	1,
+											"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+											"sw_shpT_loFiltSpatial_strg":	0.55,
+											"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+											"sw_shpT_upFiltSpatial_strg":	2,
 											"hw_shpT_filtSpatial_wgt":	[0.0632, 0.0558, 0.0492, 0.0383, 0.0338, 0.0232]
 										},
 										"glbShpStrg":	{
@@ -19344,7 +19376,7 @@
 										"sw_afT_pdOut_height":	768,
 										"sw_afT_pdCrop_x":	0,
 										"sw_afT_pdCrop_y":	0,
-										"sw_afT_pdBase_width":	2048,
+										"sw_afT_pdBase_width":	512,
 										"sw_afT_pdBase_height":	768
 									}],
 								"sw_afT_pdResoInfTbl_len":	1
@@ -19528,6 +19560,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	20,
 											"sw_aiBnrT_nonLinear_scale":	1,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19556,6 +19589,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	20,
 											"sw_aiBnrT_nonLinear_scale":	1,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso100.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19584,6 +19618,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	20,
 											"sw_aiBnrT_nonLinear_scale":	1,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso200.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19612,6 +19647,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	20,
 											"sw_aiBnrT_nonLinear_scale":	1,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso400.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19640,6 +19676,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	20,
 											"sw_aiBnrT_nonLinear_scale":	1,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso800.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19668,6 +19705,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	20,
 											"sw_aiBnrT_nonLinear_scale":	1,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso1600.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19696,6 +19734,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	20,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso3200.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19724,6 +19763,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	20,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso6400.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19752,6 +19792,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	20,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso12800.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19780,6 +19821,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	20,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso25600.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19808,6 +19850,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	20,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso51200.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19836,6 +19879,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	20,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso102400.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19864,6 +19908,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	20,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso204800.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -19903,6 +19948,7 @@
 										"sw_aiBnrT_noiseAddLumaStatic_th":	5,
 										"sw_aiBnrT_nonLinear_scale":	0.7,
 										"sw_aiBnrT_nonLinear_ratio":	0.5,
+										"sw_aiBnrT_nonLinear_adjust":	1,
 										"sw_aiBnrT_model_file":	"iso204800.bin",
 										"sw_aiBnrT_doRknn_en":	0
 									}
@@ -34154,11 +34200,6 @@
 									"debug":	{
 										"sw_shpT_dbgOut_en":	0,
 										"hw_shpT_dbgOut_mode":	"shp_contrastDetailPosStrg_mode"
-									},
-									"lowPowerCfg":	{
-										"detailShpLP":	{
-											"hw_shpCfg_lp_en":	0
-										}
 									}
 								},
 								"dyn":	[{
@@ -34196,7 +34237,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltStrg_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.0632, 0.0558, 0.0492, 0.0383, 0.0338, 0.0232]
 											},
 											"glbShpStrg":	{
@@ -34438,7 +34482,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltStrg_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.0632, 0.0558, 0.0492, 0.0383, 0.0338, 0.0232]
 											},
 											"glbShpStrg":	{
@@ -34680,7 +34727,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltStrg_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.0632, 0.0558, 0.0492, 0.0383, 0.0338, 0.0232]
 											},
 											"glbShpStrg":	{
@@ -34922,7 +34972,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltStrg_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.0632, 0.0558, 0.0492, 0.0383, 0.0338, 0.0232]
 											},
 											"glbShpStrg":	{
@@ -35164,7 +35217,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltStrg_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.0632, 0.0558, 0.0492, 0.0383, 0.0338, 0.0232]
 											},
 											"glbShpStrg":	{
@@ -35406,7 +35462,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltStrg_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.0632, 0.0558, 0.0492, 0.0383, 0.0338, 0.0232]
 											},
 											"glbShpStrg":	{
@@ -35648,7 +35707,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltStrg_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.0632, 0.0558, 0.0492, 0.0383, 0.0338, 0.0232]
 											},
 											"glbShpStrg":	{
@@ -35890,7 +35952,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltStrg_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.0632, 0.0558, 0.0492, 0.0383, 0.0338, 0.0232]
 											},
 											"glbShpStrg":	{
@@ -36132,7 +36197,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltStrg_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.0632, 0.0558, 0.0492, 0.0383, 0.0338, 0.0232]
 											},
 											"glbShpStrg":	{
@@ -36374,7 +36442,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltStrg_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.0632, 0.0558, 0.0492, 0.0383, 0.0338, 0.0232]
 											},
 											"glbShpStrg":	{
@@ -36616,7 +36687,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltStrg_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.0632, 0.0558, 0.0492, 0.0383, 0.0338, 0.0232]
 											},
 											"glbShpStrg":	{
@@ -36858,7 +36932,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltStrg_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.0632, 0.0558, 0.0492, 0.0383, 0.0338, 0.0232]
 											},
 											"glbShpStrg":	{
@@ -37100,7 +37177,10 @@
 										"eHfDetailShp":	{
 											"detailExtra_hpf":	{
 												"sw_shpT_filtCfg_mode":	"shp_cfgByFiltStrg_mode",
-												"sw_shpT_filtSpatial_strg":	1,
+												"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_loFiltSpatial_strg":	0.55,
+												"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+												"sw_shpT_upFiltSpatial_strg":	2,
 												"hw_shpT_filtSpatial_wgt":	[0.0632, 0.0558, 0.0492, 0.0383, 0.0338, 0.0232]
 											},
 											"glbShpStrg":	{
@@ -37322,11 +37402,6 @@
 									"debug":	{
 										"sw_shpT_dbgOut_en":	0,
 										"hw_shpT_dbgOut_mode":	"shp_texEst_mode"
-									},
-									"lowPowerCfg":	{
-										"detailShpLP":	{
-											"hw_shpCfg_lp_en":	0
-										}
 									}
 								},
 								"dyn":	{
@@ -37364,7 +37439,10 @@
 									"eHfDetailShp":	{
 										"detailExtra_hpf":	{
 											"sw_shpT_filtCfg_mode":	"shp_cfgByFiltStrg_mode",
-											"sw_shpT_filtSpatial_strg":	1,
+											"sw_shpT_loFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+											"sw_shpT_loFiltSpatial_strg":	0.55,
+											"sw_shpT_upFiltRadius_mode":	"shp_hpfFiltRadius2_mode",
+											"sw_shpT_upFiltSpatial_strg":	2,
 											"hw_shpT_filtSpatial_wgt":	[0.0632, 0.0558, 0.0492, 0.0383, 0.0338, 0.0232]
 										},
 										"glbShpStrg":	{
@@ -38263,12 +38341,12 @@
 							"tunning":	{
 								"autoGenMesh":	{
 									"lensDistorCoeff":	{
-										"sw_ldcC_opticCenter_x":	965.94432,
-										"sw_ldcC_opticCenter_y":	524.16288,
-										"sw_ldcC_lensDistor_coeff":	[-697.06693896, 0.00016488, 2.3697320638817e-007, 2.224407027e-011]
+										"sw_ldcC_opticCenter_x":	1286.77919299888,
+										"sw_ldcC_opticCenter_y":	711.556309136394,
+										"sw_ldcC_lensDistor_coeff":	[-1665.24633880296, 0.000522654328553354, -4.4530294878197e-007, 2.17371294e-010]
 									},
-									"sw_ldcT_correctStrg_val":	168,
-									"sw_ldcC_correctStrg_maxLimit":	168,
+									"sw_ldcT_correctStrg_val":	200,
+									"sw_ldcC_correctStrg_maxLimit":	250,
 									"sw_ldcT_saveMaxFovX_bit":	0
 								},
 								"extMeshFile":	{
@@ -38867,7 +38945,7 @@
 										"sw_afT_pdOut_height":	768,
 										"sw_afT_pdCrop_x":	0,
 										"sw_afT_pdCrop_y":	0,
-										"sw_afT_pdBase_width":	2048,
+										"sw_afT_pdBase_width":	512,
 										"sw_afT_pdBase_height":	768
 									}],
 								"sw_afT_pdResoInfTbl_len":	1
@@ -39051,6 +39129,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso50.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39079,6 +39158,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso100.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39107,6 +39187,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso200.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39135,6 +39216,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso400.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39163,6 +39245,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso800.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39191,6 +39274,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso1600.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39219,6 +39303,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso3200.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39247,6 +39332,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso6400.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39275,6 +39361,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso12800.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39303,6 +39390,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso25600.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39331,6 +39419,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso51200.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39359,6 +39448,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso102400.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39387,6 +39477,7 @@
 											"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
+											"sw_aiBnrT_nonLinear_adjust":	1,
 											"sw_aiBnrT_model_file":	"iso204800.bin",
 											"sw_aiBnrT_doRknn_en":	0
 										}
@@ -39426,6 +39517,7 @@
 										"sw_aiBnrT_noiseAddLumaStatic_th":	1,
 										"sw_aiBnrT_nonLinear_scale":	0.7,
 										"sw_aiBnrT_nonLinear_ratio":	0.5,
+										"sw_aiBnrT_nonLinear_adjust":	1,
 										"sw_aiBnrT_model_file":	"iso50.bin",
 										"sw_aiBnrT_doRknn_en":	0
 									}

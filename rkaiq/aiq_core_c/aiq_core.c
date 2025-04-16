@@ -2570,6 +2570,7 @@ static XCamReturn RkAiqCore_analyze(AiqCore_t * pAiqCore, AiqHwEvt_t * evt) {
 
     aiq_VideoBuffer_t* buffer  = (aiq_VideoBuffer_t*)evt->vb;
     AiqHwStatsEvt_t* pStatsEvt = (AiqHwStatsEvt_t*)evt;
+    bool is_broadcast          = false;
     if (buffer->_buf_type == ISP_POLL_3A_STATS) {
         LOGD_ANALYZER("new stats: camId:%d, sequence(%d)",
                       pAiqCore->mAlogsComSharedParams.mCamPhyId,
@@ -2594,6 +2595,7 @@ static XCamReturn RkAiqCore_analyze(AiqCore_t * pAiqCore, AiqHwEvt_t * evt) {
                           pAiqCore->mAlogsComSharedParams.mCamPhyId,
                           AiqVideoBuffer_getSequence(buffer), AiqVideoBuffer_getTimestamp(buffer), buffer);
             handleAwbStats(pAiqCore, buffer);
+            is_broadcast = true;
         }
         if (_check_stats_valid(buffer, AIQ_STATS_TYPE_AF))
             handleAfStats(pAiqCore, buffer);
@@ -2608,7 +2610,13 @@ static XCamReturn RkAiqCore_analyze(AiqCore_t * pAiqCore, AiqHwEvt_t * evt) {
             handleBay3dStats(pAiqCore, buffer);
 #endif
 #endif
-        aiqCond_broadcast(&pAiqCore->mIspStatsCond);
+        if (is_broadcast) {
+            if (AiqVideoBuffer_getSequence(buffer) != pAiqCore->mCurAeStats->frame_id) {
+                LOGW_ANALYZER("AE stats id %d, AWB stats id %d, Ae stats maybe delay or pre",
+                    AiqVideoBuffer_getSequence(buffer), pAiqCore->mCurAeStats->frame_id);
+            }
+            aiqCond_broadcast(&pAiqCore->mIspStatsCond);
+        }
         AiqStatsTranslator_releaseParams(pAiqCore->mTranslator);
     } else {
         int type = -1;
@@ -2909,9 +2917,10 @@ static void RkAiqCore_copyIspStats(AiqCore_t* pAiqCore, rk_aiq_isp_statistics_t*
     }
 
     if (pAiqCore->mCurAwbStats) {
-            pAwbStats            = (aiq_awb_stats_wrapper_t*)pAiqCore->mCurAwbStats->_data;
-            to->awb_stats = pAwbStats->awb_stats_v39;
-            to->bValid_awb_stats = true;
+        pAwbStats            = (aiq_awb_stats_wrapper_t*)pAiqCore->mCurAwbStats->_data;
+        to->awb_stats        = pAwbStats->awb_stats_v39;
+        to->frame_id         = pAiqCore->mCurAwbStats->frame_id;
+        to->bValid_awb_stats = true;
     }
 
 #if RKAIQ_HAVE_AF_V33 || RKAIQ_ONLY_AF_STATS_V33
@@ -3531,7 +3540,7 @@ static XCamReturn fixAiqParamsIsp(AiqCore_t* pAiqCore, AiqFullParams_t* aiqParam
     // TODO: TNR/SHARP need update HWI params for each frame now
     aiq_params_base_t* psharpBase = aiqParams->pParamsArray[RESULT_TYPE_SHARPEN_PARAM];
     aiq_params_base_t* pGicBase   = aiqParams->pParamsArray[RESULT_TYPE_GIC_PARAM];
-
+    aiq_params_base_t* pCcmBase   = aiqParams->pParamsArray[RESULT_TYPE_CCM_PARAM];
     if (psharpBase && !psharpBase->is_update) {
         psharpBase->is_update = true;
     }
@@ -3555,6 +3564,10 @@ static XCamReturn fixAiqParamsIsp(AiqCore_t* pAiqCore, AiqFullParams_t* aiqParam
             pAibnrBase->is_update = true;
         }
 #endif
+    }
+
+    if (pCcmBase && !pCcmBase->is_update) {
+        pCcmBase->is_update = true;
     }
 
     return XCAM_RETURN_NO_ERROR;

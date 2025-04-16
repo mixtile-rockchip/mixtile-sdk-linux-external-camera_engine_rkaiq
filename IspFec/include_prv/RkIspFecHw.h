@@ -18,7 +18,7 @@
 #ifndef _RK_ISPFEC_HW_H_
 #define _RK_ISPFEC_HW_H_
 
-#include ".rkfec_config.h"
+#include "rkfec_config.h"
 #ifdef RKFEC_HW_V20
 #include "rk-fec-config.h"
 #else

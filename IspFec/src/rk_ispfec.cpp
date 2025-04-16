@@ -117,9 +117,6 @@ _configure(rk_ispfec_ctx_t* ctx, rk_ispfec_cfg_t* cfg)
     pthread_mutex_lock (&ctx->_mutex);
 
     if (cfg->mesh_upd_mode == RK_ISPFEC_UPDATE_MESH_ONLINE) {
-#ifdef RKFEC_HW_V20
-	    printf("E: FEC_V20 does not yet support the RkIspFecGenMesh function.\n");
-#else
 #ifdef GENMESH_ONLINE
         if (!ctx->_fecGenMesh) {
             ctx->_fecGenMesh = new RkIspFecGenMesh();
@@ -137,15 +134,18 @@ _configure(rk_ispfec_ctx_t* ctx, rk_ispfec_cfg_t* cfg)
             goto err;
         }
 
+#ifdef RKFEC_HW_V20
+        ctx->_fecGenMesh->setMeshBuf(cfg->mesh_info.vir_addr);
+#else
         ctx->_fecGenMesh->setMeshBuf(cfg->mesh_xint.vir_addr, cfg->mesh_yint.vir_addr,
                                      cfg->mesh_xfra.vir_addr, cfg->mesh_yfra.vir_addr);
+#endif
 
         ret = ctx->_fecGenMesh->genMesh(cfg->u.mesh_online.correct_level);
         if (ret < 0) {
             printf("E: Failed to genMesh RkIspFecGenMesh\n");
             goto err;
         }
-#endif
 #endif
     } else {
         char mesh_file[MESH_FILE_MAX_LEN] = {'\0'};

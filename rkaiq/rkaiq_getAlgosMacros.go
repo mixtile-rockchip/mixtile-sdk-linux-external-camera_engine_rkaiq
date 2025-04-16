@@ -260,6 +260,11 @@ func rkaiq_getAlgosMacros(macros_map map[string]bool) []string {
         cflags = append(cflags, "-DRKAIQ_HAVE_AMD_V1=1")
         cflags = append(cflags, "-DRKAIQ_HAVE_AMD=1")
     }
+    flag0 = macros_map["RKAIQ_HAVE_AMTD_V1"]
+    if (flag0) {
+        cflags = append(cflags, "-DRKAIQ_HAVE_AMTD_V1=1")
+        cflags = append(cflags, "-DRKAIQ_HAVE_AMTD=1")
+    }
     flag0 = macros_map["RKAIQ_HAVE_YUVME_V1"]
     if (flag0) {
         cflags = append(cflags, "-DRKAIQ_HAVE_YUVME_V1=1")

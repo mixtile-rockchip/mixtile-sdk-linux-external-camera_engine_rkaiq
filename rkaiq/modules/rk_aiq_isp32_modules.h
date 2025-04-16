@@ -100,6 +100,8 @@ typedef struct {
     uint16_t isp_ob_offset;
     uint16_t isp_ob_offset1;
     bool ieEn;
+    bool pre_ccm_asym_adj_en;
+    uint16_t ccm_pre_Y2Alpha_fac0[ISP32_CCM_CURVE_NUM*2];
 } common_cvt_info_t;
 
 typedef struct {

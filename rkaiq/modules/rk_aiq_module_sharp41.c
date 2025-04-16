@@ -291,11 +291,6 @@ void rk_aiq_sharp41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_
     } else {
         pCfg->debug_mode = 0;
     }
-    if (psta->lowPowerCfg.detailShpLP.hw_shpCfg_lp_en) {
-        pCfg->detail_lp_en = 1;
-    } else {
-        pCfg->detail_lp_en = 0;
-    }
 
     // method0: pos sum of d_kernel(derivative kernel) = 22 * 16 / 22, pos sum of n_kernel(noise kernel) = 2
     // method1: pos sum of d_kernel(derivative kernel) = 16,           pos sum of n_kernel(noise kernel) = 2
@@ -333,15 +328,14 @@ void rk_aiq_sharp41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_
         if (pdyn->eHfDetailShp.detailExtra_hpf.sw_shpT_filtCfg_mode == shp_cfgByFiltStrg_mode) {
             int tmp_hpf_coeff0[6] = { 0 };
             int tmp_hpf_coeff1[6] = { 0 };
-            float rsigma = pdyn->eHfDetailShp.detailExtra_hpf.sw_shpT_filtSpatial_strg;
-            SharpCreateKernelCoeffs(1, 1, rsigma,           &tmp_hpf_coeff0[0], 7, 2);
-            SharpCreateKernelCoeffs(2, 2, rsigma * sqrt(2), &tmp_hpf_coeff1[0], 7, 2);
-            for (i = 0; i < 6; i++) {
-                if (i == 0) {
-                    coeff[i] = (1 << 7) - (2 * tmp_hpf_coeff0[i] - tmp_hpf_coeff1[i]);
-                } else {
-                    coeff[i] = 0 - (2 * tmp_hpf_coeff0[i] - tmp_hpf_coeff1[i]);
-                }
+            int imgHpf_radius0 = pdyn->eHfDetailShp.detailExtra_hpf.sw_shpT_loFiltRadius_mode;
+            int imgHpf_radius1 = pdyn->eHfDetailShp.detailExtra_hpf.sw_shpT_upFiltRadius_mode;
+            float rsigma0 = pdyn->eHfDetailShp.detailExtra_hpf.sw_shpT_loFiltSpatial_strg;
+            float rsigma1 = pdyn->eHfDetailShp.detailExtra_hpf.sw_shpT_upFiltSpatial_strg;
+            SharpCreateKernelCoeffs(imgHpf_radius0, 5 / 2, rsigma0, &tmp_hpf_coeff0[0], 7, 2);
+            SharpCreateKernelCoeffs(imgHpf_radius1, 5 / 2, rsigma1, &tmp_hpf_coeff1[0], 7, 2);
+            for (int i = 0; i < 6; i++) {
+                coeff[i] = tmp_hpf_coeff0[i] - tmp_hpf_coeff1[i];
             }
         } else {
             for (i = 0; i < 6; i++)

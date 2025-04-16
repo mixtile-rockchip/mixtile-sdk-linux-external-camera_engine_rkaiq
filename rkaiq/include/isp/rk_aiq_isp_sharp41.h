@@ -192,15 +192,6 @@ typedef struct sharp_params_static_s {
         M4_ORDER(2),
         M4_NOTES(TODO))  */
     shp_debug_static_t debug;
-    /* M4_GENERIC_DESC(
-        M4_ALIAS(lowPower),
-        M4_TYPE(struct),
-        M4_UI_MODULE(normal_ui_style),
-        M4_HIDE_EX(0),
-        M4_RO(0),
-        M4_ORDER(0),
-        M4_NOTES(TODO))  */
-    shp_cfgLP_t lowPowerCfg;
 } sharp_params_static_t;
 
 typedef struct shp_texRegionClsf_s {
@@ -2301,6 +2292,13 @@ typedef struct shp_extHfDetail_glbShpStrg_s {
     float hw_shpT_eHfDetail_strg;
 } shp_extHfDetail_glbShpStrg_t;
 
+typedef enum shp_eHfDetial_FiltRadius_mode_e {
+    // @note: radius = 1
+    shp_hpfFiltRadius1_mode = 1,
+    // @note: radius = 2
+    shp_hpfFiltRadius2_mode = 2,
+} shp_eHfDetial_FiltRadius_mode_t;
+
 typedef struct shp_extHfDetailExtra_Hpf_s {
     /* M4_GENERIC_DESC(
        M4_ALIAS(grainHpf_filtCfg_mode),
@@ -2316,11 +2314,24 @@ typedef struct shp_extHfDetailExtra_Hpf_s {
        Freq of use: low))  */
     shp_filtCfg_mode_t sw_shpT_filtCfg_mode;
     /* M4_GENERIC_DESC(
+        M4_ALIAS(eHfDetail_hpf_radius0),
+        M4_TYPE(enum),
+        M4_ENUM_DEF(shp_eHf_FiltRadius_mode_t),
+        M4_DEFAULT(shp_hpfFiltRadius2_mode),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_GROUP(extHfDetailExtra_filtCfg_mode_group:shp_cfgByFiltStrg_mode),
+        M4_NOTES(The radius of edge low pass filter kernel.\n
+        Reference enum types.\n
+        Freq of use: low))  */
+    shp_eHfDetial_FiltRadius_mode_t sw_shpT_loFiltRadius_mode;
+    /* M4_GENERIC_DESC(
         M4_ALIAS(imgHpf_rsigma),
         M4_TYPE(f32),
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0,256.0),
-        M4_DEFAULT(1.0),
+        M4_DEFAULT(0.55),
         M4_DIGIT_EX(2),
         M4_FP_EX(0,7,8),
         M4_HIDE_EX(0),
@@ -2329,9 +2340,39 @@ typedef struct shp_extHfDetailExtra_Hpf_s {
         M4_GROUP(extHfDetailExtra_filtCfg_mode_group:shp_cfgByFiltStrg_mode),
         M4_NOTES(The spatial wgt of high-pass filter is operator from the strength value. Only valid on shp_cfgBy2SwLpfStrg_mode.\n
         Higher the value, the higher spatial denoise strength.\n
-        Freq of use: low))  */
+        Freq of use: high))  */
     // @reg: hw_shp_hiDetailLpf_coeff0~5
-    float sw_shpT_filtSpatial_strg;
+    float sw_shpT_loFiltSpatial_strg;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(eHfDetail_hpf_radius1),
+        M4_TYPE(enum),
+        M4_ENUM_DEF(shp_eHf_FiltRadius_mode_t),
+        M4_DEFAULT(shp_hpfFiltRadius2_mode),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_GROUP(extHfDetailExtra_filtCfg_mode_group:shp_cfgByFiltStrg_mode),
+        M4_NOTES(The radius of edge low pass filter kernel.\n
+        Reference enum types.\n
+        Freq of use: low))  */
+    shp_eHfDetial_FiltRadius_mode_t sw_shpT_upFiltRadius_mode;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(imgHpf_rsigma),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,256.0),
+        M4_DEFAULT(2.0),
+        M4_DIGIT_EX(2),
+        M4_FP_EX(0,7,8),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(1),
+        M4_GROUP(extHfDetailExtra_filtCfg_mode_group:shp_cfgByFiltStrg_mode),
+        M4_NOTES(The spatial wgt of high-pass filter is operator from the strength value. Only valid on shp_cfgBy2SwLpfStrg_mode.\n
+        Higher the value, the higher spatial denoise strength.\n
+        Freq of use: high))  */
+    // @reg: hw_shp_hiDetailLpf_coeff0~5
+    float sw_shpT_upFiltSpatial_strg;
     /* M4_GENERIC_DESC(
         M4_ALIAS(imgHpf_coeff0),
         M4_TYPE(f32),

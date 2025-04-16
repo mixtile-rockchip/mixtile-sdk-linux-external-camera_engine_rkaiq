@@ -275,6 +275,8 @@ void AiqIspParamsCvt_getCommonCvtInfo(AiqIspParamsCvt_t* pCvt, AiqList_t* result
         pCvt->mCommonCvtInfo.blc_res.en        = pCvt->mBlcResult->en;
         pCvt->mCommonCvtInfo.blc_res.obcPreTnr = blc_v32->dyn.obcPreTnr;
         pCvt->mCommonCvtInfo.blc_res.obcPostTnr = blc_v32->dyn.obcPostTnr;
+        pCvt->mCommonCvtInfo.blc_res.obcPostTnr.sw_blcT_autoOB_offset =
+            CLIP(pCvt->mCommonCvtInfo.blc_res.obcPostTnr.sw_blcT_autoOB_offset, 0, 511);
 #endif
     }
 

@@ -863,10 +863,12 @@
  * v6.0x30.1
  * - support AMTD algo
  * - isp35 iq: modify ainr to aibnr
+ * v6.0x30.2
+ * - isp35 iq: modify sharp 
  */
 
-#define RK_AIQ_VERSION_REAL_V "v6.0x30.1"
-#define RK_AIQ_RELEASE_DATE "2025-04-02"
+#define RK_AIQ_VERSION_REAL_V "v6.0x30.2"
+#define RK_AIQ_RELEASE_DATE "2025-04-16"
 
 #define RK_AIQ_IQ_HEAD_VERSION_REAL_V "v1.0.2"
 

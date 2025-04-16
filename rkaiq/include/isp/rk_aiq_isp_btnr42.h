@@ -65,7 +65,6 @@ typedef struct btnr_transCfg_s {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
-        M4_GROUP(pixDomain_mode_group:btnr_pixLog2Domain_mode),
         M4_NOTES(Scale used for transformation.\n
         Freq of use: high))  */
     // reg: hw_btnr_transfMode_scale
@@ -3083,7 +3082,7 @@ typedef struct btnr_params_static_s {
         M4_ENUM_DEF(btnr_pixDomain_mode_t),
         M4_DEFAULT(btnr_pixLog2Domain_mode),
         M4_HIDE_EX(0),
-        M4_RO(0),
+        M4_RO(1),
         M4_ORDER(0),
         M4_GROUP_CTRL(pixDomain_mode_group),
         M4_NOTES( Reference enum types.\n
@@ -3096,6 +3095,7 @@ typedef struct btnr_params_static_s {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
+        M4_GROUP(pixDomain_mode_group:btnr_pixLog2Domain_mode),
         M4_NOTES(TODO.\n
         Freq of use: high))  */
     btnr_transCfg_t transCfg;

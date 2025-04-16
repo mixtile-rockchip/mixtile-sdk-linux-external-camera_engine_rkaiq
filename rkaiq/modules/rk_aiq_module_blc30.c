@@ -31,6 +31,8 @@ void rk_aiq_blc30_params_cvt(void* attr, isp_params_t* isp_params,
     int isp_ob_max = 0xfff;
     float pre_dgain = 1.0;
     float isp_dgain = 1.0;
+    uint16_t autoOB_offset = CLIP(pdyn->obcPostTnr.sw_blcT_autoOB_offset, 0, 511);
+
 #if defined(ISP_HW_V33) || defined(ISP_HW_V35)
     blc_params_static_t* psta = &((blc_param_t*)attr)->sta;
     bool autoblc_en = psta->autoBlc.sw_blcT_autoBlc_en & pdyn->obcPostTnr.sw_blcT_obcPostTnr_en &
@@ -78,7 +80,7 @@ lib_init_success:
         if (pBlcInfo->sigma_ratio > 0.7) {
             if (pBlcInfo->autoblc_count > 0 && (pBlcInfo->autoblc_count - 1) % 8 == 0) {
                 ops = AiqBlc_GetOps(&pBlcInfo->lib_Blc_);
-                pBlcInfo->blc1_param.isp_ob = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
+                pBlcInfo->blc1_param.isp_ob = autoOB_offset;
 
                 pBlcInfo->blc1_param.rgain = awb_gain_final->rgain * 1024;
                 pBlcInfo->blc1_param.bgain = awb_gain_final->bgain * 1024;
@@ -189,8 +191,8 @@ lib_init_success:
         cvtinfo->offset2Blc1 = 0;
         cvtinfo->blc0_diff = 0;
         if (cvtinfo->isFirstFrame || cvtinfo->sw_btnrT_outFrmBase_mode == btnr_curBaseOut_mode) {
-            pBlcInfo->pre_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
-            phwcfg->isp_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
+            pBlcInfo->pre_ob_offset = autoOB_offset;
+            phwcfg->isp_ob_offset = autoOB_offset;
             phwcfg->bls1_val.r = blc1_r;
             phwcfg->bls1_val.b = blc1_b;
         }
@@ -204,25 +206,25 @@ lib_init_success:
             }
 
             if (psta->debug.obcPostTnr.sw_blcT_autoOBWkArd_en) {
-                *blc_res->damping = *blc_res->damping | (pBlcInfo->pre_ob_offset != pdyn->obcPostTnr.sw_blcT_autoOB_offset);
-                phwcfg->isp_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
+                *blc_res->damping = *blc_res->damping | (pBlcInfo->pre_ob_offset != autoOB_offset);
+                phwcfg->isp_ob_offset = autoOB_offset;
                 int diff = pBlcInfo->pre_ob_offset - phwcfg->isp_ob_offset;
                 phwcfg->bls1_val.r += diff;
                 phwcfg->bls1_val.gr += diff;
                 phwcfg->bls1_val.gb += diff;
                 phwcfg->bls1_val.b += diff;
                 cvtinfo->offset2Blc1 = diff;
-                pBlcInfo->pre_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
+                pBlcInfo->pre_ob_offset = autoOB_offset;
             }
             else {
-                phwcfg->isp_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
-                pBlcInfo->pre_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
+                phwcfg->isp_ob_offset = autoOB_offset;
+                pBlcInfo->pre_ob_offset = autoOB_offset;
             }
         }
 #elif ISP_HW_V35
         if (cvtinfo->isFirstFrame || cvtinfo->sw_btnrT_outFrmBase_mode == btnr_curBaseOut_mode) {
-            phwcfg->isp_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
-            phwcfg->isp_ob_offset1 = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
+            phwcfg->isp_ob_offset = autoOB_offset;
+            phwcfg->isp_ob_offset1 = autoOB_offset;
             phwcfg->bls1_val.r = blc1_r;
             phwcfg->bls1_val.b = blc1_b;
         }
@@ -234,16 +236,16 @@ lib_init_success:
             if (phwcfg->bls1_val.r != pBlcInfo->pre_adjust[0] || phwcfg->bls1_val.b != pBlcInfo->pre_adjust[1]) {
                 *blc_res->damping = true;
             }
-            phwcfg->isp_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
+            phwcfg->isp_ob_offset = autoOB_offset;
             phwcfg->isp_ob_offset1 = pBlcInfo->pre_ob_offset;
         }
-        pBlcInfo->pre_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
+        pBlcInfo->pre_ob_offset = autoOB_offset;
         if (phwcfg->isp_ob_offset != phwcfg->isp_ob_offset1) {
             *blc_res->damping = true;
         }
 #endif
 #else
-        phwcfg->isp_ob_offset = pdyn->obcPostTnr.sw_blcT_autoOB_offset;
+        phwcfg->isp_ob_offset = autoOB_offset;
 #endif
     }
     else {

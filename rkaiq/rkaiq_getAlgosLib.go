@@ -268,6 +268,11 @@ func rkaiq_getAlgosLib(macros_map map[string]bool) []string {
         static_lib = append(static_lib, "librkaiq_amd")
     }
 
+    flag0 = macros_map["RKAIQ_HAVE_AMTD_V1"]
+    if (flag0) {
+        static_lib = append(static_lib, "librkaiq_amtd")
+    }
+
     flag0 = macros_map["RKAIQ_HAVE_PDAF"]
     if (flag0) {
         static_lib = append(static_lib, "librkaiq_pdaf")

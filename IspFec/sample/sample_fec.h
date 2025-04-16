@@ -47,6 +47,7 @@ enum Option {
     OptStreamTo,
     OptStreamFrom,
     OptMeshFrom,
+    OptCalibFrom,
     OptMeshDensity,
     OptBorderMode,
     OptCrossBufMode,

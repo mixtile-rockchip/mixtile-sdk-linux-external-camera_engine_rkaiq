@@ -87,8 +87,12 @@ XCamReturn SharpSelectParam
                     paut->dyn[ilow].locShpStrg.sat.hw_shpT_sat2ShpStrg_alpha[i], paut->dyn[ihigh].locShpStrg.sat.hw_shpT_sat2ShpStrg_alpha[i], ratio);
     }
     out->dyn.eHfDetailShp.detailExtra_hpf.sw_shpT_filtCfg_mode = paut->dyn[inear].eHfDetailShp.detailExtra_hpf.sw_shpT_filtCfg_mode;
-    out->dyn.eHfDetailShp.detailExtra_hpf.sw_shpT_filtSpatial_strg = interpolation_f32(
-                paut->dyn[ilow].eHfDetailShp.detailExtra_hpf.sw_shpT_filtSpatial_strg, paut->dyn[ihigh].eHfDetailShp.detailExtra_hpf.sw_shpT_filtSpatial_strg, ratio);
+    out->dyn.eHfDetailShp.detailExtra_hpf.sw_shpT_loFiltSpatial_strg = interpolation_f32(
+                paut->dyn[ilow].eHfDetailShp.detailExtra_hpf.sw_shpT_loFiltSpatial_strg, paut->dyn[ihigh].eHfDetailShp.detailExtra_hpf.sw_shpT_loFiltSpatial_strg, ratio);
+    out->dyn.eHfDetailShp.detailExtra_hpf.sw_shpT_upFiltSpatial_strg = interpolation_f32(
+                paut->dyn[ilow].eHfDetailShp.detailExtra_hpf.sw_shpT_upFiltSpatial_strg, paut->dyn[ihigh].eHfDetailShp.detailExtra_hpf.sw_shpT_upFiltSpatial_strg, ratio);
+    out->dyn.eHfDetailShp.detailExtra_hpf.sw_shpT_loFiltRadius_mode = paut->dyn[inear].eHfDetailShp.detailExtra_hpf.sw_shpT_loFiltRadius_mode;
+    out->dyn.eHfDetailShp.detailExtra_hpf.sw_shpT_upFiltRadius_mode = paut->dyn[inear].eHfDetailShp.detailExtra_hpf.sw_shpT_upFiltRadius_mode;
     for (i = 0; i < 6; i++) {
         out->dyn.eHfDetailShp.detailExtra_hpf.hw_shpT_filtSpatial_wgt[i] = interpolation_f32(
                     paut->dyn[ilow].eHfDetailShp.detailExtra_hpf.hw_shpT_filtSpatial_wgt[i], paut->dyn[ihigh].eHfDetailShp.detailExtra_hpf.hw_shpT_filtSpatial_wgt[i], ratio);

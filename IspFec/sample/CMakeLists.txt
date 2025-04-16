@@ -30,12 +30,14 @@ set(ISPFEC_INCLUDE_DIR
 	${ISPFEC_INCLUDE_DIR}
 	${LIBDRM_INCLUDE_DIR}
 	${CMAKE_SOURCE_DIR}/sample/deps/include
+	${CMAKE_SOURCE_DIR}/sample/inih
 )
 
 if (ENABLE_SAMPLE_ISPFEC)
     set (SAMPLE_FEC_SRCS
          ${CMAKE_SOURCE_DIR}/sample/sample_fec.c
          ${CMAKE_SOURCE_DIR}/sample/sample_drm_buffer.c
+         ${CMAKE_SOURCE_DIR}/sample/inih/ini.c
         )
 
     include_directories(sample ${ISPFEC_INCLUDE_DIR})

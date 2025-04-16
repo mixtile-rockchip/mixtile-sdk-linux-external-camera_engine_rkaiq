@@ -16,7 +16,7 @@ func rkaiq_macro_switch(soc string) map[string]bool {
     macros_map["RKAIQ_HAVE_FAKECAM"] = true
     macros_map["RKAIQ_HAVE_SPSTREAM"] = false
     macros_map["RKAIQ_HAVE_THUMBNAILS"] = false
-    macros_map["RKAIQ_HAVE_MULTIISP"] = false
+    macros_map["RKAIQ_HAVE_MULTIISP"] = true
     macros_map["RKAIQ_ENABLE_AF"] = true
     macros_map["RKAIQ_HAVE_ONLY_CUSTOM_AF"] = false
     macros_map["RKAIQ_USE_RAWSTREAM_LIB"] = false
@@ -466,6 +466,7 @@ func rkaiq_macro_switch(soc string) map[string]bool {
         macros_map["RKAIQ_HAVE_BLC_V32"] = true
         macros_map["RKAIQ_HAVE_ANR_V1"] = false
         macros_map["RKAIQ_HAVE_AMD_V1"] = false
+        macros_map["RKAIQ_HAVE_AMTD_V1"] = true
         macros_map["RKAIQ_HAVE_YUVME_V1"] = false
         macros_map["RKAIQ_HAVE_PDAF"] = true
         macros_map["RKAIQ_HAVE_AF_V20"] = false
@@ -774,6 +775,7 @@ func rkaiq_algo_macro_switch(macros_map map[string]bool) {
     macros_map["RKAIQ_HAVE_MFNR"]           = false
     macros_map["RKAIQ_HAVE_ANR"]            = false
     macros_map["RKAIQ_HAVE_AMD"]            = false
+    macros_map["RKAIQ_HAVE_AMTD"]           = false
     macros_map["RKAIQ_HAVE_TMO"]            = false
     macros_map["RKAIQ_HAVE_FEC"]            = false
     macros_map["RKAIQ_HAVE_YUVME"]          = false

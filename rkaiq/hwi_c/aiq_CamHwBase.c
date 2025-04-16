@@ -1380,6 +1380,9 @@ XCamReturn AiqCamHw_initCamHwInfos() {
             }
 
             for (i = 0; i < MAX_CAM_NUM; i++) {
+                if (!s_full_info->isp_info)
+                    continue;
+
                 LOGI_CAMHW_SUBM(ISP20HW_SUBM, "isp model_idx: %d, aiisp(%d) model_idx: %d\n",
                                 s_full_info->isp_info->model_idx, i,
                                 g_mAiispHwInfos.aiisp_info[i].model_idx);
@@ -1683,7 +1686,7 @@ static XCamReturn AiqCamHw_aibnr_init(AiqCamHwBase_t* pCamHw, AibnrManager_t* pA
 
     if (!pCamHw->mAibnrIspStream) {
         pCamHw->mAibnrIspStream = (AiqAibnrIspStream_t*)aiq_mallocz(sizeof(AiqAibnrIspStream_t));
-        AiqAibnr_IspStream_init(pCamHw->mAibnrIspStream, (AiqV4l2Device_t*)pCamHw->mIspCoreDev,
+        AiqAibnr_IspStream_init(pCamHw->mAibnrIspStream, (AiqV4l2Device_t*)pCamHw->mAiIspCoreDev,
                                 ISP_POLL_AIISP);
         pCamHw->mAibnrIspStream->_base.setPollCallback(&pCamHw->mAibnrIspStream->_base,
                                                            &pCamHw->mPollCb);
@@ -1779,6 +1782,12 @@ static XCamReturn AiqCamHw_aibnr_deinit(AiqCamHwBase_t* pCamHw)
         AiqAibnr_AiispStream_deinit(pCamHw->mAibnrAiispStream);
         aiq_free(pCamHw->mAibnrAiispStream);
         pCamHw->mAibnrAiispStream = NULL;
+    }
+
+    if (pCamHw->mAiIspCoreDev) {
+        AiqV4l2SubDevice_deinit(pCamHw->mAiIspCoreDev);
+        aiq_free(pCamHw->mAiIspCoreDev);
+        pCamHw->mAiIspCoreDev = NULL;
     }
 
     if (pCamHw->mAiIspSubDev) {
@@ -2281,6 +2290,15 @@ XCamReturn AiqCamHwBase_init(AiqCamHwBase_t* pCamHw, const char* sns_ent_name) {
     pCamHw->aibnr_setModelInf  = AiqCamHw_aibnr_setModelInf;
 
     if (s_info->aiisp_info) {
+        pCamHw->mAiIspCoreDev = (AiqV4l2SubDevice_t*)aiq_mallocz(sizeof(AiqV4l2SubDevice_t));
+        if (!pCamHw->mAiIspCoreDev) {
+            LOGE_CAMHW_SUBM(ISP20HW_SUBM, "%d: alloc fail !", __LINE__);
+            goto fail;
+        }
+
+        AiqV4l2SubDevice_init(pCamHw->mAiIspCoreDev, s_info->isp_info->isp_dev_path);
+        pCamHw->mAiIspCoreDev->_v4l_base.open(&pCamHw->mAiIspCoreDev->_v4l_base, false);
+
         pCamHw->mAiIspDev = (AiqV4l2Device_t*)aiq_mallocz(sizeof(AiqV4l2Device_t));
         if (!pCamHw->mAiIspDev) {
             LOGE_CAMHW_SUBM(ISP20HW_SUBM, "%d: alloc fail !", __LINE__);

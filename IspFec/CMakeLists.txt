@@ -19,7 +19,7 @@ include(GNUInstallDirs)
 
 configure_file(
     "${PROJECT_SOURCE_DIR}/cmake/rkfec_config.h.in"
-    "${PROJECT_BINARY_DIR}/.rkfec_config.h"
+    "${PROJECT_BINARY_DIR}/rkfec_config.h"
     )
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -59,7 +59,6 @@ set(STATIC_LIB_SUFFIX >)
 
 if(RK_GDC_GEN_MESH_ONLINE)
 	list(APPEND IspFec_SRC
-	     src/gen_mesh/genMesh.cpp
 	     src/RkIspFecGenMesh.cpp
 	     )
 
@@ -119,6 +118,7 @@ add_custom_command (TARGET IspFec_static POST_BUILD
         COMMAND rm *.o
         )
 
+install(FILES ${PROJECT_BINARY_DIR}/rkfec_config.h DESTINATION include/IspFec)
 install(DIRECTORY include/ DESTINATION include/IspFec FILES_MATCHING PATTERN "*.h")
 install(FILES ${CMAKE_LIBRARY_PATH}/libIspFec.so DESTINATION lib)
 install(FILES ${CMAKE_LIBRARY_PATH}/libIspFec_static.a DESTINATION lib RENAME libIspFec.a)

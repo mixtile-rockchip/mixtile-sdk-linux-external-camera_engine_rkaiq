@@ -27,7 +27,16 @@
  *            --stream-to "/data/output_pic_33_0_0_3840_2160.bin" \
  *            --mesh-from "/data/mesh.bin"
  *
- */
+ * sample_fec --set-fmt-video=width=3840,height=2160,pixelformat=NV12 \
+ *            --set-fmt-video-out=width=3840,height=2160,pixelformat=NV12 \
+ *            --stream-count 3 \
+ *            --border-mode 0 \
+ *            --cross-buf-mode 0 \
+ *            --stream-from "/data/pic_33_0_0_3840_2160.bin" \
+ *            --stream-to "/data/output_pic_33_0_0_3840_2160.bin" \
+ *            --cailb-ini-from /data/imx415_CMK-OT1948-PV1.ini
+ *
+ **/
 
 #include "sample_fec.h"
 
@@ -35,16 +44,17 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
+#include <inttypes.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
-#include <unistd.h>
-#include <inttypes.h>
 #include <termios.h>
-#include <pthread.h>
+#include <unistd.h>
 
+#include "inih/ini.h"
 #include "rk_ispfec_api.h"
 #ifdef RKFEC_HW_V20
 #include "rk_ispfec_videobuf.h"
@@ -60,11 +70,23 @@ struct mem_ops {
     int (*free)(int fd, struct rkfec_buffer* buf);
 };
 
+typedef struct {
+    int calib_image_width;
+    int calib_image_height;
+    float optic_center_x;
+    float optic_center_y;
+    double coeff[4];
+    int correctStrg_maxLimit;
+    int correctStrg_val;
+    int saveMaxFovX;
+} FecCailbParams;
+
 #define IN_IMAGE_FILE "/data/imx415_4k_nv12.yuv"
 
 static const char* file_from;
 static const char* file_to;
 static const char* mesh_from;
+static const char* calib_ini_from;
 static unsigned stream_count;
 static char options[OptLast];
 
@@ -105,6 +127,7 @@ static struct option long_options[] = {
     {"stream-to", required_argument, NULL, OptStreamTo},
     {"stream-from", required_argument, NULL, OptStreamFrom},
     {"mesh-from", required_argument, NULL, OptMeshFrom},
+    {"cailb-ini-from", required_argument, NULL, OptCalibFrom},
     {"mesh-density", required_argument, NULL, OptMeshDensity},
     {"border-mode", required_argument, NULL, OptBorderMode},
     {"cross-buf-mode", required_argument, NULL, OptCrossBufMode},
@@ -128,6 +151,7 @@ void common_usage(void) {
         "  --stream-to <file>\n"
         "                     stream to this file. The default is to discard the data.\n"
         "  --mesh-from <file> mesh from this file.\n"
+        "  --cailb-ini-from <file> calib from this ini.\n"
         "  --mesh-density <val> mesh density.\n"
         "                       0: 32x16. 1: 16x8. 2: 4x4\n"
         "  --border-mode <val> border mode.\n"
@@ -443,6 +467,38 @@ int parse_bg_val(char* optarg, int* bg_y, int* bg_u, int* bg_v) {
     return 0;
 }
 
+static int ini_file_handler(void* user, const char* section, const char* name, const char* value) {
+    FecCailbParams* p = (FecCailbParams*)user;
+
+#define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
+
+    if (MATCH("Calibration", "calib_image_width")) {
+        p->calib_image_width = atoi(value);
+    } else if (MATCH("Calibration", "calib_image_height")) {
+        p->calib_image_height = atoi(value);
+    } else if (MATCH("Calibration", "sw_ldcC_opticCenter_x")) {
+        p->optic_center_x = atof(value);
+    } else if (MATCH("Calibration", "sw_ldcC_opticCenter_y")) {
+        p->optic_center_y = atof(value);
+    } else if (MATCH("Calibration", "sw_ldcC_lensDistor_coeff0")) {
+        p->coeff[0] = strtod(value, NULL);
+    } else if (MATCH("Calibration", "sw_ldcC_lensDistor_coeff1")) {
+        p->coeff[1] = strtod(value, NULL);
+    } else if (MATCH("Calibration", "sw_ldcC_lensDistor_coeff2")) {
+        p->coeff[2] = strtod(value, NULL);
+    } else if (MATCH("Calibration", "sw_ldcC_lensDistor_coeff3")) {
+        p->coeff[3] = strtod(value, NULL);
+    } else if (MATCH("Calibration", "sw_ldcC_correctStrg_maxLimit")) {
+        p->correctStrg_maxLimit = atoi(value);
+    } else if (MATCH("Config", "sw_ldcT_correctStrg_val")) {
+        p->correctStrg_val = atoi(value);
+    } else if (MATCH("Config", "sw_ldcT_saveMaxFovX_bit")) {
+        p->saveMaxFovX = atoi(value);
+    }
+
+    return 1;
+}
+
 int parse_fmt(char* optarg, int* width, int* height, int* pixelformat) {
     char *value, *subs;
     bool be_pixfmt;
@@ -539,6 +595,9 @@ int32_t main(int argc, char** argv) {
             case OptMeshFrom:
                 mesh_from = optarg;
                 break;
+            case OptCalibFrom:
+                calib_ini_from = optarg;
+                break;
             case OptMeshDensity:
                 mesh_density = atoi(optarg);
                 break;
@@ -583,29 +642,47 @@ int32_t main(int argc, char** argv) {
     g_ispfec_cfg.bg_val         = bg_val;
 #endif
 
-#if 1
-    g_ispfec_cfg.mesh_upd_mode = RK_ISPFEC_UPDATE_MESH_FROM_FILE;
+    if (mesh_from) {
+        g_ispfec_cfg.mesh_upd_mode = RK_ISPFEC_UPDATE_MESH_FROM_FILE;
 #ifdef RKFEC_HW_V20
-    parse_path(mesh_from, g_ispfec_cfg.u.mesh_file_path, g_ispfec_cfg.mesh_info.mesh_file);
+        parse_path(mesh_from, g_ispfec_cfg.u.mesh_file_path, g_ispfec_cfg.mesh_info.mesh_file);
 #else
-    strcpy(g_ispfec_cfg.u.mesh_file_path, "/etc/iqfiles/FEC_mesh_3840_2160_imx415_3.6mm/");
-    strcpy(g_ispfec_cfg.mesh_xint.mesh_file, "meshxi_level0.bin");
-    strcpy(g_ispfec_cfg.mesh_xfra.mesh_file, "meshxf_level0.bin");
-    strcpy(g_ispfec_cfg.mesh_yint.mesh_file, "meshyi_level0.bin");
-    strcpy(g_ispfec_cfg.mesh_yfra.mesh_file, "meshyf_level0.bin");
+        strcpy(g_ispfec_cfg.u.mesh_file_path, "/etc/iqfiles/FEC_mesh_3840_2160_imx415_3.6mm/");
+        strcpy(g_ispfec_cfg.mesh_xint.mesh_file, "meshxi_level0.bin");
+        strcpy(g_ispfec_cfg.mesh_xfra.mesh_file, "meshxf_level0.bin");
+        strcpy(g_ispfec_cfg.mesh_yint.mesh_file, "meshyi_level0.bin");
+        strcpy(g_ispfec_cfg.mesh_yfra.mesh_file, "meshyf_level0.bin");
 #endif
-#else
-    g_ispfec_cfg.mesh_upd_mode                 = RK_ISPFEC_UPDATE_MESH_ONLINE;
-    g_ispfec_cfg.u.mesh_online.light_center[0] = 1956.3909119999998438;
-    g_ispfec_cfg.u.mesh_online.light_center[1] = 1140.6355200000000422;
-    g_ispfec_cfg.u.mesh_online.coeff[0]        = -2819.4072493821618081;
-    g_ispfec_cfg.u.mesh_online.coeff[1]        = 0.0000316126581792;
-    g_ispfec_cfg.u.mesh_online.coeff[2]        = 0.0000000688410142;
-    g_ispfec_cfg.u.mesh_online.coeff[3]        = -0.0000000000130686;
-    g_ispfec_cfg.u.mesh_online.correct_level   = 250;
-    g_ispfec_cfg.u.mesh_online.direction       = RK_ISPFEC_CORRECT_DIRECTION_XY;
-    g_ispfec_cfg.u.mesh_online.style           = RK_ISPFEC_KEEP_ASPECT_RATIO_REDUCE_FOV;
-#endif
+    } else if (calib_ini_from) {
+        FecCailbParams params = {0};
+
+        if (ini_parse(calib_ini_from, ini_file_handler, &params) < 0) {
+            stderr_info("Faile to read %s\n", calib_ini_from);
+            return -1;
+        }
+
+        info("calib image resolution: %dx%d\n", params.calib_image_width, params.calib_image_height);
+        info("optic center: (%f, %f)\n", params.optic_center_x, params.optic_center_y);
+        info("Lens Distor Coeff: [%.16f, %.16f, %.16f, %.16f]\n", params.coeff[0], params.coeff[1],
+             params.coeff[2], params.coeff[3]);
+        info("correctStrg_maxLimit: %d, params.correctStrg_val: %d\n", params.correctStrg_maxLimit,
+             params.correctStrg_val);
+        info("saveMaxFovX: %d\n", params.saveMaxFovX);
+
+        g_ispfec_cfg.mesh_upd_mode                 = RK_ISPFEC_UPDATE_MESH_ONLINE;
+        g_ispfec_cfg.u.mesh_online.light_center[0] = params.optic_center_x;
+        g_ispfec_cfg.u.mesh_online.light_center[1] = params.optic_center_y;
+        g_ispfec_cfg.u.mesh_online.coeff[0]        = params.coeff[0];
+        g_ispfec_cfg.u.mesh_online.coeff[1]        = params.coeff[1];
+        g_ispfec_cfg.u.mesh_online.coeff[2]        = params.coeff[2];
+        g_ispfec_cfg.u.mesh_online.coeff[3]        = params.coeff[3];
+        g_ispfec_cfg.u.mesh_online.correct_level   = params.correctStrg_val;
+        g_ispfec_cfg.u.mesh_online.direction       = RK_ISPFEC_CORRECT_DIRECTION_XY;
+        g_ispfec_cfg.u.mesh_online.style           = params.saveMaxFovX;
+    } else {
+        stderr_info("Please specify the calibration file.\n");
+        return -1;
+    }
 
     int ret = init_ispfec_bufs(&g_ispfec_cfg);
     if (ret < 0) {

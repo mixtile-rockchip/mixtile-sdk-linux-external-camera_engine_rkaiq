@@ -10,6 +10,7 @@ func rkaiq_getSrcsFiles(soc string, macros_map map[string]bool) []string {
     var flag0 bool = false;
     var flag1 bool = false;
     var flag2 bool = false;
+    var flag3 bool = false;
 
     var srcs []string;
     var hdl_srcs []string;
@@ -742,6 +743,7 @@ func rkaiq_getSrcsFiles_c(soc string, macros_map map[string]bool) []string {
     if flag0 {
         srcs = append(srcs, "hwi_c/isp39/aiq_CamHwIsp39.c")
         srcs = append(srcs, "hwi_c/isp39/aiq_isp39ParamsCvt.c")
+        srcs = append(srcs, "hwi_c/isp39/aiq_isp39ParamsSplitter.c")
     }
 
     flag0 = macros_map["ISP_HW_V33"]
@@ -778,6 +780,7 @@ func rkaiq_getSrcsFiles_c(soc string, macros_map map[string]bool) []string {
     srcs = append(srcs, "aiq_core_c/algo_handlers/RkAiqAwbHandler.c")
     srcs = append(srcs, "aiq_core_c/algo_handlers/RkAiqAfdHandler.c")
     srcs = append(srcs, "aiq_core_c/algo_handlers/RkAiqCacHandler.c")
+    srcs = append(srcs, "aiq_core_c/algo_handlers/RkAiqAmtdHandler.c")
 
     flag0 = macros_map["ISP_HW_V39"]
     if flag0 {
@@ -837,6 +840,8 @@ func rkaiq_getSrcsFiles_c(soc string, macros_map map[string]bool) []string {
     // AIQ_C_SRC
     srcs = append(srcs, "RkAiqGlobalParamsManager_c.c")
     srcs = append(srcs, "RkAiqManager_c.c")
+    srcs = append(srcs, "RkAibnrManager.c")
+    srcs = append(srcs, "RknnManager.c")
 
     flag0 = macros_map["RKAIQ_ENABLE_CAMGROUP"]
     if flag0 {
