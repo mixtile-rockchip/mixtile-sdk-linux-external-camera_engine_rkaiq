@@ -201,7 +201,7 @@ static void deepCpyAiqCoreMsg(AiqCoreMsg_t* vdBufMsg) {
 static void msgReduction(AiqAnalyzerGroup_t* pGroup, AiqMap_t* msgMap) {
     if (aiqMap_size(msgMap) > 0) {
         const int originalSize = aiqMap_size(msgMap);
-        int numToErase    = originalSize - GROUP_MSG_OVERFLOW_TH;
+        int numToErase    = originalSize - pGroup->mGrpMsgOverflowCnt;
         if (numToErase > 0) {
             AiqMapItem_t* pItem  = aiqMap_begin(msgMap);
             GroupMessage_t* pMsg = (GroupMessage_t*)(pItem->_pData);
@@ -296,11 +296,12 @@ XCamReturn AiqAnalyzerGroup_init(AiqAnalyzerGroup_t* pGroup, AiqCore_t* aiqCore,
                                  enum rk_aiq_core_analyze_type_e type, const uint64_t flag,
                                  const RkAiqGrpConditions_t* grpConds, const bool singleThrd) {
     ENTER_ANALYZER_FUNCTION();
-    pGroup->mAiqCore          = aiqCore;
-    pGroup->mGroupType        = type;
-    pGroup->mDepsFlag         = flag;
-    pGroup->mUserSetDelayCnts = INT8_MAX;
-    pGroup->mAwakenId         = (uint32_t)-1;
+    pGroup->mAiqCore           = aiqCore;
+    pGroup->mGroupType         = type;
+    pGroup->mDepsFlag          = flag;
+    pGroup->mUserSetDelayCnts  = INT8_MAX;
+    pGroup->mAwakenId          = (uint32_t)-1;
+    pGroup->mGrpMsgOverflowCnt = GROUP_MSG_OVERFLOW_TH;
 #if RKAIQ_HAVE_DUMPSYS
     pGroup->mMsgReduceCnt = 0;
 #endif
@@ -586,6 +587,7 @@ XCamReturn AiqAnalyzeGroupManager_init(AiqAnalyzeGroupManager_t* pGroupMan, AiqC
     ENTER_ANALYZER_FUNCTION();
     pGroupMan->mSingleThreadMode = single_thread;
     pGroupMan->mAiqCore          = aiqCore;
+    pGroupMan->mDefaultDelayCnt  = ISP_PARAMS_EFFECT_DELAY_CNT;
     EXIT_ANALYZER_FUNCTION();
     return XCAM_RETURN_NO_ERROR;
 }
@@ -928,6 +930,36 @@ void AiqAnalyzeGroupManager_awakenClean(AiqAnalyzeGroupManager_t* pGroupMan, uin
 		}
     }
 	AiqAnalyzeGroupManager_start(pGroupMan);
+}
+
+XCamReturn AiqAnalyzeGroupManager_resetDelayCnt(AiqAnalyzeGroupManager_t* pGroupMan, int delayCnt)
+{
+	if (pGroupMan->mDefaultDelayCnt == delayCnt) {
+        return XCAM_RETURN_NO_ERROR;
+    }
+
+    pGroupMan->mDefaultDelayCnt = delayCnt;
+    for (int i = 0; i < RK_AIQ_CORE_ANALYZE_MAX; i++) {
+        if (pGroupMan->mGroupMap[i]) {
+            for (int j = 0; j < pGroupMan->mGroupMap[i]->mGrpConds.size; j++) {
+                switch (pGroupMan->mGroupMap[i]->mGrpConds.conds[j].cond) {
+                    case XCAM_MESSAGE_AEC_STATS_OK:
+                    case XCAM_MESSAGE_AWB_STATS_OK:
+                    case XCAM_MESSAGE_AF_STATS_OK:
+                    case XCAM_MESSAGE_PDAF_STATS_OK:
+                    case XCAM_MESSAGE_AGAIN_STATS_OK:
+                    case XCAM_MESSAGE_ADEHAZE_STATS_OK:
+                        pGroupMan->mGroupMap[i]->mGrpConds.conds[j].delay = delayCnt;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            pGroupMan->mGroupMap[i]->mGrpMsgOverflowCnt = delayCnt;
+        }
+    }
+
+    return XCAM_RETURN_NO_ERROR;
 }
 
 #if RKAIQ_HAVE_DUMPSYS

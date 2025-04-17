@@ -274,7 +274,7 @@ void bayertnr_save_stats(void *stats_buffer, btnr_cvt_info_t *pBtnrInfo)
     struct rkisp39_stat_buffer* stats = stats_buffer;
     if (stats->meas_type & ISP39_STAT_BAY3D) {
         uint8_t min_idx = 0;
-        for (uint8_t i = 0; i < RK_AIQ_BTNR_STATS_CNT; i++) {
+        for (uint8_t i = 0; i < pBtnrInfo->stats_buffer_cnt; i++) {
             if (pBtnrInfo->mBtnrStats[min_idx].id > pBtnrInfo->mBtnrStats[i].id)
                 min_idx = i;
         }
@@ -290,7 +290,7 @@ void bayertnr_save_stats(void *stats_buffer, btnr_cvt_info_t *pBtnrInfo)
         struct rkisp33_stat_buffer* stats = stats_buffer;
         if (stats->meas_type & ISP33_STAT_BAY3D) {
             uint8_t min_idx = 0;
-            for (uint8_t i = 0; i < RK_AIQ_BTNR_STATS_CNT; i++) {
+            for (uint8_t i = 0; i < pBtnrInfo->stats_buffer_cnt; i++) {
                 if (pBtnrInfo->mBtnrStats[min_idx].id > pBtnrInfo->mBtnrStats[i].id)
                     min_idx = i;
             }
@@ -330,7 +330,7 @@ void bayertnr_save_stats(void *stats_buffer, btnr_cvt_info_t *pBtnrInfo)
         struct rkisp35_stat_buffer* stats = stats_buffer;
         if (stats->meas_type & ISP35_STAT_BAY3D) {
             uint8_t min_idx = 0;
-            for (uint8_t i = 0; i < RK_AIQ_BTNR_STATS_CNT; i++) {
+            for (uint8_t i = 0; i < pBtnrInfo->stats_buffer_cnt; i++) {
                 if (pBtnrInfo->mBtnrStats[min_idx].id > pBtnrInfo->mBtnrStats[i].id)
                     min_idx = i;
             }
@@ -372,7 +372,7 @@ void bayertnr_save_stats(void *stats_buffer, btnr_cvt_info_t *pBtnrInfo)
         struct rkisp33_stat_buffer* stats = stats_buffer;
         if (stats->meas_type & ISP33_STAT_SHARP) {
             uint8_t min_idx = 0;
-            for (uint8_t i = 0; i < RK_AIQ_BTNR_STATS_CNT; i++) {
+            for (uint8_t i = 0; i < pBtnrInfo->stats_buffer_cnt; i++) {
                 if (pBtnrInfo->mSharpStats[min_idx].id > pBtnrInfo->mSharpStats[i].id)
                     min_idx = i;
             }
@@ -388,7 +388,7 @@ void bayertnr_save_stats(void *stats_buffer, btnr_cvt_info_t *pBtnrInfo)
         struct rkisp35_stat_buffer* stats = stats_buffer;
         if (stats->meas_type & ISP35_STAT_SHARP) {
             uint8_t min_idx = 0;
-            for (uint8_t i = 0; i < RK_AIQ_BTNR_STATS_CNT; i++) {
+            for (uint8_t i = 0; i < pBtnrInfo->stats_buffer_cnt; i++) {
                 if (pBtnrInfo->mSharpStats[min_idx].id > pBtnrInfo->mSharpStats[i].id)
                     min_idx = i;
             }
@@ -408,8 +408,8 @@ btnr_stats_t *bayertnr_get_stats(btnr_cvt_info_t *pBtnrInfo, uint32_t frameId)
 {
     uint8_t idx = 0;
 
-    for (uint8_t i = 0; i < RK_AIQ_BTNR_STATS_CNT; i++) {
-        if (pBtnrInfo->mBtnrStats[i].id == frameId - BAYERTNR_STATS_DELAY)
+    for (uint8_t i = 0; i < pBtnrInfo->stats_buffer_cnt; i++) {
+        if (pBtnrInfo->mBtnrStats[i].id == frameId - pBtnrInfo->stats_delay_cnt)
             idx = i;
     }
     return &pBtnrInfo->mBtnrStats[idx];
@@ -419,8 +419,8 @@ sharp_stats_t *sharp_get_stats(btnr_cvt_info_t *pBtnrInfo, uint32_t frameId)
 {
     uint8_t idx = 0;
 
-    for (uint8_t i = 0; i < RK_AIQ_BTNR_STATS_CNT; i++) {
-        if (pBtnrInfo->mSharpStats[i].id == frameId - BAYERTNR_STATS_DELAY)
+    for (uint8_t i = 0; i < pBtnrInfo->stats_buffer_cnt; i++) {
+        if (pBtnrInfo->mSharpStats[i].id == frameId - pBtnrInfo->stats_delay_cnt)
             idx = i;
     }
     return &pBtnrInfo->mSharpStats[idx];

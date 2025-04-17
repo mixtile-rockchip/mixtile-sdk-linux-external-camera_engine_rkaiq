@@ -280,10 +280,15 @@ void rk_aiq_btnr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     rk_aiq_op_mode_t opMode = btnr_attrib->opMode;
 
     if (cvtinfo->isFirstFrame) {
+        // save stats_buffer_cnt and stats_delay_cnt
+        uint16_t bufCnt = pBtnrInfo->stats_buffer_cnt;
+        uint16_t dlyCnt = pBtnrInfo->stats_delay_cnt;
         memset(pBtnrInfo, 0, sizeof(btnr_cvt_info_t));
+        pBtnrInfo->stats_buffer_cnt = bufCnt;
+        pBtnrInfo->stats_delay_cnt  = dlyCnt;
     } else {
         btnr_stats = bayertnr_get_stats(pBtnrInfo, cvtinfo->frameId);
-        if (cvtinfo->frameId - BAYERTNR_STATS_DELAY != btnr_stats->id) {
+        if (cvtinfo->frameId - pBtnrInfo->stats_delay_cnt != btnr_stats->id) {
             pBtnrInfo->btnr_stats_miss_cnt ++;
             if ((pBtnrInfo->btnr_stats_miss_cnt > 10) && (pBtnrInfo->btnr_stats_miss_cnt % 30 == 0)) {
                 LOGE_ANR("Btnr stats miss match! frameId: %d stats [%d %d %d]", cvtinfo->frameId,

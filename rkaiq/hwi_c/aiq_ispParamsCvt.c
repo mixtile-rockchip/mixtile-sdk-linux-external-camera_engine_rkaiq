@@ -453,6 +453,11 @@ XCamReturn AiqIspParamsCvt_init(AiqIspParamsCvt_t* pCvt) {
     pCvt->mCvtedIsp39Prams                          = NULL;
 #endif
 
+#if USE_NEWSTRUCT
+    pCvt->mBtnrInfo.stats_buffer_cnt                = BAYERTNR_STATS_DELAY + 1;
+    pCvt->mBtnrInfo.stats_delay_cnt                 = BAYERTNR_STATS_DELAY;
+#endif
+
     aiq_memset(&pCvt->AntiTmoFlicker, 0, sizeof(pCvt->AntiTmoFlicker));
 
     return XCAM_RETURN_NO_ERROR;
@@ -502,4 +507,12 @@ void AiqIspParamsCvt_deinit(AiqIspParamsCvt_t* pCvt) {
         aiq_free(pCvt->mCvtedIsp39Prams);
         pCvt->mCvtedIsp39Prams = NULL;
     }
+}
+
+void AiqIspParamsCvt_setStastDelayCnt(AiqIspParamsCvt_t* pCvt, int delayCnt)
+{
+#if USE_NEWSTRUCT
+    pCvt->mBtnrInfo.stats_buffer_cnt                = delayCnt + 1;
+    pCvt->mBtnrInfo.stats_delay_cnt                 = delayCnt;
+#endif
 }

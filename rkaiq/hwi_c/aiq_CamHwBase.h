@@ -38,7 +38,6 @@ extern bool g_mIsMultiIspMode;
 #define ISP20HW_SUBM (0x1)
 
 #define MAX_PARAMS_QUEUE_SIZE       5
-#define ISP_PARAMS_EFFECT_DELAY_CNT 2
 #define CAM_INDEX_FOR_1608          8
 
 typedef struct AiqCifSclStream_s AiqCifSclStream_t;
@@ -277,6 +276,8 @@ typedef struct AiqCamHwBase_s {
     XCamReturn (*read_aiisp_result)(AiqCamHwBase_t* pCamHw, rk_aiq_aiisp_t* aiisp_evt);
     XCamReturn(*aiisp_processing)(AiqCamHwBase_t* pCamHw, rk_aiq_aiisp_t* aiisp_evt);
 
+    int mDefaultDelayCnt;
+
 #if RKAIQ_HAVE_AIBNR
     bool use_ainn;
     RkAiqAibnrModelInfo_t mAibnrModelInfo;
@@ -413,6 +414,7 @@ XCamReturn AiqCam_FastBootSetLastEffectParam(AiqCamHwBase_t* pCamHw);
 RkAiqIspUniteMode AiqCamHw_getIspUniteMode(AiqCamHwBase_t* pCamHw);
 XCamReturn AiqCamHw_setNoReadbackMode(AiqCamHwBase_t* pCamHw, bool on);
 XCamReturn AiqCamHw_setRawBufNum(AiqCamHwBase_t* pCamHw, uint16_t buf_num);
+XCamReturn AiqCamHw_setAibnrDelayCnt(AiqCamHwBase_t* pCamHw, int delayCnt);
 
 #define CamHW_setManager(pMan, pRkAiqManager) \
         (pMan)->rkAiqManager = pRkAiqManager

@@ -113,7 +113,7 @@ void core_buf_mgr_dump_pending_param_map_info(AiqCore_t* self, st_string* result
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-10d%-11d%-18d%-13d", "pendingParam",
              aiqMap_itemNums(self->mFullParamsPendingMap),
-             aiqMap_itemSize(self->mFullParamsPendingMap), FULLPARMAS_MAX_PENDING_SIZE,
+             aiqMap_itemSize(self->mFullParamsPendingMap), self->mDefaultDelayCnt,
              aiqMap_size(self->mFullParamsPendingMap));
     aiq_string_printf(result, buffer);
     aiq_string_printf(result, "\n\n");

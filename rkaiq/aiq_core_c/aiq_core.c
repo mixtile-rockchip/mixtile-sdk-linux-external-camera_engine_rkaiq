@@ -31,7 +31,6 @@
 #endif
 
 #define EPSINON 0.0000001
-static uint16_t DEFAULT_POOL_SIZE           = 3;
 
 #define grpId2GrpMask(grpId) \
     ((grpId) == RK_AIQ_CORE_ANALYZE_ALL ? (uint64_t)(grpId) : (1ULL << (grpId)))
@@ -105,6 +104,9 @@ AiqPool_t* AiqCore_createPool(const char* name, int num, int itemSize, int type)
 }
 
 static XCamReturn newAiqParamPool(AiqCore_t* pAiqCore, int type) {
+
+    uint16_t DEFAULT_POOL_SIZE = pAiqCore->mDefaultDelayCnt + 1;
+
 #define NEW_PARAMS_POOL(RESULT, PTYPE)                                                     \
     do {                                                                                  \
         if (!pAiqCore->mAiqParamsPoolArray[RESULT]) {                                     \
@@ -430,6 +432,81 @@ static XCamReturn newAllAiqParamPool(AiqCore_t* pAiqCore) {
             ret |= newAiqParamPool(pAiqCore, i);
         }
         i++;
+    }
+
+    return ret;
+}
+
+static XCamReturn deleteAllAiqParamPool(AiqCore_t* pAiqCore) {
+
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+    if (pAiqCore->mAiqAecStatsPool) {
+        aiqPool_deinit(pAiqCore->mAiqAecStatsPool);
+        pAiqCore->mAiqAecStatsPool = NULL;
+    }
+
+    if (pAiqCore->mAiqAwbStatsPool) {
+        aiqPool_deinit(pAiqCore->mAiqAwbStatsPool);
+        pAiqCore->mAiqAwbStatsPool = NULL;
+    }
+
+    if (pAiqCore->mAiqAdehazeStatsPool) {
+        aiqPool_deinit(pAiqCore->mAiqAdehazeStatsPool);
+        pAiqCore->mAiqAdehazeStatsPool = NULL;
+    }
+
+    if (pAiqCore->mAiqAgainStatsPool) {
+        aiqPool_deinit(pAiqCore->mAiqAgainStatsPool);
+        pAiqCore->mAiqAgainStatsPool = NULL;
+    }
+
+    if (pAiqCore->mAiqAfStatsPool) {
+        aiqPool_deinit(pAiqCore->mAiqAfStatsPool);
+        pAiqCore->mAiqAfStatsPool = NULL;
+    }
+
+#if RKAIQ_HAVE_PDAF
+    if (pAiqCore->mAiqPdafStatsPool) {
+        aiqPool_deinit(pAiqCore->mAiqPdafStatsPool);
+        pAiqCore->mAiqPdafStatsPool = NULL;
+    }
+#endif
+
+    for (int i = 0; i < RESULT_TYPE_MAX_PARAM; i++) {
+		if (pAiqCore->mAiqParamsPoolArray[i])
+			aiqPool_deinit(pAiqCore->mAiqParamsPoolArray[i]);
+        pAiqCore->mAiqParamsPoolArray[i] = NULL;
+    }
+
+    if (pAiqCore->bay3dStatList) {
+        aiqList_deinit(pAiqCore->bay3dStatList);
+        pAiqCore->bay3dStatList = NULL;
+    }
+
+    if (pAiqCore->mbay3dStatPool) {
+        aiqPool_deinit(pAiqCore->mbay3dStatPool);
+        pAiqCore->mbay3dStatPool = NULL;
+    }
+
+    if (pAiqCore->mPreResAeSharedPool) {
+        aiqPool_deinit(pAiqCore->mPreResAeSharedPool);
+        pAiqCore->mPreResAeSharedPool = NULL;
+    }
+
+    if (pAiqCore->mProcResAwbSharedPool) {
+        aiqPool_deinit(pAiqCore->mProcResAwbSharedPool);
+        pAiqCore->mProcResAwbSharedPool = NULL;
+    }
+
+    if (pAiqCore->mProcResBlcSharedPool) {
+        aiqPool_deinit(pAiqCore->mProcResBlcSharedPool);
+        pAiqCore->mProcResBlcSharedPool = NULL;
+    }
+
+    if (pAiqCore->mProcResYnrSharedPool) {
+        aiqPool_deinit(pAiqCore->mProcResYnrSharedPool);
+        pAiqCore->mProcResYnrSharedPool = NULL;
     }
 
     return ret;
@@ -1018,6 +1095,9 @@ XCamReturn AiqCore_init(AiqCore_t* pAiqCore, const char* sns_ent_name,
     aiqCond_init(&pAiqCore->mIspStatsCond);
     aiqCond_init(&pAiqCore->mApiMutexCond);
 
+    pAiqCore->mDefaultDelayCnt       = ISP_PARAMS_EFFECT_DELAY_CNT;
+    uint16_t DEFAULT_POOL_SIZE       = pAiqCore->mDefaultDelayCnt + 1;
+
     {
         AiqPoolConfig_t poolCfg;
         int i                        = 0;
@@ -1140,38 +1220,10 @@ XCamReturn AiqCore_deinit(AiqCore_t* pAiqCore) {
         pAiqCore->mAlgoHandleMaps[i] = NULL;
     }
 
-    if (pAiqCore->mAiqAecStatsPool) {
-        aiqPool_deinit(pAiqCore->mAiqAecStatsPool);
-        pAiqCore->mAiqAecStatsPool = NULL;
-    }
-
-    if (pAiqCore->mAiqAwbStatsPool) {
-        aiqPool_deinit(pAiqCore->mAiqAwbStatsPool);
-        pAiqCore->mAiqAwbStatsPool = NULL;
-    }
-
-    if (pAiqCore->mAiqAdehazeStatsPool) {
-        aiqPool_deinit(pAiqCore->mAiqAdehazeStatsPool);
-        pAiqCore->mAiqAdehazeStatsPool = NULL;
-    }
-
-    if (pAiqCore->mAiqAgainStatsPool) {
-        aiqPool_deinit(pAiqCore->mAiqAgainStatsPool);
-        pAiqCore->mAiqAgainStatsPool = NULL;
-    }
-
-    if (pAiqCore->mAiqAfStatsPool) {
-        aiqPool_deinit(pAiqCore->mAiqAfStatsPool);
-        pAiqCore->mAiqAfStatsPool = NULL;
-    }
-
 #if RKAIQ_HAVE_PDAF
     delPdafStatsPool(pAiqCore);
-    if (pAiqCore->mAiqPdafStatsPool) {
-        aiqPool_deinit(pAiqCore->mAiqPdafStatsPool);
-        pAiqCore->mAiqPdafStatsPool = NULL;
-    }
 #endif
+    deleteAllAiqParamPool(pAiqCore);
 
 	if (pAiqCore->mAiqCurParams) {
         AIQ_REF_BASE_UNREF(&pAiqCore->mAiqCurParams->_base._ref_base);
@@ -1181,12 +1233,6 @@ XCamReturn AiqCore_deinit(AiqCore_t* pAiqCore) {
     if (pAiqCore->mAiqFullParamsPool) {
         aiqPool_deinit(pAiqCore->mAiqFullParamsPool);
         pAiqCore->mAiqFullParamsPool = NULL;
-    }
-
-    for (int i = 0; i < RESULT_TYPE_MAX_PARAM; i++) {
-		if (pAiqCore->mAiqParamsPoolArray[i])
-			aiqPool_deinit(pAiqCore->mAiqParamsPoolArray[i]);
-        pAiqCore->mAiqParamsPoolArray[i] = NULL;
     }
 
     if (pAiqCore->mFullParamsPendingMap) {
@@ -1199,39 +1245,9 @@ XCamReturn AiqCore_deinit(AiqCore_t* pAiqCore) {
         pAiqCore->mUpdateCalibAlgosList = NULL;
     }
 
-    if (pAiqCore->bay3dStatList) {
-        aiqList_deinit(pAiqCore->bay3dStatList);
-        pAiqCore->bay3dStatList = NULL;
-    }
-
-    if (pAiqCore->mbay3dStatPool) {
-        aiqPool_deinit(pAiqCore->mbay3dStatPool);
-        pAiqCore->mbay3dStatPool = NULL;
-    }
-
     if (pAiqCore->mAiqSofInfoWrapperPool) {
         aiqPool_deinit(pAiqCore->mAiqSofInfoWrapperPool);
         pAiqCore->mAiqSofInfoWrapperPool = NULL;
-    }
-
-    if (pAiqCore->mPreResAeSharedPool) {
-        aiqPool_deinit(pAiqCore->mPreResAeSharedPool);
-        pAiqCore->mPreResAeSharedPool = NULL;
-    }
-
-    if (pAiqCore->mProcResAwbSharedPool) {
-        aiqPool_deinit(pAiqCore->mProcResAwbSharedPool);
-        pAiqCore->mProcResAwbSharedPool = NULL;
-    }
-
-    if (pAiqCore->mProcResBlcSharedPool) {
-        aiqPool_deinit(pAiqCore->mProcResBlcSharedPool);
-        pAiqCore->mProcResBlcSharedPool = NULL;
-    }
-
-    if (pAiqCore->mProcResYnrSharedPool) {
-        aiqPool_deinit(pAiqCore->mProcResYnrSharedPool);
-        pAiqCore->mProcResYnrSharedPool = NULL;
     }
 
     aiqMutex_deInit(&pAiqCore->_update_mutex);
@@ -1247,6 +1263,90 @@ XCamReturn AiqCore_deinit(AiqCore_t* pAiqCore) {
     pAiqCore->mState = RK_AIQ_CORE_STATE_INVALID;
 
     EXIT_ANALYZER_FUNCTION();
+
+    return XCAM_RETURN_NO_ERROR;
+}
+
+XCamReturn AiqCore_reinitForNewStatsDelay(AiqCore_t* pAiqCore, int delayCnt)
+{
+    if (pAiqCore->mDefaultDelayCnt == delayCnt) {
+        return XCAM_RETURN_NO_ERROR;
+    }
+
+#if RKAIQ_HAVE_PDAF
+    delPdafStatsPool(pAiqCore);
+#endif
+    deleteAllAiqParamPool(pAiqCore);
+
+	if (pAiqCore->mAiqCurParams) {
+        AIQ_REF_BASE_UNREF(&pAiqCore->mAiqCurParams->_base._ref_base);
+		pAiqCore->mAiqCurParams = NULL;
+	}
+
+    if (pAiqCore->mAiqFullParamsPool) {
+        aiqPool_deinit(pAiqCore->mAiqFullParamsPool);
+        pAiqCore->mAiqFullParamsPool = NULL;
+    }
+
+    if (pAiqCore->mFullParamsPendingMap) {
+        aiqMap_deinit(pAiqCore->mFullParamsPendingMap);
+        pAiqCore->mFullParamsPendingMap = NULL;
+    }
+
+    if (pAiqCore->mAiqSofInfoWrapperPool) {
+        aiqPool_deinit(pAiqCore->mAiqSofInfoWrapperPool);
+        pAiqCore->mAiqSofInfoWrapperPool = NULL;
+    }
+
+    pAiqCore->mDefaultDelayCnt = delayCnt;
+    uint16_t DEFAULT_POOL_SIZE = pAiqCore->mDefaultDelayCnt + 1;
+
+    {
+        AiqPoolConfig_t poolCfg;
+        int i                        = 0;
+        AiqPool_t* ret               = NULL;
+        poolCfg._name                = "fullParam";
+        poolCfg._item_nums           = DEFAULT_POOL_SIZE + 1;
+        poolCfg._item_size           = sizeof(AiqFullParams_t);
+        pAiqCore->mAiqFullParamsPool = aiqPool_init(&poolCfg);
+        if (!pAiqCore->mAiqFullParamsPool ) {
+            LOGE_ANALYZER("init %s error", poolCfg._name);
+            return XCAM_RETURN_ERROR_ANALYZER;
+        }
+        AiqPoolItem_t* pItem = NULL;
+        AIQ_POOL_FOREACH(pAiqCore->mAiqFullParamsPool, pItem) {
+            aiq_params_base_t* pBase = (aiq_params_base_t*)(pItem->_pData);
+            AIQ_REF_BASE_INIT(&pBase->_ref_base, pItem, aiqPoolItem_ref, aiqPoolItem_unref);
+        }
+		pItem = aiqPool_getFree(pAiqCore->mAiqFullParamsPool);
+		pAiqCore->mAiqCurParams = (AiqFullParams_t*)pItem->_pData;
+    }
+
+    {
+        AiqMapConfig_t pendingParamsCfg;
+        pendingParamsCfg._name          = "pendingParams";
+        pendingParamsCfg._key_type		= AIQ_MAP_KEY_TYPE_UINT32;
+        pendingParamsCfg._item_nums     = DEFAULT_POOL_SIZE;
+        pendingParamsCfg._item_size     = sizeof(pending_params_t);
+        pAiqCore->mFullParamsPendingMap = aiqMap_init(&pendingParamsCfg);
+        if (!pAiqCore->mFullParamsPendingMap)
+            LOGE_ANALYZER("cId:%d init %s error", pAiqCore->mAlogsComSharedParams.mCamPhyId,
+                          pendingParamsCfg._name);
+    }
+    newAllAiqParamPool(pAiqCore);
+#if RKAIQ_HAVE_PDAF
+    newPdafStatsPool(pAiqCore);
+#endif
+
+    pAiqCore->mAiqSofInfoWrapperPool = AiqCore_createPool(
+        "sofInfo", DEFAULT_POOL_SIZE, CALC_SIZE_WITH_HEAD(AlgoRstShared_t, AiqSofInfoWrapper_t),
+        AIQCORE_POOL_TYPE_SHARED);
+    if (!pAiqCore->mAiqSofInfoWrapperPool) {
+        LOGE_ANALYZER("init sofInfo pool failed");
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+
+    AiqAnalyzeGroupManager_resetDelayCnt(&pAiqCore->mRkAiqCoreGroupManager, delayCnt);
 
     return XCAM_RETURN_NO_ERROR;
 }
@@ -2889,7 +2989,7 @@ XCamReturn AiqCore_pushEvts(AiqCore_t* pAiqCore, AiqHwEvt_t* evts) {
 
         pAiqCore->mLatestEvtsId = evts->frame_id;
 
-        if (delta > 3) {
+        if (delta > (pAiqCore->mDefaultDelayCnt + 1)) {
             LOGW_ANALYZER("sof delta: %d, skip sof %u", delta, seq);
             return XCAM_RETURN_NO_ERROR;
         }
@@ -3299,6 +3399,7 @@ XCamReturn AiqCore_groupAnalyze(AiqCore_t * pAiqCore, uint64_t grpId,
 					break;
 			}
         } else {
+            uint16_t FULLPARMAS_MAX_PENDING_SIZE = pAiqCore->mDefaultDelayCnt;
             uint16_t counts = aiqMap_size(pAiqCore->mFullParamsPendingMap);
             if (counts > FULLPARMAS_MAX_PENDING_SIZE) {
                 pItem                     = aiqMap_begin(pAiqCore->mFullParamsPendingMap);

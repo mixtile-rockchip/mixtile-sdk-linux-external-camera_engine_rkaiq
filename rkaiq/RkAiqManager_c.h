@@ -76,6 +76,8 @@ typedef struct AiqManager_s {
 #endif
     RknnManager_t mRknnManager;
 
+    bool mLastAibnrEn;
+
 #if RKAIQ_HAVE_DUMPSYS
     int (*dump_mods)(void* self, st_string* result, int argc, void* argv[]);
     int (*dump_raw)(void* self, st_string* result, int argc, void* argv[]);

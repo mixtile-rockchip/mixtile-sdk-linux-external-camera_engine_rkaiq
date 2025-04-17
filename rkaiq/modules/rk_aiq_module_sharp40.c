@@ -1017,7 +1017,7 @@ void rk_aiq_sharp40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_
     if (!cvtinfo->isFirstFrame) {
         sharp_stats_t *sharp_stats = &pBtnrInfo->mSharpStats[0];
         sharp_stats = sharp_get_stats(pBtnrInfo, cvtinfo->frameId);
-        if (cvtinfo->frameId - BAYERTNR_STATS_DELAY != sharp_stats->id) {
+        if (cvtinfo->frameId - pBtnrInfo->stats_delay_cnt != sharp_stats->id) {
             pBtnrInfo->sharp_stats_miss_cnt ++;
             if ((pBtnrInfo->sharp_stats_miss_cnt > 10) && (pBtnrInfo->sharp_stats_miss_cnt % 30 == 0)) {
                 LOGE_ANR("Sharp stats miss match! frameId: %d stats [%d %d %d]", cvtinfo->frameId,

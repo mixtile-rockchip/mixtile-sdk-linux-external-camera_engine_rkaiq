@@ -71,6 +71,7 @@ namespace RkCam {
  * and the new parameters take effect on frame n+1
  */
 #define ISP_PARAMS_EFFECT_DELAY_CNT 2
+#define ISP_PARAMS_AIBNR_EFFECT_DELAY_CNT 4
 
 static RkAiqGrpCondition_t aeGrpCondV3x[] = {
     [0] = {XCAM_MESSAGE_AEC_STATS_OK, ISP_PARAMS_EFFECT_DELAY_CNT},

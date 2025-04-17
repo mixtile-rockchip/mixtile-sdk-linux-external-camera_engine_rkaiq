@@ -127,6 +127,8 @@ static int __dump(void* dumper, st_string* result, int argc, void* argv[]);
 
 #ifdef ISP_HW_V30
 #define CAMHWISP_EFFECT_ISP_POOL_NUM 12
+#elif defined(ISP_HW_V35)
+#define CAMHWISP_EFFECT_ISP_POOL_NUM 8
 #else
 #define CAMHWISP_EFFECT_ISP_POOL_NUM 6
 #endif
@@ -5452,7 +5454,7 @@ static XCamReturn _setIspConfig(AiqCamHwBase_t* pCamHw, AiqList_t* result_list) 
     int ispUniteMode          = 0;
 
     aiqMutex_lock(&pCamHw->_isp_params_cfg_mutex);
-    while (aiqMap_size(pCamHw->_effecting_ispparam_map) > 4) {
+    while (aiqMap_size(pCamHw->_effecting_ispparam_map) > (CAMHWISP_EFFECT_ISP_POOL_NUM - 2)) {
         AiqMapItem_t* pItem             = aiqMap_begin(pCamHw->_effecting_ispparam_map);
         aiq_isp_effect_params_t* params = *(aiq_isp_effect_params_t**)(pItem->_pData);
         aiqMap_erase(pCamHw->_effecting_ispparam_map, pItem->_key);
@@ -5709,7 +5711,7 @@ retry:
         int timeout = is_wait_params_done ? 100 : 1;
         uint32_t buf_counts = AiqV4l2Device_getBufCnt(pCamHw->mIspParamsDev);
         uint32_t try_time   = 3;
-        while (AiqV4l2Device_getQueuedBufCnt(pCamHw->mIspParamsDev) > 2 || is_wait_params_done) {
+        while (AiqV4l2Device_getQueuedBufCnt(pCamHw->mIspParamsDev) > (buf_counts - 2) || is_wait_params_done) {
             if (pCamHw->mIspParamsDev->poll_event(pCamHw->mIspParamsDev, timeout, -1) <= 0) {
                 LOGW_CAMHW_SUBM(ISP20HW_SUBM, "poll params error, queue cnts: %d !",
                                 AiqV4l2Device_getQueuedBufCnt(pCamHw->mIspParamsDev));
@@ -6856,6 +6858,25 @@ AiqCamHw_getBindedIspDrvNmBySns(const char* sns_ent_name)
     }
 
     return s_info->isp_info->driver;
+}
+
+XCamReturn
+AiqCamHw_setAibnrDelayCnt(AiqCamHwBase_t* pCamHw, int delayCnt)
+{
+    if (pCamHw->_state == CAM_HW_STATE_PREPARED || pCamHw->_state == CAM_HW_STATE_STARTED)
+        return XCAM_RETURN_ERROR_FAILED;
+
+    pCamHw->mDefaultDelayCnt = delayCnt;
+    if (pCamHw->mIspStatsDev)
+        AiqV4l2Device_setBufCnt(pCamHw->mIspStatsDev, delayCnt + 2);
+
+    if (pCamHw->mIspParamsDev)
+        AiqV4l2Device_setBufCnt(pCamHw->mIspParamsDev, delayCnt + 2);
+
+    if (pCamHw->_mIspParamsCvt)
+        AiqIspParamsCvt_setStastDelayCnt(pCamHw->_mIspParamsCvt, delayCnt);
+
+    return XCAM_RETURN_NO_ERROR;
 }
 
 static void AiqCamHwBase_initNotifier(AiqCamHwBase_t* pCamHw) {

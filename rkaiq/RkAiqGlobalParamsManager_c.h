@@ -116,6 +116,7 @@ XCamReturn GlobalParamsManager_checkAlgoEnableBypass(GlobalParamsManager_t* pMan
 
 XCamReturn GlobalParamsManager_get_ModuleEn(GlobalParamsManager_t* pMan, rk_aiq_module_list_t* mod);
 XCamReturn GlobalParamsManager_set_ModuleEn(GlobalParamsManager_t* pMan, rk_aiq_module_list_t* mod);
+bool GlobalParamsManager_get_SingleModuleEn(GlobalParamsManager_t* pMan, int type);
 
 RKAIQ_END_DECLARE
 #endif

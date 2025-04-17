@@ -776,7 +776,7 @@ switchCalibDbCheck(GlobalParamsManager_t* pMan, CamCalibDbV2Context_t* calibDb) 
     drc_api_attrib_t* drc_calib = (drc_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(
         (void*)(calibDb), drc));
     if (AiqManager_getWorkingMode(pMan->rkAiqManager) != RK_AIQ_WORKING_MODE_NORMAL && drc_calib->en == 0) {
-        LOGE("Drc must be on  when isp is HDR mode. Please turn on by drc.en!");
+        LOGE("Drc must be on when isp is HDR mode. Please turn on by drc.en!");
         return XCAM_RETURN_ERROR_FAILED;
     }
 
@@ -955,6 +955,7 @@ XCamReturn GlobalParamsManager_switchCalibDb(GlobalParamsManager_t* pMan, CamCal
 
     if (state != AIQ_STATE_INITED && state != AIQ_STATE_STOPED) {
         if (switchCalibDbCheck(pMan, calibDb) == XCAM_RETURN_ERROR_FAILED) {
+            aiqMutex_unlock(&pMan->mMutex);
             return XCAM_RETURN_ERROR_FAILED;
         }
 	}
@@ -1354,9 +1355,15 @@ XCamReturn GlobalParamsManager_checkAlgoEnableBypass(GlobalParamsManager_t* pMan
 
     if (type == RESULT_TYPE_YNR_PARAM) {
         if (*bypass == 1) {
+#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
+            LOGE("The ynr doesn't support bypass feature, so bypass ynr instead by ynr.dyn.hiNr.hw_ynrT_hiNr_en, ynr.dyn.midLoNr.mf.hw_ynrT_midNr_en and ynr.dyn.midLoNr.lf.hw_ynrT_loNr_en.");
+            socket_client_setNote(pMan->_socket, IPC_RET_UAPI_ERROR,
+                    "The ynr doesn't support bypass feature, so bypass ynr instead by ynr.dyn.hiNr.hw_ynrT_hiNr_en, ynr.dyn.midLoNr.mf.hw_ynrT_midNr_en and ynr.dyn.midLoNr.lf.hw_ynrT_loNr_en.");
+#else
             LOGE("The ynr doesn't support bypass feature, so bypass ynr instead by ynr.dyn.loNr_en and ynr.dyn.hiNr_filtProc.nlmFilt_en");
             socket_client_setNote(pMan->_socket, IPC_RET_UAPI_ERROR,
                     "The ynr doesn't support bypass feature, so bypass ynr instead by ynr.dyn.loNr_en and ynr.dyn.hiNr_filtProc.nlmFilt_en");
+#endif
             return XCAM_RETURN_BYPASS;
         }
     }
@@ -1420,9 +1427,9 @@ XCamReturn GlobalParamsManager_checkAlgoEnableBypass(GlobalParamsManager_t* pMan
             return XCAM_RETURN_ERROR_FAILED;
         }
         if (*pMan->mGlobalParams[type].en != *en && *en == 0 && pMan->mBtnrPixDomainMode != btnr_pixLinearDomain_mode) {
-            LOGE("Drc must be on when btnr is working in pixLog2Domain_mode.Note that predgain is 2x in pixLog2Domain_mode.");
+            LOGE("Drc must be on when btnr is working in pixLog2Domain_mode.Note that predgain is dynamic in pixLog2Domain_mode.");
             socket_client_setNote(pMan->_socket, IPC_RET_UAPI_ERROR,
-                "Drc must be on when btnr is working in pixLog2Domain_mode.Note that predgain is 2x in pixLog2Domain_mode.");
+                "Drc must be on when btnr is working in pixLog2Domain_mode.Note that predgain is dynamic in pixLog2Domain_mode.");
             return XCAM_RETURN_BYPASS;
         }
         if (*pMan->mGlobalParams[type].en != *en && *en == 0 && *en != *pMan->mGlobalParams[RESULT_TYPE_TRANS_PARAM].en) {
@@ -1568,21 +1575,7 @@ static bool checkAlgoParams(GlobalParamsManager_t* pMan, rk_aiq_global_params_wr
 
     if (param->type == RESULT_TYPE_BLC_PARAM) {
         blc_api_attrib_t attr;
-        if (AiqManager_getWorkingMode(pMan->rkAiqManager) == RK_AIQ_WORKING_MODE_NORMAL) {
-            blc_api_attrib_t old_attr;
-            bool obcPostTnr_en_update = false;
-            memcpy(&attr.stAuto, param->aut_param_ptr, param->aut_param_size);
-            memcpy(&attr.stMan, param->man_param_ptr, param->man_param_size);
-            memcpy(&old_attr.stAuto, pMan->mGlobalParams[param->type].aut_param_ptr, param->aut_param_size);
-            memcpy(&old_attr.stMan, pMan->mGlobalParams[param->type].man_param_ptr, param->man_param_size);
-            for(int i = 0;i < BLC_ISO_STEP_MAX;i++) {
-                obcPostTnr_en_update |= attr.stAuto.dyn[i].obcPostTnr.sw_blcT_obcPostTnr_en != old_attr.stAuto.dyn[i].obcPostTnr.sw_blcT_obcPostTnr_en;
-            }
-            obcPostTnr_en_update |= attr.stMan.dyn.obcPostTnr.sw_blcT_obcPostTnr_en != old_attr.stMan.dyn.obcPostTnr.sw_blcT_obcPostTnr_en;
-            if (obcPostTnr_en_update || param->opMode != *pMan->mGlobalParams[param->type].opMode) {
-                pMan->mIsGlobalModulesUpdateBits |= ((uint64_t)1) << RESULT_TYPE_DRC_PARAM;
-            }
-        }else{
+        if (AiqManager_getWorkingMode(pMan->rkAiqManager) != RK_AIQ_WORKING_MODE_NORMAL) {
             if (param->opMode == RK_AIQ_OP_MODE_AUTO) {
                 memcpy(&attr.stAuto, param->aut_param_ptr, param->aut_param_size);
                 for (int i = 0;i < BLC_ISO_STEP_MAX;i++) {
@@ -1789,4 +1782,13 @@ static bool ProcessLdcAlgoManParams(void* src, void* dst) {
 #endif
 
     return true;
+}
+
+bool GlobalParamsManager_get_SingleModuleEn(GlobalParamsManager_t* pMan, int type)
+{
+    if (pMan->mGlobalParams[type].en) {
+        return *pMan->mGlobalParams[type].en;
+    }
+
+    return false;
 }

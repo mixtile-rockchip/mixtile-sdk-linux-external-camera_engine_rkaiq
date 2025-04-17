@@ -703,6 +703,18 @@ XCamReturn AiqManager_prepare(AiqManager_t* pAiqManager, uint32_t width, uint32_
     get_dbg_force_disable_mods_env();
 #endif
 #endif
+
+#if RKAIQ_HAVE_AIBNR
+    bool mNewAibnrEn =
+        GlobalParamsManager_get_SingleModuleEn(&pAiqManager->mGlobalParamsManager, RESULT_TYPE_AIBNR_PARAM);
+    if (mNewAibnrEn != pAiqManager->mLastAibnrEn) {
+        pAiqManager->mLastAibnrEn = mNewAibnrEn;
+        int delayCnt = pAiqManager->mLastAibnrEn ? ISP_PARAMS_AIBNR_EFFECT_DELAY_CNT : ISP_PARAMS_EFFECT_DELAY_CNT;
+        AiqCore_reinitForNewStatsDelay(pAiqManager->mRkAiqAnalyzer, delayCnt);
+        AiqCamHw_setAibnrDelayCnt(pAiqManager->mCamHw, delayCnt);
+    }
+#endif
+
     int working_mode_hw = RK_AIQ_WORKING_MODE_NORMAL;
     if (mode == RK_AIQ_WORKING_MODE_NORMAL) {
         working_mode_hw = mode;

@@ -120,7 +120,7 @@ void group_analyzer_dump_msg_map_status1(AiqAnalyzeGroupManager_t* self, st_stri
         memset(buffer, 0, MAX_LINE_LENGTH);
         snprintf(buffer, MAX_LINE_LENGTH, "%-14s%-10d%-11d%-13d%-11d%-12d", lower_case,
                  aiqMap_itemNums(pGrp->mGroupMsgMap), aiqMap_itemSize(pGrp->mGroupMsgMap),
-                 GROUP_MSG_OVERFLOW_TH, aiqMap_size(pGrp->mGroupMsgMap), pGrp->mMsgReduceCnt);
+                 pGrp->mGrpMsgOverflowCnt, aiqMap_size(pGrp->mGroupMsgMap), pGrp->mMsgReduceCnt);
         aiq_string_printf(result, buffer);
         aiq_string_printf(result, "\n");
     }

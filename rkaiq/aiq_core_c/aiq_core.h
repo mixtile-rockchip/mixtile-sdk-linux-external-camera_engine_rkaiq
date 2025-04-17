@@ -39,8 +39,6 @@
 
 RKAIQ_BEGIN_DECLARE
 
-static uint16_t FULLPARMAS_MAX_PENDING_SIZE = 2;
-
 #define RKAIQCORE_CHECK_RET(ret, format, ...)     \
     do {                                          \
         if (ret < 0) {                            \
@@ -316,6 +314,7 @@ typedef struct AiqCore_s {
     GlobalParamsManager_t* mGlobalParamsManger;
 
     bool mIsAovMode;
+    int  mDefaultDelayCnt;
 
 #if RKAIQ_HAVE_DUMPSYS
     int (*dump_algos)(void* self, st_string* result, int argc, void* argv[]);
@@ -438,6 +437,7 @@ bool AiqCore_isGroupAlgo(AiqCore_t* pAiqCore, int algoType);
 XCamReturn AiqCore_register3Aalgo(AiqCore_t* pAiqCore, void* algoDes, void* cbs);
 XCamReturn AiqCore_unregister3Aalgo(AiqCore_t* pAiqCore, int algoType);
 XCamReturn AiqCore_setTranslaterIspUniteMode(AiqCore_t* pAiqCore, RkAiqIspUniteMode mode);
+XCamReturn AiqCore_reinitForNewStatsDelay(AiqCore_t* pAiqCore, int delayCnt);
 
 #define AiqCore_setAovMode(pAiqCore, mode) \
         pAiqCore->mIsAovMode = mode;

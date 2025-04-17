@@ -57,7 +57,7 @@ typedef struct {
     uint16_t noise_curve[17];
 } sharp_stats_t;
 
-#define RK_AIQ_BTNR_STATS_CNT 3
+#define RK_AIQ_BTNR_STATS_CNT 5
 #define BAYERTNR_STATS_DELAY 2
 
 typedef struct {
@@ -71,6 +71,8 @@ typedef struct {
     int hw_btnrCfg_pixDomain_mode;
     uint16_t btnr_stats_miss_cnt;
     uint16_t sharp_stats_miss_cnt;
+    uint16_t stats_buffer_cnt;
+    uint16_t stats_delay_cnt;
 
     void *btnr_attrib;
 } btnr_cvt_info_t;
