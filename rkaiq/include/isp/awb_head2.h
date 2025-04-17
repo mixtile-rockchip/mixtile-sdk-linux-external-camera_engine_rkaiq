@@ -3357,10 +3357,10 @@ typedef struct awb_gainCalcOth_s{
         M4_ALIAS(converged),
         M4_TYPE(struct),
         M4_UI_MODULE(array_table_ui),
-        M4_HIDE_EX(0),
+        M4_HIDE_EX(1),
         M4_RO(0),
         M4_ORDER(0),
-        M4_NOTES(\n
+        M4_NOTES(useless\n
         Freq of use: high))  */
     awb_converge_t converged;
     /* M4_GENERIC_DESC(

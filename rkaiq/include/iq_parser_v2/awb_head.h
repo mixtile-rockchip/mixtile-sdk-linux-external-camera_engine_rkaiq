@@ -597,7 +597,7 @@ typedef struct CalibDbV2_Wb_Awb_Ext_Com_Para_t {
     CalibDbV2_Wb_Awb_Prob_Calc_Lv_t probCalcLv;
     // M4_STRUCT_DESC("probCalcWp", "normal_ui_style")
     CalibDbV2_Wb_Awb_Prob_Calc_Wp_t probCalcWp;
-    // M4_STRUCT_DESC("converged", "normal_ui_style")
+    // M4_STRUCT_DESC("converged", "normal_ui_style", M4_HIDE(1))
     CalibDbV2_Wb_Awb_Convg_t converged;
     // M4_STRUCT_DESC("xyRegionStableSelection", "normal_ui_style")
     CalibDbV2_Awb_xyRegion_stable_t xyRegionStableSelection;
@@ -666,7 +666,7 @@ typedef struct CalibDbV2_Wb_Awb_Ext_Para_V32_s {
     CalibDbV2_Wb_Awb_Prob_Calc_Lv_t probCalcLv;
     // M4_STRUCT_DESC("probCalcWp", "normal_ui_style")
     CalibDbV2_Wb_Awb_Prob_Calc_Wp_t probCalcWp;
-    // M4_STRUCT_DESC("converged", "normal_ui_style")
+    // M4_STRUCT_DESC("converged", "normal_ui_style", M4_HIDE(1))
     CalibDbV2_Wb_Awb_Convg_t converged;
     // M4_STRUCT_DESC("xyRegionStableSelection", "normal_ui_style")
     CalibDbV2_Awb_xyRegion_stable_t xyRegionStableSelection;
