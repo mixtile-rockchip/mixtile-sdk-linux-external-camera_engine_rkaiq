@@ -155,6 +155,7 @@ XCamReturn A3dlut_prepare(RkAiqAlgoCom* params)
     pLut3dCtx->pre_lutSum[0] = 0;
     pLut3dCtx->pre_lutSum[1] = 0;
     pLut3dCtx->pre_lutSum[2] = 0;
+    pLut3dCtx->is_calib_update = true;
 
     return XCAM_RETURN_NO_ERROR;
 }

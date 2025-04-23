@@ -356,17 +356,23 @@ typedef struct aibnr_param_dyn_s {
     aibnr_param_tunning_t tunning;
 } aibnr_param_dyn_t;
 
+typedef enum aibnr_debug_mode_e {
+    aibnr_debugOff_mode = 0,
+    aibnr_debugGain_mode = 1,
+    aibnr_debugNarmap_mode = 2
+} aibnr_debug_mode_t;
+
 typedef struct aibnr_debug_static_s {
     /* M4_GENERIC_DESC(
-        M4_ALIAS(sw_aiBnrT_showGain_en),
-        M4_TYPE(bool),
-        M4_DEFAULT(0),
+        M4_ALIAS(sw_aiBnrT_debug_mode),
+        M4_TYPE(enum),
+        M4_ENUM_DEF(aibnr_debug_mode_t),
+        M4_DEFAULT(aibnr_debugOff_mode),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
-        M4_NOTES(The enable bit of show gain.\n
-        Freq of use: high))  */
-    bool sw_aiBnrT_showGain_en;
+        M4_NOTES(Debug mode selection. Reference enum types.\nFreq of use: high))  */
+    aibnr_debug_mode_t sw_aiBnrT_debug_mode;
 } aibnr_debug_static_t;
 
 typedef struct aibnr_model_dir_s {

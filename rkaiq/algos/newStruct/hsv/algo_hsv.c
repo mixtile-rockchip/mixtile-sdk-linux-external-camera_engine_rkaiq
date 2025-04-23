@@ -392,8 +392,8 @@ XCamReturn Ahsv_prepare(RkAiqAlgoCom* params)
     pHsvCtx->pre_lutSum[4] = -1;
 #endif
     pHsvCtx->damp_converged = false;
-    pHsvCtx->is_calib_update = false;
-    pHsvCtx->isReCal_ = false;
+    pHsvCtx->is_calib_update = true;
+    pHsvCtx->isReCal_ = true;
     pHsvCtx->strg.en = false;
     pHsvCtx->strg.satStrg = 1;
     pHsvCtx->offset.en = false;
@@ -413,8 +413,8 @@ XCamReturn Ahsv_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
 
     bool need_recal = false;
 
-    bool isReCal_ = inparams->u.proc.is_attrib_update || inparams->u.proc.init;
-    if (isReCal_ || pHsvCtx->is_calib_update) {
+    pHsvCtx->isReCal_ |= inparams->u.proc.is_attrib_update || inparams->u.proc.init;
+    if (pHsvCtx->isReCal_ || pHsvCtx->is_calib_update) {
         need_recal = true;
     }
 
@@ -424,7 +424,7 @@ XCamReturn Ahsv_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
                            (swinfo->awbGain[1] - pHsvCtx->pre_wbgain[1]));
     //(1) estimate idx
     int illu_idx = -1;
-    if (delta_wbg > tunning->stAuto.sta.sw_hsvT_wbgainDiff_th || isReCal_) {
+    if (delta_wbg > tunning->stAuto.sta.sw_hsvT_wbgainDiff_th || pHsvCtx->isReCal_) {
         illu_idx = illu_estm_once(pdyn->illuLink, pdyn->sw_hsvCfg_illuLink_len, swinfo->awbGain);
         if (illu_idx < 0) {
             LOGE_AHSV("illu_estm_once failed!");
@@ -458,7 +458,7 @@ XCamReturn Ahsv_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
     //(2) interpolate alpha
     float alpha = pHsvCtx->pre_alpha;
     float delta_gain = fabs(swinfo->sensorGain - pHsvCtx->pre_gain);
-    if (delta_gain > tunning->stAuto.sta.sw_hsvT_gainDiff_th || isReCal_) {
+    if (delta_gain > tunning->stAuto.sta.sw_hsvT_gainDiff_th || pHsvCtx->isReCal_) {
         alpha = get_alpha_by_gain(
             pIlluCase->gain2StrgCurve.sw_hsvT_isoIdx_val, pIlluCase->gain2StrgCurve.sw_hsvT_alpha_val, swinfo->sensorGain);
     }
@@ -606,16 +606,15 @@ XCamReturn Ahsv_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
         }
 
 #if RKAIQ_HAVE_HSV_V11
-    if (pHsvCtx->isReCal_) {
         ApplySatStrgV11(&pHsvCtx->strg, hsvRes);
         ApplyHueOffsetV11(&pHsvCtx->offset, hsvRes);
         pHsvCtx->isReCal_ = false;
-    }
 #endif
         
         outparams->cfg_update = true;
         outparams->en = tunning->en;
         outparams->bypass = tunning->bypass;
+        pHsvCtx->isReCal_ = false;
     }
 
     return XCAM_RETURN_NO_ERROR;

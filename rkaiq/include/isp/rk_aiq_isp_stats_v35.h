@@ -18,7 +18,7 @@
 #ifndef _RK_AIQ_PARAM_ISP_STATS_v35_H_
 #define _RK_AIQ_PARAM_ISP_STATS_v35_H_
 
-#include "isp/rk_aiq_stats_awb33.h"
+#include "isp/rk_aiq_stats_awb35.h"
 #include "isp/rk_aiq_stats_aeStats25.h"
 #include "isp/rk_aiq_stats_af33.h"
 

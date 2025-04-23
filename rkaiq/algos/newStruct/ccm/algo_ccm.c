@@ -368,7 +368,8 @@ XCamReturn Accm_prepare(RkAiqAlgoCom* params)
 
     pCcmCtx->fScale = 0.0;
     pCcmCtx->damp_converged = false;
-    pCcmCtx->is_calib_update = false;
+    pCcmCtx->is_calib_update = true;
+    pCcmCtx->isReCal_ = true;
     return XCAM_RETURN_NO_ERROR;
 }
 
@@ -382,7 +383,7 @@ XCamReturn Accm_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
 
     int iso = inparams->u.proc.iso;
 
-    bool need_recal = false;
+    bool need_recal = pCcmCtx->isReCal_;
 
     bool isReCal_ = inparams->u.proc.is_attrib_update || inparams->u.proc.init;
     if (isReCal_) {
@@ -473,7 +474,7 @@ XCamReturn Accm_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
     } else {
         outparams->cfg_update = false;
     }
-
+    pCcmCtx->isReCal_ = false;
     return XCAM_RETURN_NO_ERROR;
 }
 

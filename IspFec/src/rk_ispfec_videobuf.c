@@ -35,6 +35,8 @@
 #include "rkispp-config.h"
 #endif
 
+#include "RkIspFecComm.h"
+
 #define SEARCH_MAX_VIDEO_NODES 128
 
 static int rkfec_fd = -1;
@@ -46,7 +48,7 @@ static int rk_ispfec_readFileList(const char* basePath) {
     char filename[1000];
 
     if ((dir = opendir(basePath)) == NULL) {
-        printf("E: Open dir error...\n");
+        rkfec_err("Open dir error...");
         return found;
     }
 
@@ -65,9 +67,9 @@ static int rk_ispfec_readFileList(const char* basePath) {
                 if (fp) {
                     char buf[128];
                     const char* ret = fgets(buf, 128, fp);
-                    // printf("buf=%s\n", buf);
+                    // printf("buf=%s", buf);
                     if (strstr(buf, "rkfec_offline") != NULL) {
-                        printf("found rk fec node\n");
+                        rkfec_info("found rk fec node");
                         found = 1;
                         fclose(fp);
                         break;
@@ -109,14 +111,13 @@ int rk_ispfec_api_vb_init(int fd) {
     char dev[32] = {0};
     ret          = rk_ispfec_findFecEntry(dev);
     if (ret < 0) {
-        printf("E: not found fec hw !\n");
+        rkfec_err("not found fec hw !");
         return -1;
     }
 
-    printf("I: open fec dev %s\n", dev);
     rkfec_fd = open(dev, O_RDWR | O_CLOEXEC);
-    if (rkfec_fd == -1) printf("E: open %s failed %s !", dev, strerror(errno));
-    printf("I: open fec dev %s done !\n", dev);
+    if (rkfec_fd == -1) rkfec_err("open %s failed %s !", dev, strerror(errno));
+    rkfec_info("open fec dev %s done !", dev);
     return 0;
 }
 
@@ -135,7 +136,7 @@ int rk_ispfec_api_vb_alloc(int fd, uint32_t size, struct rkfec_buffer* buf) {
     buffer.size = size;
     ret         = ioctl(rkfec_fd, RKFEC_CMD_BUF_ALLOC, &buffer);
     if (ret < 0) {
-        printf("ioctl return failed on fd(%d), cmd:0x%.8x", rkfec_fd, RKFEC_CMD_BUF_ALLOC);
+        rkfec_err("ioctl return failed on fd(%d), cmd:0x%.8x", rkfec_fd, RKFEC_CMD_BUF_ALLOC);
         return ret;
     }
 
@@ -143,7 +144,7 @@ int rk_ispfec_api_vb_alloc(int fd, uint32_t size, struct rkfec_buffer* buf) {
     buf->size      = buffer.size;
     buf->map       = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, buffer.buf_fd, 0);
     if (buf->map == MAP_FAILED) {
-        perror("mmap");
+        rkfec_err("Mmap failed");
         return -1;
     }
 
@@ -157,21 +158,18 @@ int rk_ispfec_api_vb_free(int fd, struct rkfec_buffer* buf) {
 
     int ret = 0;
 
-    if (munmap(buf->map, buf->size) == -1) {
-        perror("munmap");
-        return -1;
-    }
-
-    buf->map = NULL;
-
-    close(buf->dmabuf_fd);
-
     ret = ioctl(rkfec_fd, RKFEC_CMD_BUF_DEL, buf);
     if (ret < 0) {
-        printf("ioctl return failed on fd(%d), cmd:0x%.8x", rkfec_fd, RKFEC_CMD_BUF_DEL);
+        rkfec_err("ioctl return failed on fd(%d), cmd:0x%.8x", rkfec_fd, RKFEC_CMD_BUF_DEL);
         return ret;
     }
 
+    if (munmap(buf->map, buf->size) == -1) {
+        rkfec_err("Munmap failed");
+        return -1;
+    }
+
+    buf->map       = NULL;
     buf->size      = 0;
     buf->dmabuf_fd = -1;
 

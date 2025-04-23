@@ -47,6 +47,7 @@ set (IspFec_SRC
 	src/rk_ispfec.cpp
 	src/RkIspFecHw.cpp
 	src/RkIspFecHwMgr.cpp
+	src/RkIspFecComm.c
 	)
 
 if (RKFEC_VERSION STREQUAL "20")

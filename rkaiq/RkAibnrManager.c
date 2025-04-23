@@ -428,8 +428,8 @@ XCamReturn AibnrManager_prepare(AibnrManager_t* pAibnrManager, AiqCamHwBase_t* p
 
 static XCamReturn mmap_ispbuf(struct rkisp_bnr_buf_info *bnr_buf, ispbuf_addr_t *ispbuf_addr)
 {
-    struct rkisp_buf_info *gain_inf, *aiisp_inf;
-    char *gain_addr, *aiisp_addr;
+    struct rkisp_buf_info *gain_inf, *narmap_inf, *aiisp_inf;
+    char *gain_addr, *narmap_addr, *aiisp_addr;
 
     for (int i = 0; i < AIBNR_ISP_BUF_MAX; i++) {
         ispbuf_addr[i].iir_addr = NULL;
@@ -449,6 +449,16 @@ static XCamReturn mmap_ispbuf(struct rkisp_bnr_buf_info *bnr_buf, ispbuf_addr_t 
             }
         }
 
+        if (i < AIBNR_AIPRE_BUF_CNT) {
+            narmap_inf = &bnr_buf->u.v35.aipre_gain;
+            narmap_addr = (char*)mmap(NULL, narmap_inf->buf_size, PROT_READ | PROT_WRITE, MAP_SHARED, narmap_inf->buf_fd[i], 0);
+            if (MAP_FAILED == narmap_addr) {
+                LOGE_AIBNR("aiisp fd %d, size %d mmap failed", narmap_inf->buf_fd[i], narmap_inf->buf_size);
+            } else {
+                ispbuf_addr[i].aipre_addr = narmap_addr;
+            }
+        }
+
         if (i < AIBNR_AIISP_BUF_CNT) {
             aiisp_inf = &bnr_buf->u.v35.aiisp;
             aiisp_addr = (char*)mmap(NULL, aiisp_inf->buf_size, PROT_READ | PROT_WRITE, MAP_SHARED, aiisp_inf->buf_fd[i], 0);
@@ -465,14 +475,18 @@ static XCamReturn mmap_ispbuf(struct rkisp_bnr_buf_info *bnr_buf, ispbuf_addr_t 
 
 static XCamReturn munmap_ispbuf(struct rkisp_bnr_buf_info *bnr_buf, ispbuf_addr_t *ispbuf_addr)
 {
-    struct rkisp_buf_info *gain_inf, *aiisp_inf;
-    char *gain_addr, *aiisp_addr;
+    struct rkisp_buf_info *gain_inf, *narmap_inf, *aiisp_inf;
 
     for (int i = 0; i < AIBNR_ISP_BUF_MAX; i++) {
         if (ispbuf_addr[i].gain_addr != NULL) {
             gain_inf = &bnr_buf->u.v35.gain;
             munmap(ispbuf_addr[i].gain_addr, gain_inf->buf_size);
             ispbuf_addr[i].gain_addr = NULL;
+        }
+        if (ispbuf_addr[i].aipre_addr != NULL) {
+            narmap_inf = &bnr_buf->u.v35.aipre_gain;
+            munmap(ispbuf_addr[i].aipre_addr, narmap_inf->buf_size);
+            ispbuf_addr[i].aipre_addr = NULL;
         }
         if (ispbuf_addr[i].aiisp_addr != NULL) {
             aiisp_inf = &bnr_buf->u.v35.aiisp;
@@ -691,13 +705,15 @@ static XCamReturn write_file(char *filename, char *addr, u32 size)
     return XCAM_RETURN_NO_ERROR;
 }
 
-static XCamReturn copy_gain2aiispout(AibnrManager_t* pAibnrManager, int aiisp_buf_fd, int gain_index, int aiisp_index, bool is_hdr)
+static XCamReturn copy_gain2aiispout(AibnrManager_t* pAibnrManager, int aiisp_buf_fd,
+    int gain_index, int narmap_index, int aiisp_index, aibnr_debug_mode_t sw_aiBnrT_debug_mode)
 {
     ispbuf_addr_t *ispbuf_addr = pAibnrManager->ispbuf_addr;
     uint32_t aiisp_width = pAibnrManager->isp_acq_width;
     uint32_t aiisp_height = pAibnrManager->isp_acq_height;
     uint32_t gain_width, gain_height;
-    uint32_t aiisp_stride, gain_stride;
+    uint32_t narmap_width, narmap_height;
+    uint32_t aiisp_stride, gain_stride, narmap_stride;
     uint32_t g_offset = 0;
     struct dma_buf_sync sync = { 0 };
 
@@ -705,12 +721,18 @@ static XCamReturn copy_gain2aiispout(AibnrManager_t* pAibnrManager, int aiisp_bu
         LOGE_AIBNR("%s: gain_index %d is error", __func__, gain_index);
         return XCAM_RETURN_ERROR_FAILED;
     }
-    if (aiisp_index >= AIBNR_GAIN_BUF_CNT || aiisp_index < 0) {
+    if (narmap_index >= AIBNR_AIPRE_BUF_CNT || narmap_index < 0) {
+        LOGE_AIBNR("%s: narmap_index %d is error", __func__, narmap_index);
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+    if (aiisp_index >= AIBNR_AIISP_BUF_CNT || aiisp_index < 0) {
         LOGE_AIBNR("%s: aiisp_index %d is error", __func__, aiisp_index);
         return XCAM_RETURN_ERROR_FAILED;
     }
-    if (ispbuf_addr[aiisp_index].aiisp_addr == NULL || ispbuf_addr[gain_index].gain_addr == NULL) {
-        LOGE_AIBNR("%s: aiisp_addr or gain_addr %d is error", __func__);
+    if (ispbuf_addr[aiisp_index].aiisp_addr == NULL ||
+        ispbuf_addr[narmap_index].aipre_addr == NULL ||
+        ispbuf_addr[gain_index].gain_addr == NULL) {
+        LOGE_AIBNR("%s: aiisp_addr or gain_addr or aipre_addr is error", __func__);
         return XCAM_RETURN_ERROR_FAILED;
     }
 
@@ -720,16 +742,28 @@ static XCamReturn copy_gain2aiispout(AibnrManager_t* pAibnrManager, int aiisp_bu
     gain_width = CEIL_BY(aiisp_width, 16) / 8;
     gain_height = aiisp_height / 2;
     gain_stride = CEIL_BY(aiisp_width, 16) / 8;
+    narmap_width = CEIL_BY(aiisp_width, 16) / 4;
+    narmap_height = aiisp_height / 2;
+    narmap_stride = CEIL_BY(aiisp_width, 16) / 4;
 
     sync.flags = DMA_BUF_SYNC_RW | DMA_BUF_SYNC_START;
     ioctl(aiisp_buf_fd, DMA_BUF_IOCTL_SYNC, &sync);
     // fix use sw_aiisp_gain_mode 1
     uint16_t *aiisp_addr = (uint16_t *)ispbuf_addr[aiisp_index].aiisp_addr;
     uint16_t *gain_addr = (uint16_t *)ispbuf_addr[gain_index].gain_addr;
+    uint8_t *aipre_addr = (uint8_t *)ispbuf_addr[narmap_index].aipre_addr;
 
-    for (uint32_t i = 0; i < gain_height; i++) {
-        for (uint32_t j = 0; j < gain_width; j++) {
-            aiisp_addr[i * aiisp_stride + j] = (gain_addr[i * gain_stride + j] & 0xFF) << 8;
+    if (sw_aiBnrT_debug_mode == aibnr_debugGain_mode) {
+        for (uint32_t i = 0; i < gain_height; i++) {
+            for (uint32_t j = 0; j < gain_width; j++) {
+                aiisp_addr[i * aiisp_stride + j] = (gain_addr[i * gain_stride + j] & 0xFF) << 8;
+            }
+        }
+    } else {
+        for (uint32_t i = 0; i < narmap_height; i++) {
+            for (uint32_t j = 0; j < narmap_width; j++) {
+                aiisp_addr[i * aiisp_stride + j] = (aipre_addr[i * narmap_stride + j] & 0xFF) << 8;
+            }
         }
     }
 
@@ -833,14 +867,14 @@ static XCamReturn AibnrManager_doIspBe(AibnrManager_t* pAibnrManager, struct rki
     }
 
     aiqMutex_lock(&pAibnrManager->iq_param_mutex);
-    bool sw_aiBnrT_showGain_en = pAibnrManager->last_aibnr_params.aibnr_param.sta.debug.sw_aiBnrT_showGain_en;
-    bool is_hdr = pAibnrManager->last_aibnr_params.is_hdr;
+    aibnr_debug_mode_t sw_aiBnrT_debug_mode = pAibnrManager->last_aibnr_params.aibnr_param.sta.debug.sw_aiBnrT_debug_mode;
     aiqMutex_unlock(&pAibnrManager->iq_param_mutex);
 
-    if (!pAibnrManager->is_bypass && sw_aiBnrT_showGain_en) {
+    if (!pAibnrManager->is_bypass && sw_aiBnrT_debug_mode != aibnr_debugOff_mode) {
         idx = isp_in->aiisp_index;
         buf_inf = &bnr_buf->u.v35.aiisp;
-        copy_gain2aiispout(pAibnrManager, buf_inf->buf_fd[idx], isp_in->gain_index, isp_in->aiisp_index, is_hdr);
+        copy_gain2aiispout(pAibnrManager, buf_inf->buf_fd[idx], isp_in->gain_index,
+            isp_in->aipre_gain_index, isp_in->aiisp_index, sw_aiBnrT_debug_mode);
     }
 
     LOGD_AIBNR("aibnr_doIspBe, frame id %d, iir_index %d, gain_index %d, aipre_gain_index %d, vpsl_index %d, aiisp_index %d, is_bypass %d",

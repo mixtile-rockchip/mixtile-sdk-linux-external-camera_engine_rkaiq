@@ -44,7 +44,7 @@ if (ENABLE_SAMPLE_ISPFEC)
     link_directories("${ISPFEC_LIB_DIR}" "${LOCAL_DRM_LIB_DIR}")
 
     add_executable(sample_fec ${SAMPLE_FEC_SRCS})
-    target_link_libraries(sample_fec ${ISPFEC_LIB} drm)
+    target_link_libraries(sample_fec ${ISPFEC_LIB} drm -lpthread)
 
     install(TARGETS sample_fec RUNTIME DESTINATION bin)
 endif()

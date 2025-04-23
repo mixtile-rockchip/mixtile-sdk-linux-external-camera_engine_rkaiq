@@ -74,8 +74,8 @@ public:
 
     RKALGO_FEC_MESH_S mFecMeshBuf;
 
-    std::unique_ptr<float> mPf32MeshX;
-    std::unique_ptr<float> mPf32MeshY;
+    std::unique_ptr<float[]> mPf32MeshX;
+    std::unique_ptr<float[]> mPf32MeshY;
 #ifdef RKFEC_HW_V20
     void* mMesh;
 #else

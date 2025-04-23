@@ -19294,7 +19294,7 @@
 							"stAuto":	{
 								"sta":	{
 									"debug":	{
-										"sw_aiBnrT_showGain_en":	0
+										"sw_aiBnrT_debug_mode":	"aibnr_debugOff_mode"
 									},
 									"model_dir":	{
 										"sw_aiBnrCfg_model_dir":	"/etc/iqfiles/"
@@ -19682,7 +19682,7 @@
 							"stMan":	{
 								"sta":	{
 									"debug":	{
-										"sw_aiBnrT_showGain_en":	0
+										"sw_aiBnrT_debug_mode":	"aibnr_debugOff_mode"
 									},
 									"model_dir":	{
 										"sw_aiBnrCfg_model_dir":	"/etc/iqfiles/"
@@ -38886,7 +38886,7 @@
 							"stAuto":	{
 								"sta":	{
 									"debug":	{
-										"sw_aiBnrT_showGain_en":	0
+										"sw_aiBnrT_debug_mode":	"aibnr_debugOff_mode"
 									},
 									"model_dir":	{
 										"sw_aiBnrCfg_model_dir":	"/etc/iqfiles/"
@@ -39274,7 +39274,7 @@
 							"stMan":	{
 								"sta":	{
 									"debug":	{
-										"sw_aiBnrT_showGain_en":	0
+										"sw_aiBnrT_debug_mode":	"aibnr_debugOff_mode"
 									},
 									"model_dir":	{
 										"sw_aiBnrCfg_model_dir":	"/etc/iqfiles/"

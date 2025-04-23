@@ -253,7 +253,7 @@ void rk_aiq_aibnr_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
     uint16_t gain_tmp                 = sqrt(1.0 / tunning->sw_aiBnrT_noiseAddLumaStatic_th) * 255.0;
     uint16_t ext_tmp                  = (MAX((int)gain_tmp - ai_cfg->aipre_noise_mot_offset, 0) * ai_cfg->aipre_noise_mot_gain) >> 3;
     gain_tmp                          = MIN(gain_tmp + ext_tmp, 2047);
-    ai_cfg->aipre_noise_luma_static   = MIN(255 * ai_cfg->aipre_gain_ratio / gain_tmp, 128);
+    ai_cfg->aipre_noise_luma_static   = MIN(ai_cfg->aipre_gain_ratio / gain_tmp, 128);
 
     ai_cfg->aipre_gain_alpha          = 8;
     ai_cfg->aipre_global_gain         = 128;

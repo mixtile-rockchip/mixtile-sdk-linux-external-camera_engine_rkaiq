@@ -63,8 +63,8 @@ static void printParam(AibnrContext_t *pAibnrCtx, aibnr_param_t* out, int iso)
     LOGD_AIBNR("sw_aiBnrCfg_model_dir=%s sw_aiBnrT_model_file=%s sw_aiBnrT_doRknn_en=%d",
               sta->model_dir.sw_aiBnrCfg_model_dir, tunning->sw_aiBnrT_model_file, tunning->sw_aiBnrT_doRknn_en);
 
-    LOGD_AIBNR("sw_aiBnrT_showGain_en=%d",
-              sta->debug.sw_aiBnrT_showGain_en);
+    LOGD_AIBNR("sw_aiBnrT_debug_mode=%d",
+              sta->debug.sw_aiBnrT_debug_mode);
 }
 
 XCamReturn AibnrSelectParam
@@ -447,8 +447,8 @@ static int dump(const RkAiqAlgoCom* self, st_string* result)
     aiq_string_printf(result, "\n");
 
     memset(buffer, 0, MAX_LINE_LENGTH);
-    snprintf(buffer, MAX_LINE_LENGTH, "sw_aiBnrT_showGain_en=%d",
-            sta->debug.sw_aiBnrT_showGain_en);
+    snprintf(buffer, MAX_LINE_LENGTH, "sw_aiBnrT_debug_mode=%d",
+            sta->debug.sw_aiBnrT_debug_mode);
     aiq_string_printf(result, buffer);
     aiq_string_printf(result, "\n");
 

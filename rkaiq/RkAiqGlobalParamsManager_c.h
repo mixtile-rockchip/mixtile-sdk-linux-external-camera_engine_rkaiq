@@ -108,7 +108,9 @@ void GlobalParamsManager_lockAlgoParam(GlobalParamsManager_t* pMan, int type);
 void GlobalParamsManager_unlockAlgoParam(GlobalParamsManager_t* pMan, int type);
 bool GlobalParamsManager_getAndClearAlgoParamUpdateFlagLocked(GlobalParamsManager_t* pMan, int type);
 XCamReturn GlobalParamsManager_checkAlgoEnableBypass(GlobalParamsManager_t* pMan, int type, bool* en, bool* bypass);
-
+#if ISP_HW_V35
+XCamReturn GlobalParamsManager_checkStatsrc(GlobalParamsManager_t* pMan, void* calib, int type);
+#endif
 #define GlobalParamsManager_setManager(pMan, pRkAiqManager) \
         (pMan)->rkAiqManager = pRkAiqManager
 #define GlobalParamsManager_setSocket(pMan, socket) \

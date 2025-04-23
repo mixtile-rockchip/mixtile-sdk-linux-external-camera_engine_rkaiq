@@ -88,7 +88,7 @@
 #elif ISP_HW_V33
 #include "isp/rk_aiq_stats_awb33.h"
 #elif ISP_HW_V35
-#include "isp/rk_aiq_stats_awb33.h"
+#include "isp/rk_aiq_stats_awb35.h"
 #endif
 
 #define ANR_NO_SEPERATE_MARCO (0)

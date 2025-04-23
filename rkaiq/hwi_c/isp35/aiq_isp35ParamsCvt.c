@@ -539,6 +539,7 @@ static void WriteDataForIcCmodel(struct isp35_rawawb_meas_cfg* wpDetectPara)
         fprintf(fp, "g_awb_para.sw_rawawb_in_overexposure_thr =%d;\n", wpDetectPara->in_overexposure_threshold);
         fprintf(fp, "g_awb_para.esw_rawawbin_low12bit_val =%d;\n", wpDetectPara->low12bit_val);
         fprintf(fp, "g_awb_para.sw_drc2awb_sel_en =%d;\n", wpDetectPara->drc2awb_sel);
+        fprintf(fp, "g_awb_para.bnr_be_sel =%d;\n", wpDetectPara->bnr_be_sel);
         fprintf(fp, "g_awb_para.sw_bnr2awb_sel_en =%d;\n", wpDetectPara->bnr2awb_sel);
         fprintf(fp, "g_awb_para.sw_3a_rawawb_sel =%d;\n", wpDetectPara->rawawb_sel);
         fprintf(fp, "g_awb_para.sw_bls_en =%d;\n", wpDetectPara->bls2_en);
@@ -577,6 +578,7 @@ static void WriteAwbReg(struct isp35_rawawb_meas_cfg* awb_cfg_v35) {
     //fprintf(fp, "\t\tsw_rawawb_en = 0x%0x (%d)\n",                              awb_cfg_v35->en                            ,awb_cfg_v35->en);
     fprintf(fp, "\t\tsw_drc2awb_sel = 0x%0x (%d)\n",                                  awb_cfg_v35->drc2awb_sel, awb_cfg_v35->drc2awb_sel);
     fprintf(fp, "\t\tsw_bnr2awb_sel = 0x%0x (%d)\n",                                  awb_cfg_v35->bnr2awb_sel, awb_cfg_v35->bnr2awb_sel);
+    fprintf(fp, "\t\tsw_bnr_be_sel = 0x%0x (%d)\n",                                  awb_cfg_v35->bnr_be_sel, awb_cfg_v35->bnr_be_sel);
     fprintf(fp, "\t\tsw_rawawb_sel = 0x%0x (%d)\n",                                   awb_cfg_v35->rawawb_sel, awb_cfg_v35->rawawb_sel);
     fprintf(fp, "\t\tsw_rawawb_uv_en0 = 0x%0x (%d)\n",                            awb_cfg_v35->uv_en0, awb_cfg_v35->uv_en0);
     fprintf(fp, "\t\tsw_rawawb_xy_en0 = 0x%0x (%d)\n",                            awb_cfg_v35->xy_en0, awb_cfg_v35->xy_en0);
@@ -826,7 +828,7 @@ static void calcInputBitIs12Bit(uint8_t* inputBitIs12Bit, const awbStats_cfg_t* 
     // inputShiftEnable is true for 20bit ipnut ,for CALIB_AWB_INPUT_BAYERNR + (hdr case  or
     // dgainInAwbGain) is enbale case
     // to do  inputShiftEnable = !inputBitIs12Bit;
-    bool selectBayerNrData = (awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrOut_mode);
+    bool selectBayerNrData = (awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrOut_mode||awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrfeOut_mode);
     bool dgainEn           = ablc_en && isp_ob_predgain > 1;
     if (selectBayerNrData &&
         (dgainEn || (rk_aiq_working_mode_t)working_mode != RK_AIQ_WORKING_MODE_NORMAL)) {
@@ -852,7 +854,7 @@ static void ConfigBlc2(const blc_res_cvt_t* ablc, const awbStats_cfg_t* awb_meas
     awb_cfg_v35->bls2_val.gb = 0;
     awb_cfg_v35->bls2_val.b  = 0;
     if (awb_meas->hw_awbCfg_statsSrc_mode == awbStats_drcOut_mode ||
-        (awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrOut_mode &&
+        ((awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrOut_mode||awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrfeOut_mode) &&
          working_mode != RK_AIQ_WORKING_MODE_NORMAL)) {
         LOGW_AWB("The BLC bias of the awbStats pathway is not effective in the current mode and is consistent with the main pathway");
         // don't support to use blc2
@@ -882,7 +884,7 @@ static void ConfigBlc2(const blc_res_cvt_t* ablc, const awbStats_cfg_t* awb_meas
         // }
     }
     // 2 blc2 recalc base on ablc
-    if (awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrOut_mode) {
+    if (awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrOut_mode||awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrfeOut_mode) {
         // update by (offset +blc1)*dgain
         // working_mode = normal,so   applyPosition = IN_AWBGAIN1
         awb_cfg_v35->bls2_val.r =
@@ -917,7 +919,7 @@ static XCamReturn ConfigOverexposureValue(const blc_res_cvt_t* ablc, float hdrmg
         ob = ablc->isp_ob_offset;*/
     if (awb_meas->hw_awbCfg_statsSrc_mode == awbStats_drcOut_mode) {
         awb_cfg_v35->in_overexposure_threshold = overexposure_value;
-    } else if (awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrOut_mode) {
+    } else if (awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrOut_mode||awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrfeOut_mode) {
         if (ablc && ablc->en && isp_ob_predgain > 1) {
             dgain = isp_ob_predgain;
         }
@@ -1048,7 +1050,7 @@ static void ConfigPreWbgain3(struct isp35_rawawb_meas_cfg* awb_cfg_v35,
     if ((awb_gain->rgain * awb_gain->grgain * awb_gain->bgain > 0.0001) &&
         (awb_meas->com.hw_awbCfg_statsSrc_mode == awbStats_drcOut_mode ||
          (awb_gain->applyPosition == IN_AWBGAIN0 &&
-          awb_meas->com.hw_awbCfg_statsSrc_mode == awbStats_btnrOut_mode))) {
+        (awb_meas->com.hw_awbCfg_statsSrc_mode == awbStats_btnrOut_mode||awb_meas->com.hw_awbCfg_statsSrc_mode == awbStats_btnrfeOut_mode)))) {
         // for awb statistics after the awbgain application
         awb_cfg_v35->pre_wbgain_inv_r =
             (1 << RK_AIQ_AWB_PRE_WBGAIN_FRAC_BIT) / awb_gain->rgain * preWbgainSw[0] + 0.5;
@@ -1060,7 +1062,7 @@ static void ConfigPreWbgain3(struct isp35_rawawb_meas_cfg* awb_cfg_v35,
     } else {
         if ((awb_meas->com.hw_awbCfg_statsSrc_mode == awbStats_drcOut_mode ||
              (awb_gain->applyPosition == IN_AWBGAIN0 &&
-              awb_meas->com.hw_awbCfg_statsSrc_mode == awbStats_btnrOut_mode))) {
+            (awb_meas->com.hw_awbCfg_statsSrc_mode == awbStats_btnrOut_mode||awb_meas->com.hw_awbCfg_statsSrc_mode == awbStats_btnrfeOut_mode)))) {
             LOGE_AWB("%s, wrong awb_gain!!! ", __FUNCTION__);
         }
         // for awb statistics before the awbgain application
@@ -1195,12 +1197,17 @@ static void convertAiqAwbToIsp33Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_
              awb_cfg_v35->bls2_val.gr, awb_cfg_v35->bls2_val.gb, awb_cfg_v35->bls2_val.b);
 
     awb_cfg_v35->rawawb_sel = 0;
+    awb_cfg_v35->bnr_be_sel=0;
     if (awb_meas->hw_awbCfg_statsSrc_mode == awbStats_drcOut_mode) {
         awb_cfg_v35->drc2awb_sel = 1;
     } else {
         awb_cfg_v35->drc2awb_sel = 0;
-        if (awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrOut_mode) {
+        if (awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrOut_mode||
+            awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrfeOut_mode) {
             awb_cfg_v35->bnr2awb_sel = 1;
+            if(awb_meas->hw_awbCfg_statsSrc_mode == awbStats_btnrOut_mode) {
+                awb_cfg_v35->bnr_be_sel=1;
+            }
         } else {
             awb_cfg_v35->bnr2awb_sel = 0;
             awb_cfg_v35->rawawb_sel  = awb_meas->hw_awbCfg_statsSrc_mode;

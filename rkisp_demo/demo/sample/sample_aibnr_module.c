@@ -60,8 +60,8 @@ static int sample_aibnr_query_status(const rk_aiq_sys_ctx_t *ctx) {
     printf("sw_aiBnrCfg_model_dir=%s sw_aiBnrT_model_file=%s sw_aiBnrT_doRknn_en=%d\n",
               sta->model_dir.sw_aiBnrCfg_model_dir, tunning->sw_aiBnrT_model_file, tunning->sw_aiBnrT_doRknn_en);
 
-    printf("sw_aiBnrT_showGain_en=%d\n",
-              sta->debug.sw_aiBnrT_showGain_en);
+    printf("sw_aiBnrT_debug_mode=%d\n",
+              sta->debug.sw_aiBnrT_debug_mode);
 
     return ret;
 #else
@@ -111,8 +111,8 @@ static int sample_aibnr_get_attrib(const rk_aiq_sys_ctx_t *ctx) {
     printf("sw_aiBnrCfg_model_dir=%s sw_aiBnrT_model_file=%s sw_aiBnrT_doRknn_en=%d\n",
               sta->model_dir.sw_aiBnrCfg_model_dir, tunning->sw_aiBnrT_model_file, tunning->sw_aiBnrT_doRknn_en);
 
-    printf("sw_aiBnrT_showGain_en=%d\n",
-              sta->debug.sw_aiBnrT_showGain_en);
+    printf("sw_aiBnrT_debug_mode=%d\n",
+              sta->debug.sw_aiBnrT_debug_mode);
 
     sta = &attr.stAuto.sta;
     for (int i = 0; i < AIBNR_ISO_STEP_MAX; i++) {
@@ -145,8 +145,8 @@ static int sample_aibnr_get_attrib(const rk_aiq_sys_ctx_t *ctx) {
         printf("sw_aiBnrCfg_model_dir=%s sw_aiBnrT_model_file=%s sw_aiBnrT_doRknn_en=%d\n",
                   sta->model_dir.sw_aiBnrCfg_model_dir, tunning->sw_aiBnrT_model_file, tunning->sw_aiBnrT_doRknn_en);
 
-        printf("sw_aiBnrT_showGain_en=%d\n",
-                  sta->debug.sw_aiBnrT_showGain_en);
+        printf("sw_aiBnrT_debug_mode=%d\n",
+                  sta->debug.sw_aiBnrT_debug_mode);
 
     }
 

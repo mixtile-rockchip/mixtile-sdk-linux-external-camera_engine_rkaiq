@@ -5396,6 +5396,11 @@ XCamReturn AiqCamHw_notify_sof(AiqCamHwBase_t* pCamHw, AiqHwEvt_t* sof_evt) {
 static void _setIspExp(AiqCamHwBase_t* pCamHw, struct sensor_exposure_cfg* pExpCfg, AiqSensorExpInfo_t* ae_exp)
 {
     rk_aiq_exposure_sensor_descriptor* pSnsDes = &pCamHw->_mSensorDev->_sensor_desc;
+    if (pSnsDes->vt_pix_clk_freq_hz == 0 || pSnsDes->sensor_output_height == 0) {
+        LOGV_CAMHW_SUBM(ISP20HW_SUBM, "sensor info is not ready, skip set exposure");
+        return;
+    }
+
     uint64_t nano_seconds_per_second = 1000000000ULL;
     uint32_t rolling_shutter_skew =
             pSnsDes->line_length_pck * nano_seconds_per_second /

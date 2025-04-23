@@ -52,6 +52,7 @@ typedef struct LscContext_s {
     lsc_meshGain_t damped_matrix;
 
     bool is_calib_update;
+    bool isReCal_;
 
 } LscContext_t;
 

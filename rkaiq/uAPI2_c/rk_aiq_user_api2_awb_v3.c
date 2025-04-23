@@ -33,6 +33,9 @@ rk_aiq_user_api2_awb_SetAttrib(const rk_aiq_sys_ctx_t* sys_ctx, awb_api_attrib_t
     CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AWB);
     RKAIQ_API_SMART_LOCK(sys_ctx);
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
+#if ISP_HW_V35
+    GlobalParamsManager_checkStatsrc(&sys_ctx->_rkAiqManager->mGlobalParamsManager, attr, RESULT_TYPE_AWB_PARAM);
+#endif
 
     if (sys_ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
 #ifdef RKAIQ_ENABLE_CAMGROUP
@@ -200,6 +203,12 @@ rk_aiq_user_api2_awb_SetAwbStatsAttrib(const rk_aiq_sys_ctx_t* sys_ctx, awb_Stat
     CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AWB);
     RKAIQ_API_SMART_LOCK(sys_ctx);
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+#if ISP_HW_V35
+    awb_api_attrib_t awb_api_attr;
+    awb_api_attr.awbStats = *attr;
+    GlobalParamsManager_checkStatsrc(&sys_ctx->_rkAiqManager->mGlobalParamsManager, &awb_api_attr, RESULT_TYPE_AWB_PARAM);
+#endif
 
     if (sys_ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
 #ifdef RKAIQ_ENABLE_CAMGROUP

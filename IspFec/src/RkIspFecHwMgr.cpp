@@ -21,14 +21,16 @@
 #include <dirent.h>
 #include <dlfcn.h>
 #include <fcntl.h>
-#include <stdlib.h>
+#include <linux/videodev2.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/time.h>
-#include <string.h>
 #include <unistd.h>
-#include <linux/videodev2.h>
+
+#include "RkIspFecComm.h"
 
 namespace RKISPFEC {
 
@@ -53,7 +55,7 @@ RkIspFecHwMgr::RkIspFecHwMgr()
         mFecHw[i] = new RkIspFecHw(mFecVdPath[i]);
         mIsFecHwWking[i] = false;
     }
-    printf("I: %s constructor done !\n", __FUNCTION__);
+    rkfec_info("%s constructor done !", __FUNCTION__);
 }
 
 RkIspFecHwMgr::~RkIspFecHwMgr()
@@ -106,7 +108,7 @@ int RkIspFecHwMgr::readFileList(const char *basePath) {
     char filename[1000];
 
     if ((dir = opendir(basePath)) == NULL) {
-        printf("E: Open dir error...\n");
+        rkfec_err("Open dir error...");
         return found;
     }
 
@@ -125,13 +127,13 @@ int RkIspFecHwMgr::readFileList(const char *basePath) {
                 if (fp) {
                     char buf[128];
                     const char* ret = fgets(buf, 128, fp);
-                    // printf("buf=%s\n", buf);
+                    rkfec_dbg(5, rkfec_debug, "Enumerate sysfs node info: %s", buf);
 #ifdef RKFEC_HW_V20
                     if (strstr(buf, "rkfec_offline") != NULL) {
 #else
                     if (strstr(buf, "rkispp_fec") != NULL) {
 #endif
-                        printf("found ispp fec node\n");
+                        rkfec_info("found rk fec node: %s", buf);
                         found = 1;
                         fclose(fp);
                         break;
@@ -152,6 +154,11 @@ int RkIspFecHwMgr::readFileList(const char *basePath) {
 void RkIspFecHwMgr::findFecEntry() {
     int found = -1;
     char path[128] = {0};
+#ifdef RKFEC_HW_V20
+#define MAX_FEC_VIDEO_NUM 1
+#else
+#define MAX_FEC_VIDEO_NUM 2
+#endif
 
     for (int i = 0; i < SEARCH_MAX_VIDEO_NODES; i++) {
         memset(path, 0, sizeof(path));
@@ -161,16 +168,15 @@ void RkIspFecHwMgr::findFecEntry() {
             if (found > 0) {
                 sprintf(mFecVdPath[mFecVdNum], "/dev/video%d", i);
                 mFecVdNum++;
-                if (mFecVdNum == 2)
-                    break;
+                if (mFecVdNum == MAX_FEC_VIDEO_NUM) break;
             }
         }
     }
 
     if (mFecVdNum == 0)
-        printf("E: not found fec hw !\n");
+        rkfec_err("not found fec hw !");
     else {
-        printf("I: found %d hw !\n", mFecVdNum);
+        rkfec_info("found %d hw !", mFecVdNum);
     }
 
     return;
@@ -183,6 +189,9 @@ RkIspFecHwMgr::selectFecHw()
 
     if (mFecVdNum <= 0)
         return fecHw;
+
+    static Profiler prof = {0};
+    if (rkfec_debug > 4) rkfec_profiling_start(&prof);
 
     int ret = pthread_mutex_lock (&mMutex);
 
@@ -202,6 +211,10 @@ RkIspFecHwMgr::selectFecHw()
 
     ret = pthread_mutex_unlock (&mMutex);
 
+    rkfec_dbg(3, rkfec_debug, "selectFecHw: %d ", fecHw);
+
+    if (rkfec_debug > 4) rkfec_profiling_end(&prof, "selectFecHw", 100);
+
     return fecHw;
 }
 
@@ -212,14 +225,14 @@ int RkIspFecHwMgr::process(RKFecInOut& param) {
     if (fecHw != -1) {
         ret = mFecHw[fecHw]->process(param);
         if (ret) {
-            printf("E: process error:%d \n", ret);
+            rkfec_err("process error:%d ", ret);
         }
         ret |= pthread_mutex_lock (&mMutex);
         mIsFecHwWking[fecHw] = false;
         pthread_cond_signal(&mCond);
         ret |= pthread_mutex_unlock (&mMutex);
     } else {
-        printf("E: no fecHw exsist \n");
+        rkfec_err("no fecHw exsist ");
     }
 
     return ret;

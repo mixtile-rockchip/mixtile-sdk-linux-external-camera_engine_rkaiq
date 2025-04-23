@@ -286,7 +286,8 @@ XCamReturn Alsc_prepare(RkAiqAlgoCom* params)
 
     pLscCtx->pre_illu_idx = INVALID_ILLU_IDX;
     pLscCtx->pre_vignetting = 0.0;
-    pLscCtx->is_calib_update = false;
+    pLscCtx->isReCal_ = true;
+    pLscCtx->is_calib_update = true;
     pLscCtx->lsc_tableAll_use_len = pLscCtx->lsc_attrib->calibdb.tableAll_len;
 
     return XCAM_RETURN_NO_ERROR;
@@ -298,7 +299,7 @@ XCamReturn Alsc_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
     lsc_api_attrib_t* tunning = &pLscCtx->lsc_attrib->tunning;
     alsc_lscCalib_t* calibdb = &pLscCtx->lsc_attrib->calibdb;
 
-    bool need_recal = false;
+    bool need_recal = pLscCtx->isReCal_;
 
     if (inparams->u.proc.is_attrib_update || inparams->u.proc.init) {
         need_recal = true;
@@ -366,6 +367,7 @@ XCamReturn Alsc_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
         outparams->cfg_update = true;
         outparams->en = tunning ->en;
         outparams->bypass = tunning ->bypass;
+        pLscCtx->isReCal_ = false;
         LOGD_ALSC("lsc en:%d, bypass:%d", outparams->en, outparams->bypass);
     }
     return XCAM_RETURN_NO_ERROR;

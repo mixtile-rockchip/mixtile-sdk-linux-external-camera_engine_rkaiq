@@ -944,11 +944,41 @@ checkAlgoEnableInit(GlobalParamsManager_t* pMan) {
     }
 #endif
 }
+#if ISP_HW_V35
+XCamReturn GlobalParamsManager_checkStatsrc(GlobalParamsManager_t* pMan, void* calib, int type) {
+    int state = AiqManager_getAiqState(pMan->rkAiqManager);
 
+    if (state != AIQ_STATE_INITED && state != AIQ_STATE_STOPED) {
+        if (*pMan->mGlobalParams[RESULT_TYPE_AIBNR_PARAM].en) {
+            if (type == RESULT_TYPE_AWB_PARAM) {
+                awb_api_attrib_t* awb_calib = (awb_api_attrib_t*)calib;
+                awb_api_attrib_t* old_calib = (awb_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(
+                    (void*)(pMan->mCalibDb), wb));
+                if (old_calib->awbStats.hw_awbCfg_statsSrc_mode != awb_calib->awbStats.hw_awbCfg_statsSrc_mode) {
+                    LOGW_AWB("It isn't safe to switch 3A statistics source when aibnr is on");
+                    socket_client_setNote(pMan->_socket, IPC_RET_UAPI_WARNING, "It isn't safe to switch 3A statistics source when aibnr is on");
+                }
+            }
+            if (type == RESULT_TYPE_AF_PARAM) {
+                af_param_t* af_calib = (af_param_t*)calib;
+                af_param_t* old_calib = (af_param_t*)(CALIBDBV2_GET_MODULE_PTR(
+                    (void*)(pMan->mCalibDb), af_calib));
+                for (int i = 0;i < old_calib->measCfg.sw_afT_measCfgTbl_len;i++) {
+                    if (old_calib->measCfg.measCfgTbl[i].statsCfg.hw_afCfg_statsSrc_mode != af_calib->measCfg.measCfgTbl[i].statsCfg.hw_afCfg_statsSrc_mode) {
+                        LOGW_AF("It isn't safe to switch 3A statistics source when aibnr is on");
+                        socket_client_setNote(pMan->_socket, IPC_RET_UAPI_WARNING, "It isn't safe to switch 3A statistics source when aibnr is on");
+                    }
+                }
+
+            }
+        }
+    }
+    return XCAM_RETURN_NO_ERROR;
+}
+#endif
 XCamReturn GlobalParamsManager_switchCalibDb(GlobalParamsManager_t* pMan, CamCalibDbV2Context_t* calibDb, bool need_check)
 {
     ENTER_ANALYZER_FUNCTION();
-
 	aiqMutex_lock(&pMan->mMutex);
 
     int state = AiqManager_getAiqState(pMan->rkAiqManager);
@@ -958,8 +988,7 @@ XCamReturn GlobalParamsManager_switchCalibDb(GlobalParamsManager_t* pMan, CamCal
             aiqMutex_unlock(&pMan->mMutex);
             return XCAM_RETURN_ERROR_FAILED;
         }
-	}
-
+    }
     pMan->mCalibDb = calibDb;
     init_withCalib(pMan);
     if (need_check) {

@@ -22,24 +22,7 @@
 #include <stdio.h>
 #include <sys/time.h>
 
-#define XCAM_STATIC_PROFILING_START(name)    \
-    static long long int name##_times = 0;   \
-    static struct timeval name##_start_time; \
-    static struct timeval name##_end_time;   \
-    gettimeofday(&name##_start_time, NULL);  \
-    ++name##_times;
-
-#define XCAM_STATIC_PROFILING_END(name, times_of_print)                                     \
-    static double name##_sum_time = 0;                                                      \
-    gettimeofday(&name##_end_time, NULL);                                                   \
-    name##_sum_time += (name##_end_time.tv_sec - name##_start_time.tv_sec) * 1000.0f +      \
-                       (name##_end_time.tv_usec - name##_start_time.tv_usec) / 1000.0f;     \
-    if (name##_times >= times_of_print) {                                                   \
-        printf("profiling %s, fps:%.2f duration:%.2fms\n", #name,                           \
-               (name##_times * 1000.0f / name##_sum_time), name##_sum_time / name##_times); \
-        name##_times    = 0;                                                                \
-        name##_sum_time = 0.0;                                                              \
-    }
+#include "RkIspFecComm.h"
 
 #define ENABLE_TIME_PROFILE 0
 
@@ -54,20 +37,22 @@ RkIspFecGenMesh::init(int32_t srcWidth, int32_t srcHeight,
                          enum rk_ispfec_correct_style style)
 {
     int32_t ret = -1;
+    Profiler prof = {0};
 
     if (mInited) {
-        printf("genFecMesh has been initialized!!\n");
+        rkfec_dbg(5, rkfec_debug, "genFecMesh has been initialized!!");
         return 0;
     }
 
     if (!lightCenter || !coeff) {
-        printf("E: lightCenter or coeff is null!\n");
+        rkfec_err("lightCenter or coeff is null!");
         return ret;
     }
 
-    printf("I: src w: %d, h: %d, dst w: %d, h: %d\n", srcWidth, srcHeight, dstWidth, dstHeight);
-    printf("I: the light center of lens: %.16f, %.16f\n", lightCenter[0], lightCenter[1]);
-    printf("I: the coeff of lens: %.16f, %.16f, %.16f, %.16f\n", coeff[0], coeff[1], coeff[2], coeff[3]);
+    rkfec_info("src w: %d, h: %d, dst w: %d, h: %d", srcWidth, srcHeight, dstWidth, dstHeight);
+    rkfec_info("the light center of lens: %.16f, %.16f", lightCenter[0], lightCenter[1]);
+    rkfec_info("the coeff of lens: %.16f, %.16f, %.16f, %.16f", coeff[0], coeff[1], coeff[2],
+               coeff[3]);
 
     mCoeff.cx = lightCenter[0];
     mCoeff.cy = lightCenter[1];
@@ -114,13 +99,13 @@ RkIspFecGenMesh::init(int32_t srcWidth, int32_t srcHeight,
 
     ret = calcFloatMeshSizeRK(&mFloatMeshInfo);
     if (-1 == ret) {
-        printf("%s: failed to calcFloatMeshSizeRK\n", __func__);
+        rkfec_err("%s: failed to calcFloatMeshSizeRK", __func__);
         goto exit;
     }
 
     /* 下采样浮点表的内存申请 */
-    mPf32MeshX = std::unique_ptr<float>(new float[mFloatMeshInfo.u64FloatMeshBufSize]);
-    mPf32MeshY = std::unique_ptr<float>(new float[mFloatMeshInfo.u64FloatMeshBufSize]);
+    mPf32MeshX = std::unique_ptr<float[]>(new float[mFloatMeshInfo.u64FloatMeshBufSize]);
+    mPf32MeshY = std::unique_ptr<float[]>(new float[mFloatMeshInfo.u64FloatMeshBufSize]);
 
     /* 计算FEC定点化表的尺寸参数 */
     mFecInfo.srcW          = srcWidth;
@@ -131,26 +116,25 @@ RkIspFecGenMesh::init(int32_t srcWidth, int32_t srcHeight,
     mFecInfo.enMeshStepOpt = enMeshStepOpt; /* FEC定点化表的采样步长选项 */
     ret                    = calcFecMeshSize(&mFecInfo);
     if (-1 == ret) {
-        printf("%s: failed to calcFecMeshSize\n", __func__);
+        rkfec_err("%s: failed to calcFecMeshSize", __func__);
         goto exit;
     }
 
     /* 生成下采样浮点表的初始化 */
-#if ENABLE_TIME_PROFILE
-    XCAM_STATIC_PROFILING_START(genFloatMeshNLevelInit);
-#endif
+    if (rkfec_debug > 4) rkfec_profiling_start(&prof);
+
     ret = genFloatMeshNLevelInit(&mCoeff, &mFloatMeshInfo);
     if (-1 == ret) {
-        printf("%s: failed to genFloatMeshNLevelInit\n", __func__);
+        rkfec_err("%s: failed to genFloatMeshNLevelInit", __func__);
         goto exit;
     }
-#if ENABLE_TIME_PROFILE
-    XCAM_STATIC_PROFILING_END(genFloatMeshNLevelInit, 0);
-#endif
 
-    printf("I: fec mode: %d, direction: %d, level: %d, mesh: w: %d, h: %d, total size: %" PRId64
-           "\n",
-           mStyle, mDirection, mLevel, mFecInfo.meshW, mFecInfo.meshH, mFecInfo.u64FecMeshBufSize);
+    if (rkfec_debug > 4) rkfec_profiling_end(&prof, "genFloatMeshNLevelInit", 30);
+
+    rkfec_info("I: fec mode: %d, direction: %d, level: %d, mesh: w: %d, h: %d, total size: %" PRId64
+               " bytes",
+               mStyle, mDirection, mLevel, mFecInfo.meshW, mFecInfo.meshH,
+               mFecInfo.u64FecMeshBufSize);
 
     mInited = true;
 
@@ -163,7 +147,7 @@ exit:
 int32_t RkIspFecGenMesh::deinit()
 {
     if (!mInited) {
-        printf("genFecMesh hasn't been initialized!\n");
+        rkfec_err("genFecMesh hasn't been initialized!");
         return 0;
     }
 
@@ -175,42 +159,41 @@ int32_t RkIspFecGenMesh::genMesh(int32_t level)
     int32_t ret = -1;
 
     if (!mInited) {
-        printf("E: genfecMesh hasn't been initialized!\n");
+        rkfec_err("GenfecMesh hasn't been initialized!");
         return 0;
     }
 
 #ifdef RKFEC_HW_V20
     if (!mMesh) {
-        printf("E: mesh buffer is null!\n");
+        rkfec_err("Mesh buffer is null!");
         return ret;
     }
 #else
     if (!mMeshXi || !mMeshYi || !mMeshXf || !mMeshYf) {
-        printf("E: mesh buffer is null!\n");
+        rkfec_err("Mesh buffer is null!");
         return ret;
     }
 #endif
 
-    printf("I: the light center of lens: %.16f, %.16f\n", mCoeff.cx, mCoeff.cy);
-    printf("I: the coeff of lens: %.16f, %.16f, %.16f, %.16f\n",
-           mCoeff.a0, mCoeff.a2, mCoeff.a3, mCoeff.a4);
+    rkfec_dbg(3, rkfec_debug, "the light center of lens: %.16f, %.16f", mCoeff.cx, mCoeff.cy);
+    rkfec_dbg(3, rkfec_debug, "the coeff of lens: %.16f, %.16f, %.16f, %.16f", mCoeff.a0, mCoeff.a2,
+              mCoeff.a3, mCoeff.a4);
 
-    printf("I: the level of mesh to be generated: %d\n", level);
+    rkfec_dbg(3, rkfec_debug, "the level of mesh to be generated: %d", level);
+
+    static Profiler prof = {0};
+    if (rkfec_debug > 4) rkfec_profiling_start(&prof);
 
     /* 根据校正等级level，生成下采样浮点表 */
-#if ENABLE_TIME_PROFILE
-    XCAM_STATIC_PROFILING_START(genFloatMeshNLevel);
-#endif
     ret = genFloatMeshNLevel(&mCoeff, &mFloatMeshInfo, level, mPf32MeshX.get(), mPf32MeshY.get());
     if (-1 == ret) {
-        printf("%s: failed to genFloatMeshNLevel\n", __func__);
+        rkfec_err("%s: failed to genFloatMeshNLevel", __func__);
         return ret;
     }
-#if ENABLE_TIME_PROFILE
-    XCAM_STATIC_PROFILING_END(genFloatMeshNLevel, 0);
-#endif
 
-    /* 下采样浮点表 ---> FEC定点化表 */
+    if (rkfec_debug > 4) rkfec_profiling_end(&prof, "genFloatMeshNLevel", 30);
+
+        /* 下采样浮点表 ---> FEC定点化表 */
 #ifdef RKFEC_HW_V20
     mFecMeshBuf.pu8FecMesh = (uint8_t*)mMesh;
 #else
@@ -220,27 +203,29 @@ int32_t RkIspFecGenMesh::genMesh(int32_t level)
     mFecMeshBuf.pu8MeshYF  = (uint8_t*)mMeshYf;
 #endif
 
-#if ENABLE_TIME_PROFILE
-    XCAM_STATIC_PROFILING_START(genFecMeshFromFloatMesh);
-#endif
+    if (rkfec_debug > 4) rkfec_profiling_start(&prof);
+
     ret = genFecMeshFromFloatMesh(&mFecInfo, mPf32MeshX.get(), mPf32MeshY.get(), &mFecMeshBuf);
     if (-1 == ret) {
-        printf("%s: failed to genFecMeshFromFloatMesh\n", __func__);
+        rkfec_err("%s: failed to genFecMeshFromFloatMesh", __func__);
         return ret;
     }
-#if ENABLE_TIME_PROFILE
-    XCAM_STATIC_PROFILING_END(genFecMeshFromFloatMesh, 0);
+
+    if (rkfec_debug > 5) rkfec_profiling_end(&prof, "genFecMeshFromFloatMesh", 30);
+
+    if (rkfec_debug > 4) {
+#ifdef ANDROID_OS
+        char savePath[512] = "/data/";
+#else
+        char savePath[512] = "/tmp/";
 #endif
 
-#if 0
-    char savePath[512] = "/tmp/";
+        /* 保存下采样浮点表 */
+        saveFloatMeshRK(savePath, &mFloatMeshInfo, mPf32MeshX.get(), mPf32MeshY.get(), level);
 
-    /* 保存下采样浮点表 */
-    saveFloatMeshRK(savePath, &mFloatMeshInfo, mPf32MeshX.get(), mPf32MeshY.get(), level);
-
-    /* 保存FEC定点化表 */
-    saveFecMesh(savePath, &mFecInfo, &mFecMeshBuf, level);
-#endif
+        /* 保存FEC定点化表 */
+        saveFecMesh(savePath, &mFecInfo, &mFecMeshBuf, level);
+    }
 
     return 0;
 }
@@ -279,7 +264,7 @@ int32_t RkIspFecGenMesh::calcFloateshSizeRK(RKALGO_FLOAT_MESH_INFO_RK_S* pStFloa
             dstHgtAlign = 16 * ((dstH + 15) / 16);
             break;
         default:
-            printf("%s: error: unsupported enMeshType\n", __func__);
+            rkfec_err("%s: error: unsupported enMeshType", __func__);
             goto error_exit;
     }
 
@@ -306,7 +291,7 @@ int32_t RkIspFecGenMesh::calcFloateshSizeRK(RKALGO_FLOAT_MESH_INFO_RK_S* pStFloa
             meshStepH = 16;
             break;
         default:
-            printf("%s: error: unsupported enMeshStepOpt\n", __func__);
+            rkfec_err("%s: error: unsupported enMeshStepOpt", __func__);
             goto error_exit;
     } /* switch (enMeshStepOpt) */
 
@@ -342,7 +327,7 @@ int32_t RkIspFecGenMesh::calcFloateshSizeRK(RKALGO_FLOAT_MESH_INFO_RK_S* pStFloa
             meshW = (dstWidAlign + meshStepW - 1) / meshStepW + 1;
             meshH = (dstHgtAlign + meshStepH - 1) / meshStepH + 1;
         } else {
-            printf("%s: for FEC float mesh, enMeshStepOpt and enFecVersion not match\n", __func__);
+            rkfec_err("%s: for FEC float mesh, enMeshStepOpt and enFecVersion not match", __func__);
             goto error_exit;
         }
     } else if (RKALGO_MESH_TYPE_LDCH == enMeshType) {
@@ -361,7 +346,7 @@ int32_t RkIspFecGenMesh::calcFloateshSizeRK(RKALGO_FLOAT_MESH_INFO_RK_S* pStFloa
             meshW = (dstWidAlign + meshStepW - 1) / meshStepW + 1;
             meshH = (dstHgtAlign + meshStepH - 1) / meshStepH + 1;
         } else {
-            printf("%s: for LDCH float mesh, meshStepW and meshStepH must be 16x8\n", __func__);
+            rkfec_err("%s: for LDCH float mesh, meshStepW and meshStepH must be 16x8", __func__);
             goto error_exit;
         }
     } else if (RKALGO_MESH_TYPE_LDCV == enMeshType) {
@@ -373,8 +358,8 @@ int32_t RkIspFecGenMesh::calcFloateshSizeRK(RKALGO_FLOAT_MESH_INFO_RK_S* pStFloa
             meshW = (dstWidAlign + meshStepW - 1) / meshStepW + 1;
             meshH = (dstHgtAlign + meshStepH - 1) / meshStepH + 1;
         } else {
-            printf("%s: for only LDCV float mesh, meshStepW and meshStepH must be 16x16\n",
-                   __func__);
+            rkfec_err("%s: for only LDCV float mesh, meshStepW and meshStepH must be 16x16",
+                      __func__);
             goto error_exit;
         }
 
@@ -400,12 +385,12 @@ int32_t RkIspFecGenMesh::calcFloateshSizeRK(RKALGO_FLOAT_MESH_INFO_RK_S* pStFloa
             meshW = (dstWidAlign + meshStepW - 1) / meshStepW + 1;
             meshH = (dstHgtAlign + meshStepH - 1) / meshStepH + 1;
         } else {
-            printf("%s: for LDCH + LDCV float mesh, meshStepW and meshStepH must be 1x1\n",
-                   __func__);
+            rkfec_err("%s: for LDCH + LDCV float mesh, meshStepW and meshStepH must be 1x1",
+                      __func__);
             goto error_exit;
         }
     } else {
-        printf("%s: unsupported mesh type\n", __func__);
+        rkfec_err("%s: unsupported mesh type", __func__);
         goto error_exit;
     }
     u64FloatMeshBufSize = meshW * meshH;
@@ -460,7 +445,7 @@ int32_t RkIspFecGenMesh::calcFecMeshSize(RKALGO_FEC_INFO_S* pStFecInfo) {
             meshStepH = 4;
             break;
         default:
-            printf("%s: error: unsupported enMeshStepOpt for FEC\n", __func__);
+            rkfec_err("%s: error: unsupported enMeshStepOpt for FEC", __func__);
             goto error_exit;
     } /* switch (enMeshStepOpt) */
 
@@ -474,7 +459,7 @@ int32_t RkIspFecGenMesh::calcFecMeshSize(RKALGO_FEC_INFO_S* pStFecInfo) {
             /* FEC定点化表的步长 */
             if ((RKALGO_MESH_STEP_32x16 != enMeshStepOpt) &&
                 (RKALGO_MESH_STEP_16x8 != enMeshStepOpt)) {
-                printf("%s: error: unsupported enMeshStepOpt for enFecVersion\n", __func__);
+                rkfec_err("%s: error: unsupported enMeshStepOpt for enFecVersion", __func__);
                 goto error_exit;
             }
 
@@ -492,7 +477,7 @@ int32_t RkIspFecGenMesh::calcFecMeshSize(RKALGO_FEC_INFO_S* pStFecInfo) {
             u64FecMeshBufSize = meshW * meshH * 6;
             break;
         default:
-            printf("%s: error: unsupported enFecVersion\n", __func__);
+            rkfec_err("%s: error: unsupported enFecVersion", __func__);
             goto error_exit;
     } /* switch (enFecVersion) */
 
@@ -552,7 +537,7 @@ int32_t RkIspFecGenMesh::saveFloatMeshRK(const char* savePath,
 
     FILE* fpFloatMeshX = fopen(floatMeshXPath, "wb");
     if (NULL == fpFloatMeshX) {
-        printf("%s error: failed to save float mesh\n", __func__);
+        rkfec_err("%s error: failed to save float mesh", __func__);
         return -1;
     } else {
         if (NULL != pf32MeshX) {
@@ -563,7 +548,7 @@ int32_t RkIspFecGenMesh::saveFloatMeshRK(const char* savePath,
 
     FILE* fpFloatMeshY = fopen(floatMeshYPath, "wb");
     if (NULL == fpFloatMeshY) {
-        printf("%s error: failed to save float mesh\n", __func__);
+        rkfec_err("%s error: failed to save float mesh", __func__);
         return -1;
     } else {
         if (NULL != pf32MeshY) {
@@ -603,10 +588,10 @@ int32_t RkIspFecGenMesh::saveFecMesh(const char* savePath, const RKALGO_FEC_INFO
         }
         FILE* fpMesh = fopen(fecMeshPath, "wb");
         if (NULL == fpMesh) {
-            printf("%s error: failed to save FEC mesh!\n", __func__);
+            rkfec_err("%s error: failed to save FEC mesh!", __func__);
             return -1;
         } else {
-            fwrite(pu8FecMesh, sizeof(uint16_t), u64FecMeshBufSize, fpMesh);
+            fwrite(pu8FecMesh, sizeof(uint8_t), u64FecMeshBufSize, fpMesh);
             fclose(fpMesh);
         }
     } else {
@@ -643,7 +628,7 @@ int32_t RkIspFecGenMesh::saveFecMesh(const char* savePath, const RKALGO_FEC_INFO
         fpMeshyi       = fopen(fecMeshPathYi, "wb");
         fpMeshyf       = fopen(fecMeshPathYf, "wb");
         if (NULL == fpMeshxi || NULL == fpMeshxf || NULL == fpMeshyi || NULL == fpMeshyf) {
-            printf("%s error: failed to save FEC mesh 4 bin!\n", __func__);
+            rkfec_err("%s error: failed to save FEC mesh 4 bin!", __func__);
             return -1;
         } else {
             fwrite(pu16MeshXI, sizeof(uint16_t), u64FecMeshBufSize, fpMeshxi);

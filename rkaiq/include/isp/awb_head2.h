@@ -21,8 +21,10 @@
 #define __AWB_HEADER2_H__
 #if defined(ISP_HW_V39)
 #include "isp/rk_aiq_stats_awb39.h"
-#else //defined(ISP_HW_V33)
+#elif defined(ISP_HW_V33)
 #include "isp/rk_aiq_stats_awb33.h"
+#else//defined(ISP_HW_V35)
+#include "isp/rk_aiq_stats_awb35.h"
 #endif
 
 #define CALD_AWB_LWR_NUM_MAX 8
@@ -1540,7 +1542,7 @@ typedef struct awb_zoneWgt_s{
         M4_ALIAS(hw_awbCfg_zone_wgt),
         M4_TYPE(u8),
         M4_SIZE_EX(15,15),
-        M4_RANGE_EX(0,0x3F),
+        M4_RANGE_EX(0,63),
         M4_DEFAULT([6, 6, 6, 8, 8, 8, 8, 10, 8, 8, 8, 8, 6, 6, 6, 6, 6, 8, 8, 10, 10, 12, 12, 12, 10, 10, 8, 8, 6, 6, 6, 8, 10, 12, 14, 16, 18, 20, 18, 16, 14, 12, 10, 8, 6, 8, 8, 12, 16, 22, 26, 30, 32, 30, 26, 22, 16, 12, 8, 8, 8, 10, 14, 22, 28, 36, 42, 46, 42, 36, 28, 22, 14, 10, 8, 8, 10, 16, 26, 36, 46, 54, 58, 54, 46, 36, 26, 16, 10, 8, 8, 12, 18, 30, 42, 54, 63, 63, 63, 54, 42, 30, 18, 12, 8, 10, 12, 20, 32, 46, 58, 63, 63, 63, 58, 46, 32, 20, 12, 10, 8, 12, 18, 30, 42, 54, 63, 63, 63, 54, 42, 30, 18, 12, 8, 8, 10, 16, 26, 36, 46, 54, 58, 54, 46, 36, 26, 16, 10, 8, 8, 10, 14, 22, 28, 36, 42, 46, 42, 36, 28, 22, 14, 10, 8, 8, 8, 12, 16, 22, 26, 30, 32, 30, 26, 22, 16, 12, 8, 8, 6, 8, 10, 12, 14, 16, 18, 20, 18, 16, 14, 12, 10, 8, 6, 6, 6, 8, 8, 10, 10, 12, 12, 12, 10, 10, 8, 8, 6, 6, 6, 6, 6, 8, 8, 8, 8, 10, 8, 8, 8, 8, 6, 6, 6]),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -2790,7 +2792,7 @@ typedef struct awb_line_s {
     M4_ALIAS(a),
     M4_TYPE(f32),
     M4_SIZE_EX(1,1),
-    M4_RANGE_EX(-2147483648,2147483647),
+    M4_RANGE_EX(-32768,32768),
     M4_DEFAULT(1),
     M4_DIGIT_EX(6),
     M4_HIDE_EX(0),
@@ -2803,7 +2805,7 @@ typedef struct awb_line_s {
     M4_ALIAS(b),
     M4_TYPE(f32),
     M4_SIZE_EX(1,1),
-    M4_RANGE_EX(-2147483648,2147483647),
+    M4_RANGE_EX(-32768,32768),
     M4_DEFAULT(1),
     M4_DIGIT_EX(6),
     M4_HIDE_EX(0),
@@ -2816,7 +2818,7 @@ typedef struct awb_line_s {
     M4_ALIAS(c),
     M4_TYPE(f32),
     M4_SIZE_EX(1,1),
-    M4_RANGE_EX(-2147483648,2147483647),
+    M4_RANGE_EX(-32768,32768),
     M4_DEFAULT(1),
     M4_DIGIT_EX(6),
     M4_HIDE_EX(0),

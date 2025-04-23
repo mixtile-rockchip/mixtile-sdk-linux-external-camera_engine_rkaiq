@@ -68,6 +68,7 @@ struct mem_ops {
     void (*deinit)(int fd);
     int (*alloc)(int fd, uint32_t size, struct rkfec_buffer* buf);
     int (*free)(int fd, struct rkfec_buffer* buf);
+    bool need_sync;
 };
 
 typedef struct {
@@ -82,12 +83,15 @@ typedef struct {
 } FecCailbParams;
 
 #define IN_IMAGE_FILE "/data/imx415_4k_nv12.yuv"
+#define IN_MESH_FILE_1 "/data/rv1126b_fecMesh_src3840x2160_dst3840x2160_step32x16_level000.bin"
+#define IN_MESH_FILE_2 "/data/rv1126b_fecMesh_src3840x2160_dst3840x2160_step32x16_level200.bin"
 
 static const char* file_from;
 static const char* file_to;
 static const char* mesh_from;
 static const char* calib_ini_from;
 static unsigned stream_count;
+static unsigned stream_skip;
 static char options[OptLast];
 
 static int width, height, out_width, out_height, pixfmt, out_pixfmt;
@@ -101,7 +105,9 @@ struct rkfec_buffer g_rkfec_buf_pic_in;
 struct rkfec_buffer g_rkfec_buf_pic_out;
 
 #ifdef RKFEC_HW_V20
-struct rkfec_buffer g_rkfec_buf_mesh;
+/* add g_rkfec_buf_mesh[1] for api test */
+#define MESH_BUF_NUM 2
+struct rkfec_buffer g_rkfec_buf_mesh[MESH_BUF_NUM];
 #else
 struct rkfec_buffer g_rkfec_buf_xint;
 struct rkfec_buffer g_rkfec_buf_xfra;
@@ -114,6 +120,9 @@ static int dma_node_fd = -1;
 
 static int target_fps = 30;
 static long target_interval_ns = 33333333L;
+static struct termios oldt;
+static bool is_quit          = false;
+static bool enable_uapi_test = false;
 
 #define IS_DMA_INVALID() (dma_node_fd < 0)
 
@@ -133,6 +142,8 @@ static struct option long_options[] = {
     {"cross-buf-mode", required_argument, NULL, OptCrossBufMode},
     {"set-bg-val", required_argument, NULL, OptSetBgVal},
     {"fps", required_argument, NULL, OptSetFps},
+    {"api-test", required_argument, NULL, OptEnableApiTest},
+    {"stream-skip", required_argument, NULL, OptStreamSkip},
     {0, 0, 0, 0}
     // clang-format on
 };
@@ -147,6 +158,8 @@ void common_usage(void) {
         "                     stream <count> buffers. The default is to keep streaming\n"
         "                     forever. This count does not include the number of initial\n"
         "                     skipped buffers as is passed by --stream-skip.\n"
+        "  --stream-skip <count>\n"
+        "                     skip the first <count> buffers. The default is 0.\n"
         "  --stream-from <file> stream from this file.\n"
         "  --stream-to <file>\n"
         "                     stream to this file. The default is to discard the data.\n"
@@ -162,22 +175,25 @@ void common_usage(void) {
         "                     fill with the bg_val."
         "  -s, --silent       subpress debug log.\n"
         "  -f, --fps <val>    set fps(1-1000).\n"
+        "  -t, --api-test     enable api test.\n"
         "  -h, --help         display this help message.\n");
 }
 
 struct mem_ops rk_mem_ops_tbl[] = {
     {
-        .init   = init_drm,
-        .deinit = deinit_drm,
-        .alloc  = alloc_drm_buffer,
-        .free   = free_drm_buffer,
+        .init      = init_drm,
+        .deinit    = deinit_drm,
+        .alloc     = alloc_drm_buffer,
+        .free      = free_drm_buffer,
+        .need_sync = false,
     },
 #ifdef RKFEC_HW_V20
     {
-        .init   = rk_ispfec_api_vb_init,
-        .deinit = rk_ispfec_api_vb_deinit,
-        .alloc  = rk_ispfec_api_vb_alloc,
-        .free   = rk_ispfec_api_vb_free,
+        .init      = rk_ispfec_api_vb_init,
+        .deinit    = rk_ispfec_api_vb_deinit,
+        .alloc     = rk_ispfec_api_vb_alloc,
+        .free      = rk_ispfec_api_vb_free,
+        .need_sync = true,
     },
 #endif
 };
@@ -224,9 +240,12 @@ int init_ispfec_bufs(rk_ispfec_cfg_t* cfg) {
     int mesh_size = rk_ispfec_api_calFecMeshsize(cfg->out_width, cfg->out_height);
     // 1. alloc mesh buffer
 #ifdef RKFEC_HW_V20
-    ret = cur_mem_pos->alloc(dma_node_fd, mesh_size * 6, &g_rkfec_buf_mesh);
-    if (ret) goto deinit_mem;
-    info("mesh fd:%d size:%" PRId64 "\n", g_rkfec_buf_mesh.dmabuf_fd, g_rkfec_buf_mesh.size);
+    for (int i = 0; i < MESH_BUF_NUM; i++) {
+        ret = cur_mem_pos->alloc(dma_node_fd, mesh_size * 6, &g_rkfec_buf_mesh[i]);
+        if (ret) goto deinit_mem;
+        info("mesh fd:%d size:%" PRId64 "\n", g_rkfec_buf_mesh[i].dmabuf_fd,
+             g_rkfec_buf_mesh[i].size);
+    }
 #else
     ret = cur_mem_pos->alloc(dma_node_fd, mesh_size * 2, &g_rkfec_buf_xint);
     if (ret) goto deinit_mem;
@@ -268,9 +287,9 @@ int init_ispfec_bufs(rk_ispfec_cfg_t* cfg) {
     info("out pic fd:%d size: %" PRId64 "\n", g_rkfec_buf_pic_out.dmabuf_fd, g_rkfec_buf_pic_out.size);
 
 #ifdef RKFEC_HW_V20
-    cfg->mesh_info.dmaFd        = g_rkfec_buf_mesh.dmabuf_fd;
-    cfg->mesh_info.size         = g_rkfec_buf_mesh.size;
-    cfg->mesh_info.vir_addr     = g_rkfec_buf_mesh.map;
+    cfg->mesh_info.dmaFd    = g_rkfec_buf_mesh[0].dmabuf_fd;
+    cfg->mesh_info.size     = g_rkfec_buf_mesh[0].size;
+    cfg->mesh_info.vir_addr = g_rkfec_buf_mesh[0].map;
 #else
     cfg->mesh_xint.dmaFd    = g_rkfec_buf_xint.dmabuf_fd;
     cfg->mesh_xint.size     = g_rkfec_buf_xint.size;
@@ -295,7 +314,7 @@ free_drm_buf_pic_in:
     cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_pic_in);
 free_drm_buf_mesh:
 #ifdef RKFEC_HW_V20
-    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_mesh);
+    for (int i = 0; i < MESH_BUF_NUM; i++) cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_mesh[i]);
 #else
     cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_yfra);
 free_drm_buf_yint:
@@ -313,7 +332,7 @@ deinit_mem:
 
 void deinit_ispfec_bufs() {
 #ifdef RKFEC_HW_V20
-    cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_mesh);
+    for (int i = 0; i < MESH_BUF_NUM; i++) cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_mesh[i]);
 #else
     cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_yfra);
     cur_mem_pos->free(dma_node_fd, &g_rkfec_buf_yint);
@@ -327,12 +346,28 @@ void deinit_ispfec_bufs() {
 
 size_t read_image_from_file(const char* file_path, char* buffer, size_t buffer_size) {
     FILE* file = fopen(file_path, "r");
+    int ret    = 0;
+
     if (file == NULL) {
         stderr_info("Could not open %s for reading\n", file_path);
         return 0;
     }
 
+#ifdef RKFEC_HW_V20
+    if (cur_mem_pos->need_sync) {
+        ret = rk_ispfec_api_vb_sync_start(g_rkfec_buf_pic_in.dmabuf_fd, 1);
+        if (ret) stderr_info("DMA input sync(pre-write) failed: %s\n", strerror(errno));
+    }
+#endif
+
     size_t bytes_read = fread(buffer, 1, buffer_size - 1, file);
+
+#ifdef RKFEC_HW_V20
+    if (cur_mem_pos->need_sync) {
+        ret = rk_ispfec_api_vb_sync_end(g_rkfec_buf_pic_in.dmabuf_fd, 1);
+        if (ret) stderr_info("DMA input sync(post-write) failed: %s\n", strerror(errno));
+    }
+#endif
 
     fclose(file);
     return bytes_read;
@@ -369,16 +404,34 @@ int do_handle_fec(FILE* fout) {
         return -1;
     }
 
-    if (fout && stream_count > 0) {
-        ret = write_buffer_to_file(fout, g_rkfec_buf_pic_out.map, g_rkfec_buf_pic_out.size);
+    if (fout && !stream_skip) {
+#ifdef RKFEC_HW_V20
+        if (cur_mem_pos->need_sync) {
+            ret = rk_ispfec_api_vb_sync_start(g_rkfec_buf_pic_out.dmabuf_fd, 0);
+            if (ret) stderr_info("DMA output sync(pre-read) failed: %s\n", strerror(errno));
+        }
+#endif
 
+        ret = write_buffer_to_file(fout, g_rkfec_buf_pic_out.map, g_rkfec_buf_pic_out.size);
         if (ret <= 0) {
             stderr_info("write_buffer_to_file failed: %s\n", strerror(errno));
             return -1;
         }
 
+#ifdef RKFEC_HW_V20
+        if (cur_mem_pos->need_sync) {
+            ret = rk_ispfec_api_vb_sync_end(g_rkfec_buf_pic_out.dmabuf_fd, 0);
+            if (ret) stderr_info("DMA output sync(post-read) failed: %s\n", strerror(errno));
+        }
+#endif
+
         stderr_info("%c\n", ch);
         fflush(stderr);
+    }
+
+    if (stream_skip) {
+        stream_skip--;
+        return 0;
     }
 
     if (stream_count == 0) return 0;
@@ -499,7 +552,7 @@ static int ini_file_handler(void* user, const char* section, const char* name, c
     return 1;
 }
 
-int parse_fmt(char* optarg, int* width, int* height, int* pixelformat) {
+static int parse_fmt(char* optarg, int* width, int* height, int* pixelformat) {
     char *value, *subs;
     bool be_pixfmt;
 
@@ -532,6 +585,313 @@ int parse_fmt(char* optarg, int* width, int* height, int* pixelformat) {
     }
     return 0;
 }
+
+/* ------------------------------------------------------------------------- */
+// restore terminal settings
+void restore_terminal_settings(void) {
+    // Apply saved settings
+    tcsetattr(0, TCSANOW, &oldt);
+}
+
+// make terminal read 1 char at a time
+void disable_terminal_return(void) {
+    struct termios newt;
+
+    // save terminal settings
+    tcgetattr(0, &oldt);
+    // init new settings
+    newt = oldt;
+    // change settings
+    newt.c_lflag &= ~(ICANON | ECHO);
+    // apply settings
+    tcsetattr(0, TCSANOW, &newt);
+
+    // make sure settings will be restored when program ends
+    atexit(restore_terminal_settings);
+}
+
+static int load_mesh_file(const char* file, void* vir_addr, size_t size) {
+    FILE* fp = fopen(file, "rb");
+    int ret  = 0;
+
+    if (fp) {
+        ret = fseek(fp, 0L, SEEK_END);
+        if (ret < 0) {
+            stderr_info("%s fseek to end failed\n", file);
+            fclose(fp);
+            return ret;
+        }
+
+        size_t len = ftell(fp);
+        rewind(fp);
+
+        if (len > size) {
+            stderr_info("mesh file len %zu > buf size %zu, limit read to %zu bytes only\n", len,
+                        size, size);
+            len = size;
+        }
+
+        size_t rd_size = fread(vir_addr, 1, len, fp);
+        if (rd_size < len) stderr_info("file read size:%zu < %zu\n", rd_size, len);
+
+        info("mesh file len %zu, read size %zu\n", len, rd_size);
+        fclose(fp);
+    } else {
+        stderr_info("open file %s failed: %s\n", file, strerror(errno));
+    }
+
+    return ret;
+}
+
+static int test_api_set_cfg(rk_ispfec_ctx_t* ctx) {
+    int ret             = 0;
+    rk_ispfec_cfg_t cfg = {0};
+
+    for (int i = 0; i < 10; i++) {
+        ret = rk_ispfec_api_get_cfg(ctx, &cfg);
+        if (ret) {
+            stderr_info("rk_ispfec_api_get_cfg failed: %s\n", strerror(errno));
+            return ret;
+        }
+
+        cfg.u.mesh_online.correct_level = (cfg.u.mesh_online.correct_level == 0) ? 200 : 0;
+
+        ret = rk_ispfec_api_set_cfg(ctx, &cfg);
+        if (ret) {
+            stderr_info("rk_ispfec_api_set_cfg failed: %s\n", strerror(errno));
+            return ret;
+        }
+        info("set cfg: correct_level = %d\n", cfg.u.mesh_online.correct_level);
+
+        // This is a simple way to ensure that the parameter update is complete.
+        usleep(100000);  // 100ms delay
+        info("\n");
+    }
+    return 0;
+}
+
+static int test_api_set_mesh_gen_online(rk_ispfec_ctx_t* ctx) {
+    int ret                          = 0;
+    rk_ispfec_mesh_config_t mesh_cfg = {};
+
+    for (int i = 0; i < 10; i++) {
+        if ((ret = rk_ispfec_api_get_mesh_config(ctx, &mesh_cfg))) {
+            stderr_info("Get mesh config failed: %s\n", strerror(errno));
+            return ret;
+        }
+
+        mesh_cfg.mode = RK_ISPFEC_UPDATE_MESH_ONLINE;
+        mesh_cfg.params.online_cfg.correct_level =
+            (mesh_cfg.params.online_cfg.correct_level == 0) ? 200 : 0;
+
+        if ((ret = rk_ispfec_api_set_mesh_config(ctx, &mesh_cfg))) {
+            stderr_info("Set mesh config failed: %s\n", strerror(errno));
+            return ret;
+        }
+
+        // This is a simple way to ensure that the parameter update is complete.
+        usleep(100000);
+        info("\n");
+    }
+    return 0;
+}
+
+static int test_api_set_mesh_from_file(rk_ispfec_ctx_t* ctx) {
+    int ret                          = 0;
+    rk_ispfec_mesh_config_t mesh_cfg = {};
+
+    for (int i = 0; i < 10; i++) {
+        if ((ret = rk_ispfec_api_get_mesh_config(ctx, &mesh_cfg))) {
+            stderr_info("Get mesh config failed: %s\n", strerror(errno));
+            return ret;
+        }
+
+
+#ifdef RKFEC_HW_V20
+        info("Get mesh path: %s\n", mesh_cfg.params.file_cfg.mesh_path);
+        // Toggle between two mesh file paths
+        const char* new_path = (strstr(mesh_cfg.params.file_cfg.mesh_path, IN_MESH_FILE_1))
+                                   ? IN_MESH_FILE_2
+                                   : IN_MESH_FILE_1;
+        strncpy(mesh_cfg.params.file_cfg.mesh_path, new_path,
+                sizeof(mesh_cfg.params.file_cfg.mesh_path));
+
+        info("Set mesh config: %s\n", mesh_cfg.params.file_cfg.mesh_path);
+#else
+        ret = -ENOTSUP;  // Feature not supported
+        break;
+#endif
+
+        mesh_cfg.mode = RK_ISPFEC_UPDATE_MESH_FROM_FILE;
+        if ((ret = rk_ispfec_api_set_mesh_config(ctx, &mesh_cfg))) {
+            stderr_info("Set mesh config failed: %s\n", strerror(errno));
+            return ret;
+        }
+
+
+        // This is a simple way to ensure that the parameter update is complete.
+        usleep(300000);
+        info("\n");
+    }
+    return ret;
+}
+
+static int test_api_set_mesh_from_vaddr(rk_ispfec_ctx_t* ctx) {
+    int ret                          = 0;
+    rk_ispfec_mesh_config_t mesh_cfg = {};
+    static char cur_file[256];
+    const int mesh_size = rk_ispfec_api_calFecMeshsize(out_width, out_height) * 6;
+    void* mesh_buf      = malloc(mesh_size);
+
+    if (!mesh_buf) {
+        stderr_info("Memory allocation failed for %d-byte mesh buffer\n", mesh_size);
+        return -ENOMEM;
+    }
+
+    for (int i = 0; i < 10; i++) {
+        if ((ret = rk_ispfec_api_get_mesh_config(ctx, &mesh_cfg))) {
+            stderr_info("Get config failed: %s\n", strerror(errno));
+            break;
+        }
+
+#ifdef RKFEC_HW_V20
+        // Configure virtual address parameters
+        mesh_cfg.mode                             = RK_ISPFEC_UPDATE_MESH_FROM_BUFFER;
+        mesh_cfg.params.buffer_cfg.mesh.vir_addr  = mesh_buf;
+        mesh_cfg.params.buffer_cfg.mesh.size      = mesh_size;
+        mesh_cfg.params.buffer_cfg.mesh.need_copy = true;
+
+        // Toggle between two mesh files
+        const char* target_file =
+            strstr(cur_file, IN_MESH_FILE_1) ? IN_MESH_FILE_2 : IN_MESH_FILE_1;
+        if ((ret = load_mesh_file(target_file, mesh_buf, mesh_size))) {
+            stderr_info("Load %s failed: %s\n", target_file, strerror(errno));
+            break;
+        }
+        strncpy(cur_file, target_file, sizeof(cur_file));
+
+        info("Set mesh config: %s, via vaddr\n", mesh_cfg.params.file_cfg.mesh_path);
+#else
+        ret = -ENOTSUP;  // Feature not supported
+        break;
+#endif
+
+        if ((ret = rk_ispfec_api_set_mesh_config(ctx, &mesh_cfg))) {
+            stderr_info("Set config failed: %s\n", strerror(errno));
+            break;
+        }
+
+        // This is a simple way to ensure that the parameter update is complete.
+        usleep(100000);  // 100ms cooldown
+        info("\n");
+    }
+
+    free(mesh_buf);
+    return ret;
+}
+
+static int test_api_set_mesh_from_dmafd(rk_ispfec_ctx_t* ctx) {
+    int ret                          = 0;
+    rk_ispfec_mesh_config_t mesh_cfg = {};
+    static char cur_file[256];
+
+    for (int i = 0; i < 10; i++) {
+        if ((ret = rk_ispfec_api_get_mesh_config(ctx, &mesh_cfg))) {
+            stderr_info("Get config failed: %s\n", strerror(errno));
+            break;
+        }
+
+#ifdef RKFEC_HW_V20
+        const int buf_idx       = (strstr(cur_file, IN_MESH_FILE_1)) ? 1 : 0;
+        const char* target_file = (buf_idx) ? IN_MESH_FILE_2 : IN_MESH_FILE_1;
+
+        mesh_cfg.params.buffer_cfg.mesh.dma_fd    = g_rkfec_buf_mesh[buf_idx].dmabuf_fd;
+        mesh_cfg.params.buffer_cfg.mesh.vir_addr  = g_rkfec_buf_mesh[buf_idx].map;
+        mesh_cfg.params.buffer_cfg.mesh.size      = g_rkfec_buf_mesh[buf_idx].size;
+        mesh_cfg.params.buffer_cfg.mesh.need_copy = false;
+
+        if ((ret = load_mesh_file(target_file, mesh_cfg.params.buffer_cfg.mesh.vir_addr,
+                                  mesh_cfg.params.buffer_cfg.mesh.size))) {
+            stderr_info("Load %s failed: %s\n", target_file, strerror(errno));
+            break;
+        }
+
+        strncpy(cur_file, target_file, sizeof(cur_file));
+        info("Loaded %s with DMA FD %d\n", target_file, mesh_cfg.params.buffer_cfg.mesh.dma_fd);
+#else
+        ret = -ENOTSUP;  // Feature not supported
+        break;
+#endif
+
+        mesh_cfg.mode = RK_ISPFEC_UPDATE_MESH_FROM_BUFFER;
+        if ((ret = rk_ispfec_api_set_mesh_config(ctx, &mesh_cfg))) {
+            stderr_info("Set config failed: %s\n", strerror(errno));
+            break;
+        }
+
+        // This is a simple way to ensure that the parameter update is complete.
+        usleep(100000);
+        info("\n");
+    }
+    return ret;
+}
+
+static void test_rkfec_params(rk_ispfec_ctx_t* ctx) {
+    if (ctx == NULL) {
+        return;
+    }
+
+    int ret = 0;
+    int key = getchar();
+    info("press key=[%c]\n", key);
+
+    switch (key) {
+        case '1':
+            info("==== set_cfg API Test ====\n");
+            if ((ret = test_api_set_cfg(ctx)) != 0) {
+                stderr_info("set_cfg API test failed\n");
+            }
+            break;
+        case '2':
+            info("==== set_mesh API Test: Online Mesh Generation ====\n");
+            if ((ret = test_api_set_mesh_gen_online(ctx)) != 0) {
+                stderr_info("Online generation test failed\n");
+            }
+            break;
+        case '3':
+            info("==== set_mesh API Test: Mesh from file ====\n");
+            if ((ret = test_api_set_mesh_from_file(ctx)) != 0) {
+                stderr_info("File-based config test failed\n");
+            }
+            break;
+        case '4':
+            info("==== set_mesh API Test: Mesh from vaddr ====\n");
+            if ((ret = test_api_set_mesh_from_vaddr(ctx)) != 0) {
+                stderr_info("Virtual address config test failed\n");
+            }
+            break;
+        case '5':
+            info("==== set_mesh API Test: Mesh from DMA FD ====\n");
+            if ((ret = test_api_set_mesh_from_dmafd(ctx)) != 0) {
+                stderr_info("DMA FD config test failed\n");
+            }
+            break;
+        default:
+            stderr_info("Not support key %d\n", key);
+            break;
+    }
+}
+
+static void* test_uapi_thread(void* args) {
+    disable_terminal_return();
+    while (!is_quit) {
+        test_rkfec_params((rk_ispfec_ctx_t*)args);
+    }
+    restore_terminal_settings();
+    return 0;
+}
+
+/* ------------------------------------------------------------------------- */
 
 int32_t main(int argc, char** argv) {
     int32_t i;
@@ -586,6 +946,9 @@ int32_t main(int argc, char** argv) {
             case OptStreamCount:
                 stream_count = strtoul(optarg, NULL, 0);
                 break;
+            case OptStreamSkip:
+                stream_skip = strtoul(optarg, NULL, 0);
+                break;
             case OptStreamTo:
                 file_to = optarg;
                 break;
@@ -609,7 +972,7 @@ int32_t main(int argc, char** argv) {
                 break;
             case OptSetBgVal:
                 ret = parse_bg_val(optarg, &bg_val.bg_y, &bg_val.bg_u, &bg_val.bg_v);
-                if (ret < 0) printf("Failed to parse bg_val\n");
+                if (ret < 0) stderr_info("Failed to parse bg_val\n");
                 break;
             case OptSetFps:
                 target_fps = atoi(optarg);
@@ -618,14 +981,20 @@ int32_t main(int argc, char** argv) {
                 }
                 target_interval_ns = 1000000000L / target_fps;
                 break;
+            case OptEnableApiTest:
+                enable_uapi_test = atoi(optarg);
+                if (enable_uapi_test < 0 || enable_uapi_test > 1) {
+                    stderr_info("Invalid api test %d, Please enter 0 or 1\n", enable_uapi_test);
+                }
+                break;
             default:
                 break;
         }
     }
     if (optind < argc) {
-        printf("unknown arguments: ");
-        while (optind < argc) printf("%s ", argv[optind++]);
-        printf("\n");
+        stderr_info("unknown arguments: ");
+        while (optind < argc) stderr_info("%s ", argv[optind++]);
+        stderr_info("\n");
         common_usage();
         exit(EXIT_FAILURE);
     }
@@ -696,11 +1065,18 @@ int32_t main(int argc, char** argv) {
         goto error_init;
     }
 
+    pthread_t api_thread;
+    if (enable_uapi_test) {
+        info("create thread for uapi test...\n");
+        ret = pthread_create(&api_thread, NULL, test_uapi_thread, g_ispfec_ctx);
+        if (ret) stderr_info("pthread_create failed: %s\n", strerror(errno));
+    }
+
     if (!file_from) file_from = IN_IMAGE_FILE;
 
     ret = read_image_from_file(file_from, g_rkfec_buf_pic_in.map, g_rkfec_buf_pic_in.size);
     if (ret <= 0) {
-        stderr_info("read_image_from_file failed: %s\n", strerror(errno));
+        stderr_info("Failed to read image from %d, ret: %s\n", strerror(errno));
         goto clean_up;
     }
 
@@ -723,6 +1099,9 @@ int32_t main(int argc, char** argv) {
         FEC_STATIC_FPS_CALCULATION(sample_fec, target_fps);
     }
 
+    is_quit = true;
+
+    if (enable_uapi_test) pthread_join(api_thread, NULL);
 clean_up:
     if (fout) fclose(fout);
     rk_ispfec_api_deinit(g_ispfec_ctx);
