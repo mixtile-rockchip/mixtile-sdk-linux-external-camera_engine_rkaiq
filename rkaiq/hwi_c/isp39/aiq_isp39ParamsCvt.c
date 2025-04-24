@@ -2229,7 +2229,9 @@ static void convertAiqDmToIsp39Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_t
         return;
     }
 
+#ifdef ISP_HW_V39
     rk_aiq_dm23_params_cvt(pBase->_data, &pCvt->isp_params, &pCvt->mCommonCvtInfo);
+#endif
 }
 #endif
 
@@ -2723,7 +2725,9 @@ static const struct params_cvt_info params_cvts[] = {
 #if (RKAIQ_HAVE_CNR_V31)
     CVT_INFO(RESULT_TYPE_UVNR_PARAM, convertAiqCnrToIsp39Params),
 #endif
+#if RKAIQ_HAVE_MERGE_V12
     CVT_INFO(RESULT_TYPE_MERGE_PARAM, convertAiqMergeToIsp39Params),
+#endif
 #if RKAIQ_HAVE_DEHAZE_V14
     CVT_INFO(RESULT_TYPE_DEHAZE_PARAM, convertAiqDehazeToIsp39Params),
     CVT_INFO(RESULT_TYPE_HISTEQ_PARAM, convertAiqHisteqToIsp39Params),
@@ -2742,7 +2746,9 @@ static const struct params_cvt_info params_cvts[] = {
     CVT_INFO(RESULT_TYPE_DPCC_PARAM, convertAiqDpccToIsp39Params),
     CVT_INFO(RESULT_TYPE_AGAMMA_PARAM, convertAiqGammaToIsp39Params),
     CVT_INFO(RESULT_TYPE_LSC_PARAM, convertAiqLscToIsp39Params),
+#if RKAIQ_HAVE_DRC_V20
     CVT_INFO(RESULT_TYPE_DRC_PARAM, convertAiqDrcToIsp39Params),
+#endif
 #if RKAIQ_HAVE_GIC_V2
     CVT_INFO(RESULT_TYPE_GIC_PARAM, convertAiqGicToIsp21Params),
 #endif
