@@ -19178,7 +19178,7 @@
 								"sw_afT_fullRange_tbl":	[0, 1, 64],
 								"sw_afT_adaptiveSearchDir_mode":	"af_adaptive_search",
 								"adaptRangeSearchTbl":	{
-									"sw_afT_adaptRangeTbl_len":	9,
+									"sw_afT_adaptRangeSearchTbl_len":	9,
 									"sw_afT_adaptRange_dot":	[0, 8, 16, 24, 32, 40, 48, 56, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64],
 									"sw_afT_fineSearchStep_dot":	[4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
 								},
@@ -19241,7 +19241,7 @@
 								"sw_afT_fullRange_tbl":	[0, 1, 64],
 								"sw_afT_adaptiveSearchDir_mode":	"af_adaptive_search",
 								"adaptRangeSearchTbl":	{
-									"sw_afT_adaptRangeTbl_len":	9,
+									"sw_afT_adaptRangeSearchTbl_len":	9,
 									"sw_afT_adaptRange_dot":	[0, 8, 16, 24, 32, 40, 48, 56, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64],
 									"sw_afT_fineSearchStep_dot":	[4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
 								},
@@ -38747,7 +38747,7 @@
 								"sw_afT_fullRange_tbl":	[0, 1, 64],
 								"sw_afT_adaptiveSearchDir_mode":	"af_adaptive_search",
 								"adaptRangeSearchTbl":	{
-									"sw_afT_adaptRangeTbl_len":	9,
+									"sw_afT_adaptRangeSearchTbl_len":	9,
 									"sw_afT_adaptRange_dot":	[0, 8, 16, 24, 32, 40, 48, 56, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64],
 									"sw_afT_fineSearchStep_dot":	[4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
 								},
@@ -38810,7 +38810,7 @@
 								"sw_afT_fullRange_tbl":	[0, 1, 64],
 								"sw_afT_adaptiveSearchDir_mode":	"af_adaptive_search",
 								"adaptRangeSearchTbl":	{
-									"sw_afT_adaptRangeTbl_len":	9,
+									"sw_afT_adaptRangeSearchTbl_len":	9,
 									"sw_afT_adaptRange_dot":	[0, 8, 16, 24, 32, 40, 48, 56, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64],
 									"sw_afT_fineSearchStep_dot":	[4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
 								},

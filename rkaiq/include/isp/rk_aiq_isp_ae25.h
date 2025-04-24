@@ -428,17 +428,19 @@ typedef struct ae_deMotionBlur_s {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
+        M4_GROUP_CTRL(de_motionblur_group),
         M4_NOTES(The enable bit of de-MotionBlur control.\n
         Freq of use: high))  */
     bool sw_aeT_deMotionBlur_en;
     /* M4_GENERIC_DESC(
         M4_ALIAS(dyStrg),
         M4_TYPE(struct),
-        M4_UI_MODULE(normal_ui_style),
+        M4_UI_MODULE(array_table_ui),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(1),
-        M4_NOTES(The strength params for de-MotionBlur control.))  */
+        M4_GROUP(de_motionblur_group),
+           M4_NOTES(The strength params for de-MotionBlur control.))  */
     ae_deMotionBlur_strg_t dyStrg;
 } ae_deMotionBlur_t;
 

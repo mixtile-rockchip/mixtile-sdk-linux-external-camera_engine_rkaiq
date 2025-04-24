@@ -18,6 +18,11 @@
 #ifndef _SAMPLE_FEC_H_
 #define _SAMPLE_FEC_H_
 
+#define MAX(a, b)  ((a) > (b) ? (a) : (b))
+#define MIN(a, b)  ((a) < (b) ? (a) : (b))
+#define CLAMP(v, min, max)   \
+    (((v) < (min)) ? (min) : (((v) > (max)) ? (max) : (v)))
+
 #define info(fmt, args...)                            \
     do {                                              \
         if (!options[OptSilent]) printf(fmt, ##args); \
@@ -49,10 +54,15 @@ enum Option {
     OptStreamFrom,
     OptMeshFrom,
     OptCalibFrom,
+    OptAutoParseIni,
     OptMeshDensity,
     OptBorderMode,
     OptCrossBufMode,
     OptSetBgVal,
+    OptSetOffsetX,
+    OptSetStride,
+    OptSetOutOffsetX,
+    OptSetOutStride,
     OptStreamSkip,
     OptLast = 512
     // clang-format on

@@ -236,8 +236,8 @@ void AiqIspParamsCvt_getCommonCvtInfo(AiqIspParamsCvt_t* pCvt, AiqList_t* result
         pCvt->mCommonCvtInfo.ae_exp = ae_exp;
 
         if (pCvt->_working_mode == RK_AIQ_WORKING_MODE_NORMAL) {
-            float isp_dgain = MAX(1.0f, ae_exp->LinearExp.exp_real_params.isp_dgain);
-            float exptime   = MAX(1.0f, ae_exp->LinearExp.exp_real_params.integration_time);
+            float isp_dgain = ae_exp->LinearExp.exp_real_params.isp_dgain;
+            float exptime   = ae_exp->LinearExp.exp_real_params.integration_time;
             int iso         = 50 * exp->aecExpInfo.LinearExp.exp_real_params.analog_gain *
                               exp->aecExpInfo.LinearExp.exp_real_params.digital_gain *
                               exp->aecExpInfo.LinearExp.exp_real_params.isp_dgain;
@@ -253,8 +253,8 @@ void AiqIspParamsCvt_getCommonCvtInfo(AiqIspParamsCvt_t* pCvt, AiqList_t* result
                           ae_exp->HdrExp[i].exp_real_params.isp_dgain;
 
                 pCvt->mCommonCvtInfo.frameIso[i] = iso;
-                pCvt->mCommonCvtInfo.frameEt[i] = MAX(1.0f, ae_exp->HdrExp[i].exp_real_params.integration_time);
-                pCvt->mCommonCvtInfo.frameDGain[i] = MAX(1.0f, ae_exp->HdrExp[i].exp_real_params.isp_dgain);
+                pCvt->mCommonCvtInfo.frameEt[i] = ae_exp->HdrExp[i].exp_real_params.integration_time;
+                pCvt->mCommonCvtInfo.frameDGain[i] = ae_exp->HdrExp[i].exp_real_params.isp_dgain;
             }
         }
     }

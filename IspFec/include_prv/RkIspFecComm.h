@@ -30,6 +30,11 @@ extern "C" {
 
 #include "rkfec_config.h"
 
+#define RKFEC_MAX(a, b)  ((a) > (b) ? (a) : (b))
+#define RKFEC_MIN(a, b)  ((a) < (b) ? (a) : (b))
+#define RKFEC_CLAMP(v, min, max)   \
+    (((v) < (min)) ? (min) : (((v) > (max)) ? (max) : (v)))
+
 #ifdef ANDROID_OS
 #define LOG_TAG "RKFEC"
 #define rkfec_err(fmt, arg...) \

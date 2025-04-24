@@ -41,6 +41,7 @@ include_directories(
     ./
     include/
     include_prv/
+    src/param_parser/
     )
 
 set (IspFec_SRC
@@ -48,6 +49,9 @@ set (IspFec_SRC
 	src/RkIspFecHw.cpp
 	src/RkIspFecHwMgr.cpp
 	src/RkIspFecComm.c
+	src/param_parser/dictionary.c
+	src/param_parser/iniparser.c
+	src/param_parser/param.c
 	)
 
 if (RKFEC_VERSION STREQUAL "20")

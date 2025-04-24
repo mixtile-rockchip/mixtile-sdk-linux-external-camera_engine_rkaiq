@@ -865,10 +865,12 @@
  * - isp35 iq: modify ainr to aibnr
  * v6.0x30.2
  * - isp35 iq: modify sharp 
+ * v6.0x30.3
+ * - isp35 iq: modify awb, aibnr 
  */
 
-#define RK_AIQ_VERSION_REAL_V "v6.0x30.2"
-#define RK_AIQ_RELEASE_DATE "2025-04-16"
+#define RK_AIQ_VERSION_REAL_V "v6.0x30.3"
+#define RK_AIQ_RELEASE_DATE "2025-04-23"
 
 #define RK_AIQ_IQ_HEAD_VERSION_REAL_V "v1.0.2"
 

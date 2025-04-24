@@ -16,6 +16,9 @@
  */
 
 #ifndef _RK_ISP_FEC_VERSION_H_
+
+#include "rk_ispfec_api.h"
+
 /*!
  * ==================== RK ISP FEC VERSION HISTORY ====================
  *
@@ -27,16 +30,18 @@
  * - add the function that generating mesh online
  * - support that prepare and process can be called by different threads
  *
+ * v2.0.0
+ * - add version and size fields for version validation.
+ *
+ * v3.0.0
+ * - Add support for configuring virtual width and horizontal offset.
+ *
+ * v3.1.0
+ * - Add support for configuring virtual width and horizontal offset.
+ *
  */
 
-#define RK_ISP_FEC_VERSION_REAL_V "v1.0.1"
-#define RK_ISP_FEC_RELEASE_DATE "2023-06-01"
-
-/******* DO NOT EDIT THE FOLLOWINGS ***********/
-
-#define RK_ISP_FEC_VERSION_HEAD "ISP_FEC "
-#define RK_ISP_FEC_VERSION \
-    RK_ISP_FEC_VERSION_HEAD\
-    RK_ISP_FEC_VERSION_REAL_V
+#define RK_ISP_FEC_RELEASE_DATE "2025-04-23"
+#define RK_ISP_FEC_VERSION      RK_ISP_FEC_API_VERSION
 
 #endif

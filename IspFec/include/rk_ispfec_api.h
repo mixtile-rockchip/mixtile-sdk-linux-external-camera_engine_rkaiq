@@ -24,6 +24,13 @@
 extern "C" {
 #endif
 
+#define FEC_VERSION_ENCODE(a, b, c) (((a) << 16) + ((b) << 8) + ((c) > 255 ? 255 : (c)))
+#define RK_ISP_FEC_API_VERSION      FEC_VERSION_ENCODE(3, 1, 0)
+
+#define RK_ISP_FEC_API_VERSION_MAJOR(v) (((v) >> 16) & 0xff)
+#define RK_ISP_FEC_API_VERSION_MINOR(v) (((v) >> 8) & 0xff)
+#define RK_ISP_FEC_API_VERSION_PATCH(v) ((v) & 0xff)
+
 typedef struct rk_ispfec_ctx_s rk_ispfec_ctx_t;
 
 enum rk_ispfec_correct_direction {
@@ -53,6 +60,10 @@ typedef struct gen_mesh_online_info_s {
     enum rk_ispfec_correct_style 		style;
 
     int     correct_level;
+
+    int calib_width;
+    int calib_height;
+    int calib_level_maxLimit;
 } gen_mesh_online_info_t;
 
 typedef struct mesh_info_s {
@@ -124,6 +135,24 @@ typedef struct rk_ispfec_mesh_config {
 } rk_ispfec_mesh_config_t;
 
 typedef struct rk_ispfec_cfg_s {
+    /**
+     * @brief Configuration structure version identifier
+     * - Must be set to RK_ISP_FEC_API_VERSION by application
+     * - Used for version compatibility check during initialization
+     * @note Added in API version 2.0.0. Recommended to use ISP_FEC_CONFIG_INIT()
+     *       macro for proper initialization which will set this field automatically
+     */
+    int version;
+
+    /**
+     * @brief Size of this configuration structure
+     * - Must be set to sizeof(rk_ispfec_cfg_s) by application
+     * - Ensures binary compatibility across library updates
+     * @note Added in API version 2.0.0. ISP_FEC_CONFIG_INIT() macro will set
+     *       this field to correct value
+     */
+    int size;
+
     // 输入输出的分辨率
     int in_width;
     int in_height;
@@ -203,7 +232,75 @@ typedef struct rk_ispfec_cfg_s {
         char mesh_file_path[128];
         gen_mesh_online_info_t mesh_online;
     } u;
+
+    /**
+     * @brief Horizontal offset for input image cropping
+     * - Unit: Pixels
+     * - Range: 0 to (input_width - 1)
+     * - Applied before FEC processing
+     * @note Added in API version 3.0.0
+     */
+    int in_offset_x;
+
+    /**
+     * @brief Horizontal offset for output image placement
+     * - Unit: Pixels
+     * - Range: 0 to (output_width - 1)
+     * - Applied after FEC processing
+     * @note Added in API version 3.0.0
+     */
+    int out_offset_x;
+
+    /**
+     * @brief Memory stride for input image buffer
+     * - Unit: Pixels per line
+     * - Set to 0 for automatic calculation based on width/format
+     * @note Added in API version 3.0.0
+     */
+    int in_stride;
+
+    /**
+     * @brief Memory stride for output image buffer
+     * - Unit: Pixels per line
+     * - Set to 0 for automatic calculation based on width/format
+     * @note Added in API version 3.0.0
+     */
+    int out_stride;
+
+    /**
+     * @brief Path to lens calibration configuration file (INI format)
+     * - Specifies optical calibration parameters
+     *
+     * @note Behavior rules:
+     * - When NULL: Application must manually provide calibration parameters
+     *   through mesh_online configuration
+     * - When non-NULL: Library will parse the INI file and override any
+     *   manually set parameters in mesh_online
+     * @note Added in API version 3.1.0
+     */
+    char* calib_ini_from;
 } rk_ispfec_cfg_t;
+
+/**
+ * @brief Initialize FEC configuration structure
+ * @param cfg Configuration structure to initialize
+ *
+ * @note This macro will:
+ * 1. Set version field to RK_ISP_FEC_API_VERSION
+ * 2. Set size field to actual structure size
+ *
+ * Usage example:
+ * @code
+ * rk_ispfec_cfg_t cfg;
+ * ISP_FEC_CONFIG_INIT(cfg);
+ * @endcode
+ */
+#define ISP_FEC_CONFIG_INIT(cfg)                    \
+    do {                                            \
+        memset(&(cfg), 0, sizeof(rk_ispfec_cfg_t)); \
+        (cfg).version = RK_ISP_FEC_API_VERSION;     \
+        (cfg).size    = sizeof(rk_ispfec_cfg_t);    \
+    } while (0)
 
 rk_ispfec_ctx_t* rk_ispfec_api_init(rk_ispfec_cfg_t* cfg);
 

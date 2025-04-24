@@ -29,6 +29,7 @@
 #include "RkIspFecGenMesh.h"
 #include "RkIspFecHwMgr.h"
 #include "RkIspFecVersion.h"
+#include "param.h"
 #include "rk_ispfec_api.h"
 
 #ifdef __cplusplus
@@ -59,9 +60,10 @@ void _print_versions()
         ""
         "\n************************** VERSION INFOS **************************\n"
         "version release date: %s\n"
-        "         IspFec:       %s\n"
+        "         IspFec:      v%02x.%02x.%02x\n"
         "************************ VERSION INFOS END ************************\n\n",
-        RK_ISP_FEC_RELEASE_DATE, RK_ISP_FEC_VERSION);
+        RK_ISP_FEC_RELEASE_DATE, RK_ISP_FEC_VERSION >> 16, (RK_ISP_FEC_VERSION >> 8) & 0xff,
+        RK_ISP_FEC_VERSION & 0xff);
 }
 
 static int
@@ -112,6 +114,53 @@ _load_mesh(const char* file, void* vir_addr, size_t size)
     return ret;
 }
 
+static int _load_calib_ini(rk_ispfec_cfg_t* cfg) {
+    if (!cfg->calib_ini_from || !strlen(cfg->calib_ini_from)) {
+        rkfec_err("calib ini path is null");
+        return -1;
+    }
+
+    rk_ispfec_param_init(cfg->calib_ini_from);
+    rkfec_dbg(3, rkfec_debug, "calib ini path: %s", cfg->calib_ini_from);
+
+    cfg->u.mesh_online.calib_width  = rk_ispfec_param_get_int("Calibration:sw_ldcC_image_width", 0);
+    cfg->u.mesh_online.calib_height = rk_ispfec_param_get_int("Calibration:sw_ldcC_image_height", 0);
+
+    cfg->u.mesh_online.light_center[0] =
+        rk_ispfec_param_get_double("Calibration:sw_ldcC_opticCenter_x", 0);
+    cfg->u.mesh_online.light_center[1] =
+        rk_ispfec_param_get_double("Calibration:sw_ldcC_opticCenter_y", 0);
+    cfg->u.mesh_online.coeff[0] =
+        rk_ispfec_param_get_double("Calibration:sw_ldcC_lensDistor_coeff0", 0);
+    cfg->u.mesh_online.coeff[1] =
+        rk_ispfec_param_get_double("Calibration:sw_ldcC_lensDistor_coeff1", 0);
+    cfg->u.mesh_online.coeff[2] =
+        rk_ispfec_param_get_double("Calibration:sw_ldcC_lensDistor_coeff2", 0);
+    cfg->u.mesh_online.coeff[3] =
+        rk_ispfec_param_get_double("Calibration:sw_ldcC_lensDistor_coeff3", 0);
+    cfg->u.mesh_online.calib_level_maxLimit =
+        rk_ispfec_param_get_int("Calibration:sw_ldcC_correctStrg_maxLimit", 0);
+
+    cfg->u.mesh_online.correct_level =
+        rk_ispfec_param_get_int("Calibration:sw_ldcC_correct_level", 0);
+    cfg->u.mesh_online.style = (enum rk_ispfec_correct_style)rk_ispfec_param_get_int(
+        "Calibration:sw_ldcT_saveMaxFovX_bit", 0);
+
+    rkfec_dbg(3, rkfec_debug, "calib_width: %d, calib_height: %d", cfg->u.mesh_online.calib_width,
+              cfg->u.mesh_online.calib_height);
+    rkfec_dbg(3, rkfec_debug, "light_center: %.16f, %.16f", cfg->u.mesh_online.light_center[0],
+              cfg->u.mesh_online.light_center[1]);
+    rkfec_dbg(3, rkfec_debug, "coeff: %.16f, %.16f, %.16f, %.16f", cfg->u.mesh_online.coeff[0],
+              cfg->u.mesh_online.coeff[1], cfg->u.mesh_online.coeff[2],
+              cfg->u.mesh_online.coeff[3]);
+    rkfec_dbg(3, rkfec_debug, "calib_level_maxLimit: %d", cfg->u.mesh_online.calib_level_maxLimit);
+
+    rkfec_dbg(3, rkfec_debug, "style: %d", cfg->u.mesh_online.style);
+    rkfec_dbg(3, rkfec_debug, "correct_level: %d", cfg->u.mesh_online.correct_level);
+
+    return 0;
+}
+
 static int
 _configure(rk_ispfec_ctx_t* ctx, rk_ispfec_cfg_t* cfg)
 {
@@ -120,8 +169,11 @@ _configure(rk_ispfec_ctx_t* ctx, rk_ispfec_cfg_t* cfg)
 
     pthread_mutex_lock (&ctx->_mutex);
 
+    if (cfg->calib_ini_from && strlen(cfg->calib_ini_from)) _load_calib_ini(cfg);
+
     if (cfg->mesh_upd_mode == RK_ISPFEC_UPDATE_MESH_ONLINE) {
 #ifdef GENMESH_ONLINE
+
         if (!ctx->_fecGenMesh) {
             ctx->_fecGenMesh = new RkIspFecGenMesh();
             if (!ctx->_fecGenMesh) {
@@ -241,6 +293,8 @@ rk_ispfec_api_deinit(rk_ispfec_ctx_t* ctx)
     }
 #endif
 
+    rk_ispfec_param_deinit();
+
     ctx->_fecHwMgr->deinit();
     pthread_mutex_destroy (&ctx->_mutex);
 
@@ -253,6 +307,19 @@ rk_ispfec_ctx_t*
 rk_ispfec_api_init(rk_ispfec_cfg_t* cfg)
 {
     _print_versions();
+
+    if (RK_ISP_FEC_API_VERSION_MAJOR(cfg->version) !=
+            RK_ISP_FEC_API_VERSION_MAJOR(RK_ISP_FEC_API_VERSION) ||
+        cfg->size != sizeof(rk_ispfec_cfg_s)) {
+        rkfec_err("Invalid config (version:v%02x.%02x.%02x/size:%d), required v%02x.%02x.%02x/%zu",
+                  RK_ISP_FEC_API_VERSION_MAJOR(cfg->version),
+                  RK_ISP_FEC_API_VERSION_MINOR(cfg->version),
+                  RK_ISP_FEC_API_VERSION_PATCH(cfg->version), cfg->size,
+                  RK_ISP_FEC_API_VERSION_MAJOR(RK_ISP_FEC_API_VERSION),
+                  RK_ISP_FEC_API_VERSION_MINOR(RK_ISP_FEC_API_VERSION),
+                  RK_ISP_FEC_API_VERSION_PATCH(RK_ISP_FEC_API_VERSION), sizeof(rk_ispfec_cfg_s));
+        return NULL;
+    }
 
     rkfec_debug = rkfec_read_sysfs_int(RKFEC_DEBUG_LEVEL_PATH);
     rkfec_info("RkIspFec debug level: %d", rkfec_debug);
@@ -355,26 +422,25 @@ rk_ispfec_api_process(rk_ispfec_ctx_t* ctx, int src_fd, int dst_fd)
 
     param.buf_cfg.in_pic_fd  = src_fd;
     param.buf_cfg.out_pic_fd = dst_fd;
-    param.buf_cfg.in_offs    = 0;
     param.buf_cfg.in_size    = param.in_width * param.in_height * 3 / 2;
     if (param.out_fourcc == V4L2_PIX_FMT_FBC0) {
         int stride_y = (param.out_width + 63) / 64 * 384;
         int stride_c = (param.out_width + 63) / 64 * 16;
 
-        param.buf_cfg.out_offs = 0;
         param.buf_cfg.out_size = (stride_y * param.out_height + stride_c * param.out_height) / 4;
     } else {
-        param.buf_cfg.out_offs = 0;
         param.buf_cfg.out_size = param.out_width * param.out_height * 3 / 2;
     }
 
-    param.buf_cfg.in_stride  = ctx->_cfg.in_width;
-    param.buf_cfg.out_stride = ctx->_cfg.out_width;
+    param.buf_cfg.in_offs    = RKFEC_CLAMP(ctx->_cfg.in_offset_x, 0, param.in_width);
+    param.buf_cfg.in_stride  = ctx->_cfg.in_stride ? ctx->_cfg.in_stride : param.in_width;
+    param.buf_cfg.out_offs   = RKFEC_CLAMP(ctx->_cfg.out_offset_x, 0, param.out_width);
+    param.buf_cfg.out_stride = ctx->_cfg.out_stride ? ctx->_cfg.out_stride : param.out_width;
     param.buf_cfg.lut_fd     = ctx->_cfg.mesh_info.dmaFd;
     param.buf_cfg.lut_size   = rk_ispfec_api_calFecMeshsize(param.out_width, param.out_height);
 
-    param.core_ctrl.density = ctx->_cfg.out_width >= 1920 ? 0 : ctx->_cfg.out_width >= 512 ? 1 : 2;
-    param.core_ctrl.bic_mode     = 0;
+    param.core_ctrl.density  = ctx->_cfg.out_width >= 1920 ? 0 : ctx->_cfg.out_width >= 512 ? 1 : 2;
+    param.core_ctrl.bic_mode = 0;
     param.core_ctrl.border_mode  = ctx->_cfg.border_mode;
     param.core_ctrl.pbuf_crs_dis = 0;
     param.core_ctrl.buf_mode     = ctx->_cfg.cross_buf_mode;
@@ -382,10 +448,11 @@ rk_ispfec_api_process(rk_ispfec_ctx_t* ctx, int src_fd, int dst_fd)
     memcpy(&param.bg_val, &ctx->_cfg.bg_val, sizeof(rk_ispfec_bg_val));
 
     rkfec_dbg(3, rkfec_debug,
-              "mode: border %d, cross_buf: %d, bg_val: %d, %d, %d, stride(in: %d, out: %d)",
+              "mode: border %d, cross_buf: %d, bg_val: %d, %d, %d, offs(in: %d, out: %d), "
+              "stride(in: %d, out: %d)",
               param.core_ctrl.border_mode, param.core_ctrl.buf_mode, param.bg_val.bg_y,
-              param.bg_val.bg_u, param.bg_val.bg_v, param.buf_cfg.in_stride,
-              param.buf_cfg.out_stride);
+              param.bg_val.bg_u, param.bg_val.bg_v, param.buf_cfg.in_offs, param.buf_cfg.out_offs,
+              param.buf_cfg.in_stride, param.buf_cfg.out_stride);
     rkfec_dbg(3, rkfec_debug, "lut_fd: %d, lut_size: %d", param.buf_cfg.lut_fd,
               param.buf_cfg.lut_size);
 #else
