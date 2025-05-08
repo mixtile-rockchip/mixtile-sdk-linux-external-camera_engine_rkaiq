@@ -4992,8 +4992,7 @@ XCamReturn rk_aiq_uapi2_getContrast(const rk_aiq_sys_ctx_t* ctx, unsigned int *l
 XCamReturn rk_aiq_uapi2_setBrightness(const rk_aiq_sys_ctx_t* ctx, unsigned int level)
 {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
-    cp_api_attrib_t attrib;
-
+    
     IMGPROC_FUNC_ENTER
     if (ctx == NULL) {
         ret = XCAM_RETURN_ERROR_PARAM;
@@ -5006,8 +5005,38 @@ XCamReturn rk_aiq_uapi2_setBrightness(const rk_aiq_sys_ctx_t* ctx, unsigned int 
         RKAIQ_IMGPROC_CHECK_RET(ret, "level out of range, set brightness failed!");
     }
 #ifdef ISP_HW_V35
-    ret = rk_aiq_user_api2_gamma_SetGammaStrength(ctx, level);
+    bool update_attr = false;
+    hsv_api_attrib_t attrib;
+    memset(&attrib, 0, sizeof(hsv_api_attrib_t));
+    ret = rk_aiq_user_api2_hsv_GetAttrib(ctx, &attrib);
+    RKAIQ_IMGPROC_CHECK_RET(ret, "set brightness (hsv GetAttrib) failed!");
+    if (attrib.opMode == RK_AIQ_OP_MODE_MANUAL && attrib.en) {
+        attrib.opMode = RK_AIQ_OP_MODE_AUTO;
+        update_attr = true;
+        LOGW_AHSV("%s is only supported in AUTO mode.", __FUNCTION__);
+    } else if (attrib.en == false) {
+        attrib.en = true;
+        attrib.opMode = RK_AIQ_OP_MODE_AUTO;
+        update_attr = true;
+        LOGW_AHSV("%s is only supported in AUTO mode.", __FUNCTION__);
+    }
+
+    if (update_attr) {
+        ret = rk_aiq_user_api2_hsv_SetAttrib(ctx, &attrib);
+        RKAIQ_IMGPROC_CHECK_RET(ret, "set brightness (hsv GetAttrib) failed!");
+    }
+
+    ahsv_valOffset_t ctrl;
+    memset(&ctrl, 0, sizeof(ahsv_valOffset_t));
+    ret = rk_aiq_user_api2_getHsvValOffset(ctx, &ctrl);
+    ctrl.en = true;
+    ctrl.valOffset = (level - 127) << 3;
+    ret = rk_aiq_user_api2_setHsvValOffset(ctx, ctrl);
+    RKAIQ_IMGPROC_CHECK_RET(ret, "set brightness(setHsvValOffset) failed!");
+
 #else
+    cp_api_attrib_t attrib;
+
     ret = rk_aiq_user_api2_cp_GetAttrib(ctx, &attrib);
     RKAIQ_IMGPROC_CHECK_RET(ret, "getAttrib error,set brightness failed!");
     if(attrib.opMode == RK_AIQ_OP_MODE_AUTO)
@@ -5027,17 +5056,25 @@ XCamReturn rk_aiq_uapi2_getBrightness(const rk_aiq_sys_ctx_t* ctx, unsigned int 
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
 
     IMGPROC_FUNC_ENTER
-    cp_api_attrib_t attrib;
     if (level == NULL || ctx == NULL) {
         ret = XCAM_RETURN_ERROR_PARAM;
         RKAIQ_IMGPROC_CHECK_RET(ret, "param error, get brightness failed!");
     }
+#if defined(ISP_HW_V35)
+    ahsv_valOffset_t ctrl;
+    memset(&ctrl, 0, sizeof(ahsv_valOffset_t));
+    ret = rk_aiq_user_api2_getHsvValOffset(ctx, &ctrl);
+    RKAIQ_IMGPROC_CHECK_RET(ret, "get brightness(getHsvValOffset) failed!");
+    *level = ctrl.en ? ((ctrl.valOffset + 4) >> 3) + 127 : 0;
+#else
+    cp_api_attrib_t attrib;
     ret = rk_aiq_user_api2_cp_GetAttrib(ctx, &attrib);
     RKAIQ_IMGPROC_CHECK_RET(ret, "get brightness failed!");
     if(attrib.opMode == RK_AIQ_OP_MODE_AUTO)
         *level = attrib.stAuto.sta.brightness;
     else
         *level = attrib.stMan.sta.brightness;
+#endif
     IMGPROC_FUNC_EXIT
     return ret;
 }
@@ -5090,7 +5127,7 @@ XCamReturn rk_aiq_uapi2_setSaturation(const rk_aiq_sys_ctx_t* ctx, unsigned int 
     memset(&ctrl, 0, sizeof(ahsv_satStrg_t));
     ret = rk_aiq_user_api2_getHsvSatStrth(ctx, &ctrl);
     ctrl.en = true;
-    ctrl.satStrg = level / 128.0;
+    ctrl.satStrg = level / 127.0;
     ret = rk_aiq_user_api2_setHsvSatStrth(ctx, ctrl);
     RKAIQ_IMGPROC_CHECK_RET(ret, "set saturation(setHsvSatStrth) failed!");
 
@@ -5122,7 +5159,7 @@ XCamReturn rk_aiq_uapi2_getSaturation(const rk_aiq_sys_ctx_t* ctx, unsigned int*
     memset(&ctrl, 0, sizeof(ahsv_satStrg_t));
     ret = rk_aiq_user_api2_getHsvSatStrth(ctx, &ctrl);
     RKAIQ_IMGPROC_CHECK_RET(ret, "get saturation(getHsvSatStrth) failed!");
-    *level = ctrl.en ? ctrl.satStrg * 128.0 : 1;
+    *level = ctrl.en ? ctrl.satStrg * 127.0 : 1;
 #else
     cp_api_attrib_t attrib;
     
@@ -5185,7 +5222,7 @@ XCamReturn rk_aiq_uapi2_setHue(const rk_aiq_sys_ctx_t* ctx, unsigned int level)
     memset(&ctrl, 0, sizeof(ahsv_hueOffset_t));
     ret = rk_aiq_user_api2_getHsvHueOffset(ctx, &ctrl);
     ctrl.en = true;
-    ctrl.hueOffset = (128 - level) * 2;
+    ctrl.hueOffset = (127 - level) * 2;
     ret = rk_aiq_user_api2_setHsvHueOffset(ctx, ctrl);
     RKAIQ_IMGPROC_CHECK_RET(ret, "set hue(setHsvHueOffset) failed!");
 
@@ -5218,7 +5255,7 @@ XCamReturn rk_aiq_uapi2_getHue(const rk_aiq_sys_ctx_t* ctx, unsigned int* level)
     memset(&ctrl, 0, sizeof(ahsv_hueOffset_t));
     ret = rk_aiq_user_api2_getHsvHueOffset(ctx, &ctrl);
     RKAIQ_IMGPROC_CHECK_RET(ret, "get hue(getHsvHueOffset) failed!");
-    *level = ctrl.en ? (ctrl.hueOffset + 128 + 1) >> 1 : 0;
+    *level = ctrl.en ? 127 - ((ctrl.hueOffset + 1) >> 1) : 0;
 #else
     cp_api_attrib_t attrib;
     ret = rk_aiq_user_api2_cp_GetAttrib(ctx, &attrib);

@@ -945,9 +945,10 @@ void Isp32Params::convertAiqAfToIsp32Params(struct isp32_isp_params_cfg& isp_cfg
         isp_cfg.meas.rawae3.win.v_offs = af_data.wina_v_offs;
         isp_cfg.meas.rawae3.win.h_size = af_data.wina_h_size;
         isp_cfg.meas.rawae3.win.v_size = af_data.wina_v_size;
+
+        mLatestMeasCfg.rawae3 = isp_cfg.meas.rawae3;
     }
     mLatestMeasCfg.rawaf = isp_cfg.meas.rawaf;
-    mLatestMeasCfg.rawae3 = isp_cfg.meas.rawae3;
 }
 #endif
 #if RKAIQ_HAVE_AF_V32_LITE || RKAIQ_ONLY_AF_STATS_V32_LITE
@@ -1085,9 +1086,10 @@ void Isp32Params::convertAiqAfLiteToIsp32Params(struct isp32_isp_params_cfg& isp
         isp_cfg.meas.rawae0.win.v_offs = af_data.wina_v_offs;
         isp_cfg.meas.rawae0.win.h_size = af_data.wina_h_size;
         isp_cfg.meas.rawae0.win.v_size = af_data.wina_v_size;
+
+        mLatestMeasCfg.rawae3 = isp_cfg.meas.rawae3;
     }
     mLatestMeasCfg.rawaf = isp_cfg.meas.rawaf;
-    mLatestMeasCfg.rawae3 = isp_cfg.meas.rawae3;
 }
 #endif
 #if RKAIQ_HAVE_CAC_V11

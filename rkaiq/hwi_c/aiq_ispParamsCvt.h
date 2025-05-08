@@ -115,14 +115,14 @@ struct IspParamsCvt_Ops {
 #endif
 #if RKAIQ_HAVE_YUVME
     XCamReturn(*ConvertYuvmegParams)(AiqIspParamsCvt_t* pCvt, void* isp_cfg,
-                                      const rk_aiq_isp_yme_params_t* yme);
+                                     const rk_aiq_isp_yme_params_t* yme);
 #endif
     XCamReturn (*Merge_results)(AiqIspParamsCvt_t* pCvt, AiqList_t* results, void* isp_cfg);
     bool (*Convert3aResultsToIspCfg)(AiqIspParamsCvt_t* pCvt, aiq_params_base_t* result,
                                      void* isp_cfg_p, bool is_multi_isp);
     XCamReturn (*CheckIspParams)(AiqIspParamsCvt_t* pCvt, void* isp_cfg);
     XCamReturn (*FixedAwbOveflowToIsp3xParams)(AiqIspParamsCvt_t* pCvt, void* isp_cfg,
-                                               bool multiIspMode);
+            bool multiIspMode);
 
     void (*update)(void* src, void* dst);
     void (*Dump)(AiqIspParamsCvt_t* pCvt, uint64_t modules, int fd);
@@ -187,6 +187,10 @@ struct AiqIspParamsCvt_s {
     blc_cvt_info_t mBlcInfo;
     isp_params_t isp_params;
     AiqIspDrvParams_info_t mLatestCfgArray[ISP2X_ID_MAX];
+#if (defined(ISP_HW_V39) || defined(ISP_HW_V33) || defined(ISP_HW_V35)) && (USE_NEWSTRUCT)
+    mergeLuma2Wgt_t mergeLuma2Wgt;
+#endif
+
 
     union {
         struct isp33_isp_params_cfg* mCvtedIsp33Prams;
@@ -201,7 +205,7 @@ XCamReturn AiqIspParamsCvt_init(AiqIspParamsCvt_t* pCvt);
 void AiqIspParamsCvt_deinit(AiqIspParamsCvt_t* pCvt);
 void AiqAutoblc_deinit(AiqIspParamsCvt_t* pCvt);
 XCamReturn AiqIspParamsCvt_merge_isp_results(AiqIspParamsCvt_t* pCvt, AiqList_t* results,
-                                             void* isp_cfg, bool is_multi_isp, bool use_aiisp);
+        void* isp_cfg, bool is_multi_isp, bool use_aiisp);
 void AiqIspParamsCvt_setCamPhyId(AiqIspParamsCvt_t* pCvt, int phyId);
 void AiqIspParamsCvt_set_working_mode(AiqIspParamsCvt_t* pCvt, int mode);
 void AiqIspParamsCvt_setModuleStatus(AiqIspParamsCvt_t* pCvt, rk_aiq_module_id_t mId, bool en);
@@ -211,7 +215,7 @@ void AiqIspParamsCvt_setModuleForceFlagInverse(AiqIspParamsCvt_t* pCvt, int modu
 bool AiqIspParamsCvt_getModuleForceEn(AiqIspParamsCvt_t* pCvt, int module_id);
 void AiqIspParamsCvt_updateIspModuleForceEns(AiqIspParamsCvt_t* pCvt, u64 module_ens);
 aiq_params_base_t* AiqIspParamsCvt_get_3a_result(AiqIspParamsCvt_t* pCvt, AiqList_t* results,
-                                                 int32_t type);
+        int32_t type);
 void AiqIspParamsCvt_getCommonCvtInfo(AiqIspParamsCvt_t* pCvt, AiqList_t* results, bool use_aiisp);
 void AiqIspParamsCvt_setCalib(AiqIspParamsCvt_t* pCvt, const CamCalibDbV2Context_t* calibv2);
 void AiqIspParamsCvt_setStastDelayCnt(AiqIspParamsCvt_t* pCvt, int delayCnt);

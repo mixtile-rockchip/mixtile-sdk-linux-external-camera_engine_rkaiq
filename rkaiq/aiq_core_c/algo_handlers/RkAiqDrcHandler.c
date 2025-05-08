@@ -328,6 +328,7 @@ static XCamReturn _handlerDrc_processing(AiqAlgoHandler_t* pAlgoHandler) {
     }
 
     RkAiqAlgoProcDrc* drc_proc_param = (RkAiqAlgoProcDrc*)pAlgoHandler->mProcInParam;
+    drc_proc_param->LongFrmMode      = ((AiqDrcHandler_t*)pAlgoHandler)->mAeProcRes.LongFrmMode;
     drc_proc_param->isp_ob_predgain = 1.0;
 
     DrcProchelper(pAlgoHandler, drc_proc_param);

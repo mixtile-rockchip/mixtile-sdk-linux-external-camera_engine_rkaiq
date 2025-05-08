@@ -375,6 +375,8 @@ static rk_aiq_isp_t* _get_isp_subdevs(struct media_device* device, const char* d
         isp_info[index].model_idx = 2;
     else if (strcmp(device->info.model, "rkisp3") == 0)
         isp_info[index].model_idx = 3;
+    else if (strcmp(device->info.model, "rkisp4") == 0)
+        isp_info[index].model_idx = 4;
     else
         isp_info[index].model_idx               = -1;
 
@@ -1088,6 +1090,7 @@ XCamReturn AiqCamHw_initCamHwInfos() {
                    strcmp(device->info.model, "rkisp1") == 0 ||
                    strcmp(device->info.model, "rkisp2") == 0 ||
                    strcmp(device->info.model, "rkisp3") == 0 ||
+                   strcmp(device->info.model, "rkisp4") == 0 ||
                    strcmp(device->info.model, "rkisp") == 0) {
             isp_info = _get_isp_subdevs(device, sys_path, g_mIspHwInfos.isp_info);
             if (strstr(device->info.driver, "rkisp-unite")) {
@@ -5957,6 +5960,8 @@ const char* AiqCamHw_rawReproc_preInit(const char* isp_driver) {
                 isp_driver_index = 2;
             else if (strcmp(isp_driver, "rkisp3") == 0)
                 isp_driver_index = 3;
+            else if (strcmp(isp_driver, "rkisp4") == 0)
+                isp_driver_index = 4;
             else
                 isp_driver_index = -1;
         }

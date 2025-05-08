@@ -37,6 +37,11 @@ typedef struct {
 } ahsv_satStrg_t;
 
 typedef struct {
+    bool en;
+    int16_t valOffset;
+} ahsv_valOffset_t;
+
+typedef struct {
     /* M4_GENERIC_DESC(
         M4_ALIAS(sw_hsvC_illu_name),
         M4_TYPE(string),

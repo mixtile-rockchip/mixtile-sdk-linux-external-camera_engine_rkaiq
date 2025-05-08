@@ -199,3 +199,30 @@ XCamReturn AiqHsvHandler_getHueOffset(AiqHsvHandler_t* pHdlHsv, ahsv_hueOffset_t
     EXIT_ANALYZER_FUNCTION();
     return ret;
 }
+
+XCamReturn AiqHsvHandler_setValOffset(AiqHsvHandler_t* pHdlHsv, ahsv_valOffset_t* offset) {
+    ENTER_ANALYZER_FUNCTION();
+
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    aiqMutex_lock(&pHdlHsv->mCfgMutex);
+    ret = algo_hsv_SetValOffset(pHdlHsv->mAlgoCtx, offset);
+    aiqMutex_unlock(&pHdlHsv->mCfgMutex);
+
+    EXIT_ANALYZER_FUNCTION();
+    return ret;
+}
+
+XCamReturn AiqHsvHandler_getValOffset(AiqHsvHandler_t* pHdlHsv, ahsv_valOffset_t* offset) {
+    ENTER_ANALYZER_FUNCTION();
+
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+    aiqMutex_lock(&pHdlHsv->mCfgMutex);
+
+    ret = algo_hsv_getValOffset(pHdlHsv->mAlgoCtx, offset);
+
+    aiqMutex_unlock(&pHdlHsv->mCfgMutex);
+
+    EXIT_ANALYZER_FUNCTION();
+    return ret;
+}

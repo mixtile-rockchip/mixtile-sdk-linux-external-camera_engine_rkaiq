@@ -743,6 +743,7 @@ void rk_aiq_sharp41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_
         int edge_minLimit = pdyn->locShpStrg.texRegion_clsfBaseTex.hw_shpT_edgeRegion_minThred;
 
         flat_maxLimit = MAX(flat_maxLimit, 1);
+        flat_maxLimit = MIN(flat_maxLimit, 0x3fe);
         edge_minLimit = MAX(edge_minLimit, flat_maxLimit + 1);
         edge_minLimit = MIN(edge_minLimit, 0x3ff);
         tex_wgt_table_x[0] = 0;

@@ -76,7 +76,7 @@ void calcAecLiteWinStats(
             sum_xy += (stats_out->channely_xy[i] * weight[i]);
             sum_weight += weight[i];
         }
-        *raw_mean = round(256.0f * (float)sum_xy / (float)sum_weight);
+        *raw_mean = round(256.0f * (float)sum_xy / (float)MAX(sum_weight, 1));
         break;
 
     case RAWSTATS_CHN_R_EN:
@@ -85,7 +85,7 @@ void calcAecLiteWinStats(
             sum_xy += ((stats_out->channelr_xy[i] >> 2) * weight[i]);
             sum_weight += weight[i];
         }
-        *raw_mean = round(256.0f * (float)sum_xy / (float)sum_weight);
+        *raw_mean = round(256.0f * (float)sum_xy / (float)MAX(sum_weight, 1));
         break;
 
     case RAWSTATS_CHN_G_EN:
@@ -94,7 +94,7 @@ void calcAecLiteWinStats(
             sum_xy += ((stats_out->channelg_xy[i] >> 4) * weight[i]);
             sum_weight += weight[i];
         }
-        *raw_mean = round(256.0f * (float)sum_xy / (float)sum_weight);
+        *raw_mean = round(256.0f * (float)sum_xy / (float)MAX(sum_weight, 1));
         break;
 
     case RAWSTATS_CHN_B_EN:
@@ -103,7 +103,7 @@ void calcAecLiteWinStats(
             sum_xy += ((stats_out->channelb_xy[i] >> 2) * weight[i]);
             sum_weight += weight[i];
         }
-        *raw_mean = round(256.0f * (float)sum_xy / (float)sum_weight);
+        *raw_mean = round(256.0f * (float)sum_xy / (float)MAX(sum_weight, 1));
         break;
 
     case RAWSTATS_CHN_RGB_EN:
@@ -126,7 +126,7 @@ void calcAecLiteWinStats(
             sum_xy += (stats_out->channely_xy[i] * weight[i]);
             sum_weight += weight[i];
         }
-        *raw_mean = round(256.0f * (float)sum_xy / (float)sum_weight);
+        *raw_mean = round(256.0f * (float)sum_xy / (float)MAX(sum_weight, 1));
         break;
     }
 
@@ -163,9 +163,9 @@ void calcAecBigWinStats(
         stats_out->wndx_sumr[i] = stats_in->sumr[i];
         stats_out->wndx_sumg[i] = stats_in->sumg[i];
         stats_out->wndx_sumb[i] = stats_in->sumb[i];
-        stats_out->wndx_channelr[i] = stats_out->wndx_sumr[i] / (pixel_num[i] / 4);
-        stats_out->wndx_channelg[i] = stats_out->wndx_sumg[i] / (pixel_num[i] / 2);
-        stats_out->wndx_channelb[i] = stats_out->wndx_sumb[i] / (pixel_num[i] / 4);
+        stats_out->wndx_channelr[i] = stats_out->wndx_sumr[i] / MAX((pixel_num[i] / 4), 1);
+        stats_out->wndx_channelg[i] = stats_out->wndx_sumg[i] / MAX((pixel_num[i] / 2), 1);
+        stats_out->wndx_channelb[i] = stats_out->wndx_sumb[i] / MAX((pixel_num[i] / 4), 1);
         stats_out->wndx_channely[i] = round(256.0f * (rcc * (float)(stats_out->wndx_channelr[i] >> 2)\
                                             + gcc * (float)(stats_out->wndx_channelg[i] >> 4) + bcc * (float)(stats_out->wndx_channelb[i] >> 2) + off));
     }
@@ -179,7 +179,7 @@ void calcAecBigWinStats(
             sum_xy += (stats_out->channely_xy[i] * weight[i]);
             sum_weight += weight[i];
         }
-        *raw_mean = (use_sub_win) ? stats_out->wndx_channely[0] : round(256.0f * (float)sum_xy / (float)sum_weight);
+        *raw_mean = (use_sub_win) ? stats_out->wndx_channely[0] : round(256.0f * (float)sum_xy / (float)MAX(sum_weight, 1));
         break;
 
     case RAWSTATS_CHN_R_EN:
@@ -188,7 +188,7 @@ void calcAecBigWinStats(
             sum_xy += ((stats_out->channelr_xy[i] >> 2) * weight[i]);
             sum_weight += weight[i];
         }
-        *raw_mean = (use_sub_win) ? stats_out->wndx_channelr[0] * 256 >> 2  : round(256.0f * (float)sum_xy / (float)sum_weight);
+        *raw_mean = (use_sub_win) ? stats_out->wndx_channelr[0] * 256 >> 2  : round(256.0f * (float)sum_xy / (float)MAX(sum_weight, 1));
         break;
 
     case RAWSTATS_CHN_G_EN:
@@ -197,7 +197,7 @@ void calcAecBigWinStats(
             sum_xy += ((stats_out->channelg_xy[i] >> 4) * weight[i]);
             sum_weight += weight[i];
         }
-        *raw_mean = (use_sub_win) ? stats_out->wndx_channelg[0] * 256 >> 4  : round(256.0f * (float)sum_xy / (float)sum_weight);
+        *raw_mean = (use_sub_win) ? stats_out->wndx_channelg[0] * 256 >> 4  : round(256.0f * (float)sum_xy / (float)MAX(sum_weight, 1));
         break;
 
     case RAWSTATS_CHN_B_EN:
@@ -206,7 +206,7 @@ void calcAecBigWinStats(
             sum_xy += ((stats_out->channelb_xy[i] >> 2) * weight[i]);
             sum_weight += weight[i];
         }
-        *raw_mean = (use_sub_win) ? stats_out->wndx_channelb[0] * 256 >> 2  : round(256.0f * (float)sum_xy / (float)sum_weight);
+        *raw_mean = (use_sub_win) ? stats_out->wndx_channelb[0] * 256 >> 2  : round(256.0f * (float)sum_xy / (float)MAX(sum_weight, 1));
         break;
 
     case RAWSTATS_CHN_RGB_EN:
@@ -229,7 +229,7 @@ void calcAecBigWinStats(
             sum_xy += (stats_out->channely_xy[i] * weight[i]);
             sum_weight += weight[i];
         }
-        *raw_mean = (use_sub_win) ? stats_out->wndx_channely[0] : round(256.0f * (float)sum_xy / (float)sum_weight);
+        *raw_mean = (use_sub_win) ? stats_out->wndx_channely[0] : round(256.0f * (float)sum_xy / (float)MAX(sum_weight, 1));
         break;
     }
 

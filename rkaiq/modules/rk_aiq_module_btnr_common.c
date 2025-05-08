@@ -619,15 +619,17 @@ int bayertnr_autosigma_config(btnr_stats_t *pStats, btnr_trans_params_t *pTransP
     }
 
     // sigma iir
-    if(pBlc->obcPostTnr.sw_blcT_obcPostTnr_en && pBlc->obcPostTnr.sw_blcT_autoOB_offset) {
-        for (j = 2; j < sigma_bins; j++)
-        {
-            sigmay_tmp[j] = MAX(sigmay_tmp[j], sigmay_tmp[j - 1]);
-        }
-    } else {
-        for (j = 1; j < sigma_bins; j++)
-        {
-            sigmay_tmp[j] = MAX(sigmay_tmp[j], sigmay_tmp[j - 1]);
+    if(pTransPrarms->isTransfBypass) {
+        if(pBlc->obcPostTnr.sw_blcT_obcPostTnr_en && pBlc->obcPostTnr.sw_blcT_autoOB_offset) {
+            for (j = 2; j < sigma_bins; j++)
+            {
+                sigmay_tmp[j] = MAX(sigmay_tmp[j], sigmay_tmp[j - 1]);
+            }
+        } else {
+            for (j = 1; j < sigma_bins; j++)
+            {
+                sigmay_tmp[j] = MAX(sigmay_tmp[j], sigmay_tmp[j - 1]);
+            }
         }
     }
 
@@ -792,5 +794,109 @@ void bayertnr_sigmaY_interpolate(u16 *pSigX, u16 *pSigY, u16 *pLowX, u16 *pHighX
                tmp, pHighX[j], pHighX[j + 1], x_ratio, pHighY[j], pHighY[j + 1], y_highISO, pSigY[i]);
 #endif
     }
+}
+
+uint16_t btnr_hdr_sigmaY_interpolate(int xData, uint16_t* sigcur_idx, uint16_t*sigcur_val, int sigbins)
+{
+    int i;
+    uint16_t sigma;
+    int ratio;
+
+    for(i = 0; i < sigbins; i++) {
+        if(xData < sigcur_idx[i])
+            break;
+    }
+
+    if(i <= 0) {
+        sigma = sigcur_val[0];
+    } else if(i >= sigbins - 1) {
+        sigma = sigcur_val[sigbins - 1];
+    } else {
+        ratio = (xData - sigcur_idx[i - 1]) * (sigcur_val[i] - sigcur_val[i - 1]);
+        ratio = ratio / (sigcur_idx[i] - sigcur_idx[i - 1]);
+
+        sigma = sigcur_val[i - 1] + ratio;
+    }
+
+    return sigma;
+}
+
+float btnr_hdr_mergeWgt_interpolate(int xData, int* luma_idx, float*luma2wgt_val)
+{
+    int lumabins = 17;
+    int i;
+    float wgt;
+    int ratio;
+
+    for(i = 0; i < lumabins; i++) {
+        if(xData < luma_idx[i])
+            break;
+    }
+
+    if(i <= 0) {
+        wgt = luma2wgt_val[0];
+    } else if(i >= lumabins - 1) {
+        wgt = luma2wgt_val[lumabins - 1];
+    } else {
+        ratio = (xData - luma_idx[i - 1]) * (luma2wgt_val[i] - luma2wgt_val[i - 1]);
+        ratio = ratio / (luma_idx[i] - luma_idx[i - 1]);
+
+        wgt = luma2wgt_val[i - 1] + ratio;
+    }
+
+    return wgt;
+}
+
+
+void btnr_hdr_sigma_calc(uint16_t* pSigmaX, uint16_t* pSigmaY, uint16_t* pCalibX, uint16_t*pShortY, uint16_t* pLongY, mergeLuma2Wgt_t* pMerge_luma2wgt, btnr_trans_params_t *pTransParams, int sigbins, float hdr_ratio)
+{
+    float short_iso_ratio = 0.0f, merge_luma2Wgt = 0.0f;
+    int i, tmp0, tmp1, short_edge_idx = 0;
+    int long_pixLuma, short_pixLuma;
+    int pixmax_long =  bayertnr_logtrans(((1 << 12) - 1), pTransParams);
+
+    for(i = 0; i < sigbins; i++) {
+        if(pSigmaX[i] <= pixmax_long) {
+            short_edge_idx = i;
+        }
+    }
+
+    for(i = 0; i < short_edge_idx; i++) {
+        tmp1 = 0;
+        merge_luma2Wgt = 0.0f;
+        tmp0 = btnr_hdr_sigmaY_interpolate(pSigmaX[i], pCalibX, pLongY, sigbins);
+        long_pixLuma = bayertnr_logiitrans(pSigmaX[i], pTransParams);
+        if(long_pixLuma >= pMerge_luma2wgt->luma_idx[0] * 4) {
+            short_pixLuma = (float)long_pixLuma / hdr_ratio;
+            short_pixLuma = bayertnr_logtrans(short_pixLuma, pTransParams);
+            tmp1 = btnr_hdr_sigmaY_interpolate(MAX(short_pixLuma, 0), pCalibX, pShortY, sigbins);
+            tmp1 += bayertnr_logtrans(hdr_ratio, pTransParams);
+            merge_luma2Wgt = btnr_hdr_mergeWgt_interpolate(long_pixLuma / 4, pMerge_luma2wgt->luma_idx, pMerge_luma2wgt->luma_wgt);
+            long_pixLuma = bayertnr_logiitrans(pSigmaX[i + 1], pTransParams);
+            merge_luma2Wgt = (merge_luma2Wgt + btnr_hdr_mergeWgt_interpolate(long_pixLuma / 4, pMerge_luma2wgt->luma_idx, pMerge_luma2wgt->luma_wgt)) / 2;
+        }
+
+        pSigmaY[i] = tmp0 * (1.0f - merge_luma2Wgt) + merge_luma2Wgt * tmp1;
+        //printf("long: [%d]: x:%d tmp0:%d  short: long_pixLuma:%d merge_luma2Wgt:%f tmp1:%d finnal:%hu\n", i, pSigmaX[i], tmp0, long_pixLuma, merge_luma2Wgt, tmp1, pSigmaY[i]);
+    }
+
+    for(i = short_edge_idx; i < sigbins; i++) {
+        tmp1 = 0;
+        merge_luma2Wgt = 1.0;
+        long_pixLuma = bayertnr_logiitrans(pSigmaX[i], pTransParams);
+        short_pixLuma = (float)long_pixLuma / hdr_ratio;
+        short_pixLuma = bayertnr_logtrans(short_pixLuma, pTransParams);
+        tmp0 = btnr_hdr_sigmaY_interpolate(MAX(short_pixLuma, 0), pCalibX, pShortY, sigbins);
+        tmp0 += bayertnr_logtrans(hdr_ratio, pTransParams);
+        if( long_pixLuma <= pMerge_luma2wgt->luma_idx[16] * 4) {
+            tmp1 = btnr_hdr_sigmaY_interpolate(pSigmaX[i], pCalibX, pLongY, sigbins);
+            merge_luma2Wgt = btnr_hdr_mergeWgt_interpolate(long_pixLuma / 4, pMerge_luma2wgt->luma_idx, pMerge_luma2wgt->luma_wgt);
+            long_pixLuma = bayertnr_logiitrans(pSigmaX[i + 1], pTransParams);
+            merge_luma2Wgt = (merge_luma2Wgt + btnr_hdr_mergeWgt_interpolate(long_pixLuma / 4, pMerge_luma2wgt->luma_idx, pMerge_luma2wgt->luma_wgt)) / 2;
+        }
+        pSigmaY[i] = tmp0 * merge_luma2Wgt + (1.0 - merge_luma2Wgt) * tmp1;
+        //printf("iitrans pSigmaX:%d short luma:%d %f tmp0:%d, merge_luma2Wgt:%f tmp1:%d finnal:%hu \n", pSigmaX[i], long_pixLuma, long_pixLuma/fdGain[0], tmp0, merge_luma2Wgt, tmp1, pSigmaY[i]);
+    }
+
 }
 

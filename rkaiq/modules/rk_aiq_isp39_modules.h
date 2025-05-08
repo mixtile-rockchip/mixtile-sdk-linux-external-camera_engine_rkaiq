@@ -79,9 +79,10 @@ typedef struct {
     uint16_t pre_ob_offset;
 } blc_cvt_info_t;
 
+
 RKAIQ_BEGIN_DECLARE
 
-void rk_aiq_btnr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t *cvtinfo, btnr_cvt_info_t *pBtnrInfo);
+void rk_aiq_btnr40_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t *cvtinfo, btnr_cvt_info_t *pBtnrInfo, mergeLuma2Wgt_t* pMergeLumaWgt);
 void rk_aiq_sharp34_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t *cvtinfo);
 void rk_aiq_ynr34_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t *cvtinfo);
 void rk_aiq_cnr34_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t *cvtinfo);
@@ -94,7 +95,7 @@ void rk_aiq_gic21_params_cvt(void* attr, struct isp39_gic_cfg* gic_cfg);
 void rk_aiq_dehaze23_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t *cvtinfo);
 void rk_aiq_histeq23_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t *cvtinfo);
 void rk_aiq_dehazeHisteq23_sigma_params_cvt(isp_params_t* isp_params,
-                                            common_cvt_info_t* cvtinfo);
+        common_cvt_info_t* cvtinfo);
 void rk_aiq_yme10_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t* cvtinfo);
 #if ISP_HW_V39
 void rk_aiq_cac21_params_cvt(void* attr, isp_params_t* isp_params,
@@ -108,7 +109,7 @@ void rk_aiq_ldcv22_params_cvt(const common_cvt_info_t* cvtinfo, void* attr,
                               bool is_multi_isp);
 void rk_aiq_csm21_params_cvt(void* attr, isp_params_t* isp_params);
 void rk_aiq_dm23_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t *cvtinfo);
-void rk_aiq_merge22_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t* cvtinfo);
+void rk_aiq_merge22_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t* cvtinfo, mergeLuma2Wgt_t* pMerge_luma2wgt);
 void rk_aiq_lsc21_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t *cvtinfo);
 void rk_aiq_ae25_stats_cfg_cvt(void* meas, isp_params_t* isp_params);
 

@@ -28,6 +28,8 @@ XCamReturn AiqHsvHandler_setSatStrth(AiqHsvHandler_t* pHdlHsv, ahsv_satStrg_t* s
 XCamReturn AiqHsvHandler_getSatStrth(AiqHsvHandler_t* pHdlHsv, ahsv_satStrg_t* strg);
 XCamReturn AiqHsvHandler_setHueOffset(AiqHsvHandler_t* pHdlHsv, ahsv_hueOffset_t* offset);
 XCamReturn AiqHsvHandler_getHueOffset(AiqHsvHandler_t* pHdlHsv, ahsv_hueOffset_t* offset);
+XCamReturn AiqHsvHandler_setValOffset(AiqHsvHandler_t* pHdlHsv, ahsv_valOffset_t* offset);
+XCamReturn AiqHsvHandler_getValOffset(AiqHsvHandler_t* pHdlHsv, ahsv_valOffset_t* offset);
 
 #endif
 #endif

@@ -38,19 +38,19 @@ extern "C" {
 #ifdef ANDROID_OS
 #define LOG_TAG "RKFEC"
 #define rkfec_err(fmt, arg...) \
-    __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, fmt, ##arg))
+    __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, fmt, ##arg)
 
 #define rkfec_warn(fmt, arg...) \
-    __android_log_print(ANDROID_LOG_WARN, LOG_TAG, fmt, ##arg))
+    __android_log_print(ANDROID_LOG_WARN, LOG_TAG, fmt, ##arg)
 
 #define rkfec_info(fmt, arg...) \
-    __android_log_print(ANDROID_LOG_INFO, LOG_TAG, fmt, ##arg))
+    __android_log_print(ANDROID_LOG_INFO, LOG_TAG, fmt, ##arg)
 
 #define rkfec_dbg(fmt, arg...) \
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, fmt, ##arg))
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, fmt, ##arg)
 
 #define rkfec_verb(fmt, arg...) \
-    __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, fmt, ##arg))
+    __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, fmt, ##arg)
 #else
 #define rkfec_err(fmt, arg...)  fprintf(stderr, "[ERROR] " fmt "\n", ##arg)
 #define rkfec_warn(fmt, arg...) printf("[WARN] " fmt "\n", ##arg)

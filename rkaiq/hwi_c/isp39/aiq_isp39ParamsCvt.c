@@ -780,22 +780,22 @@ static void WriteDataForIcCmodel(struct isp39_rawawb_meas_cfg* wpDetectPara)
         fprintf(fp, "g_awb_para.sw_rawawb_multiwindow_en =%d;\n", wpDetectPara->multiwindow_en);
         fprintf(fp, "g_awb_para.sw_rawawb_multiwindow0_h_offs =%d;\n", wpDetectPara->multiwindow0_h_offs);
         fprintf(fp, "g_awb_para.sw_rawawb_multiwindow0_v_offs =%d;\n", wpDetectPara->multiwindow0_v_offs);
-        fprintf(fp, "g_awb_para.sw_rawawb_multiwindow0_h_size =%d;//note:diff with chip\n", wpDetectPara->multiwindow0_h_size- wpDetectPara->multiwindow0_h_offs);
-        fprintf(fp, "g_awb_para.sw_rawawb_multiwindow0_v_size =%d;\n", wpDetectPara->multiwindow0_v_size- wpDetectPara->multiwindow0_v_offs);
+        fprintf(fp, "g_awb_para.sw_rawawb_multiwindow0_h_size =%d;//note:diff with chip\n", wpDetectPara->multiwindow0_h_size - wpDetectPara->multiwindow0_h_offs);
+        fprintf(fp, "g_awb_para.sw_rawawb_multiwindow0_v_size =%d;\n", wpDetectPara->multiwindow0_v_size - wpDetectPara->multiwindow0_v_offs);
         fprintf(fp, "g_awb_para.sw_rawawb_multiwindow1_h_offs =%d;\n", wpDetectPara->multiwindow1_h_offs);
         fprintf(fp, "g_awb_para.sw_rawawb_multiwindow1_v_offs =%d;\n", wpDetectPara->multiwindow1_v_offs);
-        fprintf(fp, "g_awb_para.sw_rawawb_multiwindow1_h_size =%d;\n", wpDetectPara->multiwindow1_h_size- wpDetectPara->multiwindow1_h_offs);
-        fprintf(fp, "g_awb_para.sw_rawawb_multiwindow1_v_size =%d;\n", wpDetectPara->multiwindow1_v_size- wpDetectPara->multiwindow1_v_offs);
+        fprintf(fp, "g_awb_para.sw_rawawb_multiwindow1_h_size =%d;\n", wpDetectPara->multiwindow1_h_size - wpDetectPara->multiwindow1_h_offs);
+        fprintf(fp, "g_awb_para.sw_rawawb_multiwindow1_v_size =%d;\n", wpDetectPara->multiwindow1_v_size - wpDetectPara->multiwindow1_v_offs);
         fprintf(fp, "g_awb_para.sw_rawawb_multiwindow2_h_offs =%d;\n", wpDetectPara->multiwindow2_h_offs);
         fprintf(fp, "g_awb_para.sw_rawawb_multiwindow2_v_offs =%d;\n", wpDetectPara->multiwindow2_v_offs);
-        fprintf(fp, "g_awb_para.sw_rawawb_multiwindow2_h_size =%d;\n", wpDetectPara->multiwindow2_h_size- wpDetectPara->multiwindow2_h_offs);
-        fprintf(fp, "g_awb_para.sw_rawawb_multiwindow2_v_size =%d;\n", wpDetectPara->multiwindow2_v_size- wpDetectPara->multiwindow2_v_offs);
+        fprintf(fp, "g_awb_para.sw_rawawb_multiwindow2_h_size =%d;\n", wpDetectPara->multiwindow2_h_size - wpDetectPara->multiwindow2_h_offs);
+        fprintf(fp, "g_awb_para.sw_rawawb_multiwindow2_v_size =%d;\n", wpDetectPara->multiwindow2_v_size - wpDetectPara->multiwindow2_v_offs);
         fprintf(fp, "g_awb_para.sw_rawawb_multiwindow3_h_offs =%d;\n", wpDetectPara->multiwindow3_h_offs);
         fprintf(fp, "g_awb_para.sw_rawawb_multiwindow3_v_offs =%d;\n", wpDetectPara->multiwindow3_v_offs);
-        fprintf(fp, "g_awb_para.sw_rawawb_multiwindow3_h_size =%d;\n", wpDetectPara->multiwindow3_h_size- wpDetectPara->multiwindow3_h_offs);
-        fprintf(fp, "g_awb_para.sw_rawawb_multiwindow3_v_size =%d;\n", wpDetectPara->multiwindow3_v_size- wpDetectPara->multiwindow3_v_offs);
-        fprintf(fp, "g_awb_para.sw_rawawb_exc_wp_region0_excen0 =%d;\n", wpDetectPara->exc_wp_region0_excen&0x1);
-        fprintf(fp, "g_awb_para.sw_rawawb_exc_wp_region0_excen1 =%d;\n", wpDetectPara->exc_wp_region0_excen&0x2>>1);
+        fprintf(fp, "g_awb_para.sw_rawawb_multiwindow3_h_size =%d;\n", wpDetectPara->multiwindow3_h_size - wpDetectPara->multiwindow3_h_offs);
+        fprintf(fp, "g_awb_para.sw_rawawb_multiwindow3_v_size =%d;\n", wpDetectPara->multiwindow3_v_size - wpDetectPara->multiwindow3_v_offs);
+        fprintf(fp, "g_awb_para.sw_rawawb_exc_wp_region0_excen0 =%d;\n", wpDetectPara->exc_wp_region0_excen & 0x1);
+        fprintf(fp, "g_awb_para.sw_rawawb_exc_wp_region0_excen1 =%d;\n", wpDetectPara->exc_wp_region0_excen & 0x2 >> 1);
         fprintf(fp, "g_awb_para.sw_rawawb_exc_wp_region0_measen =%d;\n", wpDetectPara->exc_wp_region0_measen);
         fprintf(fp, "g_awb_para.sw_rawawb_exc_wp_region0_domain =%d;\n", wpDetectPara->exc_wp_region0_domain);
         fprintf(fp, "g_awb_para.sw_rawawb_exc_wp_region0_weight =%d;\n", wpDetectPara->exc_wp_region0_weight);
@@ -2167,7 +2167,7 @@ static void convertAiqBtnrToIsp39Params(AiqIspParamsCvt_t* pCvt, aiq_params_base
 
     pCvt->isp_params.isp_cfg->others.bay3d_cfg.bypass_en = pBase->bypass;
     pCvt->mBtnrInfo.btnr_attrib = pCvt->btnr_attrib;
-    rk_aiq_btnr40_params_cvt(pBase->_data, &pCvt->isp_params, &pCvt->mCommonCvtInfo, &pCvt->mBtnrInfo);
+    rk_aiq_btnr40_params_cvt(pBase->_data, &pCvt->isp_params, &pCvt->mCommonCvtInfo, &pCvt->mBtnrInfo, &pCvt->mergeLuma2Wgt);
 }
 #endif
 
@@ -2248,7 +2248,7 @@ void convertAiqMergeToIsp39Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_t* pB
         return;
     }
 
-    rk_aiq_merge22_params_cvt(pBase->_data, &pCvt->isp_params, &pCvt->mCommonCvtInfo);
+    rk_aiq_merge22_params_cvt(pBase->_data, &pCvt->isp_params, &pCvt->mCommonCvtInfo, &pCvt->mergeLuma2Wgt);
 }
 #endif
 
@@ -2385,7 +2385,7 @@ void convertAiqBlcToIsp39Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_t* pBas
 
 #if RKAIQ_HAVE_LDC
 static void convertAiqAldchToIsp39Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_t* pBase,
-                                         bool is_multi_isp) {
+        bool is_multi_isp) {
     ldc_param_t* ldc_param = (ldc_param_t*)(pBase->_data);
 
     LOGD_ALDC("LDCH %s in params CVT", ldc_param->sta.ldchCfg.en ? "on" : "off");
@@ -2407,7 +2407,7 @@ static void convertAiqAldchToIsp39Params(AiqIspParamsCvt_t* pCvt, aiq_params_bas
 
 #if RKAIQ_HAVE_LDCV
 static void convertAiqAldcvToIsp39Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_t* pBase,
-                                         bool is_multi_isp) {
+        bool is_multi_isp) {
     ldc_param_t* ldc_param = (ldc_param_t*)(pBase->_data);
 
     LOGD_ALDC("LDCV %s in params CVT", ldc_param->sta.ldcvCfg.en ? "on" : "off");
@@ -2447,7 +2447,7 @@ void convertAiqExpIspDgainToIsp39Params(AiqIspParamsCvt_t* pCvt,
         float isp_dgain = MAX(1.0f, ae_exp->LinearExp.exp_real_params.isp_dgain);
 
         if (fabs(isp_dgain - pCvt->mLatestIspDgain) < FLT_EPSILON &&
-            fabs(isp_dgain - 1.0f) < FLT_EPSILON)
+                fabs(isp_dgain - 1.0f) < FLT_EPSILON)
             return;
 
         pCvt->mLatestIspDgain = isp_dgain;
@@ -2480,7 +2480,7 @@ void convertAiqExpIspDgainToIsp39Params(AiqIspParamsCvt_t* pCvt,
 
         float isp_dgain = isp_dgain0 + isp_dgain1 + isp_dgain2;
         if (fabs(isp_dgain - pCvt->mLatestIspDgain) < FLT_EPSILON &&
-            fabs(isp_dgain - 3.0f) < FLT_EPSILON)
+                fabs(isp_dgain - 3.0f) < FLT_EPSILON)
             return;
         pCvt->mLatestIspDgain = isp_dgain;
 
@@ -2782,7 +2782,8 @@ bool Convert3aResultsToIsp39Cfg(AiqIspParamsCvt_t* pCvt, aiq_params_base_t* pBas
         struct isp39_isp_params_cfg* isp_cfg_right = isp_cfg + 1;
         convertAiqCacToIsp39Params(pCvt, pBase, isp_cfg, isp_cfg_right, is_multi_isp);
 #endif
-    } break;
+    }
+    break;
 #if RKAIQ_HAVE_LDC
     case RESULT_TYPE_LDC_PARAM:
         convertAiqAldcToIsp39Params(pCvt, pBase, is_multi_isp);

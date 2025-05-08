@@ -25,11 +25,13 @@ extern "C" {
 #endif
 
 #define FEC_VERSION_ENCODE(a, b, c) (((a) << 16) + ((b) << 8) + ((c) > 255 ? 255 : (c)))
-#define RK_ISP_FEC_API_VERSION      FEC_VERSION_ENCODE(3, 1, 0)
+#define RK_ISP_FEC_API_VERSION      FEC_VERSION_ENCODE(4, 0, 1)
 
 #define RK_ISP_FEC_API_VERSION_MAJOR(v) (((v) >> 16) & 0xff)
 #define RK_ISP_FEC_API_VERSION_MINOR(v) (((v) >> 8) & 0xff)
 #define RK_ISP_FEC_API_VERSION_PATCH(v) ((v) & 0xff)
+
+#define MAX_FILE_PATH_LEN 128
 
 typedef struct rk_ispfec_ctx_s rk_ispfec_ctx_t;
 
@@ -52,14 +54,17 @@ enum rk_ispfec_correct_style {
  * @direction: configure the correction direction of the generated mesh.
  * @style: configure the correction style of the generated mesh.
  * @correct_level: the distortion type of FEC.
+ * @calib_width: the width of the calibration image.
+ * @calib_height: the height of the calibration image.
+ * @calib_level_maxLimit: the max distortion level of the calibration image.
  */
 typedef struct gen_mesh_online_info_s {
-    double  light_center[2];
-    double  coeff[4];
-    enum rk_ispfec_correct_direction 	direction;
-    enum rk_ispfec_correct_style 		style;
+    double light_center[2];
+    double coeff[4];
+    enum rk_ispfec_correct_direction direction;
+    enum rk_ispfec_correct_style style;
 
-    int     correct_level;
+    int correct_level;
 
     int calib_width;
     int calib_height;
@@ -79,142 +84,140 @@ typedef struct rk_ispfec_bg_val_s {
     int bg_v;
 } rk_ispfec_bg_val;
 
-// buffer mode configuration (RK_ISPFEC_UPDATE_MESH_FROM_BUFFER)
+/**
+ * Buffer mode configuration descriptor (for RK_ISPFEC_UPDATE_MESH_FROM_BUFFER mode)
+ *
+ * @dma_fd:   DMA buffer file descriptor. Valid only when need_copy=0
+ * @vir_addr: Source virtual address for memory copy. Required when need_copy=1
+ * @size:     Buffer capacity, must be greater or equal to actual data size
+ * @need_copy: Operation mode selector:
+ *             - 0: DMA handle mode (directly use dma_fd, ignore vir_addr)
+ *             - 1: Memory copy mode (copy from vir_addr to internal DMA buffer)
+ */
 typedef struct rk_ispfec_buffer_info {
-    int dma_fd;      ///< DMA buffer handle (effective when need_copy=0)
-    void* vir_addr;  ///< Source virtual address for copy (required when need_copy=1)
-    size_t size;     ///< Buffer capacity, must be >= actual data size
-    bool need_copy;  ///< Memory copy mode flag. Configuration rules:
-                     ///< - DMA handle mode: set 0 to:
-                     ///<   a. Directly use dma_fd
-                     ///<   b. vir_addr will be ignored
-                     ///< - Memory copy mode: set 1 to:
-                     ///<   a. Copy size bytes from vir_addr to the in-use DMA buffer
-                     ///<   b. dma_fd will be ignored
+    int dma_fd;
+    void* vir_addr;
+    size_t size;
+    bool need_copy;
 } rk_ispfec_buffer_info_t;
 
+/**
+ * FEC mesh update mode enumeration
+ *
+ * RK_ISPFEC_UPDATE_MESH_ONLINE    - Real-time mesh generation using lens parameters
+ * RK_ISPFEC_UPDATE_MESH_FROM_FILE - Load mesh data from external files
+ * RK_ISPFEC_UPDATE_MESH_FROM_BUFFER- Update mesh from memory buffer descriptors
+ */
 enum rk_ispfec_update_mesh_mode {
-    RK_ISPFEC_UPDATE_MESH_ONLINE = 0,  // generate lut online
-    RK_ISPFEC_UPDATE_MESH_FROM_FILE,   // external file import mesh
-    RK_ISPFEC_UPDATE_MESH_FROM_BUFFER  // update mesh from buffer descriptors
+    RK_ISPFEC_UPDATE_MESH_ONLINE = 0,
+    RK_ISPFEC_UPDATE_MESH_FROM_FILE,
+    RK_ISPFEC_UPDATE_MESH_FROM_BUFFER
 };
 
+/**
+ * @brief FEC Mesh Configuration Structure
+ *
+ * @param mode    Operation mode selector
+ * @param params  Mode-specific configuration parameters
+ *
+ * @section file_mode File Mode (RK_ISPFEC_UPDATE_MESH_FROM_FILE)
+ * @note Hardware version specific configurations:
+ * - V20: Single mesh file path
+ * - Others: Four separate mesh files (X/Y axis integer/fractional)
+ *
+ * @section buffer_mode Buffer Mode (RK_ISPFEC_UPDATE_MESH_FROM_BUFFER)
+ * @note Hardware version specific configurations:
+ * - V20: Single buffer descriptor
+ * - Others: Four buffer descriptors (X/Y axis integer/fractional)
+ *
+ * @section online_mode Online Mode (RK_ISPFEC_UPDATE_MESH_ONLINE)
+ * Contains lens calibration parameters for real-time mesh generation
+ */
 typedef struct rk_ispfec_mesh_config {
     enum rk_ispfec_update_mesh_mode mode;
 
     union {
-        // File mode configuration (RK_ISPFEC_UPDATE_MESH_FROM_FILE)
         struct {
 #ifdef RKFEC_HW_V20
-            char mesh_path[256];  // Single mesh file path (V20)
+            char mesh_path[256];
 #else
-            char mesh_xint[256];  // X-axis integer mesh file
-            char mesh_xfra[256];  // X-axis fractional mesh file
-            char mesh_yint[256];  // Y-axis integer mesh file
-            char mesh_yfra[256];  // Y-axis fractional mesh file
+            char mesh_xint[256];
+            char mesh_xfra[256];
+            char mesh_yint[256];
+            char mesh_yfra[256];
 #endif
         } file_cfg;
 
-        // Buffer mode configuration (RK_ISPFEC_UPDATE_MESH_FROM_BUFFER)
         struct {
 #ifdef RKFEC_HW_V20
-            rk_ispfec_buffer_info_t mesh;  // Single buffer information
+            rk_ispfec_buffer_info_t mesh;
 #else
             struct {
-                rk_ispfec_buffer_info_t xint;  // X-axis integer part
-                rk_ispfec_buffer_info_t xfra;  // X-axis fractional part
-                rk_ispfec_buffer_info_t yint;  // Y-axis integer part
-                rk_ispfec_buffer_info_t yfra;  // Y-axis fractional part
-            } mesh;                            // Multiple buffers configuration
+                rk_ispfec_buffer_info_t xint;
+                rk_ispfec_buffer_info_t xfra;
+                rk_ispfec_buffer_info_t yint;
+                rk_ispfec_buffer_info_t yfra;
+            } mesh;
 #endif
         } buffer_cfg;
 
-        // Online generation mode (RK_ISPFEC_UPDATE_MESH_ONLINE)
-        gen_mesh_online_info_t online_cfg;  // Online generation parameters
+        gen_mesh_online_info_t online_cfg;
     } params;
 } rk_ispfec_mesh_config_t;
 
+/**
+ * @brief FEC Configuration Structure
+ *
+ * @version      Must be set to RK_ISP_FEC_API_VERSION for version compatibility
+ * @size         Structure size for binary compatibility checks (auto-set via ISP_FEC_CONFIG_INIT)
+ * @in_width     Input image width in pixels
+ * @in_height    Input image height in pixels
+ * @out_width    Output image width in pixels
+ * @out_height   Output image height in pixels
+ * @in_fourcc    Input pixel format (V4L2 fourcc):
+ *               - V4L2_PIX_FMT_NV12: YUV420 semi-planar
+ *               - V4L2_PIX_FMT_TILE420: Tiled 4x4 format
+ * @out_fourcc   Output pixel format (V4L2 fourcc):
+ *               - V4L2_PIX_FMT_NV12: YUV420 semi-planar
+ *               - V4L2_PIX_FMT_TILE420: Tiled 4x4 format
+ *               - V4L2_PIX_FMT_FBC0: Frame Buffer Compression
+ *               - V4L2_PIX_FMT_QUAD: AVSP compatible format
+ *
+ * @section hw_v20 V20 Hardware Specific
+ * @border_mode    Edge handling (0: fill background color, 1: extend border pixels)
+ * @cross_buf_mode Overshrink handling (0: fill background color, 1: replicate edges)
+ * @bg_val         Background YUV color components (0-255)
+ * @mesh_info      Pre-allocated mesh buffer (use rk_ispfec_api_calFecMeshsize for size)
+ *
+ * @section mesh_params Mesh Configuration
+ * @mesh_upd_mode  Mesh update operation mode
+ * @u              Union configuration based on mesh update mode:
+ *                 - mesh_file_path: External mesh file path (file mode)
+ *                 - mesh_online:    Online generation parameters (online mode)
+ *
+ * @section offsets Offsets and Strides
+ * @in_offset_x    Input horizontal crop offset (API 3.0.0+)
+ * @out_offset_x   Output horizontal placement offset (API 3.0.0+)
+ * @in_stride      Input buffer stride (0=auto-calculate)
+ * @out_stride     Output buffer stride (0=auto-calculate)
+ * @calib_ini_from Lens calibration file path (API 3.1.0+)
+ */
 typedef struct rk_ispfec_cfg_s {
-    /**
-     * @brief Configuration structure version identifier
-     * - Must be set to RK_ISP_FEC_API_VERSION by application
-     * - Used for version compatibility check during initialization
-     * @note Added in API version 2.0.0. Recommended to use ISP_FEC_CONFIG_INIT()
-     *       macro for proper initialization which will set this field automatically
-     */
     int version;
-
-    /**
-     * @brief Size of this configuration structure
-     * - Must be set to sizeof(rk_ispfec_cfg_s) by application
-     * - Ensures binary compatibility across library updates
-     * @note Added in API version 2.0.0. ISP_FEC_CONFIG_INIT() macro will set
-     *       this field to correct value
-     */
     int size;
-
-    // 输入输出的分辨率
     int in_width;
     int in_height;
     int out_width;
     int out_height;
-
-    /**
-     * @brief Input pixel format (V4L2 fourcc code)
-     * Supported formats:
-     * - V4L2_PIX_FMT_NV12: YUV420 semi-planar (8-bit)
-     * - V4L2_PIX_FMT_TILE420: TILE4x4, YUV420 semi-planar (8-bit)
-     */
     int in_fourcc;
-
-    /**
-     * @brief Output pixel format (V4L2 fourcc code)
-     * Supported formats:
-     * - V4L2_PIX_FMT_NV12: YUV420 semi-planar (8-bit)
-     * - V4L2_PIX_FMT_TILE420: TILE4x4, YUV420 semi-planar (8-bit)
-     * - V4L2_PIX_FMT_FBC0: Frame Buffer Compression format
-     * - V4L2_PIX_FMT_QUAD: To AVSP, YUV420 (8-bit)
-     */
     int out_fourcc;
 
 #ifdef RKFEC_HW_V20
-    /**
-     * @brief Border handling mode when mesh coordinates exceed input boundaries
-     *
-     * Trigger condition: When corrected pixel coordinates fall outside
-     * input image boundaries [ (0,0) ~ (srcW-1, srcH-1) ]
-     *
-     * Mode options:
-     * - 0: Fill with bg_val (background color values)
-     * - 1: Extend border pixels from input image edges
-     */
     int border_mode;
-
-    /**
-     * @brief Cross buffer handling mode for local over-shrinking cases
-     *
-     * Trigger condition: When local scaling ratio exceeds 3.75x
-     * (input area / output area > 3.75) in mesh-defined regions
-     *
-     * Mode options:
-     * - 0: Fill with bg_val (consistent background color)
-     * - 1: Replicate boundary values from current sampling block
-     *
-     * @note This works in conjunction with border_mode to handle edge cases
-     */
     int cross_buf_mode;
-
-    /**
-     * @brief Background Y/U/V component
-     * - Range: 0-255 (8-bit)
-     * - Typical black value: Y=0, U=128, V=128
-     */
     rk_ispfec_bg_val bg_val;
-
-    // mesh 表 buf fd，外部分配，可用 rk_ispfec_api_calFecMeshsize 计算size
     mesh_info_t mesh_info;
 #else
-    // mesh 表 buf fd，外部分配，可用 rk_ispfec_api_calFecMeshsize 计算size
     mesh_info_t mesh_xint;
     mesh_info_t mesh_xfra;
     mesh_info_t mesh_yint;
@@ -222,63 +225,15 @@ typedef struct rk_ispfec_cfg_s {
 #endif
 
     enum rk_ispfec_update_mesh_mode mesh_upd_mode;
-
-    /**
-     * @UPDATE_MESH_ONLINE :   configure the online info from fec calibration for 'mesh_file_path'
-     * @UPDATE_MESH_FROM_FILE: configure the path of mesh file for 'mesh_online'
-     * @UPDATE_MESH_FROM_BUFFER: configure the mesh from buffer
-     */
     union {
         char mesh_file_path[128];
         gen_mesh_online_info_t mesh_online;
     } u;
-
-    /**
-     * @brief Horizontal offset for input image cropping
-     * - Unit: Pixels
-     * - Range: 0 to (input_width - 1)
-     * - Applied before FEC processing
-     * @note Added in API version 3.0.0
-     */
     int in_offset_x;
-
-    /**
-     * @brief Horizontal offset for output image placement
-     * - Unit: Pixels
-     * - Range: 0 to (output_width - 1)
-     * - Applied after FEC processing
-     * @note Added in API version 3.0.0
-     */
     int out_offset_x;
-
-    /**
-     * @brief Memory stride for input image buffer
-     * - Unit: Pixels per line
-     * - Set to 0 for automatic calculation based on width/format
-     * @note Added in API version 3.0.0
-     */
     int in_stride;
-
-    /**
-     * @brief Memory stride for output image buffer
-     * - Unit: Pixels per line
-     * - Set to 0 for automatic calculation based on width/format
-     * @note Added in API version 3.0.0
-     */
     int out_stride;
-
-    /**
-     * @brief Path to lens calibration configuration file (INI format)
-     * - Specifies optical calibration parameters
-     *
-     * @note Behavior rules:
-     * - When NULL: Application must manually provide calibration parameters
-     *   through mesh_online configuration
-     * - When non-NULL: Library will parse the INI file and override any
-     *   manually set parameters in mesh_online
-     * @note Added in API version 3.1.0
-     */
-    char* calib_ini_from;
+    char calib_ini_from[MAX_FILE_PATH_LEN];
 } rk_ispfec_cfg_t;
 
 /**

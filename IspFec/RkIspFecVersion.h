@@ -37,11 +37,16 @@
  * - Add support for configuring virtual width and horizontal offset.
  *
  * v3.1.0
- * - Add support for configuring virtual width and horizontal offset.
+ * - rename calibration parameter
+ * - add internal support for parsing calib ini file
+ *
+ * v4.0.0
+ * - fix INI field parsing error
+ * - modify calib_ini_from from a pointer to an array
  *
  */
 
-#define RK_ISP_FEC_RELEASE_DATE "2025-04-23"
+#define RK_ISP_FEC_RELEASE_DATE "2025-04-27"
 #define RK_ISP_FEC_VERSION      RK_ISP_FEC_API_VERSION
 
 #endif

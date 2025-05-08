@@ -73,7 +73,8 @@ typedef struct {
     bool is_calib_update;
 
     ahsv_satStrg_t strg;
-    ahsv_hueOffset_t offset;
+    ahsv_hueOffset_t hoffset;
+    ahsv_valOffset_t voffset;
     bool isReCal_;
 } HsvContext_t;
 

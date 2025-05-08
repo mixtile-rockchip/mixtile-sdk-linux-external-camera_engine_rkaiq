@@ -1,6 +1,8 @@
 #ifndef _RK_AIQ_MODULE_BTNR_COMMON_H_
 #define _RK_AIQ_MODULE_BTNR_COMMON_H_
 
+#include "rk_aiq_module_common.h"
+
 #define trans_mode2str(mode) \
     (mode) == 0 ? "btnr_pixInBw20b_mode" : \
     (mode) == 1 ? "btnr_pixInBw15b_mode" : \
@@ -85,7 +87,10 @@ int bayertnr_update_sq(btnr_trans_params_t* pTransPrarms);
 void bayertnr_save_stats(void *stats_buffer, btnr_cvt_info_t *pBtnrInfo);
 int bayertnr_autosigma_config(btnr_stats_t *pStats, btnr_trans_params_t *pTransPrarms, blc_res_cvt_t* pBlc);
 int bayertnr_tnr_noise_curve(int data, int isHdrShort, btnr_trans_params_t *pTransPrarms);
-
 void bayertnr_sigmaY_interpolate(u16 *pSigX, u16 *pSigY, u16 *pLowX, u16 *pHighX, u16 *pLowY, u16 *pHighY,  int sigbins, float iso_ratio);
+uint16_t btnr_hdr_sigmaY_interpolate(int xData, uint16_t* sigcur_idx, uint16_t*sigcur_val, int sigbins);
+float btnr_hdr_mergeWgt_interpolate(int xData, int* luma_idx, float* luma2wgt_val);
+void btnr_hdr_sigma_calc(uint16_t* pSigmaX, uint16_t* pSigmaY, uint16_t* pCalibX, uint16_t*pShortY, uint16_t* pLongY, mergeLuma2Wgt_t* pMerge_luma2wgt, btnr_trans_params_t *pTransParams, int sigbins, float hdr_ratio);
+
 
 #endif

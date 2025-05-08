@@ -279,7 +279,7 @@ typedef struct af_contrastZoom_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(zoomSearchStep),
         M4_TYPE(struct),
-        M4_UI_MODULE(normal_ui_style),
+        M4_UI_MODULE(array_table_ui),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -288,7 +288,7 @@ typedef struct af_contrastZoom_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(zoomQuickFound),
         M4_TYPE(struct),
-        M4_UI_MODULE(normal_ui_style),
+        M4_UI_MODULE(array_table_ui),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(1),
@@ -375,10 +375,10 @@ typedef struct af_contrastZoom_s {
 
 typedef struct af_adaptRangeSearchTbl_s {
     /* M4_GENERIC_DESC(
-        M4_ALIAS(sw_afT_adaptRangeTbl_len),
+        M4_ALIAS(sw_afT_adaptRangeSearchTbl_len),
         M4_TYPE(u32),
         M4_SIZE_EX(1,1),
-        M4_RANGE_EX(1,33),
+        M4_RANGE_EX(2,33),
         M4_DEFAULT(9),
         M4_DIGIT_EX(0),
         M4_HIDE_EX(0),
@@ -386,11 +386,11 @@ typedef struct af_adaptRangeSearchTbl_s {
         M4_ORDER(0),
         M4_NOTES(Length of rough search table for adaptive search.\n
         Freq of use: high))  */
-    int sw_afT_adaptRangeTbl_len;
+    int sw_afT_adaptRangeSearchTbl_len;
     /* M4_GENERIC_DESC(
         M4_ALIAS(sw_afT_adaptRange_dot),
         M4_TYPE(u16),
-        M4_SIZE_EX(1,33),
+        M4_SIZE_EX(2,33),
         M4_RANGE_EX(0,1023),
         M4_DEFAULT([0,8,16,24,32,40,48,56,64]),
         M4_DIGIT_EX(0),
@@ -403,7 +403,7 @@ typedef struct af_adaptRangeSearchTbl_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(sw_afT_fineSearchStep_dot),
         M4_TYPE(u16),
-        M4_SIZE_EX(1,33),
+        M4_SIZE_EX(2,33),
         M4_RANGE_EX(0,1023),
         M4_DEFAULT([4,4,4,4,4,4,4,4,4]),
         M4_DIGIT_EX(0),
@@ -476,7 +476,7 @@ typedef struct af_contrast_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(adaptRangeSearchTbl),
         M4_TYPE(struct),
-        M4_UI_MODULE(normal_ui_style),
+        M4_UI_MODULE(array_table_ui),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(5),
@@ -1267,7 +1267,7 @@ typedef struct af_pdafResolution_s {
         M4_ALIAS(sw_afT_pdBase_width),
         M4_TYPE(u16),
         M4_SIZE_EX(1,1),
-        M4_RANGE_EX(0,1000),
+        M4_RANGE_EX(0,65535),
         M4_DEFAULT(2048),
         M4_DIGIT_EX(0),
         M4_HIDE_EX(0),
@@ -1280,7 +1280,7 @@ typedef struct af_pdafResolution_s {
         M4_ALIAS(sw_afT_pdBase_height),
         M4_TYPE(u16),
         M4_SIZE_EX(1,1),
-        M4_RANGE_EX(0,1000),
+        M4_RANGE_EX(0,65535),
         M4_DEFAULT(768),
         M4_DIGIT_EX(0),
         M4_HIDE_EX(0),
@@ -1928,7 +1928,7 @@ typedef struct af_zoomFocusTbl_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(zoomMoveTbl),
         M4_TYPE(struct),
-        M4_UI_MODULE(normal_ui_style),
+        M4_UI_MODULE(array_table_ui),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -1936,9 +1936,9 @@ typedef struct af_zoomFocusTbl_s {
         Freq of use: high))  */
     af_zoomMoveTbl_t zoomMoveTbl;
     /* M4_GENERIC_DESC(
-        M4_ALIAS(ContrastAf),
+        M4_ALIAS(zoomSearchTbl),
         M4_TYPE(struct),
-        M4_UI_MODULE(normal_ui_style),
+        M4_UI_MODULE(array_table_ui),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(1),

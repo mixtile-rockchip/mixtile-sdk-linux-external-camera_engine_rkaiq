@@ -102,7 +102,7 @@ static void interpolate_lut1d_alpha(float alpha, hsv_lut1d_dyn_t* in, int16_t* o
         }
     }
 }
-    
+
 static void interpolate_lut2d_alpha(float alpha, hsv_lut2d_dyn_t* in, int16_t* out) {
     int32_t f1 = (int32_t)(alpha * 128.0f);
     int32_t f2 = 128 - f1;
@@ -111,10 +111,10 @@ static void interpolate_lut2d_alpha(float alpha, hsv_lut2d_dyn_t* in, int16_t* o
 
     if (in->hw_hsvT_lut2d_mode > 2) {
         for (int i = 0; i < HSV_2DLUT_ROW; i++) {
-            lut2d0 = CLIPBIT(i << 6, 10) ;
+            lut2d0 = CLIPBIT(i << 6, 10);
             for (int j = 0; j < HSV_2DLUT_COL; j++) {
                 lut_idx = i * HSV_2DLUT_COL + j;
-                out[lut_idx] = 
+                out[lut_idx] =
                     (int16_t)((f1 * (int32_t)in->hw_hsvT_lut2d_val[lut_idx] + f2 * lut2d0 + (1 << 6)) >> 7);
             }
         }
@@ -123,14 +123,14 @@ static void interpolate_lut2d_alpha(float alpha, hsv_lut2d_dyn_t* in, int16_t* o
             lut2d0 = CLIPBIT(j << 6, 10);
             for (int i = 0; i < HSV_2DLUT_ROW; i++) {
                 lut_idx = i * HSV_2DLUT_ROW + j;
-                out[lut_idx] = 
+                out[lut_idx] =
                     (int16_t)((f1 * (int32_t)in->hw_hsvT_lut2d_val[lut_idx] + f2 * lut2d0 + (1 << 6)) >> 7);
             }
         }
     }
 }
 
-static void array_weight_sum(int16_t* in, int16_t* out, int32_t wei0, int32_t num, int bit, int32_t* sum) 
+static void array_weight_sum(int16_t* in, int16_t* out, int32_t wei0, int32_t num, int bit, int32_t* sum)
 {
     int32_t wei1 = (1 << bit) - wei0;
     for (int i = 0; i < num; i++) {
@@ -156,34 +156,34 @@ static void Damping(HsvContext_t* pHsvCtx, float damp)
 
     /* calc. damped lut */
     if (sta->hsvCfg.hw_hsvT_lut1d0_en) {
-        array_weight_sum(pUndamped->lut0, pDamped->lut0, f1, 
+        array_weight_sum(pUndamped->lut0, pDamped->lut0, f1,
                          HSV_1DLUT_NUM, 7, &lutSum[0]);
         LOGD_AHSV("lut0: Damping %f, lutsum0 %d -> %d\n",
                   damp, lutSum[0], pHsvCtx->pre_lutSum[0]);
     } else {
-        array_weight_sum(pUndamped->lut0, pDamped->lut0, 128, 
+        array_weight_sum(pUndamped->lut0, pDamped->lut0, 128,
                          HSV_1DLUT_NUM, 7, &lutSum[0]);
         LOGD_AHSV("lut1: Damping 0, lutsum0 %d -> %d\n",
                   lutSum[0], pHsvCtx->pre_lutSum[0]);
     }
     if (sta->hsvCfg.hw_hsvT_lut1d1_en) {
-        array_weight_sum(pUndamped->lut1, pDamped->lut1, f1, 
+        array_weight_sum(pUndamped->lut1, pDamped->lut1, f1,
                          HSV_1DLUT_NUM, 7, &lutSum[1]);
         LOGD_AHSV("lut1: Damping %f, lutsum1 %d -> %d\n",
                   damp, lutSum[1], pHsvCtx->pre_lutSum[1]);
     } else {
-        array_weight_sum(pUndamped->lut1, pDamped->lut1, 128, 
+        array_weight_sum(pUndamped->lut1, pDamped->lut1, 128,
                          HSV_1DLUT_NUM, 7, &lutSum[1]);
         LOGD_AHSV("lut1: Damping 0, lutsum1 %d -> %d\n",
                   lutSum[1], pHsvCtx->pre_lutSum[1]);
     }
     if (sta->hsvCfg.hw_hsvT_lut2d_en) {
-        array_weight_sum(pUndamped->lut2, pDamped->lut2, f1, 
+        array_weight_sum(pUndamped->lut2, pDamped->lut2, f1,
                          HSV_2DLUT_NUM, 7, &lutSum[2]);
         LOGD_AHSV("lut2: Damping %f, lutsum2 %d -> %d\n",
                   damp, lutSum[2], pHsvCtx->pre_lutSum[2]);
     } else {
-        array_weight_sum(pUndamped->lut2, pDamped->lut2, 128, 
+        array_weight_sum(pUndamped->lut2, pDamped->lut2, 128,
                          HSV_2DLUT_NUM, 7, &lutSum[2]);
         LOGD_AHSV("lut2: Damping 0, lutsum2 %d -> %d\n",
                   lutSum[2], pHsvCtx->pre_lutSum[2]);
@@ -234,9 +234,9 @@ static void Damping(HsvContext_t* pHsvCtx, float damp)
 
 }
 
-static void SatbyStrgforLut1d(bool en, int16_t* lut1d, float strg)
+static void SatbyStrgforLut1d(bool* en, int16_t* lut1d, float strg)
 {
-    if (en) {
+    if (*en) {
         for (int i = 0; i < HSV_1DLUT_NUM; i++) {
             lut1d[i] = CLIP((int16_t) ((i << 4) + lut1d[i]) * strg - (i << 4), -1024, 1024);
         }
@@ -244,123 +244,238 @@ static void SatbyStrgforLut1d(bool en, int16_t* lut1d, float strg)
         for (int i = 0; i < HSV_1DLUT_NUM; i++) {
             lut1d[i] = CLIP((int16_t) ((i << 4) * (strg - 1)), -1024, 1024);
         }
+        *en = 1;
     }
 }
 
-static void ApplySatStrgV10(ahsv_satStrg_t* strg, hsv_param_t* out) 
+static void SatbyStrgforLut2d(bool* en, int16_t* lut2d, float strg, hsv_lut2d_mode_t mode)
+{
+    if (*en) {
+        for (int i = 0; i < HSV_2DLUT_NUM; i++) {
+            lut2d[i] = CLIPBIT((int16_t)lut2d[i] * strg, 10);
+        }
+    } else {
+        int32_t lut2d0, lut_idx;
+        for (int i = 0; i < HSV_2DLUT_ROW; i++) {
+            for (int j = 0; j < HSV_2DLUT_COL; j++) {
+                lut2d0 = (mode > 2) ? CLIPBIT(i << 6, 10) : CLIPBIT(j << 6, 10);
+                lut_idx = i * HSV_2DLUT_COL + j;
+                lut2d[lut_idx] =
+                    CLIPBIT((int16_t)lut2d0 * strg, 10);
+            }
+        }
+        *en = 1;
+    }
+}
+
+static void ApplySatStrgV10(ahsv_satStrg_t* strg, hsv_param_t* out)
 {
     if (!strg->en)
         return;
     else {
-        LOG1_AHSV("SatStrth %f\n", strg->satStrg);
+        LOGD_AHSV("SatStrth %f\n", strg->satStrg);
         if (out->dyn.lut1d0.hw_hsvT_lut1d_mode == 3) {
-            SatbyStrgforLut1d(out->sta.hw_hsvT_lut1d0_en, 
-                                out->dyn.lut1d0.hw_hsvT_lut1d_val, 
+            SatbyStrgforLut1d(&out->sta.hw_hsvT_lut1d0_en,
+                                out->dyn.lut1d0.hw_hsvT_lut1d_val,
                                 strg->satStrg);
         } else if (out->dyn.lut1d1.hw_hsvT_lut1d_mode == 3) {
-            SatbyStrgforLut1d(out->sta.hw_hsvT_lut1d1_en, 
-                                out->dyn.lut1d1.hw_hsvT_lut1d_val, 
+            SatbyStrgforLut1d(&out->sta.hw_hsvT_lut1d1_en,
+                                out->dyn.lut1d1.hw_hsvT_lut1d_val,
                                 strg->satStrg);
-        } else if (out->dyn.lut2d.hw_hsvT_lut2d_mode == 2 || 
+        } else if (out->dyn.lut2d.hw_hsvT_lut2d_mode == 2 ||
                             out->dyn.lut2d.hw_hsvT_lut2d_mode == 3) {
-            for (int i = 0; i < HSV_2DLUT_NUM; i++) {
-                out->dyn.lut2d.hw_hsvT_lut2d_val[i] = 
-                        CLIPBIT((int16_t)out->dyn.lut2d.hw_hsvT_lut2d_val[i] * strg->satStrg, 10);
-            }
+            SatbyStrgforLut2d(&out->sta.hw_hsvT_lut2d_en,
+                            out->dyn.lut2d.hw_hsvT_lut2d_val,
+                            strg->satStrg,
+                            out->dyn.lut2d.hw_hsvT_lut2d_mode);
         }
     }
 }
 
-static void ApplyHueOffsetV10(ahsv_hueOffset_t* offset, hsv_param_t* out) 
+static void OffsetforLut1d(bool* en, int16_t* lut1d, int16_t offset, hsv_lut1d_mode_t mode)
+{
+    int16_t tmp;
+    if (*en) {
+        for (int i = 0; i < HSV_1DLUT_NUM; i++) {
+            tmp = (int16_t)lut1d[i] + offset;
+            if (mode == 0)
+                tmp = tmp > 1024 ? tmp - 1024 : (tmp < -1024 ? tmp + 1024 : tmp);
+            else
+                tmp = CLIP(tmp, -1024, 1024);
+            lut1d[i] = tmp;
+        }
+    } else {
+        for (int i = 0; i < HSV_1DLUT_NUM; i++) {
+            lut1d[i] = offset;
+        }
+        *en = 1;
+    }
+}
+
+static void OffsetforforLut2d(bool* en, int16_t* lut2d, int16_t offset, hsv_lut2d_mode_t mode)
+{
+    int16_t tmp;
+    if (*en) {
+        for (int i = 0; i < HSV_2DLUT_NUM; i++) {
+            tmp = (int16_t)lut2d[i] + offset;
+            if (mode < 2)
+                tmp = tmp > 1023 ? tmp - 1024 : (tmp < 0 ? tmp + 1024 : tmp);
+            else
+                tmp = CLIPBIT(tmp, 10);
+            lut2d[i] = tmp;
+        }
+    } else {
+        int32_t lut2d0, lut_idx;
+        for (int i = 0; i < HSV_2DLUT_ROW; i++) {
+            for (int j = 0; j < HSV_2DLUT_COL; j++) {
+                lut2d0 = (mode > 2) ? CLIPBIT(i << 6, 10) : CLIPBIT(j << 6, 10);
+                lut_idx = i * HSV_2DLUT_COL + j;
+                lut2d[lut_idx] = CLIPBIT(lut2d0 + offset, 10);
+            }
+        }
+        *en = 1;
+    }
+}
+
+static void ApplyHueOffsetV10(ahsv_hueOffset_t* offset, hsv_param_t* out)
 {
     if (!offset->en)
         return;
     else {
-        LOG1_AHSV("HueOffset %d\n", offset->hueOffset);
+        LOGD_AHSV("HueOffset %d\n", offset->hueOffset);
         int tmp = 0;
         if (out->dyn.lut1d0.hw_hsvT_lut1d_mode == 0) {
-            for (int i = 0; i < HSV_1DLUT_NUM; i++) {
-                tmp = (int16_t)out->dyn.lut1d0.hw_hsvT_lut1d_val[i] + offset->hueOffset;
-                tmp = tmp > 1024 ? tmp - 1024 : (tmp < -1024 ? tmp + 1024 : tmp);
-                out->dyn.lut1d0.hw_hsvT_lut1d_val[i] = tmp;
-            }
+            OffsetforLut1d(&out->sta.hw_hsvT_lut1d0_en,
+                            out->dyn.lut1d0.hw_hsvT_lut1d_val,
+                            offset->hueOffset,
+                            out->dyn.lut1d0.hw_hsvT_lut1d_mode);
         } else if (out->dyn.lut1d1.hw_hsvT_lut1d_mode == 0) {
-            for (int i = 0; i < HSV_1DLUT_NUM; i++) {
-                tmp = (int16_t)out->dyn.lut1d0.hw_hsvT_lut1d_val[i] + offset->hueOffset;
-                tmp = tmp > 1024 ? tmp - 1024 : (tmp < -1024 ? tmp + 1024 : tmp);
-                out->dyn.lut1d1.hw_hsvT_lut1d_val[i] = tmp;
-            }
+            OffsetforLut1d(&out->sta.hw_hsvT_lut1d1_en,
+                            out->dyn.lut1d1.hw_hsvT_lut1d_val,
+                            offset->hueOffset,
+                            out->dyn.lut1d1.hw_hsvT_lut1d_mode);
         } else if (out->dyn.lut2d.hw_hsvT_lut2d_mode < 2) {
-            for (int i = 0; i < HSV_2DLUT_NUM; i++) {
-                tmp = (int16_t)out->dyn.lut2d.hw_hsvT_lut2d_val[i] + offset->hueOffset;
-                tmp = tmp > 1024 ? tmp - 1024 : (tmp < 0 ? tmp + 1024 : tmp);
-                out->dyn.lut2d.hw_hsvT_lut2d_val[i] = tmp;
-            }
+            OffsetforforLut2d(&out->sta.hw_hsvT_lut2d_en,
+                                out->dyn.lut2d.hw_hsvT_lut2d_val,
+                                offset->hueOffset,
+                                out->dyn.lut2d.hw_hsvT_lut2d_mode);
+        }
+    }
+}
+
+static void ApplyValOffsetV10(ahsv_valOffset_t* offset, hsv_param_t* out)
+{
+    if (!offset->en)
+        return;
+    else {
+        LOGD_AHSV("ValOffset %d\n", offset->valOffset);
+        if (out->dyn.lut1d0.hw_hsvT_lut1d_mode == 2) {
+            OffsetforLut1d(&out->sta.hw_hsvT_lut1d0_en,
+                        out->dyn.lut1d0.hw_hsvT_lut1d_val,
+                        offset->valOffset,
+                        out->dyn.lut1d0.hw_hsvT_lut1d_mode);
+        } else if (out->dyn.lut1d1.hw_hsvT_lut1d_mode == 2) {
+            OffsetforLut1d(&out->sta.hw_hsvT_lut1d1_en,
+                        out->dyn.lut1d1.hw_hsvT_lut1d_val,
+                        offset->valOffset,
+                        out->dyn.lut1d1.hw_hsvT_lut1d_mode);
+        } else if (out->dyn.lut2d.hw_hsvT_lut2d_mode > 3) {
+            OffsetforforLut2d(&out->sta.hw_hsvT_lut2d_en,
+                        out->dyn.lut2d.hw_hsvT_lut2d_val,
+                        offset->valOffset,
+                        out->dyn.lut2d.hw_hsvT_lut2d_mode);
         }
     }
 }
 
 #if RKAIQ_HAVE_HSV_V11
-static void ApplySatStrgV11(ahsv_satStrg_t* strg, hsv_param_t* out) 
+static void ApplySatStrgV11(ahsv_satStrg_t* strg, hsv_param_t* out)
 {
     if (!strg->en)
         return;
     else {
-        LOG1_AHSV("SatStrth %f\n", strg->satStrg);
+        LOGD_AHSV("SatStrth %f\n", strg->satStrg);
         if (out->sta.hw_hsvT_lut_mode == 0) {
             ApplySatStrgV10(strg, out);
         } else if (out->sta.hw_hsvT_lut_mode == 1) {
-            if (out->dyn.lut2d.hw_hsvT_lut2d_mode == 2 || 
+            if (out->dyn.lut2d.hw_hsvT_lut2d_mode == 2 ||
                     out->dyn.lut2d.hw_hsvT_lut2d_mode == 3) {
-                for (int i = 0; i < HSV_2DLUT_NUM; i++) {
-                    out->dyn.lut2d.hw_hsvT_lut2d_val[i] = 
-                            CLIPBIT((int16_t)out->dyn.lut2d.hw_hsvT_lut2d_val[i] * strg->satStrg, 10);
-                }
-            } else if (out->dyn.lut2d1.hw_hsvT_lut2d_mode == 2 || 
+                SatbyStrgforLut2d(&out->sta.hw_hsvT_lut2d_en,
+                    out->dyn.lut2d.hw_hsvT_lut2d_val,
+                    strg->satStrg,
+                    out->dyn.lut2d.hw_hsvT_lut2d_mode);
+            } else if (out->dyn.lut2d1.hw_hsvT_lut2d_mode == 2 ||
                         out->dyn.lut2d1.hw_hsvT_lut2d_mode == 3) {
-                for (int i = 0; i < HSV_2DLUT_NUM; i++) {
-                    out->dyn.lut2d1.hw_hsvT_lut2d_val[i] = 
-                            CLIPBIT((int16_t)out->dyn.lut2d1.hw_hsvT_lut2d_val[i] * strg->satStrg, 10);
-                }
-            } else if (out->dyn.lut2d2.hw_hsvT_lut2d_mode == 2 || 
+                SatbyStrgforLut2d(&out->sta.hw_hsvT_lut2d1_en,
+                    out->dyn.lut2d1.hw_hsvT_lut2d_val,
+                    strg->satStrg,
+                    out->dyn.lut2d1.hw_hsvT_lut2d_mode);
+            } else if (out->dyn.lut2d2.hw_hsvT_lut2d_mode == 2 ||
                         out->dyn.lut2d2.hw_hsvT_lut2d_mode == 3) {
-                for (int i = 0; i < HSV_2DLUT_NUM; i++) {
-                    out->dyn.lut2d2.hw_hsvT_lut2d_val[i] = 
-                            CLIPBIT((int16_t)out->dyn.lut2d2.hw_hsvT_lut2d_val[i] * strg->satStrg, 10);
-                }
+                SatbyStrgforLut2d(&out->sta.hw_hsvT_lut2d2_en,
+                    out->dyn.lut2d2.hw_hsvT_lut2d_val,
+                    strg->satStrg,
+                    out->dyn.lut2d2.hw_hsvT_lut2d_mode);
             }
         }
     }
 }
 
-static void ApplyHueOffsetV11(ahsv_hueOffset_t* offset, hsv_param_t* out) 
+static void ApplyHueOffsetV11(ahsv_hueOffset_t* offset, hsv_param_t* out)
 {
     if (!offset->en)
         return;
     else {
-        LOG1_AHSV("HueOffset %d\n", offset->hueOffset);
+        LOGD_AHSV("HueOffset %d\n", offset->hueOffset);
         int tmp = 0;
         if (out->sta.hw_hsvT_lut_mode == 0) {
             ApplyHueOffsetV10(offset, out);
         } else if (out->sta.hw_hsvT_lut_mode == 1) {
             if (out->dyn.lut2d.hw_hsvT_lut2d_mode < 2) {
-                for (int i = 0; i < HSV_2DLUT_NUM; i++) {
-                    tmp = (int16_t)out->dyn.lut2d.hw_hsvT_lut2d_val[i] + offset->hueOffset;
-                    tmp = tmp > 1024 ? tmp - 1024 : (tmp < 0 ? 1024 + tmp : tmp);
-                    out->dyn.lut2d.hw_hsvT_lut2d_val[i] = tmp;
-                }
+                OffsetforforLut2d(&out->sta.hw_hsvT_lut2d_en,
+                                out->dyn.lut2d.hw_hsvT_lut2d_val,
+                                offset->hueOffset,
+                                out->dyn.lut2d.hw_hsvT_lut2d_mode);
             } else if (out->dyn.lut2d1.hw_hsvT_lut2d_mode < 2) {
-                for (int i = 0; i < HSV_2DLUT_NUM; i++) {
-                    tmp = (int16_t)out->dyn.lut2d1.hw_hsvT_lut2d_val[i] + offset->hueOffset;
-                    tmp = tmp > 1024 ? tmp - 1024 : (tmp < 0 ? 1024 + tmp : tmp);
-                    out->dyn.lut2d1.hw_hsvT_lut2d_val[i] = tmp;
-                }
+                OffsetforforLut2d(&out->sta.hw_hsvT_lut2d1_en,
+                                out->dyn.lut2d1.hw_hsvT_lut2d_val,
+                                offset->hueOffset,
+                                out->dyn.lut2d1.hw_hsvT_lut2d_mode);
             } else if (out->dyn.lut2d2.hw_hsvT_lut2d_mode < 2) {
-                for (int i = 0; i < HSV_2DLUT_NUM; i++) {
-                    tmp = (int16_t)out->dyn.lut2d2.hw_hsvT_lut2d_val[i] + offset->hueOffset;
-                    tmp = tmp > 1024 ? tmp - 1024 : (tmp < 0 ? 1024 + tmp : tmp);
-                    out->dyn.lut2d2.hw_hsvT_lut2d_val[i] = tmp;
-                }
+                OffsetforforLut2d(&out->sta.hw_hsvT_lut2d2_en,
+                                out->dyn.lut2d2.hw_hsvT_lut2d_val,
+                                offset->hueOffset,
+                                out->dyn.lut2d2.hw_hsvT_lut2d_mode);
+            }
+        }
+    }
+}
+
+static void ApplyValOffsetV11(ahsv_valOffset_t* offset, hsv_param_t* out)
+{
+    if (!offset->en)
+        return;
+    else {
+        LOGD_AHSV("ValOffset %d\n", offset->valOffset);
+        int tmp = 0;
+        if (out->sta.hw_hsvT_lut_mode == 0) {
+            ApplyValOffsetV10(offset, out);
+        } else if (out->sta.hw_hsvT_lut_mode == 1) {
+            if (out->dyn.lut2d.hw_hsvT_lut2d_mode > 3) {
+                OffsetforforLut2d(&out->sta.hw_hsvT_lut2d_en,
+                                out->dyn.lut2d.hw_hsvT_lut2d_val,
+                                offset->valOffset,
+                                out->dyn.lut2d.hw_hsvT_lut2d_mode);
+            } else if (out->dyn.lut2d1.hw_hsvT_lut2d_mode > 3) {
+                OffsetforforLut2d(&out->sta.hw_hsvT_lut2d1_en,
+                                out->dyn.lut2d1.hw_hsvT_lut2d_val,
+                                offset->valOffset,
+                                out->dyn.lut2d1.hw_hsvT_lut2d_mode);
+            } else if (out->dyn.lut2d2.hw_hsvT_lut2d_mode > 3) {
+                OffsetforforLut2d(&out->sta.hw_hsvT_lut2d2_en,
+                                out->dyn.lut2d2.hw_hsvT_lut2d_val,
+                                offset->valOffset,
+                                out->dyn.lut2d2.hw_hsvT_lut2d_mode);
             }
         }
     }
@@ -396,9 +511,10 @@ XCamReturn Ahsv_prepare(RkAiqAlgoCom* params)
     pHsvCtx->isReCal_ = true;
     pHsvCtx->strg.en = false;
     pHsvCtx->strg.satStrg = 1;
-    pHsvCtx->offset.en = false;
-    pHsvCtx->offset.hueOffset = 0;
-
+    pHsvCtx->hoffset.en = false;
+    pHsvCtx->hoffset.hueOffset = 0;
+    pHsvCtx->voffset.en = false;
+    pHsvCtx->voffset.valOffset = 0;
 
     return XCAM_RETURN_NO_ERROR;
 }
@@ -418,9 +534,9 @@ XCamReturn Ahsv_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
         need_recal = true;
     }
 
-    float delta_wbg = sqrt((swinfo->awbGain[0] - pHsvCtx->pre_wbgain[0]) * 
-                           (swinfo->awbGain[0] - pHsvCtx->pre_wbgain[0]) + 
-                           (swinfo->awbGain[1] - pHsvCtx->pre_wbgain[1]) * 
+    float delta_wbg = sqrt((swinfo->awbGain[0] - pHsvCtx->pre_wbgain[0]) *
+                           (swinfo->awbGain[0] - pHsvCtx->pre_wbgain[0]) +
+                           (swinfo->awbGain[1] - pHsvCtx->pre_wbgain[1]) *
                            (swinfo->awbGain[1] - pHsvCtx->pre_wbgain[1]));
     //(1) estimate idx
     int illu_idx = -1;
@@ -435,7 +551,7 @@ XCamReturn Ahsv_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
         illu_idx = pHsvCtx->pre_illu_idx;
     }
 
-    ahsv_param_illuLink_t* pIlluCase = &pdyn->illuLink[illu_idx];    
+    ahsv_param_illuLink_t* pIlluCase = &pdyn->illuLink[illu_idx];
 
     if (illu_idx != pHsvCtx->pre_illu_idx || pHsvCtx->is_calib_update) {
         pHsvCtx->pre_illu_idx  = illu_idx;
@@ -451,7 +567,7 @@ XCamReturn Ahsv_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
         }
 
         ahsv_tableAll_t* pTable = &calibdb->tableAll[mesh_idx];
-        
+
         pHsvCtx->calib_lut = &pTable->meshGain;
     }
 
@@ -462,7 +578,7 @@ XCamReturn Ahsv_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
         alpha = get_alpha_by_gain(
             pIlluCase->gain2StrgCurve.sw_hsvT_isoIdx_val, pIlluCase->gain2StrgCurve.sw_hsvT_alpha_val, swinfo->sensorGain);
     }
-    
+
     if (fabs(alpha - pHsvCtx->pre_alpha) > DIVMIN) {
         LOGD_AHSV("HSV alpha changed %f --> %f", pHsvCtx->pre_alpha, alpha);
 
@@ -606,11 +722,14 @@ XCamReturn Ahsv_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
         }
 
 #if RKAIQ_HAVE_HSV_V11
+
         ApplySatStrgV11(&pHsvCtx->strg, hsvRes);
-        ApplyHueOffsetV11(&pHsvCtx->offset, hsvRes);
+        ApplyHueOffsetV11(&pHsvCtx->hoffset, hsvRes);
+        ApplyValOffsetV11(&pHsvCtx->voffset, hsvRes);
         pHsvCtx->isReCal_ = false;
+
 #endif
-        
+
         outparams->cfg_update = true;
         outparams->en = tunning->en;
         outparams->bypass = tunning->bypass;
@@ -674,7 +793,7 @@ prepare
     HsvContext_t* pHsvCtx = (HsvContext_t*)params->ctx;
 
     Ahsv_prepare(params);
-    
+
     return result;
 }
 
@@ -712,10 +831,10 @@ algo_hsv_queryahsvStatus
     HsvContext_t* pHsvCtx = (HsvContext_t*)ctx;
     hsv_param_auto_t* stAuto = &pHsvCtx->hsv_calib->tunning.stAuto;
 
-    strncpy(status->sw_hsvC_illuUsed_name, 
-            stAuto->dyn.illuLink[pHsvCtx->pre_illu_idx].sw_hsvC_illu_name, 
+    strncpy(status->sw_hsvC_illuUsed_name,
+            stAuto->dyn.illuLink[pHsvCtx->pre_illu_idx].sw_hsvC_illu_name,
             AHSV_ILLUM_NAME_LEN - 1);
-    
+
     status->sw_hsvT_alpha_val = pHsvCtx->pre_alpha;
 
     return XCAM_RETURN_NO_ERROR;
@@ -825,7 +944,7 @@ algo_hsv_SetHueOffset
         LOGE_AHSV("not auto mode: %d", hsv_attrib->opMode);
         return XCAM_RETURN_ERROR_PARAM;
     }
-    pHsvCtx->offset     = *offset;
+    pHsvCtx->hoffset     = *offset;
     pHsvCtx->isReCal_ = true;
 
     return XCAM_RETURN_NO_ERROR;
@@ -844,7 +963,48 @@ algo_hsv_getHueOffset
     }
 
     HsvContext_t* pHsvCtx = (HsvContext_t*)ctx;
-    *offset = pHsvCtx->offset;
+    *offset = pHsvCtx->hoffset;
+
+    return XCAM_RETURN_NO_ERROR;
+}
+
+XCamReturn
+algo_hsv_SetValOffset
+(
+    RkAiqAlgoContext* ctx,
+    ahsv_valOffset_t* offset
+) {
+    if(ctx == NULL || offset == NULL) {
+        LOGE_AHSV("%s: null pointer\n", __FUNCTION__);
+        return XCAM_RETURN_ERROR_PARAM;
+    }
+
+    HsvContext_t* pHsvCtx = (HsvContext_t*)ctx;
+    hsv_api_attrib_t* hsv_attrib = &pHsvCtx->hsv_calib->tunning;
+    if (hsv_attrib->opMode != RK_AIQ_OP_MODE_AUTO) {
+        LOGE_AHSV("not auto mode: %d", hsv_attrib->opMode);
+        return XCAM_RETURN_ERROR_PARAM;
+    }
+    pHsvCtx->voffset     = *offset;
+    pHsvCtx->isReCal_ = true;
+
+    return XCAM_RETURN_NO_ERROR;
+}
+
+XCamReturn
+algo_hsv_getValOffset
+(
+    RkAiqAlgoContext* ctx,
+    ahsv_valOffset_t* offset
+)
+{
+    if(ctx == NULL || offset == NULL) {
+        LOGE_AHSV("%s: null pointer\n", __FUNCTION__);
+        return XCAM_RETURN_ERROR_PARAM;
+    }
+
+    HsvContext_t* pHsvCtx = (HsvContext_t*)ctx;
+    *offset = pHsvCtx->voffset;
 
     return XCAM_RETURN_NO_ERROR;
 }

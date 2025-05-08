@@ -70,7 +70,7 @@ typedef struct rk_aiq_tx_info_s {
 #define SENSOR_ATTACHED_FLASH_MAX_NUM 2
 #define MAX_CAM_NUM                   8
 
-#define MAX_ISP_LINKED_VICAP_CNT 4
+#define MAX_ISP_LINKED_VICAP_CNT 5
 
 #define ISP_TX_BUF_NUM 4
 // xuhf : temp modify for capturing raw

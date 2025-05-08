@@ -24,6 +24,7 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include "RkIspFecComm.h"
 #include "RkIspFecGenMesh.h"
@@ -53,17 +54,16 @@ typedef struct rk_ispfec_ctx_s {
     RkIspFecGenMesh* _fecGenMesh;
 } rk_ispfec_ctx_t;
 
-static
-void _print_versions()
-{
+static void _print_versions() {
     printf(
         ""
         "\n************************** VERSION INFOS **************************\n"
         "version release date: %s\n"
         "         IspFec:      v%02x.%02x.%02x\n"
         "************************ VERSION INFOS END ************************\n\n",
-        RK_ISP_FEC_RELEASE_DATE, RK_ISP_FEC_VERSION >> 16, (RK_ISP_FEC_VERSION >> 8) & 0xff,
-        RK_ISP_FEC_VERSION & 0xff);
+        RK_ISP_FEC_RELEASE_DATE, RK_ISP_FEC_API_VERSION_MAJOR(RK_ISP_FEC_API_VERSION),
+        RK_ISP_FEC_API_VERSION_MINOR(RK_ISP_FEC_API_VERSION),
+        RK_ISP_FEC_API_VERSION_PATCH(RK_ISP_FEC_API_VERSION));
 }
 
 static int
@@ -114,9 +114,34 @@ _load_mesh(const char* file, void* vir_addr, size_t size)
     return ret;
 }
 
+static int _validate_file_path(const char* path) {
+    if (!path || path[0] == '\0') {
+        rkfec_dbg(4, rkfec_debug, "Empty path\n");
+        return -1;
+    }
+
+    if (access(path, F_OK) != 0) {
+        rkfec_dbg(4, rkfec_debug, "File not exist: %s\n", path);
+        return -1;
+    }
+
+    if (access(path, R_OK) != 0) {
+        rkfec_dbg(4, rkfec_debug, "No read permission: %s\n", path);
+        return -1;
+    }
+
+    struct stat st;
+    if (stat(path, &st) == 0 && !S_ISREG(st.st_mode)) {
+        rkfec_dbg(4, rkfec_debug, "Not a regular file: %s\n", path);
+        return -1;
+    }
+
+    return 0;
+}
+
 static int _load_calib_ini(rk_ispfec_cfg_t* cfg) {
-    if (!cfg->calib_ini_from || !strlen(cfg->calib_ini_from)) {
-        rkfec_err("calib ini path is null");
+    if (_validate_file_path(cfg->calib_ini_from)) {
+        rkfec_err("calib ini path is Invalid: %s", cfg->calib_ini_from);
         return -1;
     }
 
@@ -142,9 +167,9 @@ static int _load_calib_ini(rk_ispfec_cfg_t* cfg) {
         rk_ispfec_param_get_int("Calibration:sw_ldcC_correctStrg_maxLimit", 0);
 
     cfg->u.mesh_online.correct_level =
-        rk_ispfec_param_get_int("Calibration:sw_ldcC_correct_level", 0);
+        rk_ispfec_param_get_int("config:sw_ldcT_correctstrg_val", 0);
     cfg->u.mesh_online.style = (enum rk_ispfec_correct_style)rk_ispfec_param_get_int(
-        "Calibration:sw_ldcT_saveMaxFovX_bit", 0);
+        "config:sw_ldcT_saveMaxFovX_bit", 0);
 
     rkfec_dbg(3, rkfec_debug, "calib_width: %d, calib_height: %d", cfg->u.mesh_online.calib_width,
               cfg->u.mesh_online.calib_height);
@@ -169,7 +194,7 @@ _configure(rk_ispfec_ctx_t* ctx, rk_ispfec_cfg_t* cfg)
 
     pthread_mutex_lock (&ctx->_mutex);
 
-    if (cfg->calib_ini_from && strlen(cfg->calib_ini_from)) _load_calib_ini(cfg);
+    _load_calib_ini(cfg);
 
     if (cfg->mesh_upd_mode == RK_ISPFEC_UPDATE_MESH_ONLINE) {
 #ifdef GENMESH_ONLINE
@@ -197,7 +222,8 @@ _configure(rk_ispfec_ctx_t* ctx, rk_ispfec_cfg_t* cfg)
                                      cfg->mesh_xfra.vir_addr, cfg->mesh_yfra.vir_addr);
 #endif
 
-        if (cfg->u.mesh_online.correct_level != ctx->_cfg.u.mesh_online.correct_level) {
+        if (ctx->_state == rk_ispfec_ctx_t::STATE_IDLE ||
+            cfg->u.mesh_online.correct_level != ctx->_cfg.u.mesh_online.correct_level) {
             rkfec_dbg(3, rkfec_debug, "correct level changed from %d to %d",
                       ctx->_cfg.u.mesh_online.correct_level, cfg->u.mesh_online.correct_level);
 
@@ -590,7 +616,7 @@ static int _update_mesh_config(rk_ispfec_ctx_t* ctx, rk_ispfec_mesh_config_t* co
             // Copy online generation parameters
             if (ctx->_fecGenMesh) {
                 // Generate new mesh data
-                ret = ctx->_fecGenMesh->genMesh(ctx->_cfg.u.mesh_online.correct_level);
+                ret = ctx->_fecGenMesh->genMesh(config->params.online_cfg.correct_level);
                 if (ret < 0) {
                     rkfec_err("Mesh generation failed: %d", ret);
                     return ret;

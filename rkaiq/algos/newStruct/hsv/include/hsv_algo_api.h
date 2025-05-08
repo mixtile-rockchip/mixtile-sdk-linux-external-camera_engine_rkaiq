@@ -55,6 +55,20 @@ algo_hsv_getHueOffset
     ahsv_hueOffset_t* offset
 );
 
+XCamReturn
+algo_hsv_SetValOffset
+(
+    RkAiqAlgoContext* ctx,
+    ahsv_valOffset_t* offset
+);
+
+XCamReturn
+algo_hsv_getValOffset
+(
+    RkAiqAlgoContext* ctx,
+    ahsv_valOffset_t* offset
+);
+
 extern RkAiqAlgoDescription g_RkIspAlgoDescHsv;
 XCAM_END_DECLARE
 

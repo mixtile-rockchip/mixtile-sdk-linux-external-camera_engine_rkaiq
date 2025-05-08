@@ -106,6 +106,9 @@ static XCamReturn processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outp
     drc_api_attrib_t* drc_attrib     = pDrcCtx->drc_attrib;
     RkAiqAlgoProcDrc* drc_proc_param = (RkAiqAlgoProcDrc*)inparams;
     drc_param_t* drcRes              = outparams->algoRes;
+    if (drc_proc_param->LongFrmMode != pDrcCtx->NextData.AEData.LongFrmMode) {
+        pDrcCtx->isReCal_ = true;
+    }
     pDrcCtx->NextData                = drc_proc_param->NextData;
     pDrcCtx->drc_stats               = &drc_proc_param->drc_stats;
 

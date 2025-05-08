@@ -169,29 +169,25 @@ void bayertnr_luma2sigmax_config_v41(btnr_trans_params_t *pTransParams, blc_res_
     }
 
     pix_max = transf_bypass_en ? ((1 << 12) - 1) : bayertnr_logtrans((1 << 12) - 1, pTransParams);
+    pix_max = pTransParams->isHdrMode ? bayertnr_logtrans((1 << 20) - 1, pTransParams) : pix_max;
     if(pTransParams->isHdrMode)
     {
         pTransParams->bayertnr_tnr_sigma_curve_double_en = 1;
         pTransParams->bayertnr_tnr_sigma_curve_double_pos = 10;
         // hdr long bins
         int lgbins = pTransParams->bayertnr_tnr_sigma_curve_double_pos;
-
         for(i = 0; i < lgbins; i++) {
-            tmp = pix_max * (i + 1) / lgbins; //pSelect->bayertnr_tnr_lum[i];
+            tmp = 128 * (i + 1);
             pTransParams->tnr_luma_sigma_x[i] = CLIP(tmp, 0, pix_max);
         }
         pTransParams->tnr_luma_sigma_x[lgbins - 1] = pix_max;
-
         // hdr short bins
-        int shbins = sigbins - lgbins;
-        i = 8;
-        pix_max = !transf_bypass_en  ? ((1 << 12) * (1 << i) - 1) : bayertnr_logtrans((1 << 12) * (1 << i) - 1, pTransParams);
         for(i = lgbins; i < lgbins + 6; i++) {
-            tmp = 128 * (i - lgbins + 1)  + pTransParams->tnr_luma_sigma_x[lgbins - 1]; //pParser->bayertnr_tnr_lum[i];
+            tmp = 128 * (i - lgbins + 1)  + pTransParams->tnr_luma_sigma_x[lgbins - 1];
             pTransParams->tnr_luma_sigma_x[i] = CLIP(tmp, 0, pix_max);
         }
         for(i = lgbins + 6; i < sigbins; i++) {
-            tmp = 256 * (i - lgbins - 6 + 1)  + pTransParams->tnr_luma_sigma_x[lgbins + 6 - 1]; //pParser->bayertnr_tnr_lum[i];
+            tmp = 256 * (i - lgbins - 6 + 1)  + pTransParams->tnr_luma_sigma_x[lgbins + 6 - 1];
             pTransParams->tnr_luma_sigma_x[i] = CLIP(tmp, 0, pix_max);
         }
         pTransParams->tnr_luma_sigma_x[sigbins - 1] = pix_max;
@@ -307,7 +303,7 @@ void rk_aiq_btnr41_params_logtrans(struct isp33_bay3d_cfg *pCfg)
 #undef LOGTRANSF_VAR
 }
 
-void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t* cvtinfo, btnr_cvt_info_t* pBtnrInfo)
+void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_info_t* cvtinfo, btnr_cvt_info_t* pBtnrInfo, mergeLuma2Wgt_t* pMergeLumaWgt)
 {
     btnr_trans_params_t *pTransParams = &pBtnrInfo->mBtnrTransParams;
     btnr_stats_t *btnr_stats = &pBtnrInfo->mBtnrStats[0];
@@ -392,30 +388,26 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
             psta->hw_btnrCfg_pixDomain_mode = btnr_pixLog2Domain_mode;
         }
     }
-    /*
-        float frameiso[3];
-        float frameEt[3];
-        float fdGain[3];
 
-        int framenum = cvtinfo->frameNum;
-        frameiso[0] = cvtinfo->frameIso[0];
-        frameiso[1] = cvtinfo->frameIso[1];
-        frameiso[2] = cvtinfo->frameIso[2];
+    float frameiso[3];
+    float frameEt[3];
+    float fdGain[3];
 
-        frameEt[0] = cvtinfo->frameEt[0];
-        frameEt[1] = cvtinfo->frameEt[1];
-        frameEt[2] = cvtinfo->frameEt[2];
-        for (i = 0; i < framenum; i++) {
-            fdGain[i] = frameiso[i] * frameEt[i];
-        }
-        for (i = 0; i < framenum; i++) {
-            fdGain[i] = fdGain[framenum - 1] / fdGain[i];
-        }
-        pFix->rawWidth          = cvtinfo->rawWidth;
-        pFix->rawHeight         = cvtinfo->rawHeight;
-        pFix->bayertnr_framenum_hdr = cvtinfo->frameNum;
-        pFix->bayertnr_framecnt  = cvtinfo->frameId;
-    */
+    int framenum = cvtinfo->frameNum;
+    frameiso[0] = cvtinfo->frameIso[0];
+    frameiso[1] = cvtinfo->frameIso[1];
+    frameiso[2] = cvtinfo->frameIso[2];
+
+    frameEt[0] = cvtinfo->frameEt[0];
+    frameEt[1] = cvtinfo->frameEt[1];
+    frameEt[2] = cvtinfo->frameEt[2];
+    for (i = 0; i < framenum; i++) {
+        fdGain[i] = frameiso[i] * frameEt[i];
+    }
+    for (i = 0; i < framenum; i++) {
+        fdGain[i] = fdGain[framenum - 1] / fdGain[i];
+    }
+
 
     // REG: BAY3D_CTRL0
     if (pdyn->sw_btnrT_outFrmBase_mode == btnr_curBaseOut_mode) {
@@ -994,11 +986,11 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
 
     bool update_itransf_tbl = false;
     if ((pTransParams->transf_mode != pCfg->transf_mode) ||
-        (pTransParams->transf_mode_scale != pCfg->transf_mode_scale) ||
-        (pTransParams->isTransfBypass != pCfg->transf_bypass_en) ||
-        (pTransParams->transf_data_max_limit != pCfg->transf_data_max_limit) ||
-        (pTransParams->itransf_mode_offset != pCfg->itransf_mode_offset) ||
-        (pTransParams->transf_mode_offset != pCfg->transf_mode_offset)) {
+            (pTransParams->transf_mode_scale != pCfg->transf_mode_scale) ||
+            (pTransParams->isTransfBypass != pCfg->transf_bypass_en) ||
+            (pTransParams->transf_data_max_limit != pCfg->transf_data_max_limit) ||
+            (pTransParams->itransf_mode_offset != pCfg->itransf_mode_offset) ||
+            (pTransParams->transf_mode_offset != pCfg->transf_mode_offset)) {
         update_itransf_tbl = true;
     }
 
@@ -1042,24 +1034,42 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
         pCfg->tnr_luma2sigma_x[i] = CLIP(tmp, 0, pCfg->pix_max_limit);
     }
 
-    int iso = cvtinfo->frameIso[0];
-    int ilow = 0, ihigh = 0;
-    float iso_ratio = 0.0f;
-    float x_ratio = 0.0f;
-    int y_lowISO = 0;
-    int y_highISO = 0;
-    pre_interp(iso, NULL, 0, &ilow, &ihigh, &iso_ratio);
-
     if(psta->sigmaEnv.sw_btnrCfg_sigma_mode == btnr_manualSigma_mode || cvtinfo->isFirstFrame || bayertnr_default_noise_curve_use) {
         pTransParams->bayertnr_auto_sig_count_en = 0;
-        if(pTransParams->isHdrMode || pTransParams->isTransfBypass || opMode == RK_AIQ_OP_MODE_MANUAL) {
+        if(pTransParams->isTransfBypass || opMode == RK_AIQ_OP_MODE_MANUAL) {
             for(i = 0; i < sigbins; i++) {
                 pTransParams->tnr_luma_sigma_y[i] = pdyn->sigmaEnv.hw_btnrC_mdSigma_curve.val[i];
                 if(opMode == RK_AIQ_OP_MODE_MANUAL) {
                     pCfg->tnr_luma2sigma_x[i] = pdyn->sigmaEnv.hw_btnrC_mdSigma_curve.idx[i];
                 }
             }
+        } else if(pTransParams->isHdrMode) {
+            uint16_t shortY[sigbins];
+            int short_iso = cvtinfo->frameIso[1];
+            int short_ilow = 0, short_ihigh = 0;
+            float short_iso_ratio = 0.0f;
+
+            pre_interp(short_iso, NULL, 0, &short_ilow, &short_ihigh, &short_iso_ratio);
+
+            uint16_t* pSigmaX = pCfg->tnr_luma2sigma_x;
+            uint16_t* pSigmaY = pTransParams->tnr_luma_sigma_y;
+            uint16_t* pCalibX = pdyn->sigmaEnv.hw_btnrC_mdSigma_curve.idx;
+            uint16_t* pLongY = pdyn->sigmaEnv.hw_btnrC_mdSigma_curve.val;
+            uint16_t* pShortLowY = btnr_attrib->stAuto.spNrDyn[short_ilow].sigmaEnv.hw_btnrC_mdSigma_curve.val;
+            uint16_t* pShortHighY = btnr_attrib->stAuto.spNrDyn[short_ihigh].sigmaEnv.hw_btnrC_mdSigma_curve.val;
+
+            for(i = 0; i < sigbins; i++) {
+                shortY[i] = pShortLowY[i] + short_iso_ratio * (pShortHighY[i] - pShortLowY[i]);
+            }
+            btnr_hdr_sigma_calc(pSigmaX, pSigmaY, pCalibX, shortY, pLongY, pMergeLumaWgt, pTransParams, sigbins, fdGain[0]);
         } else {
+            int iso = cvtinfo->frameIso[0];
+            int ilow = 0, ihigh = 0;
+            float iso_ratio = 0.0f;
+            float x_ratio = 0.0f;
+            int y_lowISO = 0;
+            int y_highISO = 0;
+            pre_interp(iso, NULL, 0, &ilow, &ihigh, &iso_ratio);
             // interpolate y in low iso
             uint16_t* pLowY = btnr_attrib->stAuto.spNrDyn[ilow].sigmaEnv.hw_btnrC_mdSigma_curve.val;
             uint16_t* pHighY = btnr_attrib->stAuto.spNrDyn[ihigh].sigmaEnv.hw_btnrC_mdSigma_curve.val;
@@ -1132,20 +1142,14 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     int spnrsigbins = 16;
 
     int pix_max = pCfg->transf_bypass_en ? ((1 << 12) - 1) : bayertnr_logtrans((1 << 12) - 1, pTransParams);
+    pix_max = cvtinfo->frameNum == 2 ? bayertnr_logtrans((1 << 20) - 1, pTransParams) : pix_max;
     if(cvtinfo->frameNum == 2) {
         // hdr long bins
         int lgbins = 8;
         for(i = 0; i < lgbins; i++) {
-            pCfg->pre_spnr_luma2sigma_x[i] = pix_max * (i + 1) / lgbins;
+            pCfg->pre_spnr_luma2sigma_x[i] = 128 * (i + 1);
         }
-        pCfg->pre_spnr_luma2sigma_x[lgbins - 1] = pix_max * (i + 1) / lgbins;
-
         // hdr short bins, max gain 256
-        int shbins = spnrsigbins - lgbins;
-        i = 8;
-        tmp0 = (1 << (12 + i)) - 1;
-        tmp0 = pCfg->transf_bypass_en ? tmp0 : bayertnr_logtrans(tmp0, pTransParams);
-        tmp0 = tmp0 - pix_max;
         for(i = lgbins; i < spnrsigbins; i++) {
             pCfg->pre_spnr_luma2sigma_x[i] = 256 * (i - lgbins + 1) + pCfg->pre_spnr_luma2sigma_x[lgbins - 1];
         }
@@ -1212,14 +1216,39 @@ void rk_aiq_btnr41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
 
     if(!auto_sig_curve_spnruse || cvtinfo->isFirstFrame) {
 
-        if(pTransParams->isHdrMode || pTransParams->isTransfBypass || opMode == RK_AIQ_OP_MODE_MANUAL) {
+        if(pTransParams->isTransfBypass || opMode == RK_AIQ_OP_MODE_MANUAL) {
             for(i = 0; i < spnrsigbins; i++) {
                 pCfg->pre_spnr_luma2sigma_y[i] = CLIP((int)(pdyn->sigmaEnv.hw_btnrC_preSpNrSgm_curve.val[i]), 0, max_sig);
                 if(opMode == RK_AIQ_OP_MODE_MANUAL) {
                     pCfg->pre_spnr_luma2sigma_x[i] = pdyn->sigmaEnv.hw_btnrC_preSpNrSgm_curve.idx[i];
                 }
             }
+        } else if(pTransParams->isHdrMode ) {
+            uint16_t shortY[spnrsigbins];
+            int short_iso = cvtinfo->frameIso[1];
+            int short_ilow = 0, short_ihigh = 0;
+            float short_iso_ratio = 0.0f, merge_luma2Wgt = 0.0f;
+
+            pre_interp(short_iso, NULL, 0, &short_ilow, &short_ihigh, &short_iso_ratio);
+
+            uint16_t* pSigmaX = pCfg->pre_spnr_luma2sigma_x;
+            uint16_t* pSigmaY = pCfg->pre_spnr_luma2sigma_y;
+            uint16_t* pLongY = pdyn->sigmaEnv.hw_btnrC_preSpNrSgm_curve.val;
+            uint16_t* pCalibX = pdyn->sigmaEnv.hw_btnrC_preSpNrSgm_curve.idx;
+            uint16_t* pShortLowY = btnr_attrib->stAuto.spNrDyn[short_ilow].sigmaEnv.hw_btnrC_preSpNrSgm_curve.val;
+            uint16_t* pShortHighY = btnr_attrib->stAuto.spNrDyn[short_ihigh].sigmaEnv.hw_btnrC_preSpNrSgm_curve.val;
+            for(i = 0; i < spnrsigbins; i++) {
+                shortY[i] = pShortLowY[i] + short_iso_ratio * (pShortHighY[i] - pShortLowY[i]);
+            }
+            btnr_hdr_sigma_calc(pSigmaX, pSigmaY, pCalibX, shortY, pLongY, pMergeLumaWgt, pTransParams, spnrsigbins, fdGain[0]);
         } else {
+            int iso = cvtinfo->frameIso[0];
+            int ilow = 0, ihigh = 0;
+            float iso_ratio = 0.0f;
+            float x_ratio = 0.0f;
+            int y_lowISO = 0;
+            int y_highISO = 0;
+            pre_interp(iso, NULL, 0, &ilow, &ihigh, &iso_ratio);
             // interpolate y in low iso
             uint16_t* pLowY = btnr_attrib->stAuto.spNrDyn[ilow].sigmaEnv.hw_btnrC_preSpNrSgm_curve.val;
             uint16_t* pHighY = btnr_attrib->stAuto.spNrDyn[ihigh].sigmaEnv.hw_btnrC_preSpNrSgm_curve.val;

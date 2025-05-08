@@ -1060,7 +1060,8 @@ int32_t main(int argc, char** argv) {
     } else if (calib_ini_from) {
         if (auto_parse_ini) {
             g_ispfec_cfg.mesh_upd_mode  = RK_ISPFEC_UPDATE_MESH_ONLINE;
-            g_ispfec_cfg.calib_ini_from = (char*)calib_ini_from;
+            strncpy(g_ispfec_cfg.calib_ini_from, calib_ini_from,
+                    sizeof(g_ispfec_cfg.calib_ini_from));
         } else {
             FecCailbParams params = {0};
 

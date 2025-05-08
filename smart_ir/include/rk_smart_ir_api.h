@@ -20,6 +20,8 @@
 
 #include "common/rk_aiq_types.h"
 
+#define SMARTIR_VERSION "SMARTIR v2.0.6"
+
 typedef struct rk_aiq_sys_ctx_s rk_aiq_sys_ctx_t;
 typedef struct rk_smart_ir_ctx_s rk_smart_ir_ctx_t;
 
@@ -119,6 +121,9 @@ typedef struct rk_smart_ir_query_info_s {
     float rggain;
     float bggain;
     float ir_strength;
+    float all_dis;
+    float part_dis;
+    uint16_t blk_res[3];
 } rk_smart_ir_query_info_t;
 
 typedef struct rk_smart_ir_autoled_s {
@@ -138,6 +143,7 @@ XCamReturn rk_smart_ir_getAttr(rk_smart_ir_ctx_t* ctx, rk_smart_ir_attr_t* attr)
 XCamReturn rk_smart_ir_queryInfo(rk_smart_ir_ctx_t* ctx, rk_smart_ir_query_info_t* query_info);
 XCamReturn rk_smart_ir_run(rk_smart_ir_ctx_t* ctx, bool camGroup, rk_smart_ir_result_t* result);
 XCamReturn rk_smart_ir_runCb(rk_smart_ir_ctx_t* ctx, bool camGroup, void (*smart_ir_cb)(rk_smart_ir_result_t));
+XCamReturn rk_smart_ir_dualRun(rk_smart_ir_ctx_t* ctx0, rk_smart_ir_ctx_t* ctx1, rk_smart_ir_result_t* result);
 XCamReturn rk_smart_ir_calib(rk_smart_ir_ctx_t* ctx, rk_smart_ir_calib_t* cfg);
 
 // SMARTIR_VERSION 1.0.0

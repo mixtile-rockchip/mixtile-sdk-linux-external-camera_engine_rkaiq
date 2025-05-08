@@ -140,8 +140,10 @@ static XCamReturn processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outp
         }
 
         // get LongFrmMode
-        pMergeCtx->NextCtrlData.ExpoData.LongFrmMode =
-            merge_proc_param->LongFrmMode && (pMergeCtx->FrameNumber != LINEAR_NUM);
+        if (merge_proc_param->LongFrmMode != pMergeCtx->NextCtrlData.ExpoData.LongFrmMode) {
+            pMergeCtx->isReCal_ = true;
+        }
+        pMergeCtx->NextCtrlData.ExpoData.LongFrmMode = merge_proc_param->LongFrmMode;
         // get motion coef
         pMergeCtx->NextCtrlData.MoveCoef = 0;
         // expo para process

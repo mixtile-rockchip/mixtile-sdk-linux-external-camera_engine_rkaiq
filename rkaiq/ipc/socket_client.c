@@ -15,7 +15,11 @@
 #define USE_IPC_SERVER
 
 #ifdef USE_IPC_SERVER
+#ifdef __ANDROID__
+#define LOCALSOCKET_NAME "/dev/socket/camera_tool"
+#else
 #define LOCALSOCKET_NAME "/tmp/UNIX.domain"
+#endif
 #else
 #ifdef __ANDROID__
 #define LOCALSOCKET_NAME "/dev/socket/camera_tool"

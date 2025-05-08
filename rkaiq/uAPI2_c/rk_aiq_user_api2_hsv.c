@@ -33,24 +33,24 @@ rk_aiq_user_api2_hsv_SetAttrib(const rk_aiq_sys_ctx_t* sys_ctx, hsv_api_attrib_t
     CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AHSV);
     RKAIQ_API_SMART_LOCK(sys_ctx);
 
-	rk_aiq_sys_ctx_array_t ctx_array = rk_aiq_user_api2_common_getSysCtxArray(sys_ctx);
+    rk_aiq_sys_ctx_array_t ctx_array = rk_aiq_user_api2_common_getSysCtxArray(sys_ctx);
 
-	int type = RESULT_TYPE_HSV_PARAM;
-	int man_param_size = sizeof(hsv_param_t);
-	int aut_param_size = sizeof(hsv_param_auto_t);
+    int type = RESULT_TYPE_HSV_PARAM;
+    int man_param_size = sizeof(hsv_param_t);
+    int aut_param_size = sizeof(hsv_param_auto_t);
 
-	for (int i = 0; i < ctx_array.num; i++) {
-		if (attr->opMode == RK_AIQ_OP_MODE_MANUAL || attr->opMode == RK_AIQ_OP_MODE_AUTO) {
-			ret = rk_aiq_user_api2_common_processParams(ctx_array.ctx[i], true,
-					&attr->opMode, &attr->en, &attr->bypass,
-					type, man_param_size, &attr->stMan, aut_param_size, &attr->stAuto);
-		} else {
-			ret = XCAM_RETURN_ERROR_FAILED;
-			LOGE_AHSV("wrong mode %d !", attr->opMode);
-		}
-	}
+    for (int i = 0; i < ctx_array.num; i++) {
+        if (attr->opMode == RK_AIQ_OP_MODE_MANUAL || attr->opMode == RK_AIQ_OP_MODE_AUTO) {
+            ret = rk_aiq_user_api2_common_processParams(ctx_array.ctx[i], true,
+                    &attr->opMode, &attr->en, &attr->bypass,
+                    type, man_param_size, &attr->stMan, aut_param_size, &attr->stAuto);
+        } else {
+            ret = XCAM_RETURN_ERROR_FAILED;
+            LOGE_AHSV("wrong mode %d !", attr->opMode);
+        }
+    }
 
-	return ret;
+    return ret;
 }
 
 XCamReturn
@@ -60,15 +60,15 @@ rk_aiq_user_api2_hsv_GetAttrib(const rk_aiq_sys_ctx_t* sys_ctx, hsv_api_attrib_t
     CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AHSV);
     RKAIQ_API_SMART_LOCK(sys_ctx);
 
-	const rk_aiq_sys_ctx_t* ctx = rk_aiq_user_api2_common_getSysCtx(sys_ctx);
+    const rk_aiq_sys_ctx_t* ctx = rk_aiq_user_api2_common_getSysCtx(sys_ctx);
 
-	int type = RESULT_TYPE_HSV_PARAM;
-	int man_param_size = sizeof(hsv_param_t);
-	int aut_param_size = sizeof(hsv_param_auto_t);
+    int type = RESULT_TYPE_HSV_PARAM;
+    int man_param_size = sizeof(hsv_param_t);
+    int aut_param_size = sizeof(hsv_param_auto_t);
 
     return rk_aiq_user_api2_common_processParams(ctx, false,
-				&attr->opMode, &attr->en, &attr->bypass,
-				type, man_param_size, &attr->stMan, aut_param_size, &attr->stAuto);
+                &attr->opMode, &attr->en, &attr->bypass,
+                type, man_param_size, &attr->stMan, aut_param_size, &attr->stAuto);
 }
 
 XCamReturn
@@ -79,19 +79,19 @@ rk_aiq_user_api2_hsv_QueryStatus(const rk_aiq_sys_ctx_t* sys_ctx, hsv_status_t* 
     CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AHSV);
     RKAIQ_API_SMART_LOCK(sys_ctx);
 
-	const rk_aiq_sys_ctx_t* ctx = rk_aiq_user_api2_common_getSysCtx(sys_ctx);
+    const rk_aiq_sys_ctx_t* ctx = rk_aiq_user_api2_common_getSysCtx(sys_ctx);
 
-	AiqAlgoHandler_t* algo_handle =
-		ctx->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
+    AiqAlgoHandler_t* algo_handle =
+        ctx->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
 
-	if (algo_handle) {
-		ret = AiqAlgoHandler_queryStatus_common(algo_handle,
-				&status->opMode, &status->en, &status->bypass, &status->stMan);
-		if (status->opMode == RK_AIQ_OP_MODE_AUTO)
+    if (algo_handle) {
+        ret = AiqAlgoHandler_queryStatus_common(algo_handle,
+                &status->opMode, &status->en, &status->bypass, &status->stMan);
+        if (status->opMode == RK_AIQ_OP_MODE_AUTO)
             AiqHsvHandler_queryahsvStatus((AiqHsvHandler_t*)algo_handle, &status->ahsvStatus);
-	}
+    }
 
-	return ret;
+    return ret;
 }
 #if RKAIQ_HAVE_HSV_V10
 static XCamReturn check_hsv_param(ahsv_hsvCalib_t* calibdb){
@@ -155,7 +155,7 @@ rk_aiq_user_api2_hsv_SetCalib(const rk_aiq_sys_ctx_t* sys_ctx, ahsv_hsvCalib_t* 
 
     for (int i = 0; i < ctx_array.num; i++) {
         AiqAlgoHandler_t* algo_handle =
-		    ctx_array.ctx[i]->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
+            ctx_array.ctx[i]->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
         if (algo_handle) {
             ret = AiqHsvHandler_setCalib((AiqHsvHandler_t*)algo_handle, calib);
         } else {
@@ -174,17 +174,17 @@ rk_aiq_user_api2_hsv_GetCalib(const rk_aiq_sys_ctx_t* sys_ctx, ahsv_hsvCalib_t* 
     CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AHSV);
     RKAIQ_API_SMART_LOCK(sys_ctx);
 
-	const rk_aiq_sys_ctx_t* ctx = rk_aiq_user_api2_common_getSysCtx(sys_ctx);
+    const rk_aiq_sys_ctx_t* ctx = rk_aiq_user_api2_common_getSysCtx(sys_ctx);
     AiqAlgoHandler_t* algo_handle =
-		ctx->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
+        ctx->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
 
-	if (algo_handle) 
+    if (algo_handle)
         return AiqHsvHandler_getCalib((AiqHsvHandler_t*)algo_handle, calib);
     else {
         LOGE_AHSV("GetCalib failed!");
         return XCAM_RETURN_ERROR_FAILED;
     }
-        
+
 }
 
 XCamReturn rk_aiq_user_api2_setHsvSatStrth(const rk_aiq_sys_ctx_t* sys_ctx, ahsv_satStrg_t ctrl)
@@ -194,7 +194,7 @@ XCamReturn rk_aiq_user_api2_setHsvSatStrth(const rk_aiq_sys_ctx_t* sys_ctx, ahsv
     CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AHSV);
     RKAIQ_API_SMART_LOCK(sys_ctx);
 
-	hsv_status_t status;
+    hsv_status_t status;
     memset(&status, 0, sizeof(status));
     ret = rk_aiq_user_api2_hsv_QueryStatus(sys_ctx, &status);
 #if RKAIQ_HAVE_HSV_V11
@@ -222,7 +222,7 @@ XCamReturn rk_aiq_user_api2_setHsvSatStrth(const rk_aiq_sys_ctx_t* sys_ctx, ahsv
     
     for (int i = 0; i < ctx_array.num; i++) {
          AiqAlgoHandler_t* algo_handle =
-		    ctx_array.ctx[i]->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
+            ctx_array.ctx[i]->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
         if (algo_handle) {
             ret = AiqHsvHandler_setSatStrth((AiqHsvHandler_t*)algo_handle, &ctrl);
         } else {
@@ -239,11 +239,11 @@ XCamReturn rk_aiq_user_api2_getHsvSatStrth(const rk_aiq_sys_ctx_t* sys_ctx, ahsv
     CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AHSV);
     RKAIQ_API_SMART_LOCK(sys_ctx);
 
-	const rk_aiq_sys_ctx_t* ctx = rk_aiq_user_api2_common_getSysCtx(sys_ctx);
+    const rk_aiq_sys_ctx_t* ctx = rk_aiq_user_api2_common_getSysCtx(sys_ctx);
     AiqAlgoHandler_t* algo_handle =
-		ctx->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
+        ctx->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
 
-	if (algo_handle) 
+    if (algo_handle)
         return AiqHsvHandler_getSatStrth((AiqHsvHandler_t*)algo_handle, ctrl);
     else {
         LOGE_AHSV("GetSatStrth failed!");
@@ -257,10 +257,10 @@ XCamReturn rk_aiq_user_api2_setHsvHueOffset(const rk_aiq_sys_ctx_t* sys_ctx, ahs
     CHECK_USER_API_ENABLE2(sys_ctx);
     CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AHSV);
     RKAIQ_API_SMART_LOCK(sys_ctx);
-	rk_aiq_sys_ctx_array_t ctx_array = rk_aiq_user_api2_common_getSysCtxArray(sys_ctx);
+    rk_aiq_sys_ctx_array_t ctx_array = rk_aiq_user_api2_common_getSysCtxArray(sys_ctx);
     for (int i = 0; i < ctx_array.num; i++) {
          AiqAlgoHandler_t* algo_handle =
-		    ctx_array.ctx[i]->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
+            ctx_array.ctx[i]->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
         if (algo_handle) {
             ret = AiqHsvHandler_setHueOffset((AiqHsvHandler_t*)algo_handle, &ctrl);
         } else {
@@ -277,16 +277,55 @@ XCamReturn rk_aiq_user_api2_getHsvHueOffset(const rk_aiq_sys_ctx_t* sys_ctx, ahs
     CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AHSV);
     RKAIQ_API_SMART_LOCK(sys_ctx);
 
-	const rk_aiq_sys_ctx_t* ctx = rk_aiq_user_api2_common_getSysCtx(sys_ctx);
+    const rk_aiq_sys_ctx_t* ctx = rk_aiq_user_api2_common_getSysCtx(sys_ctx);
     AiqAlgoHandler_t* algo_handle =
-		ctx->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
+        ctx->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
 
-	if (algo_handle) 
+    if (algo_handle)
         return AiqHsvHandler_getHueOffset((AiqHsvHandler_t*)algo_handle, ctrl);
     else {
         LOGE_AHSV("GetHueOffset failed!");
         return XCAM_RETURN_ERROR_FAILED;
     }
 }
+
+XCamReturn rk_aiq_user_api2_setHsvValOffset(const rk_aiq_sys_ctx_t* sys_ctx, ahsv_valOffset_t ctrl)
+{
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    CHECK_USER_API_ENABLE2(sys_ctx);
+    CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AHSV);
+    RKAIQ_API_SMART_LOCK(sys_ctx);
+    rk_aiq_sys_ctx_array_t ctx_array = rk_aiq_user_api2_common_getSysCtxArray(sys_ctx);
+    for (int i = 0; i < ctx_array.num; i++) {
+        AiqAlgoHandler_t* algo_handle =
+            ctx_array.ctx[i]->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
+        if (algo_handle) {
+            ret = AiqHsvHandler_setValOffset((AiqHsvHandler_t*)algo_handle, &ctrl);
+        } else {
+            ret = XCAM_RETURN_ERROR_FAILED;
+            LOGE_AHSV("ctx[%d]: SetHueOffset failed!", i);
+        }
+    }
+    return ret;
+}
+
+XCamReturn rk_aiq_user_api2_getHsvValOffset(const rk_aiq_sys_ctx_t* sys_ctx, ahsv_valOffset_t *ctrl)
+{
+    CHECK_USER_API_ENABLE2(sys_ctx);
+    CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AHSV);
+    RKAIQ_API_SMART_LOCK(sys_ctx);
+
+    const rk_aiq_sys_ctx_t* ctx = rk_aiq_user_api2_common_getSysCtx(sys_ctx);
+    AiqAlgoHandler_t* algo_handle =
+        ctx->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AHSV];
+
+    if (algo_handle)
+        return AiqHsvHandler_getValOffset((AiqHsvHandler_t*)algo_handle, ctrl);
+    else {
+        LOGE_AHSV("GetHueOffset failed!");
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+}
+
 
 RKAIQ_END_DECLARE
