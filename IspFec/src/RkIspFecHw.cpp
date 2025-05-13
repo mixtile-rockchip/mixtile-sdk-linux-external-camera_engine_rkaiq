@@ -69,4 +69,18 @@ int RkIspFecHw::process(RKFecInOut& param) {
 
     return ret;
 }
+
+int RkIspFecHw::detach_dma_buffer(int dma_fd) {
+    if (mFd < 0) {
+        rkfec_err("E: invalid fec fd");
+        return -EBADF;
+    }
+
+#ifdef RKFEC_HW_V20
+    unsigned long int cmd = RKFEC_CMD_BUF_DEL;
+#else
+    unsigned long int cmd = RKISPP_CMD_FEC_BUF_DEL;
+#endif
+    return ioctl(mFd, cmd, &dma_fd);
+}
 };

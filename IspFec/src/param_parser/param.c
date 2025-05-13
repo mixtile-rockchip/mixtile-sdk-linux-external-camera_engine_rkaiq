@@ -139,6 +139,7 @@ int rk_ispfec_param_deinit() {
     pthread_mutex_lock(&g_param_mutex);
     // rk_ispfec_param_save();
     if (g_ini_d_) rk_ispfec_iniparser_freedict(g_ini_d_);
+    g_ini_d_ = NULL;
     pthread_mutex_unlock(&g_param_mutex);
 
     return 0;

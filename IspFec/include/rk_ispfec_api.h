@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 #define FEC_VERSION_ENCODE(a, b, c) (((a) << 16) + ((b) << 8) + ((c) > 255 ? 255 : (c)))
-#define RK_ISP_FEC_API_VERSION      FEC_VERSION_ENCODE(4, 0, 1)
+#define RK_ISP_FEC_API_VERSION      FEC_VERSION_ENCODE(4, 0, 4)
 
 #define RK_ISP_FEC_API_VERSION_MAJOR(v) (((v) >> 16) & 0xff)
 #define RK_ISP_FEC_API_VERSION_MINOR(v) (((v) >> 8) & 0xff)
@@ -104,14 +104,16 @@ typedef struct rk_ispfec_buffer_info {
 /**
  * FEC mesh update mode enumeration
  *
- * RK_ISPFEC_UPDATE_MESH_ONLINE    - Real-time mesh generation using lens parameters
- * RK_ISPFEC_UPDATE_MESH_FROM_FILE - Load mesh data from external files
- * RK_ISPFEC_UPDATE_MESH_FROM_BUFFER- Update mesh from memory buffer descriptors
+ * RK_ISPFEC_UPDATE_MESH_ONLINE             - Real-time mesh generation using lens parameters
+ * RK_ISPFEC_UPDATE_MESH_ONLINE_FROM_INI    - Load lens parameters from INI file
+ * RK_ISPFEC_UPDATE_MESH_FROM_FILE          - Load mesh data from external files
+ * RK_ISPFEC_UPDATE_MESH_FROM_BUFFER        - Update mesh from memory buffer descriptors
  */
 enum rk_ispfec_update_mesh_mode {
     RK_ISPFEC_UPDATE_MESH_ONLINE = 0,
     RK_ISPFEC_UPDATE_MESH_FROM_FILE,
-    RK_ISPFEC_UPDATE_MESH_FROM_BUFFER
+    RK_ISPFEC_UPDATE_MESH_FROM_BUFFER,
+    RK_ISPFEC_UPDATE_MESH_ONLINE_FROM_INI
 };
 
 /**
@@ -347,6 +349,16 @@ int rk_ispfec_api_set_mesh_config(rk_ispfec_ctx_t* ctx, rk_ispfec_mesh_config_t*
  *          change or context destruction
  */
 int rk_ispfec_api_get_mesh_config(rk_ispfec_ctx_t* ctx, rk_ispfec_mesh_config_t* config);
+
+/**
+ * @brief Load lens calibration parameters from INI file
+ * @param[in] ini_path Path to INI file containing lens parameters
+ * @param[out] info_out Pointer to structure to store loaded parameters
+ * @return 0 on success, -1 for file read error or invalid format
+ *
+ */
+int rk_ispfec_api_load_online_config_from_ini(const char* ini_path,
+                                              gen_mesh_online_info_t* info_out);
 
 #ifdef __cplusplus
 }

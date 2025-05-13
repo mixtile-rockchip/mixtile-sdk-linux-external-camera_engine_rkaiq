@@ -30,6 +30,8 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include <cerrno>
+
 #include "RkIspFecComm.h"
 
 namespace RKISPFEC {
@@ -237,4 +239,20 @@ int RkIspFecHwMgr::process(RKFecInOut& param) {
 
     return ret;
 }
-};
+
+int RkIspFecHwMgr::detach_dma_buffer(int dma_fd) {
+    int ret = 0;
+    for (int i = 0; i < mFecVdNum; i++) {
+        if (mFecHw[i]) {
+            int hw_ret = mFecHw[i]->detach_dma_buffer(dma_fd);
+            if (hw_ret != 0) {
+                rkfec_dbg(5, rkfec_debug, "Failed to detach DMA buffer on FEC HW[%d], errno: %d %s",
+                          i, errno, strerror(errno));
+                ret = hw_ret;
+            }
+        }
+    }
+    return ret;
+}
+
+};  // namespace RKISPFEC

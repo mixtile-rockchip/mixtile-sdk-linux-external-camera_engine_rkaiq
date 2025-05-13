@@ -23,8 +23,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
-#include <unistd.h>
 #include <sys/stat.h>
+#include <unistd.h>
+
+#include <algorithm>
+#include <list>
 
 #include "RkIspFecComm.h"
 #include "RkIspFecGenMesh.h"
@@ -52,6 +55,8 @@ typedef struct rk_ispfec_ctx_s {
     int _state;
 
     RkIspFecGenMesh* _fecGenMesh;
+
+    std::list<int> buf_list;
 } rk_ispfec_ctx_t;
 
 static void _print_versions() {
@@ -166,8 +171,7 @@ static int _load_calib_ini(rk_ispfec_cfg_t* cfg) {
     cfg->u.mesh_online.calib_level_maxLimit =
         rk_ispfec_param_get_int("Calibration:sw_ldcC_correctStrg_maxLimit", 0);
 
-    cfg->u.mesh_online.correct_level =
-        rk_ispfec_param_get_int("config:sw_ldcT_correctstrg_val", 0);
+    cfg->u.mesh_online.correct_level = rk_ispfec_param_get_int("Config:sw_ldcT_correctstrg_val", 0);
     cfg->u.mesh_online.style = (enum rk_ispfec_correct_style)rk_ispfec_param_get_int(
         "config:sw_ldcT_saveMaxFovX_bit", 0);
 
@@ -194,11 +198,16 @@ _configure(rk_ispfec_ctx_t* ctx, rk_ispfec_cfg_t* cfg)
 
     pthread_mutex_lock (&ctx->_mutex);
 
-    _load_calib_ini(cfg);
+    static const char* const upd_mesh_mode[] = {"mesh_online", "mesh_from_file", "mesh_from_buffer",
+                                                "mesh_online_from_ini"};
 
-    if (cfg->mesh_upd_mode == RK_ISPFEC_UPDATE_MESH_ONLINE) {
+    rkfec_info("rkfec mesh update mode: %s", upd_mesh_mode[cfg->mesh_upd_mode]);
+
+    if (cfg->mesh_upd_mode == RK_ISPFEC_UPDATE_MESH_ONLINE_FROM_INI) _load_calib_ini(cfg);
+
+    if (cfg->mesh_upd_mode == RK_ISPFEC_UPDATE_MESH_ONLINE ||
+        cfg->mesh_upd_mode == RK_ISPFEC_UPDATE_MESH_ONLINE_FROM_INI) {
 #ifdef GENMESH_ONLINE
-
         if (!ctx->_fecGenMesh) {
             ctx->_fecGenMesh = new RkIspFecGenMesh();
             if (!ctx->_fecGenMesh) {
@@ -206,6 +215,9 @@ _configure(rk_ispfec_ctx_t* ctx, rk_ispfec_cfg_t* cfg)
                 goto err;
             }
         }
+
+        if (cfg->u.mesh_online.direction == 0)
+            cfg->u.mesh_online.direction = RK_ISPFEC_CORRECT_DIRECTION_XY;
 
         ret = ctx->_fecGenMesh->init(cfg->in_width, cfg->in_height, cfg->out_width, cfg->out_height,
                                 cfg->u.mesh_online.light_center, cfg->u.mesh_online.coeff,
@@ -297,6 +309,35 @@ err:
     return -1;
 }
 
+static void _add_buffer(rk_ispfec_ctx_t* ctx, int fd) {
+    if (!ctx || fd < 0) return;
+
+    auto it = std::find(ctx->buf_list.begin(), ctx->buf_list.end(), fd);
+    if (it != ctx->buf_list.end()) {
+        rkfec_dbg(5, rkfec_debug, "FD:%d already in list", fd);
+        return;
+    }
+
+    ctx->buf_list.push_back(fd);
+    rkfec_dbg(1, rkfec_debug, "Added FD:%d to list", fd);
+}
+
+static void _free_buffer(rk_ispfec_ctx_t* ctx, int fd, bool free_all) {
+    if (!ctx) return;
+
+    auto it = ctx->buf_list.begin();
+    while (it != ctx->buf_list.end()) {
+        if (free_all || *it == fd) {
+            rkfec_dbg(1, rkfec_debug, "Freed FD:%d from list", *it);
+            ctx->_fecHwMgr->detach_dma_buffer(*it);
+            it = ctx->buf_list.erase(it);
+            if (!free_all) return;
+        } else {
+            ++it;
+        }
+    }
+}
+
 void
 rk_ispfec_api_deinit(rk_ispfec_ctx_t* ctx)
 {
@@ -320,7 +361,7 @@ rk_ispfec_api_deinit(rk_ispfec_ctx_t* ctx)
 #endif
 
     rk_ispfec_param_deinit();
-
+    _free_buffer(ctx, 0, true);
     ctx->_fecHwMgr->deinit();
     pthread_mutex_destroy (&ctx->_mutex);
 
@@ -473,6 +514,10 @@ rk_ispfec_api_process(rk_ispfec_ctx_t* ctx, int src_fd, int dst_fd)
 
     memcpy(&param.bg_val, &ctx->_cfg.bg_val, sizeof(rk_ispfec_bg_val));
 
+    _add_buffer(ctx, param.buf_cfg.lut_fd);
+    _add_buffer(ctx, param.buf_cfg.in_pic_fd);
+    _add_buffer(ctx, param.buf_cfg.out_pic_fd);
+
     rkfec_dbg(3, rkfec_debug,
               "mode: border %d, cross_buf: %d, bg_val: %d, %d, %d, offs(in: %d, out: %d), "
               "stride(in: %d, out: %d)",
@@ -494,6 +539,13 @@ rk_ispfec_api_process(rk_ispfec_ctx_t* ctx, int src_fd, int dst_fd)
     param.mesh_xfra_fd  = ctx->_cfg.mesh_xfra.dmaFd;
     param.mesh_yint_fd  = ctx->_cfg.mesh_yint.dmaFd;
     param.mesh_yfra_fd  = ctx->_cfg.mesh_yfra.dmaFd;
+
+    _add_buffer(ctx, param.mesh_xint_fd);
+    _add_buffer(ctx, param.mesh_xfra_fd);
+    _add_buffer(ctx, param.mesh_yint_fd);
+    _add_buffer(ctx, param.mesh_yfra_fd);
+    _add_buffer(ctx, param.in_pic_fd);
+    _add_buffer(ctx, param.out_pic_fd);
 #endif
 
     rkfec_dbg(3, rkfec_debug, "%dx%d->%dx%d format(in:%c%c%c%c out:%c%c%c%c)", param.in_width,
@@ -612,6 +664,7 @@ static int _update_mesh_config(rk_ispfec_ctx_t* ctx, rk_ispfec_mesh_config_t* co
 
     switch (config->mode) {
         case RK_ISPFEC_UPDATE_MESH_ONLINE:
+        case RK_ISPFEC_UPDATE_MESH_ONLINE_FROM_INI:
 #ifdef GENMESH_ONLINE
             // Copy online generation parameters
             if (ctx->_fecGenMesh) {
@@ -782,6 +835,7 @@ int rk_ispfec_api_get_mesh_config(rk_ispfec_ctx_t* ctx, rk_ispfec_mesh_config_t*
 
     switch (config->mode) {
         case RK_ISPFEC_UPDATE_MESH_ONLINE:
+        case RK_ISPFEC_UPDATE_MESH_ONLINE_FROM_INI:
             memcpy(&config->params.online_cfg, &ctx->_cfg.u.mesh_online,
                    sizeof(gen_mesh_online_info_t));
             break;
@@ -826,6 +880,45 @@ int rk_ispfec_api_get_mesh_config(rk_ispfec_ctx_t* ctx, rk_ispfec_mesh_config_t*
     }
 
     pthread_mutex_unlock(&ctx->_mutex);
+    return 0;
+}
+
+int rk_ispfec_api_load_online_config_from_ini(const char* ini_path,
+                                              gen_mesh_online_info_t* info_out) {
+    if (!ini_path || !info_out) {
+        rkfec_err("Invalid parameters: ini_path=%p info_out=%p", ini_path, info_out);
+        return -EINVAL;
+    }
+
+    if (_validate_file_path(ini_path)) {
+        rkfec_err("calib ini path is Invalid: %s", ini_path);
+        return -1;
+    }
+
+    rk_ispfec_param_init((char*)ini_path);
+    rkfec_dbg(3, rkfec_debug, "calib ini path: %s", ini_path);
+    info_out->calib_width     = rk_ispfec_param_get_int("Calibration:sw_ldcC_image_width", 0);
+    info_out->calib_height    = rk_ispfec_param_get_int("Calibration:sw_ldcC_image_height", 0);
+    info_out->light_center[0] = rk_ispfec_param_get_double("Calibration:sw_ldcC_opticCenter_x", 0);
+    info_out->light_center[1] = rk_ispfec_param_get_double("Calibration:sw_ldcC_opticCenter_y", 0);
+    info_out->coeff[0] = rk_ispfec_param_get_double("Calibration:sw_ldcC_lensDistor_coeff0", 0);
+    info_out->coeff[1] = rk_ispfec_param_get_double("Calibration:sw_ldcC_lensDistor_coeff1", 0);
+    info_out->coeff[2] = rk_ispfec_param_get_double("Calibration:sw_ldcC_lensDistor_coeff2", 0);
+    info_out->coeff[3] = rk_ispfec_param_get_double("Calibration:sw_ldcC_lensDistor_coeff3", 0);
+    info_out->calib_level_maxLimit =
+        rk_ispfec_param_get_int("Calibration:sw_ldcC_correctStrg_maxLimit", 0);
+
+    info_out->correct_level = rk_ispfec_param_get_int("Config:sw_ldcT_correctstrg_val", 0);
+    info_out->style =
+        (enum rk_ispfec_correct_style)rk_ispfec_param_get_int("Config:sw_ldcT_saveMaxFovX_bit", 0);
+
+    rk_ispfec_param_deinit();
+
+    rkfec_dbg(3, rkfec_debug, "%s, calib info: %d %d %.4f %.4f %.16f %.16f %.16f %.16f",
+              __FUNCTION__, info_out->calib_width, info_out->calib_height,
+              info_out->light_center[0], info_out->light_center[1], info_out->coeff[0],
+              info_out->coeff[1], info_out->coeff[2], info_out->coeff[3]);
+
     return 0;
 }
 

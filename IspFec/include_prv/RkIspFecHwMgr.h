@@ -30,6 +30,7 @@ public:
     // caller should ensure no process is running
     void deinit();
     int process(RKFecInOut& param);
+    int detach_dma_buffer(int dma_fd);
     virtual ~RkIspFecHwMgr();
 private:
     explicit RkIspFecHwMgr();

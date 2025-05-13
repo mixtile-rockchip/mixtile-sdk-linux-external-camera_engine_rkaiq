@@ -38,6 +38,7 @@ public:
     virtual ~RkIspFecHw();
     explicit RkIspFecHw(const char* dev);
     int process(RKFecInOut& param);
+    int detach_dma_buffer(int dma_fd);
 
  private:
     RkIspFecHw(const RkIspFecHw&) = default;

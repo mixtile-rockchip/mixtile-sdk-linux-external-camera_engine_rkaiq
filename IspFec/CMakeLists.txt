@@ -127,5 +127,6 @@ install(FILES ${PROJECT_BINARY_DIR}/rkfec_config.h DESTINATION include/IspFec)
 install(DIRECTORY include/ DESTINATION include/IspFec FILES_MATCHING PATTERN "*.h")
 install(FILES ${CMAKE_LIBRARY_PATH}/libIspFec.so DESTINATION lib)
 install(FILES ${CMAKE_LIBRARY_PATH}/libIspFec_static.a DESTINATION lib RENAME libIspFec.a)
+install(DIRECTORY fec_calib/ DESTINATION usr/share/fec_calib FILES_MATCHING PATTERN "*.ini")
 
 add_subdirectory(sample)

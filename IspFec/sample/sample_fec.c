@@ -34,7 +34,7 @@
  *            --cross-buf-mode 0 \
  *            --stream-from "/data/pic_33_0_0_3840_2160.bin" \
  *            --stream-to "/data/output_pic_33_0_0_3840_2160.bin" \
- *            --cailb-ini-from /data/imx415_CMK-OT1948-PV1.ini
+ *            --calib-ini-from /data/imx415_CMK-OT1948-PV1_ldc.ini
  *
  **/
 
@@ -145,7 +145,7 @@ static struct option long_options[] = {
     {"cross-buf-mode", required_argument, NULL, OptCrossBufMode},
     {"set-bg-val", required_argument, NULL, OptSetBgVal},
     {"fps", required_argument, NULL, OptSetFps},
-    {"api-test", required_argument, NULL, OptEnableApiTest},
+    {"api-test",  no_argument, NULL, OptEnableApiTest},
     {"stream-skip", required_argument, NULL, OptStreamSkip},
     {"offset-x", required_argument, NULL, OptSetOffsetX},
     {"stride", required_argument, NULL, OptSetStride},
@@ -188,6 +188,7 @@ void common_usage(void) {
         "  --stride <val>       set stride to video.\n"
         "  --offset-x-out <val>      set out_offset_x to video out.\n"
         "  --stride-out <val>       set out_stride to video out.\n"
+        "  --api-test <val> enable api test.\n"
         "  -h, --help         display this help message.\n");
 }
 
@@ -850,6 +851,30 @@ static int test_api_set_mesh_from_dmafd(rk_ispfec_ctx_t* ctx) {
     return ret;
 }
 
+static int test_api_get_mesh_config(rk_ispfec_ctx_t* ctx) {
+    int ret                          = 0;
+    rk_ispfec_mesh_config_t mesh_cfg = {};
+
+    if ((ret = rk_ispfec_api_get_mesh_config(ctx, &mesh_cfg))) {
+        stderr_info("Get mesh config failed: %s\n", strerror(errno));
+        return ret;
+    }
+
+    info("Get mesh config: mode: %d\n", mesh_cfg.mode);
+
+    info("Get mesh online_config: calib_width: %d, calib_height: %d\n",
+         mesh_cfg.params.online_cfg.calib_width, mesh_cfg.params.online_cfg.calib_height);
+    info("Get mesh online_config: optic_center: %.4f %.4f\n",
+         mesh_cfg.params.online_cfg.light_center[0], mesh_cfg.params.online_cfg.light_center[1]);
+    info("Get mesh online_config: coeff: %.16f %.16f %.16f %.16f\n",
+         mesh_cfg.params.online_cfg.coeff[0], mesh_cfg.params.online_cfg.coeff[1],
+         mesh_cfg.params.online_cfg.coeff[2], mesh_cfg.params.online_cfg.coeff[3]);
+
+    info("Get mesh online_config: level: %d\n", mesh_cfg.params.online_cfg.correct_level);
+
+    return 0;
+}
+
 static void test_rkfec_params(rk_ispfec_ctx_t* ctx) {
     if (ctx == NULL) {
         return;
@@ -888,6 +913,12 @@ static void test_rkfec_params(rk_ispfec_ctx_t* ctx) {
             info("==== set_mesh API Test: Mesh from DMA FD ====\n");
             if ((ret = test_api_set_mesh_from_dmafd(ctx)) != 0) {
                 stderr_info("DMA FD config test failed\n");
+            }
+            break;
+        case '6':
+            info("==== get_mesh API Test: Get mesh config ====\n");
+            if ((ret = test_api_get_mesh_config(ctx)) != 0) {
+                stderr_info("Get mesh config test failed\n");
             }
             break;
         default:
@@ -999,10 +1030,7 @@ int32_t main(int argc, char** argv) {
                 target_interval_ns = 1000000000L / target_fps;
                 break;
             case OptEnableApiTest:
-                enable_uapi_test = atoi(optarg);
-                if (enable_uapi_test < 0 || enable_uapi_test > 1) {
-                    stderr_info("Invalid api test %d, Please enter 0 or 1\n", enable_uapi_test);
-                }
+                enable_uapi_test = true;
                 break;
             case OptSetOffsetX:
                 offset_x = atoi(optarg);
@@ -1059,36 +1087,46 @@ int32_t main(int argc, char** argv) {
 #endif
     } else if (calib_ini_from) {
         if (auto_parse_ini) {
-            g_ispfec_cfg.mesh_upd_mode  = RK_ISPFEC_UPDATE_MESH_ONLINE;
+            g_ispfec_cfg.mesh_upd_mode = RK_ISPFEC_UPDATE_MESH_ONLINE_FROM_INI;
             strncpy(g_ispfec_cfg.calib_ini_from, calib_ini_from,
                     sizeof(g_ispfec_cfg.calib_ini_from));
         } else {
-            FecCailbParams params = {0};
-
-            if (ini_parse(calib_ini_from, ini_file_handler, &params) < 0) {
-                stderr_info("Faile to read %s\n", calib_ini_from);
+            gen_mesh_online_info_t info_out = {0};
+            if (rk_ispfec_api_load_online_config_from_ini(calib_ini_from, &info_out)) {
+                stderr_info("Failed to load online config from ini file\n");
                 return -1;
             }
 
-            info("calib image resolution: %dx%d\n", params.calib_image_width,
-                 params.calib_image_height);
-            info("optic center: (%f, %f)\n", params.optic_center_x, params.optic_center_y);
-            info("Lens Distor Coeff: [%.16f, %.16f, %.16f, %.16f]\n", params.coeff[0],
-                 params.coeff[1], params.coeff[2], params.coeff[3]);
-            info("correctStrg_maxLimit: %d, params.correctStrg_val: %d\n",
-                 params.correctStrg_maxLimit, params.correctStrg_val);
-            info("saveMaxFovX: %d\n", params.saveMaxFovX);
+            g_ispfec_cfg.mesh_upd_mode = RK_ISPFEC_UPDATE_MESH_ONLINE;
 
-            g_ispfec_cfg.mesh_upd_mode                 = RK_ISPFEC_UPDATE_MESH_ONLINE;
-            g_ispfec_cfg.u.mesh_online.light_center[0] = params.optic_center_x;
-            g_ispfec_cfg.u.mesh_online.light_center[1] = params.optic_center_y;
-            g_ispfec_cfg.u.mesh_online.coeff[0]        = params.coeff[0];
-            g_ispfec_cfg.u.mesh_online.coeff[1]        = params.coeff[1];
-            g_ispfec_cfg.u.mesh_online.coeff[2]        = params.coeff[2];
-            g_ispfec_cfg.u.mesh_online.coeff[3]        = params.coeff[3];
-            g_ispfec_cfg.u.mesh_online.correct_level   = params.correctStrg_val;
-            g_ispfec_cfg.u.mesh_online.direction       = RK_ISPFEC_CORRECT_DIRECTION_XY;
-            g_ispfec_cfg.u.mesh_online.style           = params.saveMaxFovX;
+            g_ispfec_cfg.u.mesh_online.calib_width  = info_out.calib_width;
+            g_ispfec_cfg.u.mesh_online.calib_height = info_out.calib_height;
+
+            g_ispfec_cfg.u.mesh_online.light_center[0]      = info_out.light_center[0];
+            g_ispfec_cfg.u.mesh_online.light_center[1]      = info_out.light_center[1];
+            g_ispfec_cfg.u.mesh_online.coeff[0]             = info_out.coeff[0];
+            g_ispfec_cfg.u.mesh_online.coeff[1]             = info_out.coeff[1];
+            g_ispfec_cfg.u.mesh_online.coeff[2]             = info_out.coeff[2];
+            g_ispfec_cfg.u.mesh_online.coeff[3]             = info_out.coeff[3];
+            g_ispfec_cfg.u.mesh_online.calib_level_maxLimit = info_out.calib_level_maxLimit;
+
+            g_ispfec_cfg.u.mesh_online.correct_level = info_out.correct_level;
+            g_ispfec_cfg.u.mesh_online.direction     = info_out.direction;
+            g_ispfec_cfg.u.mesh_online.style         = info_out.style;
+
+            info("calib_ini_from: %s\n", calib_ini_from);
+
+            info("calib_width: %d\n", g_ispfec_cfg.u.mesh_online.calib_width);
+            info("light_center: %.4f %.4f\n", g_ispfec_cfg.u.mesh_online.light_center[0],
+                 g_ispfec_cfg.u.mesh_online.light_center[1]);
+            info("coeff: %.16f %.16f %.16f %.16f\n", g_ispfec_cfg.u.mesh_online.coeff[0],
+                 g_ispfec_cfg.u.mesh_online.coeff[1], g_ispfec_cfg.u.mesh_online.coeff[2],
+                 g_ispfec_cfg.u.mesh_online.coeff[3]);
+            info("calib_level_maxLimit: %d\n", g_ispfec_cfg.u.mesh_online.calib_level_maxLimit);
+
+            info("correct_level: %d\n", g_ispfec_cfg.u.mesh_online.correct_level);
+            info("direction: %d\n", g_ispfec_cfg.u.mesh_online.direction);
+            info("style: %d\n", g_ispfec_cfg.u.mesh_online.style);
         }
     } else {
         stderr_info("Please specify the calibration file.\n");

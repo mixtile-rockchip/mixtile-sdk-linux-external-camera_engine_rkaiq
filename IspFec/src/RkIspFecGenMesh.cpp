@@ -131,10 +131,8 @@ RkIspFecGenMesh::init(int32_t srcWidth, int32_t srcHeight,
 
     if (rkfec_debug > 4) rkfec_profiling_end(&prof, "genFloatMeshNLevelInit", 30);
 
-    rkfec_info("I: fec mode: %d, direction: %d, level: %d, mesh: w: %d, h: %d, total size: %" PRId64
-               " bytes",
-               mStyle, mDirection, mLevel, mFecInfo.meshW, mFecInfo.meshH,
-               mFecInfo.u64FecMeshBufSize);
+    rkfec_info("I: fec mode: %d, direction: %d, mesh: w: %d, h: %d, total size: %" PRId64 " bytes",
+               mStyle, mDirection, mFecInfo.meshW, mFecInfo.meshH, mFecInfo.u64FecMeshBufSize);
 
     mInited = true;
 

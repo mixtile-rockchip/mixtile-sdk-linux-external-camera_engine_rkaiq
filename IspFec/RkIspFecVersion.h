@@ -44,9 +44,19 @@
  * - fix INI field parsing error
  * - modify calib_ini_from from a pointer to an array
  *
+ * v4.0.2
+ * - Add API: rk_ispfec_api_load_online_config_from_ini
+ * - rename FEC calibration file for clarity
+ *
+ * v4.0.3
+ * - release buffers on single-instance deinit in multi-instance mode
+ *
+ * v4.0.4
+ * - install FEC calibration ini files to /usr/share/fec_calib
+ *
  */
 
-#define RK_ISP_FEC_RELEASE_DATE "2025-04-27"
+#define RK_ISP_FEC_RELEASE_DATE "2025-05-15"
 #define RK_ISP_FEC_VERSION      RK_ISP_FEC_API_VERSION
 
 #endif
