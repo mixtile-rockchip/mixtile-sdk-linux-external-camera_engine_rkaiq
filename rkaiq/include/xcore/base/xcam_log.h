@@ -94,6 +94,10 @@ typedef enum {
     XCORE_LOG_MODULE_MAX,
 } xcore_log_modules_t;
 
+typedef void (*rkaiq_log_callback_t)(xcore_log_level_t level, const char *ts,
+                                     const char *moduLe, const char *log_str,
+                                     size_t size, void *user_data);
+
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -107,6 +111,7 @@ char* timeString();
 #if RKAIQ_HAVE_DUMPSYS
 int xcam_dump_log(st_string* result, int argc, void* argv[]);
 #endif
+void rkaiq_set_log_callback(rkaiq_log_callback_t cb, void *user_data);
 
 #ifdef  __cplusplus
 }

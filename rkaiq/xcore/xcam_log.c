@@ -155,6 +155,16 @@ xcore_cam_log_module_info_t g_xcore_log_infos[XCORE_LOG_MODULE_MAX] = {
     {"AMTD", XCORE_LOG_LEVEL_ERR, 0xff},     // XCORE_LOG_MODULE_AMTD
 };
 
+typedef struct xcamLogCb_s {
+    rkaiq_log_callback_t logcb;
+    void *user_data;
+} xcamLogCb_t;
+
+static xcamLogCb_t g_logcb = {
+    .logcb = NULL,
+    .user_data = NULL,
+};
+
 bool xcam_get_enviroment_value(const char* variable, unsigned long long* value)
 {
     if (!variable || !value) {
@@ -310,7 +320,12 @@ void xcam_print_log (int module, int level, const char* format, ...) {
         break;
     }
 #else
-    printf ("%s:%s\n", g_xcore_log_infos[module].module_name, buffer);
+    if (g_logcb.logcb) {
+        g_logcb.logcb((xcore_log_level_t)level, NULL, g_xcore_log_infos[module].module_name,
+                buffer + 2, strlen(buffer) - 2, g_logcb.user_data);
+    } else {
+        printf ("%s:%s\n", g_xcore_log_infos[module].module_name, buffer);
+    }
 #endif
 }
 
@@ -556,3 +571,9 @@ __FAILED:
     return true;
 }
 #endif
+
+void rkaiq_set_log_callback(rkaiq_log_callback_t cb, void *user_data)
+{
+    g_logcb.logcb = cb;
+    g_logcb.user_data = user_data;
+}
