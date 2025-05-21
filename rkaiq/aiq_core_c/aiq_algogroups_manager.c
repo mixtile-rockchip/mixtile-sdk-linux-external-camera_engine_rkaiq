@@ -577,7 +577,9 @@ bool AiqAnalyzeGroupMsgHdlThread_push_msg(AiqAnalyzeGroupMsgHdlThread_t* pHdlTh,
         return false;
 	}
 
+    aiqMutex_lock(&pHdlTh->_mutex);
 	aiqCond_broadcast(&pHdlTh->_cond);
+    aiqMutex_unlock(&pHdlTh->_mutex);
 
     return true;
 }
