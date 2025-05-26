@@ -245,7 +245,9 @@ static bool raw_buffer_proc(void* args) {
         return false;
     }
 
-    int ret = aiqCond_timedWait(&pRawStrProcUnit->_buf_cond, &pRawStrProcUnit->_buf_mutex, -1);
+    int ret = 0;
+    if (aiqMap_size(pRawStrProcUnit->_isp_hdr_fid2ready_map) == 0)
+        ret = aiqCond_timedWait(&pRawStrProcUnit->_buf_cond, &pRawStrProcUnit->_buf_mutex, -1);
     aiqMutex_unlock(&pRawStrProcUnit->_buf_mutex);
 
     if (ret) {
