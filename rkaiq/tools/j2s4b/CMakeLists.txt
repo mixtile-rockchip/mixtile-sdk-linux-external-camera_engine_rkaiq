@@ -227,3 +227,5 @@ else()
 install(TARGETS j2s4b_dev RUNTIME DESTINATION bin)
 endif()
 
+install(DIRECTORY ${RKAIQ_IQFILES_DIR}/ DESTINATION usr/share/iqfiles/)
+
