@@ -12769,6 +12769,7 @@
 								"PdDiscardRegionEn":	0,
 								"PdLessTextureRatio":	0.25,
 								"PdTargetOffset":	0,
+								"PdNumJobs":	1,
 								"PdCalibInf":	{
 									"PdGainMapW":	32,
 									"PdGainMapH":	32,
@@ -25441,6 +25442,7 @@
 								"PdDiscardRegionEn":	0,
 								"PdLessTextureRatio":	0.25,
 								"PdTargetOffset":	0,
+								"PdNumJobs":	1,
 								"PdCalibInf":	{
 									"PdGainMapW":	32,
 									"PdGainMapH":	32,
@@ -38385,6 +38387,7 @@
 								"PdDiscardRegionEn":	0,
 								"PdLessTextureRatio":	0.25,
 								"PdTargetOffset":	0,
+								"PdNumJobs":	1,
 								"PdCalibInf":	{
 									"PdGainMapW":	32,
 									"PdGainMapH":	32,

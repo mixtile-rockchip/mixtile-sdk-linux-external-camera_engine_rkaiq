@@ -72,6 +72,7 @@
 #include "awb/rk_aiq_types_awb_algo_int.h"
 
 #include "newStruct/aibnr/include/aibnr_algo_api.h"
+#include "newStruct/airms/include/airms_algo_api.h"
 #include "c_base/aiq_list.h"
 
 
@@ -692,10 +693,12 @@ typedef struct rk_aiq_isp_aibnr_params_s {
     aibnr_param_t aibnr_param;
     bool is_bypass;
     bool is_hdr;
+    uint8_t bayer_fmt;
     uint16_t prev_blacklvl;
     uint16_t post_blacklvl;
     uint16_t sw_in_comp_y[33];
     uint16_t sw_out_decomp_y[33];
+    int frameIso;
 } rk_aiq_isp_aibnr_params_t;
 
 typedef struct {
@@ -706,5 +709,8 @@ typedef struct {
 typedef struct {
     RkAiqAlgoCom com;
 } RkAiqAlgoProcAibnr;
+
+// airms
+typedef airms_param_t rk_aiq_isp_airms_params_t;
 
 #endif

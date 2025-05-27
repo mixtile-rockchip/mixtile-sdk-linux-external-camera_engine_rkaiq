@@ -75,6 +75,9 @@ cc_defaults {
         "external/camera_engine_rkaiq/algos_camgroup",
         "external/camera_engine_rkaiq/c_base",
         "external/camera_engine_rkaiq/modules",
+        "external/camera_engine_rkaiq/dumpcam_server/include",
+        "external/camera_engine_rkaiq/dumpcam_server/info/include",
+        "external/camera_engine_rkaiq/dumpcam_server/ipcs/include",
     ],
 }
 

@@ -153,6 +153,7 @@ xcore_cam_log_module_info_t g_xcore_log_infos[XCORE_LOG_MODULE_MAX] = {
     {"AHSV", XCORE_LOG_LEVEL_ERR, 0xff},     // XCORE_LOG_MODULE_AHSV
     {"AIBNR", XCORE_LOG_LEVEL_ERR, 0xff},     // XCORE_LOG_MODULE_AIBNR
     {"AMTD", XCORE_LOG_LEVEL_ERR, 0xff},     // XCORE_LOG_MODULE_AMTD
+    {"AIRMS", XCORE_LOG_LEVEL_ERR, 0xff},     // XCORE_LOG_MODULE_AIRMS
 };
 
 typedef struct xcamLogCb_s {
@@ -164,6 +165,7 @@ static xcamLogCb_t g_logcb = {
     .logcb = NULL,
     .user_data = NULL,
 };
+
 
 bool xcam_get_enviroment_value(const char* variable, unsigned long long* value)
 {
@@ -487,6 +489,8 @@ int xcam_dump_log(st_string* result, int argc, void* argv[]) {
                 BIT_ULL(XCORE_LOG_MODULE_ACSM), 0),
         OPT_BIT('G', "aibnr", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_AIBNR].module_name, NULL,
                 BIT_ULL(XCORE_LOG_MODULE_AIBNR), 0),
+        OPT_BIT('H', "airms", &log_mod, g_xcore_log_infos[XCORE_LOG_MODULE_AIRMS].module_name, NULL,
+                BIT_ULL(XCORE_LOG_MODULE_AIRMS), 0),
         OPT_BOOLEAN('\0', "help", NULL, "show this help message and exit", dbg_help_cb, 0,
                     OPT_NONEG),
         OPT_END(),

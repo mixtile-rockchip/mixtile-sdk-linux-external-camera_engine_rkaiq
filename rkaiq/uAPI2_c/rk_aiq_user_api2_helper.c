@@ -639,6 +639,10 @@ RkAiqUapiDesc_t rkaiq_uapidesc_list[] = {
     __RKAIQUAPI_DESC_DEF("/uapi/0/aibnr_uapi/attr", aibnr_api_attrib_t, rk_aiq_user_api2_aibnr_SetAttrib, rk_aiq_user_api2_aibnr_GetAttrib),
     __RKAIQUAPI_DESC_DEF("/uapi/0/aibnr_uapi/info", aibnr_status_t, NULL, rk_aiq_user_api2_aibnr_QueryStatus),
 #endif
+#if RKAIQ_HAVE_AIRMS
+    __RKAIQUAPI_DESC_DEF("/uapi/0/airms_uapi/attr", airms_api_attrib_t, rk_aiq_user_api2_airms_SetAttrib, rk_aiq_user_api2_airms_GetAttrib),
+    __RKAIQUAPI_DESC_DEF("/uapi/0/airms_uapi/info", airms_status_t, NULL, rk_aiq_user_api2_airms_QueryStatus),
+#endif
 };
 /***********************END OF CUSTOM AREA**************************/
 

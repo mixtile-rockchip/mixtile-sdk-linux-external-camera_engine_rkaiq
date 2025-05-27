@@ -411,6 +411,7 @@ static calibdb_ctx_member_offset_info_t info_CamCalibDbV2ContextIsp35_t[] = {
     {"rgbir", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(rgbir)},
     {"af_calib", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(af_calib)},
     {"aibnr", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(aibnr)},
+    {"airms", CALIBV2_MODULE_RELATIVE_OFFSET_ISP35(airms)},
     {NULL, 0},
 };
 #endif

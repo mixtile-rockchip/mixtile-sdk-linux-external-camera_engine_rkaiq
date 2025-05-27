@@ -742,7 +742,11 @@ XCamReturn Ahsv_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
 #if RKAIQ_HAVE_DUMPSYS
 static int dump(const RkAiqAlgoCom* config, st_string* result)
 {
+#if RKAIQ_HAVE_HSV_V10
     hsv_dump_mod_param(config, result);
+#elif RKAIQ_HAVE_HSV_V11
+    hsv_v11_dump_mod_param(config, result);
+#endif
     hsv_dump_mod_attr(config, result);
     hsv_dump_mod_status(config, result);
 

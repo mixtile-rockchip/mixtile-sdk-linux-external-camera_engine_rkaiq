@@ -50,6 +50,7 @@
 #include "algo_handlers/RkAiqLdcHandler.h"
 #include "algo_handlers/RkAiqAibnrHandler.h"
 #include "algo_handlers/RkAiqAmtdHandler.h"
+#include "algo_handlers/RkAiqAirmsHandler.h"
 
 
 typedef AiqAlgoHandler_t* (*pAiqAlgoHandler_construct)(RkAiqAlgoDesComm* des, AiqCore_t* aiqCore);
@@ -113,6 +114,9 @@ struct {
 #endif
 #if RKAIQ_HAVE_AMTD
     {RK_AIQ_ALGO_TYPE_AMTD, AiqAlgoHandlerAmtd_constructor, AiqAlgoHandler_destructor},
+#endif
+#if RKAIQ_HAVE_AIBNR
+    {RK_AIQ_ALGO_TYPE_AIRMS, AiqAlgoHandlerAirms_constructor, AiqAlgoHandler_destructor},
 #endif
 
 };

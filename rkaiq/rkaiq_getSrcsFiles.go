@@ -738,6 +738,34 @@ func rkaiq_getSrcsFiles_c(soc string, macros_map map[string]bool) []string {
     if flag0 {
         srcs = append(srcs, "hwi_c/aiq_PdafStreamProcUnit.c")
     }
+    flag0 = macros_map["RKAIQ_HAVE_DUMPSYS"]
+    if flag0 {
+        srcs = append(srcs, "hwi_c/info/aiq_CamHwBaseInfo.c")
+        srcs = append(srcs, "hwi_c/info/aiq_sensorHwInfo.c")
+        srcs = append(srcs, "hwi_c/info/aiq_streamCapInfo.c")
+        srcs = append(srcs, "hwi_c/info/aiq_streamProcInfo.c")
+        srcs = append(srcs, "hwi_c/info/aiq_ispParamsCvtInfo.c")
+        srcs = append(srcs, "hwi_c/info/aiq_ispActiveParamsInfo.c")
+        srcs = append(srcs, "hwi_c/info/aiq_hwiIspModsInfo.c")
+    }
+
+    // CORE SRCS
+    if flag0 {
+        srcs = append(srcs, "aiq_core_c/info/aiq_coreInfo.c")
+        srcs = append(srcs, "aiq_core_c/info/aiq_coreBufMgrInfo.c")
+        srcs = append(srcs, "aiq_core_c/info/aiq_groupAnalyzerInfo.c")
+        srcs = append(srcs, "aiq_core_c/info/aiq_coreIspParamsInfo.c")
+        srcs = append(srcs, "aiq_core_c/info/aiq_coreIspModsInfo.c")
+        srcs = append(srcs, "aiq_core_c/info/aiq_coreAlgosInfo.c")
+    }
+
+    // COMMON_SRC
+    if flag0 {
+        srcs = append(srcs, "common/aiq_notifier.c")
+    } else {
+        srcs = append(srcs, "dumpcam_server/rk_aiq_dummy_function.c")
+    }
+
 
     flag0 = macros_map["ISP_HW_V39"]
     if flag0 {

@@ -1793,9 +1793,9 @@ CamHwIsp20::init(const char* sns_ent_name)
         }
 
         if (minfo->lsc.flag)
-            Isp20Params::mCommonCvtInfo.otp_lsc = &minfo->lsc;
+            Isp20Params::mCommonCvtInfo.otp_lsc = minfo->lsc;
         else
-            Isp20Params::mCommonCvtInfo.otp_lsc = nullptr;
+            Isp20Params::mCommonCvtInfo.otp_lsc.flag = 0;
 
         if (minfo->af.flag) {
             Isp20Params::mCommonCvtInfo.otp_af = &minfo->af;
@@ -3020,7 +3020,7 @@ CamHwIsp20::prepare(uint32_t width, uint32_t height, int mode, int t_delay, int 
             " F : { %u, %u, %u, %u }\n"
             " L : { %u, %u, %u, %u }\n"
             " R : { %u, %u, %u, %u }\n",
-            mIspUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID ? 
+            mIspUniteMode == RK_AIQ_ISP_UNITE_MODE_FOUR_GRID ?
             "RK_AIQ_ISP_UNITE_MODE_FOUR_GRID" :
             mIspUniteMode == RK_AIQ_ISP_UNITE_MODE_TWO_GRID ?
             "RK_AIQ_ISP_UNITE_MODE_TWO_GRID" : "RK_AIQ_ISP_UNITE_MODE_NORMAL",

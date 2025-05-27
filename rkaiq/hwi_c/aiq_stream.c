@@ -325,13 +325,13 @@ static XCamReturn RkEventPollThread_poll_event_loop(AiqPollThread_t* pTh) {
             ainn_evt._base.type                  = pTh->_dev_type;
             ainn_evt._height                     = aiisp_ev_info->height;
             ainn_evt._event_id                   = pEvtTh->_event.id;
-            ainn_evt.isp_idxbuf.timestamp        = aiisp_ev_info->timestamp;
-            ainn_evt.isp_idxbuf.sequence         = aiisp_ev_info->sequence;
-            ainn_evt.isp_idxbuf.iir_index        = aiisp_ev_info->iir_index;
-            ainn_evt.isp_idxbuf.gain_index       = aiisp_ev_info->gain_index;
-            ainn_evt.isp_idxbuf.aipre_gain_index = aiisp_ev_info->aipre_gain_index;
-            ainn_evt.isp_idxbuf.vpsl_index       = aiisp_ev_info->vpsl_index;
-            ainn_evt.isp_idxbuf.aiisp_index      = aiisp_ev_info->aiisp_index;
+            ainn_evt.queue_buf.aibnr_st.timestamp        = aiisp_ev_info->timestamp;
+            ainn_evt.queue_buf.aibnr_st.sequence         = aiisp_ev_info->sequence;
+            ainn_evt.queue_buf.aibnr_st.iir_index        = aiisp_ev_info->iir_index;
+            ainn_evt.queue_buf.aibnr_st.gain_index       = aiisp_ev_info->gain_index;
+            ainn_evt.queue_buf.aibnr_st.aipre_gain_index = aiisp_ev_info->aipre_gain_index;
+            ainn_evt.queue_buf.aibnr_st.vpsl_index       = aiisp_ev_info->vpsl_index;
+            ainn_evt.queue_buf.aibnr_st.aiisp_index      = aiisp_ev_info->aiisp_index;
 
             pTh->_poll_callback->poll_buffer_ready(pTh->_poll_callback->_pCtx, &ainn_evt._base, -1);
         }
@@ -339,12 +339,12 @@ static XCamReturn RkEventPollThread_poll_event_loop(AiqPollThread_t* pTh) {
     else if (pTh->_dev_type == ISP_POLL_AIBNR_DONE) {
         if (pTh->_poll_callback && pTh->_stream) {
             AiqHwAinnEvt_t ainn_evt;
-            struct rkisp_aiisp_st* rundone = (struct rkisp_aiisp_st*)pEvtTh->_event.u.data;
-            LOGD_AIBNR("aibnr: event ISP_POLL_AIBNR_DONE frameid %d", rundone->sequence);
+            union rkaiisp_queue_buf* rundone = (union rkaiisp_queue_buf*)pEvtTh->_event.u.data;
+            LOGD_AIBNR("aibnr: event ISP_POLL_AIBNR_DONE frameid %d", rundone->aibnr_st.sequence);
 
-            ainn_evt._base.frame_id = rundone->sequence;
+            ainn_evt._base.frame_id = rundone->aibnr_st.sequence;
             ainn_evt._base.type = pTh->_dev_type;
-            ainn_evt.isp_idxbuf = *rundone;
+            ainn_evt.queue_buf = *rundone;
 
             pTh->_poll_callback->poll_buffer_ready(pTh->_poll_callback->_pCtx, &ainn_evt._base, -1);
         }
@@ -379,7 +379,22 @@ static XCamReturn RkEventPollThread_poll_event_loop(AiqPollThread_t* pTh) {
             pTh->_poll_callback->poll_buffer_ready(pTh->_poll_callback->_pCtx, &aiisp_evt._base, -1);
         }
     }
+#endif
 
+#if RKAIQ_HAVE_AIRMS
+    else if (pTh->_dev_type == ISP_POLL_AIRMS_DONE) {
+        if (pTh->_poll_callback && pTh->_stream) {
+            AiqHwAinnEvt_t ainn_evt;
+            union rkaiisp_queue_buf* rundone = (union rkaiisp_queue_buf*)pEvtTh->_event.u.data;
+            LOGD_AIBNR("aibnr: event ISP_POLL_AIRMS_DONE frameid %d", rundone->airms_st.sequence);
+
+            ainn_evt._base.frame_id = rundone->airms_st.sequence;
+            ainn_evt._base.type = pTh->_dev_type;
+            ainn_evt.queue_buf = *rundone;
+
+            pTh->_poll_callback->poll_buffer_ready(pTh->_poll_callback->_pCtx, &ainn_evt._base, -1);
+        }
+    }
 #endif
 
     return ret;
@@ -534,7 +549,8 @@ XCamReturn AiqStream_init(AiqStream_t* pStream, AiqV4l2Device_t* pDev, int type)
     pStream->_dev      = pDev;
     pStream->_dev_type = type;
 
-    if (type == ISP_POLL_SOF || type == ISP_POLL_AIISP || type == ISP_POLL_AIBNR_DONE) {
+    if (type == ISP_POLL_SOF || type == ISP_POLL_AIISP ||
+        type == ISP_POLL_AIBNR_DONE || type == ISP_POLL_AIRMS_DONE) {
         pStream->_poll_thread = (AiqPollThread_t*)aiq_mallocz(sizeof(AiqEventPollThread_t));
         ret = AiqEventPollThread_init((AiqEventPollThread_t*)(pStream->_poll_thread),
                                       g_poll_type_to_str[type], type, pDev, pStream);
@@ -562,7 +578,8 @@ XCamReturn AiqStream_init(AiqStream_t* pStream, AiqV4l2Device_t* pDev, int type)
 
 void AiqStream_deinit(AiqStream_t* pStream) {
     if (pStream->_poll_thread) {
-        if (pStream->_dev_type == ISP_POLL_SOF || pStream->_dev_type == ISP_POLL_AIISP || pStream->_dev_type == ISP_POLL_AIBNR_DONE)
+        if (pStream->_dev_type == ISP_POLL_SOF || pStream->_dev_type == ISP_POLL_AIISP ||
+            pStream->_dev_type == ISP_POLL_AIBNR_DONE || pStream->_dev_type == ISP_POLL_AIRMS_DONE)
             AiqEventPollThread_deinit((AiqEventPollThread_t*)(pStream->_poll_thread));
         else
             AiqPollThread_deinit(pStream->_poll_thread);

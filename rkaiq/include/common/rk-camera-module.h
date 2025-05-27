@@ -191,6 +191,9 @@
 #define RKMODULE_SET_CAPTURE_MODE  \
     _IOW('V', BASE_VIDIOC_PRIVATE + 40, struct rkmodule_capture_info)
 
+#define RKMODULE_GET_BAYER_MODE       \
+    _IOR('V', BASE_VIDIOC_PRIVATE + 52, __u32)
+
 struct rkmodule_i2cdev_info {
 	u8 slave_addr;
 } __attribute__ ((packed));
@@ -815,5 +818,9 @@ struct rkmodule_capture_info {
     };
  };
 
+enum rkmodule_bayer_mode {
+    RKMODULE_NORMAL_BAYER,
+    RKMODULE_QUARD_BAYER,
+};
 
 #endif /* _UAPI_RKMODULE_CAMERA_H */

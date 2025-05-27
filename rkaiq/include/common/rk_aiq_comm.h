@@ -128,6 +128,7 @@ typedef enum _camAlgoResultType {
     RESULT_TYPE_POSTISP_PARAM,
     RESULT_TYPE_AIBNR_PARAM,
     RESULT_TYPE_AMTD_PARAM,
+    RESULT_TYPE_AIRMS_PARAM,
     RESULT_TYPE_MAX_PARAM,
 } camAlgoResultType;
 

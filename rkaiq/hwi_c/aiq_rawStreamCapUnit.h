@@ -21,6 +21,7 @@
 #include "dumpcam_server/info/include/st_string.h"
 #endif
 #include "hwi_c/aiq_stream.h"
+#include "hwi_c/aiq_AiRmsStreamProcUnit.h"
 #include "xcore_c/aiq_v4l2_device.h"
 
 typedef struct rk_sensor_full_info_s rk_sensor_full_info_t;
@@ -57,6 +58,7 @@ typedef struct AiqRawStreamCapUnit_s {
     AiqCamHwBase_t* _camHw;
     AiqV4l2SubDevice_t* _isp_core_dev;
     AiqRawStreamProcUnit_t* _proc_stream;
+    AiqAiRmsStreamProcUnit_t* _pAirmsStream;
 
 #if RKAIQ_HAVE_DUMPSYS
     FrameDumpInfo_t fe;
@@ -73,7 +75,7 @@ XCamReturn AiqRawStreamCapUnit_stop(AiqRawStreamCapUnit_t* pRawStrCapUnit);
 void AiqRawStreamCapUnit_set_working_mode(AiqRawStreamCapUnit_t* pRawStrCapUnit, int mode);
 void AiqRawStreamCapUnit_set_devices(AiqRawStreamCapUnit_t* pRawStrCapUnit,
                                      AiqV4l2SubDevice_t* ispdev, AiqCamHwBase_t* handle,
-                                     AiqRawStreamProcUnit_t* proc);
+                                     AiqRawStreamProcUnit_t* proc, AiqAiRmsStreamProcUnit_t* pAirmsStream);
 void AiqRawStreamCapUnit_set_tx_devices(AiqRawStreamCapUnit_t* pRawStrCapUnit,
                                         AiqV4l2Device_t* mipi_tx_devs[3]);
 AiqV4l2Device_t* AiqRawStreamCapUnit_get_tx_device(AiqRawStreamCapUnit_t* pRawStrCapUnit,

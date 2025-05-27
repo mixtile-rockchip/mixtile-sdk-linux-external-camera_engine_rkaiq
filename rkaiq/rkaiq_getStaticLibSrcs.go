@@ -45,6 +45,7 @@ func rkaiq_getStaticLibSrcs(name string, macros_map map[string]bool) []string {
                 srcs = append(srcs, "rk_aiq_awb_algo_sgc2.c")
                 srcs = append(srcs, "rk_aiq_awb_algo_com3.c")
                 srcs = append(srcs, "rk_aiq_uapiv3_awb_int.c")
+                srcs = append(srcs, "rk_aiq_awb_algo_scenedet.c")
             }
         }
         // fmt.Printf("%s srcs:", name, srcs)
@@ -1031,11 +1032,16 @@ func rkaiq_getNewStructStaticLibSrcs(name string, macros_map map[string]bool) []
 
     var srcs []string
 
+    dumpsys := macros_map["RKAIQ_HAVE_DUMPSYS"]
+
     switch name {
     case "librkaiq_3dlut":
         flag0 := macros_map["RKAIQ_HAVE_3DLUT_V1"]
         if flag0 {
             srcs = append(srcs, "3dlut/algo_3dlut.c")
+        }
+        if (len(srcs) != 0 && dumpsys) {
+            srcs = append(srcs, "3dlut/algo_3dlut_info.c")
         }
         break
 
@@ -1071,6 +1077,9 @@ func rkaiq_getNewStructStaticLibSrcs(name string, macros_map map[string]bool) []
         flag2 := macros_map["RKAIQ_HAVE_CCM_V3"]
         if flag0 || flag1 || flag2 {
             srcs = append(srcs, "ccm/algo_ccm.c")
+        }
+        if (len(srcs) != 0 && dumpsys) {
+            srcs = append(srcs, "ccm/algo_ccm_info.c")
         }
         break
 
@@ -1191,6 +1200,9 @@ func rkaiq_getNewStructStaticLibSrcs(name string, macros_map map[string]bool) []
         if flag0 || flag1 || flag2 {
             srcs = append(srcs, "lsc/algo_lsc.c")
         }
+        if (len(srcs) != 0 && dumpsys) {
+            srcs = append(srcs, "lsc/algo_lsc_info.c")
+        }
         break
 
     case "librkaiq_merge":
@@ -1256,6 +1268,9 @@ func rkaiq_getNewStructStaticLibSrcs(name string, macros_map map[string]bool) []
                     srcs = append(srcs, "ldc/ldc_ldcv_adaptee.c")
                 }
             }
+            if (len(srcs) != 0 && dumpsys) {
+                srcs = append(srcs, "ldc/algo_ldc_info.c")
+            }
             break
         }
 
@@ -1272,6 +1287,45 @@ func rkaiq_getNewStructStaticLibSrcs(name string, macros_map map[string]bool) []
     default:
         // fmt.Printf("%s can't find srcs files\n", name)
         break
+    }
+
+    if (dumpsys) {
+        switch name {
+        case "librkaiq_dumpcam_server":
+            {
+                srcs = append(srcs, "rk_aiq_registry.c")
+            }
+            break
+        case "librkaiq_ipcs":
+            {
+                srcs = append(srcs, "ipcs/c_rk_ipcs_request.c")
+                srcs = append(srcs, "ipcs/c_rk_ipcs_response.c")
+                srcs = append(srcs, "ipcs/c_rk_ipcs_service.c")
+                srcs = append(srcs, "ipcs/sock/c_rk_ipcs_sock_server.c")
+            }
+            break
+
+        case "librkaiq_info":
+            {
+                srcs = append(srcs, "info/rk_info_utils.c")
+                srcs = append(srcs, "info/c_rk_info_service_control.c")
+                srcs = append(srcs, "info/rk_cmd_service_control.c")
+                srcs = append(srcs, "info/st_string.c")
+            }
+            break
+
+        case "librkaiq_cjson":
+            {
+                srcs = append(srcs, "third-party/cjson/c_RTJsonParser.c")
+            }
+            break
+
+        case "librkaiq_argparse":
+            {
+                srcs = append(srcs, "third-party/argparse/argparse.c")
+            }
+            break
+        }
     }
 
     // fmt.Printf("%s srcs:", name, srcs)

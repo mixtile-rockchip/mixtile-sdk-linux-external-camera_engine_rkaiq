@@ -36,7 +36,7 @@
 #define CALID_AWB_LGT_PREFGN_NUM_MAX 4
 #define CALID_AWB_GNEXT_GN_NUM_MAX 7
 #define CALID_AWB_GNEXT_RTO_NUM_MAX 7
-
+#define CALD_AWB_EXCRANGE_NUM_MAX2 19
 #define CALD_AWB_EXCRANGE_NUM_MAX 7
 #define CALD_AWB_LV_NUM_MAX 16
 #define CALD_AWB_ILLUMINATION_NAME       ( 20U )
@@ -52,7 +52,7 @@
 #define AWB_SGC_WPNUM_GRID_NUM 6
 #define CALD_AWB_RGCT_GRID_NUM 9
 #define CALD_AWB_BGCRI_GRID_NUM 11
-
+#define CALD_AWB_SCENE_NUM_MAX 8
 typedef enum awb_ctrlDatSelt_e{
     awb_ctrlData_iso = 0,
     awb_ctrlData_lv = 1,
@@ -86,7 +86,9 @@ typedef enum wb_mwb_scene_e {
 
 
 typedef enum awb_ext_range_mode_s {
+    awb_invalid_mode = 0,
     awb_wpFiltOut_mode = 1,
+    awb_sceneDet_mode = 2,
     awb_wpExtraLs_mode = 3,
 } awb_ext_range_mode_t;
 
@@ -111,7 +113,7 @@ typedef enum awb_ganCalcMethod_s{
     awb_gan_calc_method_wp_ext = 4,
     awb_gan_calc_method_sgc = 5,
     awb_gan_calc_method_nn = 6,
-    awb_gan_calc_method_reserve = 7,
+    awb_gan_calc_method_auto_scnmg = 7,
 }awb_ganCalcMethod_e;
 
 typedef struct awb_cct_s {
@@ -341,7 +343,7 @@ typedef struct awb_gainOffset_s {
         M4_TYPE(bool),
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0,1),
-        M4_DEFAULT("1"),
+        M4_DEFAULT(0),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -432,6 +434,237 @@ typedef struct awb_dampFactor_s {
     float lvVar_th;
 } awb_dampFactor_t;
 
+typedef struct awb_speedup_cfg_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(max_gain_diff),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,5),
+        M4_RANGE_EX(0,0.3),
+        M4_DEFAULT("[0.01, 0.02, 0.03, 0.05, 0.1]"),
+        M4_DIGIT_EX(4),
+        M4_DYNAMIC(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(the max_gain_diff for speed_up rate config.\n
+        Freq of use: low))  */
+    float max_gain_diff[5];
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(conv_speedup_rate),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,5),
+        M4_RANGE_EX(0,1),
+        M4_DEFAULT("[1, 0.9, 0, 0, 0]"),
+        M4_DIGIT_EX(4),
+        M4_DYNAMIC(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(the speed_up rate for convergence rate if wbgain is closed to target.
+        new conv_rate = (1+conv_speedup_rate)*conv_speed\n
+        Freq of use: low))  */
+    float conv_speedup_rate[5];
+} awb_speedup_cfg_t;
+
+typedef enum conv_speed_mode_e {
+    conv_speed_mode_invalid = 0,
+    conv_speed_mode_manual = 1,
+    conv_speed_mode_auto,
+}conv_speed_mode_t;
+
+typedef struct awb_convSpeed_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(conv_speed_mode),
+        M4_TYPE(enum),
+        M4_ENUM_DEF(conv_speed_mode_t),
+        M4_DEFAULT(conv_speed_mode_auto),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: high))  */
+    conv_speed_mode_t conv_speed_mode;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(manual_conv_speed),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,1),
+        M4_DEFAULT("0.1"),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(manual convergence speed.\n
+        Freq of use: high))  */
+    float manual_conv_speed;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(initinal_conv_speed),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,1),
+        M4_DEFAULT("1"),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(manual convergence speed.\n
+        Freq of use: high))  */
+    float initinal_conv_speed;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(kpIntSpeedFrm_num),
+        M4_TYPE(u32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,255),
+        M4_DEFAULT(3),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: high)) */
+    unsigned int kpIntSpeedFrm_num;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(wbAg_residual_thd),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,8),
+        M4_DEFAULT("0.1"),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(threshold for wbgain residual.\n
+        Freq of use: high))  */
+    float wbAg_residual_thd;
+     /* M4_GENERIC_DESC(
+        M4_ALIAS(wbBg_residual_thd),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,8),
+        M4_DEFAULT("0.3"),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(threshold for wbgain residual.\n
+        Freq of use: high))  */
+    float wbBg_residual_thd;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(flv_residual_thd),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,512),
+        M4_DEFAULT("32"),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(threshold for luma value residual.\n
+        Freq of use: high))  */
+    float flv_residual_thd;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(wbgChange_rate_thd),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,1),
+        M4_DEFAULT("0.3"),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(threshold for wbgain change rate of the scene after stable based on previous stable scene.\n
+        Freq of use: high))  */
+    float wbgChange_rate_thd;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(flvChange_rate_thd),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,1),
+        M4_DEFAULT("0.3"),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(threshold for flv change rate of the scene after stable based on previous stable scene.\n
+        Freq of use: high))  */
+    float flvChange_rate_thd;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(change_duration_thd),
+        M4_TYPE(u32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,1000),
+        M4_DEFAULT("32"),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(threshold for change duration frames.\n
+        Freq of use: high))  */
+    uint32_t change_duration_thd;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(stable_duration_thd),
+        M4_TYPE(u32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,100),
+        M4_DEFAULT("20"),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(min consecutive stable frame num.\n
+        Freq of use: high))  */
+    uint32_t stable_duration_thd;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(slow_conv_speed),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0.0,0.1),
+        M4_DEFAULT("0.02"),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(slow convergence rate.\n
+        Freq of use: high))  */
+    float slow_conv_speed;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(typical_conv_speed),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0.05,0.3),
+        M4_DEFAULT("0.08"),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(typical convergence rate.\n
+        Freq of use: high))  */
+    float typical_conv_speed;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(fast_conv_speed),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0.1,0.5),
+        M4_DEFAULT("0.1"),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(fast convergence rate.\n
+        Freq of use: high))  */
+    float fast_conv_speed;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(gainDiff2Rate),
+        M4_TYPE(struct),
+        M4_UI_MODULE(array_table_ui),
+        M4_INDEX_DEFAULT,
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(The speed-up rate config based on max wbgain diff,\n
+        only effect when wbgain is closed to target.\nFreq of use: high))  */
+    awb_speedup_cfg_t gainDiff2Rate;
+} awb_convSpeed_t;
 
 typedef struct awb_remosaic_s {
     /* M4_GENERIC_DESC(
@@ -898,6 +1131,19 @@ typedef struct awb_lgtSrcWgt_s {
 
 typedef struct awb_extRange_s {
     /* M4_GENERIC_DESC(
+        M4_ALIAS(name),
+        M4_TYPE(string),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,255),
+        M4_DEFAULT("NUB0"),
+        M4_DYNAMIC(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(.\n
+        Freq of use: high))  */
+    char name[CALD_AWB_ILLUMINATION_NAME];
+    /* M4_GENERIC_DESC(
         M4_ALIAS(domain),
         M4_TYPE(enum),
         M4_ENUM_DEF(awb_wpSpace_mode_t),
@@ -960,8 +1206,8 @@ typedef struct awb_lum2wgt_lv_rto_s {
         M4_TYPE(f32),
         M4_SIZE_EX(1,9),
         M4_RANGE_EX(0,1),
-        M4_DEFAULT(1),
-        M4_DIGIT_EX(4f5),
+        M4_DEFAULT([0,1,1,1,1,1,1,1,0]),
+        M4_DIGIT_EX(2),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -989,7 +1235,7 @@ typedef struct awb_lum2wgt_lv_s {
         M4_TYPE(u32),
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0,8),
-        M4_DEFAULT(8),
+        M4_DEFAULT(5),
         M4_DIGIT_EX(0),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -1042,7 +1288,7 @@ typedef struct awb_luma2WpWgt_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(luma2WpWgt_en),
         M4_TYPE(bool),
-        M4_DEFAULT(0),
+        M4_DEFAULT(1),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -1091,7 +1337,7 @@ typedef struct awb_luma2WpWgt_s {
         M4_TYPE(u8),
         M4_SIZE_EX(1,9),
         M4_RANGE_EX(0,255),
-        M4_DEFAULT([0,16,32,64,96,128,192,224,240]),
+        M4_DEFAULT([0,2,4,8,16,80,208,224,240]),
         M4_DIGIT_EX(0),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -1230,7 +1476,7 @@ typedef struct awb_bigNorWpWgt_lv_rto_s {
         M4_TYPE(u32),
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(1,8),
-        M4_DEFAULT(4),
+        M4_DEFAULT(8),
         M4_DIGIT_EX(0),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -1256,7 +1502,7 @@ typedef struct awb_bigNorWpWgt_lv_rto_s {
         M4_TYPE(f32),
         M4_SIZE_EX(1,8),
         M4_RANGE_EX(0,1),
-        M4_DEFAULT(0),
+        M4_DEFAULT([0.2,0.2,0.1,0,0,0,0,0]),
         M4_DIGIT_EX(4),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -1299,7 +1545,7 @@ typedef struct awb_bigNorWpWgt_s {
         M4_TYPE(u8),
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0,16),
-        M4_DEFAULT(5),
+        M4_DEFAULT(2),
         M4_DIGIT_EX(0),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -1493,7 +1739,7 @@ typedef struct awb_extRange_region_s{
         M4_ALIAS(hw_awbCfg_wpExtraLs_en),
         M4_TYPE(bool),
         M4_SIZE_EX(1,1),
-        M4_DEFAULT(0),
+        M4_DEFAULT(1),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -1505,7 +1751,7 @@ typedef struct awb_extRange_region_s{
         M4_ALIAS(hw_awbCfg_wpFiltOut_en),
         M4_TYPE(bool),
         M4_SIZE_EX(1,1),
-        M4_DEFAULT(0),
+        M4_DEFAULT(1),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -1514,16 +1760,29 @@ typedef struct awb_extRange_region_s{
     //reg: sw_rawawb_exc_wp_region0/1/2/3/4/5/6_excen bit0
 	bool hw_awbCfg_wpFiltOut_en;
     /* M4_GENERIC_DESC(
+        M4_ALIAS(extraWpRange_len),
+        M4_TYPE(u8),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,19),
+        M4_DEFAULT(7),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: low))  */
+    int wpRegionSet_len;
+    /* M4_GENERIC_DESC(
         M4_ALIAS(wpRegionSet),
         M4_TYPE(struct_list),
-        M4_SIZE_EX(1,7),
+        M4_SIZE_EX(1,19),
         M4_UI_MODULE(normal_ui_style),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
         M4_NOTES(several winow in uv or xy domain\n
         Freq of use: high))  */
-    awb_extRange_region_t wpRegionSet[CALD_AWB_EXCRANGE_NUM_MAX];
+    awb_extRange_region_t wpRegionSet[CALD_AWB_EXCRANGE_NUM_MAX2];
 }awb_extRange_t;
 typedef struct awb_zoneWgt_s{
         /* M4_GENERIC_DESC(
@@ -1569,7 +1828,7 @@ typedef struct awb_Stats_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(hw_awbCfg_lsc_en),
         M4_TYPE(bool),
-        M4_DEFAULT(0),
+        M4_DEFAULT(1),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(3),
@@ -1618,7 +1877,7 @@ typedef struct awb_Stats_s {
         M4_ALIAS(sw_awbCfg_lgtPrefer_en),
         M4_TYPE(bool),
         M4_SIZE_EX(1,1),
-        M4_DEFAULT(0),
+        M4_DEFAULT(1),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -1629,7 +1888,7 @@ typedef struct awb_Stats_s {
         M4_ALIAS(sw_awbCfg_lgtSrcWgt_en),
         M4_TYPE(bool),
         M4_SIZE_EX(1,1),
-        M4_DEFAULT(0),
+        M4_DEFAULT(1),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -1772,12 +2031,12 @@ typedef struct awb_Stats_s {
         M4_ALIAS(hw_awbCfg_zoneStats_en),
         M4_TYPE(bool),
         M4_SIZE_EX(1,1),
-        M4_DEFAULT(0),
-        M4_HIDE_EX(0),
+        M4_DEFAULT(1),
+        M4_HIDE_EX(1),
         M4_RO(0),
         M4_ORDER(0),
         M4_NOTES(Enable filter out specific white points from detected white points in xy space or uv space.\n
-        Freq of use: high))  */
+        Freq of use: low))  */
     //reg: sw_rawawb_exc_wp_region0/1/2/3/4/5/6_excen bit0
 	bool hw_awbCfg_zoneStats_en;
     /* M4_GENERIC_DESC(
@@ -1785,7 +2044,7 @@ typedef struct awb_Stats_s {
         M4_TYPE(enum),
         M4_ENUM_DEF(awbStats_zoneStatsSrc_mode_t),
         M4_DEFAULT(awbStats_pixAll_mode),
-        M4_HIDE_EX(0),
+        M4_HIDE_EX(1),
         M4_RO(0),
         M4_ORDER(0),
         M4_NOTES(Measure mode for block stat. Reference enum types.\nFreq of use: high))  */
@@ -1826,7 +2085,7 @@ typedef struct awb_smartRun_cfg_s {
         M4_TYPE(f32),
         M4_SIZE_EX(1,16),
         M4_RANGE_EX(0,255),
-        M4_DEFAULT(0.001),
+        M4_DEFAULT(0.05),
         M4_DIGIT_EX(4),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -1839,7 +2098,7 @@ typedef struct awb_smartRun_cfg_s {
         M4_TYPE(f32),
         M4_SIZE_EX(1,16),
         M4_RANGE_EX(0,4),
-        M4_DEFAULT(0.005),
+        M4_DEFAULT(0.01),
         M4_DIGIT_EX(4),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -2183,7 +2442,7 @@ typedef struct awb_div_wpTh_s {
         M4_SIZE_EX(1,16),
         M4_RANGE_EX(0,1),
         M4_DEFAULT(0.0015),
-        M4_DIGIT_EX(1),
+        M4_DIGIT_EX(5),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -2196,7 +2455,7 @@ typedef struct awb_div_wpTh_s {
         M4_SIZE_EX(1,16),
         M4_RANGE_EX(0,1),
         M4_DEFAULT(0.00216),
-        M4_DIGIT_EX(1),
+        M4_DIGIT_EX(5),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -2577,7 +2836,7 @@ typedef struct awb_sgc_s {
         M4_SIZE_EX(1,6),
         M4_RANGE_EX(0,1),
         M4_DEFAULT([0.0002, 0.001 , 0.005 , 0.01  , 0.02  , 0.02  ]),
-        M4_DIGIT_EX(0),
+        M4_DIGIT_EX(5),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -2700,7 +2959,7 @@ typedef struct awb_probCal_lv_s {
         M4_TYPE(u32),
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0,255000),
-        M4_DEFAULT(30000),
+        M4_DEFAULT(20000),
         M4_DIGIT_EX(0),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -2713,7 +2972,7 @@ typedef struct awb_probCal_lv_s {
         M4_TYPE(u32),
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0,255000),
-        M4_DEFAULT(45745),
+        M4_DEFAULT(30000),
         M4_DIGIT_EX(0),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -2975,6 +3234,7 @@ typedef struct awb_hstrGainCalc_s{
         M4_SIZE_EX(1,16),
         M4_RANGE_EX(0,1),
         M4_DEFAULT(0.25),
+        M4_DIGIT_EX(4),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(1),
@@ -3061,6 +3321,76 @@ typedef struct awb_wbGnType1Calc_s{
 }awb_wbGnType1Calc_t;
 
 
+typedef struct awb_sceneDetProb2_wpRatio_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(wpratio2prob_len),
+        M4_TYPE(u32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(1,7),
+        M4_DEFAULT(7),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(1),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    int wpratio2prob_len;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(ratio_val),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,16),
+        M4_RANGE_EX(0,255000),
+        M4_DEFAULT([0,0.003,0.005,0.1,0.2,0.3,0.5]),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float ratio_val[CALID_AWB_GNEXT_RTO_NUM_MAX];
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(prob_val),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,16),
+        M4_RANGE_EX(0,255),
+        M4_DEFAULT([0,0,0.5,0.5,1,1,1]),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float prob_val[CALID_AWB_GNEXT_RTO_NUM_MAX];
+}  awb_sceneDetProb2_wpRatio_t;
+
+
+typedef struct awb_sceneDetProb2_lv_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(luma_val),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,255000),
+        M4_DEFAULT([0]),
+        M4_DIGIT_EX(1),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float luma_val;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(wpratio2prob),
+        M4_TYPE(struct),
+        M4_UI_MODULE(array_table_ui),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: high))  */
+    awb_sceneDetProb2_wpRatio_t wpratio2prob;
+}  awb_sceneDetProb2_lv_t;
+
+
 typedef struct awb_wbGnType3Calc_s{
     /* M4_GENERIC_DESC(
         M4_ALIAS(lgtSrcProcCal),
@@ -3090,7 +3420,7 @@ typedef struct awb_extWgt_lv_rto_s {
         M4_TYPE(u32),
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0,7),
-        M4_DEFAULT(4),
+        M4_DEFAULT(7),
         M4_DIGIT_EX(0),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -3103,7 +3433,7 @@ typedef struct awb_extWgt_lv_rto_s {
         M4_TYPE(f32),
         M4_SIZE_EX(1,7),
         M4_RANGE_EX(0,1),
-        M4_DEFAULT([0,0.05,0.1,0.2,0.3,0.4,0.5,0.6]),
+        M4_DEFAULT([0,0.05,0.1,0.2,0.3,0.4,0.5]),
         M4_DIGIT_EX(4),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -3116,7 +3446,7 @@ typedef struct awb_extWgt_lv_rto_s {
         M4_TYPE(f32),
         M4_SIZE_EX(1,7),
         M4_RANGE_EX(0,1),
-        M4_DEFAULT(0),
+        M4_DEFAULT([0.2,0.1,0.05,0,0,0,0]),
         M4_DIGIT_EX(4),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -3192,6 +3522,651 @@ typedef struct awb_wbGnExtrCalc_s{
     awb_extWgt_lv_t extWgtGnLv[CALD_AWB_LV_NUM_MAX];
 }awb_wbGnExtrCalc_t;
 
+
+typedef struct awb_sceneDetRegion_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(region_len),
+        M4_TYPE(u32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,16),
+        M4_DEFAULT(10),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(1),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    int region_len;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(luma_val),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,16),
+        M4_RANGE_EX(0,255000),
+        M4_DEFAULT([0,0.5,2,4,16,32,64,256,2048,4096]),
+        M4_DIGIT_EX(1),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float luma_val[CALD_AWB_LV_NUM_MAX];
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(detWpRn0_idx),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,16),
+        M4_RANGE_EX(-1,7),
+        M4_DEFAULT(-1),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float detWpRn0_idx[CALD_AWB_LV_NUM_MAX];
+     /* M4_GENERIC_DESC(
+        M4_ALIAS(detWpRn1_idx),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,16),
+        M4_RANGE_EX(-1,7),
+        M4_DEFAULT(-1),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float detWpRn1_idx[CALD_AWB_LV_NUM_MAX];
+     /* M4_GENERIC_DESC(
+        M4_ALIAS(detClorRn0_idx),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,16),
+        M4_RANGE_EX(-1,7),
+        M4_DEFAULT(-1),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float detClorRn0_idx[CALD_AWB_LV_NUM_MAX];
+     /* M4_GENERIC_DESC(
+        M4_ALIAS(detClorRn1_idx),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,16),
+        M4_RANGE_EX(-1,7),
+        M4_DEFAULT(-1),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float detClorRn1_idx[CALD_AWB_LV_NUM_MAX];
+}  awb_sceneDetRegion_t;
+
+
+typedef struct awb_sceneDetProb_colorRatio_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(clrratio2prob_len),
+        M4_TYPE(u32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(-1,7),
+        M4_DEFAULT(7),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(1),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    int clrratio2prob_len;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(ratio_val),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,7),
+        M4_RANGE_EX(0,1),
+        M4_DEFAULT([0,0.01,0.05,0.15,0.25,0.5,1]),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float ratio_val[CALID_AWB_GNEXT_RTO_NUM_MAX];
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(prob_val),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,7),
+        M4_RANGE_EX(0,1),
+        M4_DEFAULT([0.7,0.7,0.8,1,1,1,1]),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float prob_val[CALID_AWB_GNEXT_RTO_NUM_MAX];
+}  awb_sceneDetProb_colorRatio_t;
+
+typedef enum awb_sceneProb_mode_s{
+    awb_scene_prob_mul_mode = 0,
+    awb_scene_prob_wp_mode,
+    awb_scene_prob_clor_mode,
+    awb_scene_prob_max_mode,
+    awb_scene_prob_min_mode,
+    awb_scene_prob_mean_mode
+}awb_sceneProb_mode_e;
+
+
+typedef struct awb_sceneDetProb_wpRatio_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(wpratio2prob_len),
+        M4_TYPE(u32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(1,7),
+        M4_DEFAULT(7),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(1),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    int wpratio2prob_len;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(ratio_val),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,16),
+        M4_RANGE_EX(0,255000),
+        M4_DEFAULT([0,0.003,0.005,0.1,0.2,0.3,0.5]),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float ratio_val[CALID_AWB_GNEXT_RTO_NUM_MAX];
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(prob_val),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,16),
+        M4_RANGE_EX(0,255),
+        M4_DEFAULT([0.1,0.4,1,1,1,1,1]),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float prob_val[CALID_AWB_GNEXT_RTO_NUM_MAX];
+}  awb_sceneDetProb_wpRatio_t;
+
+typedef struct awb_sceneDetProb_lv_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(luma_val),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,255000),
+        M4_DEFAULT([0]),
+        M4_DIGIT_EX(1),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float luma_val;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(wpratio2prob),
+        M4_TYPE(struct),
+        M4_UI_MODULE(array_table_ui),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: high))  */
+    awb_sceneDetProb_wpRatio_t wpratio2prob;
+     /* M4_GENERIC_DESC(
+        M4_ALIAS(clrratio2prob),
+        M4_TYPE(struct),
+        M4_UI_MODULE(array_table_ui),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: high))  */
+    awb_sceneDetProb_colorRatio_t clrratio2prob;
+}  awb_sceneDetProb_lv_t;
+
+typedef enum awb_scenePref_mode_s{
+    awb_scene_prf_wbgn_fixed_mode = 0,
+    awb_scene_prf_t3gn_ratio_mode,
+    awb_scene_prf_wprn0_ratio_mode,
+    awb_scene_prf_wprn1_ratio_mode,
+}awb_scenePref_mode_e;
+
+typedef struct awb_scenewbGnPref_wpRatio_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(wbgain_len),
+        M4_TYPE(u32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,7),
+        M4_DEFAULT(7),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(1),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    int wbgain_len;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(wpratio_val),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,7),
+        M4_RANGE_EX(0,1),
+        M4_DEFAULT([0,0.003,0.005,0.1,0.2,0.3,0.5]),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float wpratio_val[CALID_AWB_GNEXT_RTO_NUM_MAX];
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(rgain),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,16),
+        M4_RANGE_EX(0,255),
+        M4_DEFAULT(0),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float rgain[CALID_AWB_GNEXT_RTO_NUM_MAX];
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(bgain),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,16),
+        M4_RANGE_EX(0,255),
+        M4_DEFAULT(0),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float bgain[CALID_AWB_GNEXT_RTO_NUM_MAX];
+}  awb_scenewbGnPref_wpRatio_t;
+
+
+typedef struct awb_scenewbGnPref_lv_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(luma_val),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,255000),
+        M4_DEFAULT([0]),
+        M4_DIGIT_EX(1),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float luma_val;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(wbgain),
+        M4_TYPE(struct),
+        M4_UI_MODULE(array_table_ui),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: high))  */
+    awb_scenewbGnPref_wpRatio_t wbgain;
+}  awb_scenewbGnPref_lv_t;
+
+typedef struct awb_sceneDetSub_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(name),
+        M4_TYPE(string),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,255),
+        M4_DEFAULT("scene0"),
+        M4_DYNAMIC(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(.\n
+        Freq of use: high))  */
+    char name[CALD_AWB_ILLUMINATION_NAME];
+     /* M4_GENERIC_DESC(
+        M4_ALIAS(en),
+        M4_TYPE(bool),
+        M4_DEFAULT(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: high))  */
+    bool en;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(wgt),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,1),
+        M4_DEFAULT([1]),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float wgt;
+     /* M4_GENERIC_DESC(
+        M4_ALIAS(prob_mode),
+        M4_TYPE(enum),
+        M4_ENUM_DEF(awb_sceneProb_mode_e),
+        M4_DEFAULT(awb_scene_prob_mul_mode),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: high))  */
+    awb_sceneProb_mode_e prob_mode;
+     /* M4_GENERIC_DESC(
+        M4_ALIAS(wbGnPref_mode),
+        M4_TYPE(enum),
+        M4_ENUM_DEF(awb_scenePref_mode_e),
+        M4_DEFAULT(awb_scene_prf_wbgn_fixed_mode),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: high))  */
+    awb_scenePref_mode_e wbGnPref_mode;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(region),
+        M4_TYPE(struct),
+        M4_UI_MODULE(array_table_ui),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: high))  */
+    awb_sceneDetRegion_t region;
+     /* M4_GENERIC_DESC(
+        M4_ALIAS(prob_len),
+        M4_TYPE(u32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,16),
+        M4_DEFAULT(5),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: low))  */
+    int prob_len;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(prob),
+        M4_TYPE(struct_list),
+        M4_SIZE_EX(1,16),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    awb_sceneDetProb_lv_t prob[CALD_AWB_LV_NUM_MAX];
+     /* M4_GENERIC_DESC(
+        M4_ALIAS(wbGnPref_len),
+        M4_TYPE(u32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,4),
+        M4_DEFAULT(5),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: low))  */
+    int wbGnPref_len;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(wbGnPref),
+        M4_TYPE(struct_list),
+        M4_SIZE_EX(1,16),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    awb_scenewbGnPref_lv_t wbGnPref[CALD_AWB_LV_NUM_MAX];
+
+}awb_sceneDetSub_t;
+
+
+
+
+
+typedef struct awb_tp3ScnProb2Scalef_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(tp3ScnProb2Scalef_len),
+        M4_TYPE(u32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(1,7),
+        M4_DEFAULT(7),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(1),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    int tp3ScnProb2Scalef_len;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(prob_val),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,7),
+        M4_RANGE_EX(0,1),
+        M4_DEFAULT([0,0.03,0.05,0.1,0.3,0.5,1]),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float prob_val[CALID_AWB_GNEXT_RTO_NUM_MAX];
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(scal_val),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,7),
+        M4_RANGE_EX(0,1),
+        M4_DEFAULT([0,0,0.5,1,1,1,1]),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float scal_val[CALID_AWB_GNEXT_RTO_NUM_MAX];
+}  awb_tp3ScnProb2Scalef_t;
+
+typedef struct awb_dorder2scalef_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(subScnOrder2Scalef_len),
+        M4_TYPE(u32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(1,7),
+        M4_DEFAULT(7),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(1),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    int subScnOrder2Scalef_len;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(scal_val),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,7),
+        M4_RANGE_EX(0,6),
+        M4_DEFAULT([0,1,2,3,4,5,6]),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float dorder_val[CALID_AWB_GNEXT_RTO_NUM_MAX];
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(scal_val),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,7),
+        M4_RANGE_EX(0,1),
+        M4_DEFAULT([1,1,1,0,0,0,0]),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float scal_val[CALID_AWB_GNEXT_RTO_NUM_MAX];
+}  awb_dorder2scalef_t;
+
+typedef struct awb_prob2scalef_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(subScnProb2Scalef_len),
+        M4_TYPE(u32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(1,7),
+        M4_DEFAULT(7),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(1),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    int subScnProb2Scalef_len;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(prob_val),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,7),
+        M4_RANGE_EX(0,1),
+        M4_DEFAULT([0,0.1,0.2,0.5,0.7,0.8,1]),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float prob_val[CALID_AWB_GNEXT_RTO_NUM_MAX];
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(scal_val),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,7),
+        M4_RANGE_EX(0,1),
+        M4_DEFAULT([0,0,0,0.66,1,1,1]),
+        M4_DIGIT_EX(4),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    float scal_val[CALID_AWB_GNEXT_RTO_NUM_MAX];
+}  awb_prob2scalef_t;
+
+
+typedef struct awb_method_manager_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(subScnOrder2Scalef),
+        M4_TYPE(struct),
+        M4_UI_MODULE(array_table_ui),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: high))  */
+    awb_dorder2scalef_t subScnOrder2Scalef;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(subScnProb2Scalef),
+        M4_TYPE(struct),
+        M4_UI_MODULE(array_table_ui),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: high))  */
+    awb_prob2scalef_t subScnProb2Scalef;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(tp3ScnProb2Scalef),
+        M4_TYPE(struct),
+        M4_UI_MODULE(array_table_ui),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: high))  */
+    awb_tp3ScnProb2Scalef_t tp3ScnProb2Scalef;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(tp3ScnProb_len),
+        M4_TYPE(u32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,16),
+        M4_DEFAULT(4),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: low))  */
+    int tp3ScnProb_len;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(tp3ScnProb),
+        M4_TYPE(struct_list),
+        M4_SIZE_EX(1,16),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    awb_sceneDetProb2_lv_t tp3ScnProb[CALD_AWB_LV_NUM_MAX];
+}awb_method_manager_t;
+
+
+typedef struct awb_scnManager_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(gnCalc_manager),
+        M4_TYPE(struct),
+        M4_UI_MODULE(normal_ui_style),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: high))  */
+    awb_method_manager_t gnCalc_manager;
+     /* M4_GENERIC_DESC(
+        M4_ALIAS(subSceneDet_len),
+        M4_TYPE(u32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,8),
+        M4_DEFAULT(4),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(\n
+        Freq of use: low))  */
+    int subSceneDet_len;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(subSceneDet),
+        M4_TYPE(struct_list),
+        M4_SIZE_EX(1,8),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    awb_sceneDetSub_t subSceneDet[CALD_AWB_SCENE_NUM_MAX];
+}awb_scnManager_t;
+
+
 typedef struct awb_gainCalcStep_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(gnCalc_method),
@@ -3204,6 +4179,7 @@ typedef struct awb_gainCalcStep_s {
         M4_NOTES(\n
         Freq of use: high))  */
     awb_ganCalcMethod_e gnCalc_method;
+
     /* M4_GENERIC_DESC(
         M4_ALIAS(division),
         M4_TYPE(struct),
@@ -3239,7 +4215,7 @@ typedef struct awb_gainCalcStep_s {
         M4_TYPE(u32),
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0,7),
-        M4_DEFAULT(4),
+        M4_DEFAULT(1),
         M4_DIGIT_EX(0),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -3248,7 +4224,7 @@ typedef struct awb_gainCalcStep_s {
         Freq of use: high))  */
     int wbGnExt_len;
     /* M4_GENERIC_DESC(
-        M4_ALIAS(refWbGain),
+        M4_ALIAS(wbGnExt),
         M4_TYPE(struct_list),
         M4_SIZE_EX(1,7),
         M4_DIGIT_EX(0),
@@ -3258,6 +4234,17 @@ typedef struct awb_gainCalcStep_s {
         M4_NOTES(T\n
         Freq of use: high))  */
     awb_wbGnExtrCalc_t wbGnExt[CALID_AWB_GNEXT_GN_NUM_MAX];
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(scnManager),
+        M4_TYPE(struct),
+        M4_SIZE_EX(1,1),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(T\n
+        Freq of use: high))  */
+    awb_scnManager_t scnManager;
     /* M4_GENERIC_DESC(
         M4_ALIAS(wbGainDaylightClip),
         M4_TYPE(struct),
@@ -3308,6 +4295,16 @@ typedef struct awb_gainCalcStep_s {
         M4_NOTES(\n
         Freq of use: high))  */
     awb_dampFactor_t dampFactor;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(convSpeed),
+        M4_TYPE(struct),
+        M4_UI_MODULE(normal_ui_style),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(8),
+        M4_NOTES(\n
+        Freq of use: high))  */
+    awb_convSpeed_t convSpeed;
 } awb_gainCalcStep_t;
 
 

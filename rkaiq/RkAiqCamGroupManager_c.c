@@ -372,7 +372,7 @@ static XCamReturn AiqCamGroupManager_reProcess(AiqCamGroupManager_t* pCamGrpMan,
 #if USE_NEWSTRUCT
             if (!aiqParams->pParamsArray[RESULT_TYPE_BLC_PARAM])
                 RET_FAILED();
-            scam_3a_res->ablc.blc = 
+            scam_3a_res->ablc.blc =
 				(rk_aiq_isp_blc_params_t*)(aiqParams->pParamsArray[RESULT_TYPE_BLC_PARAM]->_data);
 #endif
 
@@ -432,22 +432,12 @@ static XCamReturn AiqCamGroupManager_reProcess(AiqCamGroupManager_t* pCamGrpMan,
                 (rk_aiq_isp_aibnr_params_t*)(aiqParams->pParamsArray[RESULT_TYPE_AIBNR_PARAM]->_data);
 #endif
 
-            // copy otp info
-            pItem = aiqMap_get(pCamGrpMan->mBindAiqsMap, (void*)(uintptr_t)i);
-			aiqManager = *(AiqManager_t**)pItem->_pData;
-            if (aiqManager) {
-                if (aiqManager->mRkAiqAnalyzer) {
-					RkAiqAlgosComShared_t* sharedCom = &aiqManager->mRkAiqAnalyzer->mAlogsComSharedParams;
-                    memcpy(&scam_3a_res->_otp_awb, &sharedCom->snsDes.otp_awb, sizeof(sharedCom->snsDes.otp_awb));
-
-                    LOGD_CAMGROUP("camId:%d, user awb otp: flag: %d, r:%d,b:%d,gr:%d,gb:%d, golden r:%d,b:%d,gr:%d,gb:%d\n",
-                                  i, scam_3a_res->_otp_awb.flag,
-                                  scam_3a_res->_otp_awb.r_value, scam_3a_res->_otp_awb.b_value,
-                                  scam_3a_res->_otp_awb.gr_value, scam_3a_res->_otp_awb.gb_value,
-                                  scam_3a_res->_otp_awb.golden_r_value, scam_3a_res->_otp_awb.golden_b_value,
-                                  scam_3a_res->_otp_awb.golden_gr_value, scam_3a_res->_otp_awb.golden_gb_value);
-                }
-            }
+#if RKAIQ_HAVE_AIRMS
+            if (!aiqParams->pParamsArray[RESULT_TYPE_AIRMS_PARAM])
+                RET_FAILED();
+            scam_3a_res->isp_airms_params =
+                (rk_aiq_isp_airms_params_t*)(aiqParams->pParamsArray[RESULT_TYPE_AIRMS_PARAM]->_data);
+#endif
 
             camgroupParmasArray[vaild_cam_ind++] = scam_3a_res;
         }
@@ -761,7 +751,7 @@ static void AiqCamGroupManager_relayToHwi(AiqCamGroupManager_t* pCamGrpMan, rk_a
                 if (!skip_apply_exp) {
 					AiqFullParams_t tmpFull;
 					memset(&tmpFull, 0, sizeof(tmpFull));
-					tmpFull._base.frame_id = 
+					tmpFull._base.frame_id =
 						singlecam_res->_fullIspParam->pParamsArray[RESULT_TYPE_EXPOSURE_PARAM]->frame_id;
 					tmpFull.pParamsArray[RESULT_TYPE_EXPOSURE_PARAM] =
 						singlecam_res->_fullIspParam->pParamsArray[RESULT_TYPE_EXPOSURE_PARAM];
@@ -1178,7 +1168,7 @@ XCamReturn AiqCamGroupManager_construct(AiqCamGroupManager_t* pCamGrpMan)
     aiqMutex_init(&pCamGrpMan->mCamGroupApiSyncMutex);
     aiqMutex_init(&pCamGrpMan->_update_mutex);
 	aiqCond_init(&pCamGrpMan->_update_done_cond);
-	
+
 	AiqMapConfig_t bindAiqMapCfg;
 	bindAiqMapCfg._name          = "bindAiqMap";
 	bindAiqMapCfg._key_type		= AIQ_MAP_KEY_TYPE_UINT32;
@@ -1246,7 +1236,7 @@ XCamReturn AiqCamGroupManager_deInit(AiqCamGroupManager_t* pCamGrpMan)
 	AiqCamGroupReprocTh_deinit(&pCamGrpMan->mCamGroupReprocTh);
 
 	AiqCamGroupManager_clearGroupCamResult(pCamGrpMan, -1);
-	
+
 	for (int i = 0; i < RK_AIQ_ALGO_TYPE_MAX; i++) {
 		if (pCamGrpMan->mDefAlgoHandleMap[i])
 			destroyAlgoCamGroupHandler(pCamGrpMan->mDefAlgoHandleMap[i]);
@@ -1445,7 +1435,7 @@ XCamReturn AiqCamGroupManager_unbind(AiqCamGroupManager_t* pCamGrpMan, int camId
 XCamReturn AiqCamGroupManager_addAlgo(AiqCamGroupManager_t* pCamGrpMan, RkAiqAlgoDesComm* algo)
 {
 	LOGE_CAMGROUP("Not implement !");
-	return XCAM_RETURN_ERROR_FAILED;    
+	return XCAM_RETURN_ERROR_FAILED;
 }
 
 XCamReturn AiqCamGroupManager_enableAlgo(AiqCamGroupManager_t* pCamGrpMan, int algoType, int id, bool enable)
@@ -1499,7 +1489,7 @@ XCamReturn AiqCamGroupManager_enableAlgo(AiqCamGroupManager_t* pCamGrpMan, int a
 XCamReturn AiqCamGroupManager_rmAlgo(AiqCamGroupManager_t* pCamGrpMan, int algoType, int id)
 {
 	LOGE_CAMGROUP("Not implement !");
-	return XCAM_RETURN_ERROR_FAILED;    
+	return XCAM_RETURN_ERROR_FAILED;
 }
 
 bool AiqCamGroupManager_getAxlibStatus(AiqCamGroupManager_t* pCamGrpMan, int algoType, int id)
@@ -1665,7 +1655,7 @@ bool AiqCamGroupManager_isAllVicapReady(AiqCamGroupManager_t* pCamGrpMan)
 	aiqMutex_lock(&pCamGrpMan->mCamGroupApiSyncMutex);
 	bool ret = (pCamGrpMan->mVicapReadyMask == pCamGrpMan->mRequiredCamsResMask) ? true : false;
 	aiqMutex_unlock(&pCamGrpMan->mCamGroupApiSyncMutex);
-    return ret; 
+    return ret;
 }
 
 XCamReturn AiqCamGroupManager_register3Aalgo(AiqCamGroupManager_t* pCamGrpMan, void* algoDes, void *cbs)

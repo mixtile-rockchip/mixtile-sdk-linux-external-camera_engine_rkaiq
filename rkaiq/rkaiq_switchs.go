@@ -21,6 +21,7 @@ func rkaiq_macro_switch(soc string) map[string]bool {
     macros_map["RKAIQ_HAVE_ONLY_CUSTOM_AF"] = false
     macros_map["RKAIQ_USE_RAWSTREAM_LIB"] = false
     macros_map["RKAIQ_IMPLEMENT_C"] = false
+    macros_map["RKAIQ_HAVE_DUMPSYS"] = false
     if soc == "rk3562" {
         macros_map["ISP_HW_V32_LITE"] = true
         macros_map["RKAIQ_HAVE_AWB_V20"] = false
@@ -418,6 +419,7 @@ func rkaiq_macro_switch(soc string) map[string]bool {
         macros_map["RKAIQ_HAVE_DEGAMMA_V1"] = true
     } else if soc == "rk3576" {
         macros_map["ISP_HW_V39"] = true
+        macros_map["RKAIQ_HAVE_DUMPSYS"] = true
         macros_map["RKAIQ_NEWSTRUCT_TEST"] = true
         macros_map["RKAIQ_IMPLEMENT_C"] = true
         macros_map["RKAIQ_HAVE_AWB_V20"] = false

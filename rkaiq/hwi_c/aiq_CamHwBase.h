@@ -25,6 +25,7 @@
 #include "hwi_c/aiq_sensorHw.h"
 #include "hwi_c/aiq_spStreamProcUnit.h"
 #include "hwi_c/aiq_stream.h"
+#include "hwi_c/aiq_AiRmsStreamProcUnit.h"
 #include "include/iq_parser_v2/aec_head.h"
 #include "include/iq_parser_v2/af_head.h"
 #include "include/iq_parser_v2/sensorinfo_head.h"
@@ -181,6 +182,7 @@ typedef struct AiqCamHwBase_s {
     bool _linked_to_isp;
     bool _linked_to_1608;
     bool _linked_to_serdes;
+    bool _airms_en;
     char sns_name[32];
     uint64_t _isp_module_ens;
     exgain_t exgain_status;
@@ -215,6 +217,7 @@ typedef struct AiqCamHwBase_s {
     AiqStreamEventPollThread_t* mIspStremEvtTh;
     AiqRawStreamCapUnit_t* mRawCapUnit;
     AiqRawStreamProcUnit_t* mRawProcUnit;
+    AiqAiRmsStreamProcUnit_t* mAiRmsProcUnit;
     AiqCifSclStream_t* mCifScaleStream;
     AiqPdafStreamProcUnit_t* mPdafStreamUnit;
     AiqMap_t* _effecting_ispparam_map;
@@ -301,6 +304,9 @@ typedef struct AiqCamHwBase_s {
     XCamReturn (*aibnr_setParamInf)(AiqCamHwBase_t* pCamHw, struct rkaiisp_param_info *param_info);
     XCamReturn (*aibnr_setModelInf)(AiqCamHwBase_t* pCamHw, RkAiqAibnrModelInfo_t *pAibnrModelInfo);
 #endif
+
+// AIRMS
+    char airms_model_file[AIRMS_MODEL_FILENAME_LEN];
 
     // dumpsys
     int (*dump)(void* pCamHw, st_string* result, int argc, void* argv[]);
@@ -415,6 +421,8 @@ RkAiqIspUniteMode AiqCamHw_getIspUniteMode(AiqCamHwBase_t* pCamHw);
 XCamReturn AiqCamHw_setNoReadbackMode(AiqCamHwBase_t* pCamHw, bool on);
 XCamReturn AiqCamHw_setRawBufNum(AiqCamHwBase_t* pCamHw, uint16_t buf_num);
 XCamReturn AiqCamHw_setAibnrDelayCnt(AiqCamHwBase_t* pCamHw, int delayCnt);
+XCamReturn AiqCamHw_setSnsOtpInfo(AiqCamHwBase_t* pCamHw, struct rkmodule_awb_inf* otp_awb,
+                                  struct rkmodule_lsc_inf* otp_lsc, rk_aiq_user_otp_info_t* user_otp);
 
 #define CamHW_setManager(pMan, pRkAiqManager) \
         (pMan)->rkAiqManager = pRkAiqManager

@@ -160,6 +160,8 @@ void rk_aiq_aibnr_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
 
     isp_aibnr_param->is_bypass = bypass;
     isp_aibnr_param->is_hdr = (cvtinfo->frameNum > 1) ? true : false;
+    isp_aibnr_param->bayer_fmt = cvtinfo->bayer_fmt;
+    isp_aibnr_param->frameIso = cvtinfo->frameIso[cvtinfo->frameNum - 1];
 
     float hdrLS_ratio = cvtinfo->L2S_Ratio;
     float preDgain = cvtinfo->preDGain_drc;

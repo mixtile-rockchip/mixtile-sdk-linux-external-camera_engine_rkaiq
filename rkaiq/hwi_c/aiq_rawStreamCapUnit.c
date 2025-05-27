@@ -165,6 +165,11 @@ XCamReturn RawStreamCapUnit_poll_buffer_ready(void* ctx, AiqHwEvt_t* evt, int de
                 AiqRawStreamProcUnit_send_sync_buf(pRawStrCapUnit->_proc_stream, buf_s, buf_m,
                                                    buf_l);
             }
+#if RKAIQ_HAVE_AIRMS
+            if (pRawStrCapUnit->_pAirmsStream) {
+                AiqAiRmsStreamProcUnit_setVicapBuf(pRawStrCapUnit->_pAirmsStream, buf_s);
+            }
+#endif
         } else {
             // 1608 mode.
             for (int idx = 0; idx < CAM_INDEX_FOR_1608; idx++) {
@@ -596,6 +601,12 @@ XCamReturn AiqRawStreamCapUnit_set_tx_format(AiqRawStreamCapUnit_t* pRawStrCapUn
             break;
         }
 
+        if (pRawStrCapUnit->_camHw->_airms_en) {
+            int mem_mode = CSI_LVDS_MEM_WORD_HIGH_ALIGN;
+            int ret1     = pRawStrCapUnit->_dev[i]->io_control(
+            pRawStrCapUnit->_dev[i], RKCIF_CMD_SET_CSI_MEMORY_MODE, &mem_mode);
+        }
+
         ret = AiqV4l2Device_setFmt(pRawStrCapUnit->_dev[i], sns_sd_fmt->format.width,
                                    sns_sd_fmt->format.height, sns_v4l_pix_fmt, V4L2_FIELD_NONE, 0);
         if (ret < 0) {
@@ -623,6 +634,12 @@ XCamReturn AiqRawStreamCapUnit_set_tx_format2(AiqRawStreamCapUnit_t* pRawStrCapU
             break;
         }
 
+        if (pRawStrCapUnit->_camHw->_airms_en) {
+            int mem_mode = CSI_LVDS_MEM_WORD_HIGH_ALIGN;
+            int ret1     = pRawStrCapUnit->_dev[i]->io_control(
+            pRawStrCapUnit->_dev[i], RKCIF_CMD_SET_CSI_MEMORY_MODE, &mem_mode);
+        }
+
         ret = AiqV4l2Device_setFmt(pRawStrCapUnit->_dev[i], sns_sd_sel->r.width,
                                    sns_sd_sel->r.height, sns_v4l_pix_fmt, V4L2_FIELD_NONE, 0);
         if (ret < 0) {
@@ -640,10 +657,11 @@ XCamReturn AiqRawStreamCapUnit_set_tx_format2(AiqRawStreamCapUnit_t* pRawStrCapU
 
 void AiqRawStreamCapUnit_set_devices(AiqRawStreamCapUnit_t* pRawStrCapUnit,
                                      AiqV4l2SubDevice_t* ispdev, AiqCamHwBase_t* handle,
-                                     AiqRawStreamProcUnit_t* proc) {
+                                     AiqRawStreamProcUnit_t* proc, AiqAiRmsStreamProcUnit_t* pAirmsStream) {
     pRawStrCapUnit->_isp_core_dev = ispdev;
     pRawStrCapUnit->_camHw        = handle;
     pRawStrCapUnit->_proc_stream  = proc;
+    pRawStrCapUnit->_pAirmsStream  = pAirmsStream;
 }
 
 void AiqRawStreamCapUnit_skip_frames(AiqRawStreamCapUnit_t* pRawStrCapUnit, int skip_num,

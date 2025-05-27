@@ -98,5 +98,7 @@
 #include "isp/rk_aiq_isp_aibnr.h"
 #include "uAPI2/rk_aiq_user_api2_aibnr.h"
 #include "uAPI2/rk_aiq_user_api2_amtd.h"
+#include "isp/rk_aiq_isp_airms.h"
+#include "uAPI2/rk_aiq_user_api2_airms.h"
 
 #endif

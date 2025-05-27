@@ -509,7 +509,7 @@ typedef struct btnr_subLoMd1_dyn_s {
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0.0,16.0),
         M4_DEFAULT(4.0),
-        M4_DIGIT_EX(2),
+        M4_DIGIT_EX(3),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -523,7 +523,7 @@ typedef struct btnr_subLoMd1_dyn_s {
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0.0,16.0),
         M4_DEFAULT(0.45),
-        M4_DIGIT_EX(2),
+        M4_DIGIT_EX(3),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -549,7 +549,7 @@ typedef struct btnr_subLoMd1_dyn_s {
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0.0,16.0),
         M4_DEFAULT(0.45),
-        M4_DIGIT_EX(2),
+        M4_DIGIT_EX(3),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -564,7 +564,7 @@ typedef struct btnr_subLoMd1_dyn_s {
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0.0,16.0),
         M4_DEFAULT(3.0),
-        M4_DIGIT_EX(2),
+        M4_DIGIT_EX(3),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -605,7 +605,7 @@ typedef struct btnr_subLoMd1_dyn_s {
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0.0,16.0),
         M4_DEFAULT(3.0),
-        M4_DIGIT_EX(2),
+        M4_DIGIT_EX(3),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -687,7 +687,7 @@ typedef struct btnr_subDeepLoMd_dyn_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(hw_btnr_mdBigLo_en),
         M4_TYPE(bool),
-        M4_DEFAULT(0),
+        M4_DEFAULT(1),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(1),
@@ -894,7 +894,20 @@ typedef enum btnr_md_mode_e {
     btnr_loAsBias_hi1_mode = 1
 } btnr_md_mode_t;
 
-typedef struct btnr_loAsHiRatioMd_dyn_s {
+typedef struct btnr_hiMd_dyn_s {
+    /* M4_GENERIC_DESC(
+    M4_ALIAS(hw_btnr_WgtCal_mode),
+    M4_TYPE(enum),
+    M4_ENUM_DEF(btnr_md_mode_t),
+    M4_DEFAULT(btnr_loAsBias_hi1_mode),
+    M4_HIDE_EX(0),
+    M4_RO(0),
+    M4_ORDER(0),
+    M4_GROUP_CTRL(md_mode_group),
+    M4_NOTES(Mode of low-frequency motion detection. Reference enum types.\n
+    Freq of use: low))  */
+    //@reg: hw_btnr_WgtCal_mode
+    btnr_md_mode_t hw_btnrT_md_mode;
     /* M4_GENERIC_DESC(
        M4_ALIAS(hw_btnr_LpfHi_bypass_en),
        M4_TYPE(bool),
@@ -951,6 +964,9 @@ typedef struct btnr_loAsHiRatioMd_dyn_s {
         Freq of use: low))  */
     // reg: hw_btnr_LpfHi_coeff0~8
     float sw_btnrT_hfLpf_strg;
+} btnr_hiMd_dyn_t;
+
+typedef struct btnr_loAsHiRatioMd_dyn_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(hw_btnr_Mode0LoWgt_scale),
         M4_TYPE(f32),
@@ -1056,7 +1072,7 @@ typedef struct btnr_loAsHiBiasMd_dyn_s {
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0.0,16.0),
         M4_DEFAULT(1.414),
-        M4_DIGIT_EX(2),
+        M4_DIGIT_EX(3),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -1069,7 +1085,7 @@ typedef struct btnr_loAsHiBiasMd_dyn_s {
         M4_TYPE(f32),
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0.0,16.0),
-        M4_DEFAULT(0.7),
+        M4_DEFAULT(1.414),
         M4_DIGIT_EX(3),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -1083,7 +1099,7 @@ typedef struct btnr_loAsHiBiasMd_dyn_s {
         M4_TYPE(f32),
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0.0,4.0),
-        M4_DEFAULT(0.707),
+        M4_DEFAULT(0.45),
         M4_DIGIT_EX(3),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -1113,7 +1129,7 @@ typedef struct btnr_loAsHiBiasMd_dyn_s {
         M4_TYPE(f32),
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0.0,16.0),
-        M4_DEFAULT(15.9),
+        M4_DEFAULT(2.0),
         M4_DIGIT_EX(3),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -1143,7 +1159,7 @@ typedef struct btnr_loAsHiBiasMd_dyn_s {
         M4_TYPE(f32),
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0.0,16.0),
-        M4_DEFAULT(1.4),
+        M4_DEFAULT(2.4),
         M4_DIGIT_EX(3),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -1398,7 +1414,7 @@ typedef struct btnr_preSpNr_sigma_dyn_s {
         M4_ALIAS(hw_btnr_preSpnrSigmaCurveDoube_ens),
         M4_TYPE(enum),
         M4_ENUM_DEF(btnr_sigmaCurve_mode_t),
-        M4_DEFAULT(btnr_midSegmInterpOff_mode),
+        M4_DEFAULT(btnr_midSegmInterpOn_mode),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
@@ -1642,7 +1658,7 @@ typedef struct btnr_preSpNr_hiNr_dyn_s {
         M4_TYPE(f32),
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0.0,256.0),
-        M4_DEFAULT(8.0),
+        M4_DEFAULT(4.0),
         M4_DIGIT_EX(3),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -2072,7 +2088,7 @@ typedef struct btnr_noiseBal_curBaseOut_s {
         M4_TYPE(f32),
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0.0,1048576.0),
-        M4_DEFAULT(8),
+        M4_DEFAULT(32),
         M4_DIGIT_EX(3),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -2677,7 +2693,7 @@ typedef struct btnr_dpcNsBalNsStrg_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(hw_btnrT_preWgtNsBal_mode),
         M4_TYPE(enum),
-        M4_ENUM_DEF(btnr_dpcFltNoiseBal_mode_t),
+        M4_ENUM_DEF(btnr_dpcNsBalPreWgt_mode_t),
         M4_DEFAULT(btnr_statWgtNsBal_mode),
         M4_HIDE_EX(0),
         M4_RO(0),
@@ -3227,19 +3243,15 @@ typedef struct btnr_md_dyn_s {
         M4_NOTES(TODO))  */
     btnr_loMd_dyn_t loMd;
     /* M4_GENERIC_DESC(
-        M4_ALIAS(hw_btnr_WgtCal_mode),
-        M4_TYPE(enum),
-        M4_ENUM_DEF(btnr_md_mode_t),
-        M4_DEFAULT(btnr_loAsBias_hi1_mode),
+        M4_ALIAS(hiMd),
+        M4_TYPE(struct),
+        M4_UI_MODULE(normal_ui_style),
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_ORDER(0),
-        M4_GROUP_CTRL(md_mode_group),
         M4_GROUP(md_en_group),
-        M4_NOTES(Mode of low-frequency motion detection. Reference enum types.\n
-        Freq of use: low))  */
-    //@reg: hw_btnr_WgtCal_mode
-    btnr_md_mode_t hw_btnrT_md_mode;
+        M4_NOTES(TODO))  */
+    btnr_hiMd_dyn_t hiMd;
     /* M4_GENERIC_DESC(
         M4_ALIAS(WgtCal_Mode0),
         M4_TYPE(struct),

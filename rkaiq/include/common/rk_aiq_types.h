@@ -446,6 +446,7 @@ typedef struct {
     struct rkmodule_af_inf *otp_af;
     struct rkmodule_pdaf_inf *otp_pdaf;
     u8 compr_bit;
+    enum rkmodule_bayer_mode bayer_mode;
 } rk_aiq_exposure_sensor_descriptor;
 
 // exposure
@@ -672,6 +673,7 @@ typedef enum rk_isp_stream_mode_e {
 
 typedef struct {
     struct rkmodule_awb_inf otp_awb;
+    struct rkmodule_lsc_inf otp_lsc;
 } rk_aiq_user_otp_info_t;
 
 typedef enum {

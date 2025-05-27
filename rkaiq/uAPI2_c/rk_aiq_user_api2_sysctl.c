@@ -1420,6 +1420,9 @@ rk_aiq_uapi2_sysctl_updateIq(rk_aiq_sys_ctx_t* sys_ctx, char* iqfile)
 
     CamCalibDbV2Context_t calibdbv2_ctx =
         CamCalibDbToDefaultCalibDb(calibDbProj);
+
+    GlobalParamsManager_t* paramsManager = &sys_ctx->_rkAiqManager->mGlobalParamsManager;
+    GlobalParamsManager_switchCalibDb(paramsManager, &calibdbv2_ctx, true);
     ret = AiqManager_updateCalibDb(sys_ctx->_rkAiqManager, &calibdbv2_ctx);
 
     if (ret) {
@@ -2653,4 +2656,5 @@ rk_aiq_uapi2_sysctl_setSnsSyncMode(const rk_aiq_sys_ctx_t* ctx, enum rkmodule_sy
 #include "rk_aiq_user_api2_deprecated.c"
 #include "rk_aiq_user_api2_aibnr.c"
 #include "rk_aiq_user_api2_amtd.c"
+#include "rk_aiq_user_api2_airms.c"
 #endif

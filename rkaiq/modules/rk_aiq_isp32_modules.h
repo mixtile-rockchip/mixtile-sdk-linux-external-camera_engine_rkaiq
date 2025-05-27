@@ -44,6 +44,18 @@ typedef struct blc_res_cvt_s {
     blc_obcPostTnr_dyn_t obcPostTnr;
 } blc_res_cvt_t;
 
+typedef struct otplsc_res_cvt_s {
+    __u32 flag;
+    __u16 width;
+    __u16 height;
+    __u16 x_size_tbl[17];
+    __u16 y_size_tbl[17];
+    __u16 lsc_r[RKMODULE_LSCDATA_LEN];
+    __u16 lsc_b[RKMODULE_LSCDATA_LEN];
+    __u16 lsc_gr[RKMODULE_LSCDATA_LEN];
+    __u16 lsc_gb[RKMODULE_LSCDATA_LEN];
+} otplsc_res_cvt_t;
+
 typedef struct {
     uint32_t frameId;
     uint16_t rawWidth;
@@ -58,7 +70,7 @@ typedef struct {
     float frameEt[3];
     float frameDGain[3];
     struct rkmodule_awb_inf otp_awb;
-    struct rkmodule_lsc_inf *otp_lsc;
+    struct rkmodule_lsc_inf otp_lsc;
     struct rkmodule_af_inf *otp_af;
     struct rkmodule_pdaf_inf *otp_pdaf;
 #if RKAIQ_HAVE_AIBNR
@@ -102,6 +114,8 @@ typedef struct {
     bool ieEn;
     bool pre_ccm_asym_adj_en;
     uint16_t ccm_pre_Y2Alpha_fac0[ISP32_CCM_CURVE_NUM*2];
+    uint8_t bayer_fmt;
+    otplsc_res_cvt_t otplsc_res;
 } common_cvt_info_t;
 
 typedef struct {

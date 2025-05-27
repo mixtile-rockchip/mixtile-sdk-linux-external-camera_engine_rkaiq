@@ -1008,6 +1008,10 @@ if (RKAIQ_HAVE_AIBNR)
     add_compile_options(-DRKAIQ_HAVE_AIBNR=1)
 endif()
 
+if (RKAIQ_HAVE_AIRMS)
+    add_compile_options(-DRKAIQ_HAVE_AIRMS=1)
+endif()
+
 set(AIQ_CORE_SRC
     ${ALGO_HANDLE_SRC}
     aiq_core/RkAiqHandle.cpp
@@ -1223,6 +1227,7 @@ set (C_BASE_SRC
     c_base/aiq_pool.c
     c_base/aiq_map.c
     c_base/aiq_list.c
+    c_base/aiq_thpool.c
     )
 
 if(NOT CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -1286,6 +1291,10 @@ endif()
 
 if (RKAIQ_HAVE_PDAF)
     list(APPEND HWI_C_SRC hwi_c/aiq_PdafStreamProcUnit.c)
+endif()
+
+if (RKAIQ_HAVE_AIRMS)
+    list(APPEND HWI_C_SRC hwi_c/aiq_AiRmsStreamProcUnit.c)
 endif()
 
 if (RKAIQ_ISP_VERSION STREQUAL "39")
@@ -1405,6 +1414,9 @@ if (RKAIQ_HAVE_AIBNR)
     list(APPEND CORE_C_SRC aiq_core_c/algo_handlers/RkAiqAibnrHandler.c)
 endif()
 
+if (RKAIQ_HAVE_AIRMS)
+    list(APPEND CORE_C_SRC aiq_core_c/algo_handlers/RkAiqAirmsHandler.c)
+endif()
 
 if (RKAIQ_ENABLE_CAMGROUP)
     list(APPEND CORE_C_SRC
@@ -2191,6 +2203,14 @@ target_link_libraries(rkaiq
 list(APPEND RK_AIQ_STATIC_LIB_ARS ${STATIC_LIB_PREFIX}rkaiq_aibnr${STATIC_LIB_SUFFIX})
 endif()
 
+if (RKAIQ_HAVE_AIRMS)
+target_link_libraries(rkaiq
+    PRIVATE
+    rkaiq_airms
+    )
+list(APPEND RK_AIQ_STATIC_LIB_ARS ${STATIC_LIB_PREFIX}rkaiq_airms${STATIC_LIB_SUFFIX})
+endif()
+
 if(RKAIQ_ISP_VERSION STREQUAL "33" OR RKAIQ_ISP_VERSION STREQUAL "35")
     if(RKAIQ_ISP_VERSION STREQUAL "33")
         set(AUTOBLC_LIBS_DIR ${PROJECT_SOURCE_DIR}/modules/blc_algo/isp33)
@@ -2496,6 +2516,8 @@ endif()
 install(TARGETS rkaiq
     LIBRARY DESTINATION lib)
 install(FILES ${CMAKE_LIBRARY_PATH}/librkaiq.a DESTINATION lib)
+
+add_subdirectory(tests)
 
 # if (RKAIQ_ISP_VERSION STREQUAL "33")
 #     install(FILES modules/blc_algo/libautoblc.so DESTINATION lib)

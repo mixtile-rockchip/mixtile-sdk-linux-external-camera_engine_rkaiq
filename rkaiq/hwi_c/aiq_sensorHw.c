@@ -1105,6 +1105,18 @@ static int SensorHw_getBlank(AiqSensorHw_t* pBaseSns, rk_aiq_exposure_sensor_des
     return 0;
 }
 
+static int SensorHw_getBayerMode(AiqSensorHw_t* pBaseSns, enum rkmodule_bayer_mode *bayer_mode) {
+    enum rkmodule_bayer_mode mode;
+
+    if (AiqV4l2SubDevice_ioctl(pBaseSns->mSd, RKMODULE_GET_BAYER_MODE, &mode) < 0) {
+        *bayer_mode = RKMODULE_NORMAL_BAYER;
+    }
+
+    *bayer_mode = mode;
+
+    return 0;
+}
+
 XCamReturn SensorHw_getSensorModeData(AiqSensorHw_t* pBaseSns, const char* sns_ent_name,
                                       rk_aiq_exposure_sensor_descriptor* sns_des) {
     rk_aiq_exposure_sensor_descriptor sensor_desc;
@@ -1167,6 +1179,7 @@ static XCamReturn SensorHw_getSensorDescriptor(AiqSensorHw_t* pBaseSns,
     if (SensorHw_getDcgRatio(pBaseSns, &sns_des->dcg_ratio)) {
         // do nothing;
     }
+    SensorHw_getBayerMode(pBaseSns, &sns_des->bayer_mode);
 
 #if RKAIQ_HAVE_DUMPSYS
     memcpy(&pBaseSns->desc, sns_des, sizeof(*sns_des));

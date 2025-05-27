@@ -23,12 +23,12 @@ rk_aiq_uapi_alsc_GetAttrib(const RkAiqAlgoContext *ctx,
         lsc_contex->mCurAtt.stManual.lsc_sect_size_y[0] > 8) {
               goto end;
     } else {
-       if (lsc_contex->lscHwConf.x_size_tbl[0] == 0 && 
+       if (lsc_contex->lscHwConf.x_size_tbl[0] == 0 &&
               lsc_contex->lscHwConf.y_size_tbl[0] == 0) {
               goto end;
        }
     }
-    
+
        // use stManual as current hw params
     memcpy(lsc_contex->mCurAtt.stManual.lsc_sect_size_x, lsc_contex->lscHwConf.x_size_tbl,
            sizeof(lsc_contex->mCurAtt.stManual.lsc_sect_size_x));
@@ -52,7 +52,7 @@ rk_aiq_uapi_alsc_QueryLscInfo(const RkAiqAlgoContext *ctx,
                               rk_aiq_lsc_querry_info_t *lsc_querry_info )
 {
 
-    alsc_context_t* lsc_contex = (alsc_context_t*)ctx->alsc_para;;
+    alsc_context_t* lsc_contex = (alsc_context_t*)ctx->alsc_para;
     memcpy(lsc_querry_info->r_data_tbl, lsc_contex->lscHwConf.r_data_tbl, sizeof(lsc_contex->lscHwConf.r_data_tbl));
     memcpy(lsc_querry_info->gr_data_tbl, lsc_contex->lscHwConf.gr_data_tbl, sizeof(lsc_contex->lscHwConf.gr_data_tbl));
     memcpy(lsc_querry_info->gb_data_tbl, lsc_contex->lscHwConf.gb_data_tbl, sizeof(lsc_contex->lscHwConf.gb_data_tbl));

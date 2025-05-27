@@ -234,10 +234,13 @@ typedef struct rk_aiq_singlecam_3a_result_s {
 #if RKAIQ_HAVE_AIBNR
     rk_aiq_isp_aibnr_params_t *isp_aibnr_params;
 #endif
+#if RKAIQ_HAVE_AIRMS
+    rk_aiq_isp_airms_params_t *isp_airms_params;
+#endif
 
     //otp info
     struct rkmodule_awb_inf _otp_awb;
-    struct rkmodule_lsc_inf *_otp_lsc;
+    struct rkmodule_lsc_inf _otp_lsc;
 } rk_aiq_singlecam_3a_result_t;
 
 // for create_contex

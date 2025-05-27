@@ -36,6 +36,7 @@ subdirs = [
     "algos",
     "algos_camgroup",
     "iq_parser_v2",
+    "dumpcam_server"
 ]
 
 cc_prebuilt_library_static {
@@ -104,6 +105,11 @@ cc_rkaiq_library_shared {
         "xcore_c",
         "aiq_core_c",
         "hwi_c",
+        "hwi_c/info",
+        "aiq_core_c/info",
+        "dumpcam_server/include",
+        "dumpcam_server/info/include",
+        "dumpcam_server/ipcs/include",
     ],
 
     header_libs: [

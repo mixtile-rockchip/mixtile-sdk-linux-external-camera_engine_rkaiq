@@ -222,6 +222,7 @@ void AiqIspParamsCvt_getCommonCvtInfo(AiqIspParamsCvt_t* pCvt, AiqList_t* result
         pCvt->mCommonCvtInfo.isFirstFrame = true;
         pCvt->mCommonCvtInfo.pBlcInfo = &pCvt->mBlcInfo;
         pCvt->mCommonCvtInfo.ae_exp = NULL;
+        memset(&pCvt->mCommonCvtInfo.otplsc_res, 0, sizeof(pCvt->mCommonCvtInfo.otplsc_res));
     }
     else {
         pCvt->mCommonCvtInfo.isFirstFrame = false;

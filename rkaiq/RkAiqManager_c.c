@@ -747,7 +747,7 @@ XCamReturn AiqManager_prepare(AiqManager_t* pAiqManager, uint32_t width, uint32_
 
     xcam_mem_clear(sensor_des);
     ret = AiqCamHw_getSensorModeData(pAiqManager->mCamHw, pAiqManager->mSnsEntName, &sensor_des);
-
+    AiqCamHw_setSnsOtpInfo(pAiqManager->mCamHw, &sensor_des.otp_awb, sensor_des.otp_lsc, &pAiqManager->mRkAiqAnalyzer->mUserOtpInfo);
     pAiqManager->sensor_output_width = sensor_des.sensor_output_width;
     pAiqManager->sensor_output_height = sensor_des.sensor_output_height;
     int w, h, aligned_w, aligned_h;
@@ -1142,6 +1142,21 @@ static int __dump_raw(void* self, st_string* result, int argc, void* argv[]) {
         int dump_num = atoi(argv[2]);
 
         ret = AibnrManager_dumpRaw(&mgr->mAibnrManager, dump_num);
+        if (ret)
+            aiq_string_printf(result, "set dump raw flag failed\n");
+        else
+            aiq_string_printf(result, "set dump raw flag success\n");
+
+        aiq_string_printf(result, "\n");
+    }
+#endif
+
+#if RKAIQ_HAVE_AIRMS
+    if (!strcmp(argv[1], "airms")) {
+        int dump_num = atoi(argv[2]);
+
+        if (mgr->mCamHw->mAiRmsProcUnit)
+            ret = AiqAiRmsStreamProcUnit_dumpRaw(mgr->mCamHw->mAiRmsProcUnit, dump_num);
         if (ret)
             aiq_string_printf(result, "set dump raw flag failed\n");
         else

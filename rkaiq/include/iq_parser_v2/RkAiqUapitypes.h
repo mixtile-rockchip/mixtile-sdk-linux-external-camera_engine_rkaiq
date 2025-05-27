@@ -576,6 +576,17 @@ typedef struct {
     // M4_STRUCT_DESC("info", "tuning_status")
     aibnr_status_t info;
 } aibnr_uapi_t;
+
+typedef struct {
+    /* M4_GENERIC_DESC(
+       M4_ALIAS(attr),
+       M4_TYPE(struct),
+       M4_UI_MODULE(tuning_param),
+       M4_REF(/airms)) */
+    airms_api_attrib_t attr;
+    // M4_STRUCT_DESC("info", "tuning_status")
+    airms_status_t info;
+} airms_uapi_t;
 #endif
 
 typedef struct __aiq_scene {
@@ -1223,6 +1234,9 @@ typedef struct __aiq_uapi_t {
 #if defined(ISP_HW_V35)
     // M4_STRUCT_DESC("aibnr_uapi", "iso_list_template")
     aibnr_uapi_t aibnr_uapi;
+
+    // M4_STRUCT_DESC("aibnr_uapi", "iso_list_template")
+    airms_uapi_t airms_uapi;
 #endif
 } RkaiqUapi_t;
 

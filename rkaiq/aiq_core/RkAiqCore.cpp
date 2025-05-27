@@ -531,6 +531,9 @@ RkAiqCore::prepare(const rk_aiq_exposure_sensor_descriptor* sensor_des,
     if (mUserOtpInfo.otp_awb.flag) {
         memcpy(&mAlogsComSharedParams.snsDes.otp_awb, &mUserOtpInfo.otp_awb, sizeof(mUserOtpInfo.otp_awb));
     }
+    if (mUserOtpInfo.otp_lsc.flag) {
+        mAlogsComSharedParams.snsDes.otp_lsc = &mUserOtpInfo.otp_lsc;
+    }
     mAlogsComSharedParams.working_mode = mode;
     mAlogsComSharedParams.spWidth = mSpWidth;
     mAlogsComSharedParams.spHeight = mSpHeight;
@@ -3815,12 +3818,16 @@ XCamReturn RkAiqCore::setUserOtpInfo(rk_aiq_user_otp_info_t otp_info)
         return XCAM_RETURN_ERROR_ANALYZER;
     }
 
-    LOGD_ANALYZER("user awb otp: flag: %d, r:%d,b:%d,gr:%d,gb:%d, golden r:%d,b:%d,gr:%d,gb:%d\n",
+    LOGD_ANALYZER("user awb otp: flag: %d, r:%d,b:%d,gr:%d,gb:%d, golden r:%d,b:%d,gr:%d,gb:%d;\
+                   user lsc otp: flag: %d, r[0]:%d,b[0]:%d,gr[0]:%d,gb[0]:%d\n",
                   otp_info.otp_awb.flag,
                   otp_info.otp_awb.r_value, otp_info.otp_awb.b_value,
                   otp_info.otp_awb.gr_value, otp_info.otp_awb.gb_value,
                   otp_info.otp_awb.golden_r_value, otp_info.otp_awb.golden_b_value,
-                  otp_info.otp_awb.golden_gr_value, otp_info.otp_awb.golden_gb_value);
+                  otp_info.otp_awb.golden_gr_value, otp_info.otp_awb.golden_gb_value,
+                  otp_info.otp_lsc.flag,
+                  otp_info.otp_lsc.lsc_r[0], otp_info.otp_lsc.lsc_gr[0],
+                  otp_info.otp_lsc.lsc_gb[0], otp_info.otp_lsc.lsc_b[0]);
 
     memcpy(&mUserOtpInfo, &otp_info, sizeof(otp_info));
 

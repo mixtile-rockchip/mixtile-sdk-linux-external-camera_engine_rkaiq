@@ -21,6 +21,7 @@
 #include <sys/ioctl.h>
 #include <linux/dma-buf.h>
 #include <fcntl.h>
+#include <dlfcn.h>
 #include "RkAibnrManager.h"
 
 #if RKAIQ_HAVE_AIBNR
@@ -28,6 +29,56 @@
 #define CEIL_DOWN(x, y)                              (((x) + ((y) - 1)) / (y))
 #define FLOOR_BY(v, r)                               (((v) / (r)) * (r))
 #define CEIL_BY(v, r)                                FLOOR_BY(((v) + (r) - 1), (r))
+
+
+static const char* PostBtnrLibraryName = "librkpostbtnr.so";
+
+static bool PostBtnrLibraryInit(struct PostBtnrLibrary* obj) {
+    obj->handle_ = dlopen(PostBtnrLibraryName, RTLD_LAZY);
+    char* error  = dlerror();
+
+    if (obj->handle_ == NULL) {
+        LOGE_AIBNR("Failed to dlopen library : %s, error: %s", PostBtnrLibraryName, error);
+        return false;
+    }
+
+    return true;
+}
+
+static void PostBtnrLibraryDeinit(struct PostBtnrLibrary* obj) {
+    if (obj->handle_ != NULL) {
+        dlclose(obj->handle_);
+    }
+}
+
+static bool PostBtnrLibraryLoadSymbols(struct PostBtnrLibrary* obj) {
+    char* error;
+
+    obj->ops_.btnr_init = (rk_post_btnr_init)dlsym(obj->handle_, "rk_post_btnr_init");
+    error               = dlerror();
+    if (error != NULL) {
+        LOGE_AIBNR("Failed to resolve symbol rk_post_btnr_init error: %s", error);
+        goto error_out;
+    }
+    obj->ops_.btnr_proc = (rk_post_btnr_proc)dlsym(obj->handle_, "rk_post_btnr_proc");
+    error               = dlerror();
+    if (error != NULL) {
+        LOGE_AIBNR("Failed to resolve symbol rk_post_btnr_proc error: %s", error);
+        goto error_out;
+    }
+    obj->ops_.btnr_deinit = (rk_post_btnr_deinit)dlsym(obj->handle_, "rk_post_btnr_deinit");
+    error                 = dlerror();
+    if (error != NULL) {
+        LOGE_AIBNR("Failed to resolve symbol rk_post_btnr_deinit error: %s", error);
+        goto error_out;
+    }
+
+    return true;
+error_out:
+    dlclose(obj->handle_);
+    obj->handle_ = NULL;
+    return false;
+}
 
 static void calcIspBufSize(struct rkaiisp_ispbuf_info *ispbuf_info, int raw_wid, int raw_hgt)
 {
@@ -86,6 +137,7 @@ static int getParamInfo(AibnrManager_t* pAibnrManager, AibnrModelBuf_t *pAibnrMo
             max_size = kwt_size;
     }
 
+    param_info->exealgo    = AIBNR;
     param_info->exemode    = AIBNR_AIISP_MODE;
     param_info->max_runcnt = pAibnrManager->model_max_runcnt;
     param_info->para_size  = max_size + sizeof(struct rkaiisp_params);
@@ -502,6 +554,9 @@ XCamReturn AibnrManager_updateParams(AibnrManager_t* pAibnrManager, rk_aiq_isp_a
 {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
     AiqV4l2Buffer_t* pV4l2Buf = NULL;
+    uint32_t isp_acq_width  = pAibnrManager->isp_acq_width;
+    uint32_t isp_acq_height = pAibnrManager->isp_acq_height;
+    uint32_t val;
 
     if (!pAibnrManager->is_enable) {
         LOGD_AIBNR("%s: aibnr is disabled.", __func__);
@@ -523,8 +578,29 @@ XCamReturn AibnrManager_updateParams(AibnrManager_t* pAibnrManager, rk_aiq_isp_a
         if (ret)
             LOGE_AIBNR("%s: can not prepare aibnr.", __func__);
         mmap_ispbuf(&pAibnrManager->ispbuf_info.bnr_buf, pAibnrManager->ispbuf_addr);
+
+        pAibnrManager->postBtnrParam.rawHgt = isp_acq_height;
+        pAibnrManager->postBtnrParam.rawWid = isp_acq_width;
+        pAibnrManager->postBtnrParam.rawHgtStd = isp_acq_height;
+        val = CEIL_BY(isp_acq_width, 16);
+        val = CEIL_BY(val * 9 / 4, 16);
+        val /= 2;
+        pAibnrManager->postBtnrParam.rawWidStd = val;
+        pAibnrManager->postBtnrParam.pRaw = NULL;
+        val = (isp_acq_width + 7) / 8;
+        pAibnrManager->postBtnrParam.gainWid = CEIL_BY(val, 16);
+        pAibnrManager->postBtnrParam.gainWidStd = CEIL_BY(val, 16);
+        pAibnrManager->postBtnrParam.gainHgt = isp_acq_height / 2;
+        pAibnrManager->postBtnrParam.gainHgtStd = isp_acq_height / 2;
+        pAibnrManager->postBtnrParam.pGain = NULL;
+        pAibnrManager->postBtnrParam.ISO = isp_aibnr_params->frameIso;
+        pAibnrManager->postBtnrParam.gainMode = 1; // fix use mode 1
+        pAibnrManager->postBtnrParam.bayerPattern = isp_aibnr_params->bayer_fmt;
+        if (pAibnrManager->postBtnrLib.ops_.btnr_init)
+            pAibnrManager->postBtnrLib.ops_.btnr_init(&pAibnrManager->postBtnrParam);
         pAibnrManager->is_parambuf_prepare = true;
     }
+
     pAibnrManager->pCamHw->aibnr_getParamsBuf(pAibnrManager->pCamHw, &pV4l2Buf);
     if (pV4l2Buf) {
         struct rkaiisp_params* aiisp_cfg = (struct rkaiisp_params*)(AiqV4l2Buffer_getBuf(pV4l2Buf)->m.userptr);
@@ -631,6 +707,8 @@ XCamReturn AibnrManager_stop(AibnrManager_t* pAibnrManager)
         LOGE_AIBNR("%s: can not stop aibnr.", __func__);
     pAibnrManager->is_start = false;
     pAibnrManager->is_parambuf_prepare = false;
+    if (pAibnrManager->postBtnrLib.ops_.btnr_deinit)
+        pAibnrManager->postBtnrLib.ops_.btnr_deinit(&pAibnrManager->postBtnrParam);
     memset(&pAibnrManager->last_aibnr_params, 0, sizeof(pAibnrManager->last_aibnr_params));
     for (int i = 0; i < AIBNR_AIISP_BUF_CNT; i++) {
         pAibnrManager->aiisp_idx_pool[i] = false;
@@ -645,6 +723,7 @@ XCamReturn AibnrManager_deinit(AibnrManager_t* pAibnrManager)
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
     AibnrModelBuf_t *aibnrModelBuf = &pAibnrManager->mAibnrModelBuf;
 
+    PostBtnrLibraryDeinit(&pAibnrManager->postBtnrLib);
     for (int i = 0; i < AIBNR_ISO_STEP_MAX; i++) {
         if (aibnrModelBuf->model_buf[i] != NULL) {
             aiq_free(aibnrModelBuf->model_buf[i]);
@@ -760,15 +839,82 @@ static XCamReturn copy_gain2aiispout(AibnrManager_t* pAibnrManager, int aiisp_bu
             }
         }
     } else {
+        uint16_t max_narmap_val = 1;
+        uint16_t debug_val = 0;
+
         for (uint32_t i = 0; i < narmap_height; i++) {
             for (uint32_t j = 0; j < narmap_width; j++) {
-                aiisp_addr[i * aiisp_stride + j] = (aipre_addr[i * narmap_stride + j] & 0xFF) << 8;
+                if (aipre_addr[i * narmap_stride + j] > max_narmap_val) {
+                    max_narmap_val = aipre_addr[i * narmap_stride + j];
+                }
+            }
+        }
+        for (uint32_t i = 0; i < narmap_height; i++) {
+            for (uint32_t j = 0; j < narmap_width; j++) {
+                debug_val = 255 * aipre_addr[i * narmap_stride + j] / max_narmap_val;
+                aiisp_addr[i * aiisp_stride + j] = debug_val << 8;
             }
         }
     }
 
     sync.flags = DMA_BUF_SYNC_RW | DMA_BUF_SYNC_END;
     ioctl(aiisp_buf_fd, DMA_BUF_IOCTL_SYNC, &sync);
+
+    return XCAM_RETURN_NO_ERROR;
+}
+
+static XCamReturn do_post_btnr(AibnrManager_t* pAibnrManager, int aiisp_buf_fd, int gain_buf_fd, int aiisp_index, int gain_index)
+{
+    ispbuf_addr_t *ispbuf_addr = pAibnrManager->ispbuf_addr;
+    struct dma_buf_sync sync = { 0 };
+
+    if (!pAibnrManager->postBtnrLib.ops_.btnr_proc)
+        return XCAM_RETURN_NO_ERROR;
+
+    if (gain_index >= AIBNR_GAIN_BUF_CNT || gain_index < 0) {
+        LOGE_AIBNR("%s: gain_index %d is error", __func__, gain_index);
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+    if (aiisp_index >= AIBNR_AIISP_BUF_CNT || aiisp_index < 0) {
+        LOGE_AIBNR("%s: aiisp_index %d is error", __func__, aiisp_index);
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+    if (ispbuf_addr[aiisp_index].aiisp_addr == NULL ||
+        ispbuf_addr[gain_index].gain_addr == NULL) {
+        LOGE_AIBNR("%s: aiisp_addr or gain_addr or aipre_addr is error", __func__);
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+
+    sync.flags = DMA_BUF_SYNC_RW | DMA_BUF_SYNC_START;
+    ioctl(aiisp_buf_fd, DMA_BUF_IOCTL_SYNC, &sync);
+    ioctl(gain_buf_fd, DMA_BUF_IOCTL_SYNC, &sync);
+
+    aiqMutex_lock(&pAibnrManager->iq_param_mutex);
+    pAibnrManager->postBtnrParam.ISO = pAibnrManager->last_aibnr_params.frameIso;
+    aiqMutex_unlock(&pAibnrManager->iq_param_mutex);
+    pAibnrManager->postBtnrParam.pRaw  = (void *)ispbuf_addr[aiisp_index].aiisp_addr;
+    pAibnrManager->postBtnrParam.pGain = (void *)ispbuf_addr[gain_index].gain_addr;
+
+    LOGD_AIBNR("%s: rawHgt %d, rawWid %d, rawHgtStd %d, rawWidStd %d, gainHgt %d, gainWid %d, gainHgtStd %d, gainWidStd %d, ISO %f, gainMode %d, bayerPattern %d, pRaw %p, pGain %p",
+            __func__,
+            pAibnrManager->postBtnrParam.rawHgt,
+            pAibnrManager->postBtnrParam.rawWid,
+            pAibnrManager->postBtnrParam.rawHgtStd,
+            pAibnrManager->postBtnrParam.rawWidStd,
+            pAibnrManager->postBtnrParam.gainHgt,
+            pAibnrManager->postBtnrParam.gainWid,
+            pAibnrManager->postBtnrParam.gainHgtStd,
+            pAibnrManager->postBtnrParam.gainWidStd,
+            pAibnrManager->postBtnrParam.ISO,
+            pAibnrManager->postBtnrParam.gainMode,
+            pAibnrManager->postBtnrParam.bayerPattern,
+            pAibnrManager->postBtnrParam.pRaw,
+            pAibnrManager->postBtnrParam.pGain);
+    pAibnrManager->postBtnrLib.ops_.btnr_proc(&pAibnrManager->postBtnrParam);
+
+    sync.flags = DMA_BUF_SYNC_RW | DMA_BUF_SYNC_END;
+    ioctl(aiisp_buf_fd, DMA_BUF_IOCTL_SYNC, &sync);
+    ioctl(gain_buf_fd, DMA_BUF_IOCTL_SYNC, &sync);
 
     return XCAM_RETURN_NO_ERROR;
 }
@@ -866,6 +1012,9 @@ static XCamReturn AibnrManager_doIspBe(AibnrManager_t* pAibnrManager, struct rki
         aiqMutex_unlock(&pAibnrManager->model_buf_mutex);
     }
 
+    do_post_btnr(pAibnrManager, bnr_buf->u.v35.aiisp.buf_fd[isp_in->aiisp_index],
+        bnr_buf->u.v35.gain.buf_fd[isp_in->gain_index], isp_in->aiisp_index, isp_in->gain_index);
+
     aiqMutex_lock(&pAibnrManager->iq_param_mutex);
     aibnr_debug_mode_t sw_aiBnrT_debug_mode = pAibnrManager->last_aibnr_params.aibnr_param.sta.debug.sw_aiBnrT_debug_mode;
     aiqMutex_unlock(&pAibnrManager->iq_param_mutex);
@@ -892,7 +1041,7 @@ static XCamReturn AibnrManager_doIspBe(AibnrManager_t* pAibnrManager, struct rki
 XCamReturn AibnrManager_hdlEvent(AibnrManager_t* pAibnrManager, AiqHwAinnEvt_t *event)
 {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
-    struct rkisp_aiisp_st *isp_idxbuf = &event->isp_idxbuf;
+    struct rkisp_aiisp_st *isp_idxbuf = &event->queue_buf.aibnr_st;
     struct rkisp_bnr_buf_info *bnr_buf = &pAibnrManager->ispbuf_info.bnr_buf;
     int i, aiisp_idx = 0;
 
@@ -943,7 +1092,7 @@ XCamReturn AibnrManager_hdlEvent(AibnrManager_t* pAibnrManager, AiqHwAinnEvt_t *
             aiqMutex_unlock(&pAibnrManager->idx_pool_mutex);
 
             isp_idxbuf->aiisp_index = aiisp_idx;
-            pAibnrManager->isp_out = event->isp_idxbuf;
+            pAibnrManager->isp_out = event->queue_buf.aibnr_st;
             LOGD_AIBNR("aibnr_doNrnn, frame id %d, iir_index %d, gain_index %d, aipre_gain_index %d, vpsl_index %d, aiisp_index %d",
                 pAibnrManager->isp_out.sequence,
                 pAibnrManager->isp_out.iir_index,
@@ -969,13 +1118,13 @@ XCamReturn AibnrManager_hdlEvent(AibnrManager_t* pAibnrManager, AiqHwAinnEvt_t *
     // aiisp event
     else if (event->_base.type == ISP_POLL_AIBNR_DONE) {
         // inform isp to do BE
-        pAibnrManager->isp_in = event->isp_idxbuf;
+        pAibnrManager->isp_in = event->queue_buf.aibnr_st;
         AibnrManager_doIspBe(pAibnrManager, &pAibnrManager->isp_in);
     }
     // rknn event
     else if (event->_base.type == ISP_POLL_RKNN_DONE) {
         // inform isp to do BE
-        pAibnrManager->isp_in = event->isp_idxbuf;
+        pAibnrManager->isp_in = event->queue_buf.aibnr_st;
         AibnrManager_doIspBe(pAibnrManager, &pAibnrManager->isp_in);
     }
 
@@ -1004,6 +1153,8 @@ XCamReturn AibnrManager_init(AibnrManager_t* pAibnrManager)
     aiqMutex_init(&pAibnrManager->idx_pool_mutex);
     aiqMutex_init(&pAibnrManager->iq_param_mutex);
     aiqMutex_init(&pAibnrManager->model_buf_mutex);
+    if (PostBtnrLibraryInit(&pAibnrManager->postBtnrLib))
+        PostBtnrLibraryLoadSymbols(&pAibnrManager->postBtnrLib);
 
     return ret;
 }

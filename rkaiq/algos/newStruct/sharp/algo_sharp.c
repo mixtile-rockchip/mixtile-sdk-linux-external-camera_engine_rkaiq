@@ -855,6 +855,7 @@ create_context(RkAiqAlgoContext **context, const AlgoCtxInstanceCfg* cfg)
         return XCAM_RETURN_ERROR_MEM;
     }
     ctx->isReCal_ = true;
+    ctx->fStrength    = 0.5f;
     ctx->sharp_attrib =
         (sharp_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(pCalibDbV2, sharp));
 

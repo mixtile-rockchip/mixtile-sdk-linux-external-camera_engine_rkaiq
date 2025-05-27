@@ -290,7 +290,7 @@ typedef struct AiqHwAinnEvt_s {
     AiqHwEvt_t _base;
     int32_t _height;
     uint32_t _event_id;
-    struct rkisp_aiisp_st isp_idxbuf;
+    union rkaiisp_queue_buf queue_buf;
 } AiqHwAinnEvt_t;
 
 typedef struct AiqHwResListener_s {

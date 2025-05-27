@@ -1637,12 +1637,35 @@ typedef struct af_pdaf_s {
         Freq of use: low))  */
     short sw_afT_pdTarget_offset;
     /* M4_GENERIC_DESC(
+        M4_ALIAS(sw_afT_pdNumJobs),
+        M4_TYPE(u16),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,64),
+        M4_DEFAULT(1),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(26),
+        M4_NOTES(Thread number to do calculate.\n
+        Freq of use: low))  */
+    unsigned short sw_afT_pdNumJobs;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(sw_afT_pdDiscardRegion_en),
+        M4_TYPE(bool),
+        M4_DEFAULT(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(27),
+        M4_NOTES(Weather to use cdaf fv to trigger in monitor stat.\n
+        Freq of use: low))  */
+    bool sw_afT_pdUseFvTrigger;
+    /* M4_GENERIC_DESC(
         M4_ALIAS(PdCalibInf),
         M4_TYPE(struct),
         M4_UI_MODULE(normal_ui_style),
         M4_HIDE_EX(0),
         M4_RO(0),
-        M4_ORDER(26),
+        M4_ORDER(28),
         M4_NOTES(Calibration information.\n
         Freq of use: high))  */
     af_pdafCalibInf_t pdCalibInf;
@@ -1655,7 +1678,7 @@ typedef struct af_pdaf_s {
         M4_DIGIT_EX(0),
         M4_HIDE_EX(0),
         M4_RO(0),
-        M4_ORDER(27),
+        M4_ORDER(29),
         M4_NOTES(Confidence adjust factor in muti-window in roi case.\n
         Freq of use: low))  */
     unsigned short sw_afT_pdConfdMwinFactor_val;
@@ -1668,7 +1691,7 @@ typedef struct af_pdaf_s {
         M4_DIGIT_EX(0),
         M4_HIDE_EX(0),
         M4_RO(0),
-        M4_ORDER(28),
+        M4_ORDER(30),
         M4_NOTES(Min fv to switch roi, keep 0 generally.\n
         Freq of use: low))  */
     unsigned int sw_afT_pdCenterMinFv_val;
@@ -1681,7 +1704,7 @@ typedef struct af_pdaf_s {
         M4_DIGIT_EX(3),
         M4_HIDE_EX(0),
         M4_RO(0),
-        M4_ORDER(29),
+        M4_ORDER(31),
         M4_NOTES(Ratio to switch roi, keep 0 generally.\n
         Freq of use: low))  */
     float sw_afT_pdCenterMin_ratio;
@@ -1694,7 +1717,7 @@ typedef struct af_pdaf_s {
         M4_DIGIT_EX(3),
         M4_HIDE_EX(0),
         M4_RO(0),
-        M4_ORDER(30),
+        M4_ORDER(32),
         M4_NOTES(Ratio to judge high light scene.\n
         Freq of use: low))  */
     float sw_afT_pdHighlight_ratio;
@@ -1704,7 +1727,7 @@ typedef struct af_pdaf_s {
         M4_UI_MODULE(normal_ui_style),
         M4_HIDE_EX(0),
         M4_RO(0),
-        M4_ORDER(31),
+        M4_ORDER(33),
         M4_NOTES(Pdaf step ratio.))  */
     af_pdafStepRatio_t pdafStepRatio;
     /* M4_GENERIC_DESC(
@@ -1715,7 +1738,7 @@ typedef struct af_pdaf_s {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_DYNAMIC_EX(1),
-        M4_ORDER(32),
+        M4_ORDER(34),
         M4_NOTES(Parameter table changed with iso.\n
         Freq of use: high))  */
     af_pdafIsoPara_t pdIsoParaTbl[AF_MAX_ISO_LEVEL];
@@ -1728,7 +1751,7 @@ typedef struct af_pdaf_s {
         M4_DIGIT_EX(0),
         M4_HIDE_EX(0),
         M4_RO(0),
-        M4_ORDER(33),
+        M4_ORDER(35),
         M4_NOTES(Length of parameter table changed with iso.\n
         Freq of use: high))  */
     int sw_afT_pdIsoParaTbl_len;
@@ -1740,7 +1763,7 @@ typedef struct af_pdaf_s {
         M4_HIDE_EX(0),
         M4_RO(0),
         M4_DYNAMIC_EX(1),
-        M4_ORDER(34),
+        M4_ORDER(36),
         M4_NOTES(Resolution information table.\n
         Freq of use: high))  */
     af_pdafResolution_t pdResoInfTbl[AF_PDAF_RESOLUTION_INFO_TBL_SIZE];
@@ -1753,7 +1776,7 @@ typedef struct af_pdaf_s {
         M4_DIGIT_EX(0),
         M4_HIDE_EX(0),
         M4_RO(0),
-        M4_ORDER(35),
+        M4_ORDER(37),
         M4_NOTES(Length of resolution information table.\n
         Freq of use: high))  */
     int sw_afT_pdResoInfTbl_len;

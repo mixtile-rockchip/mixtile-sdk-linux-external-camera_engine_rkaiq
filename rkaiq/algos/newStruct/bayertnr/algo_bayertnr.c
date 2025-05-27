@@ -447,8 +447,13 @@ XCamReturn BtnrSelectParam
     out->mdMeDyn.loMd.hw_btnrT_preWgtMge_offset = interpolation_f32(
                 paut->mdMeDyn[ilow].loMd.hw_btnrT_preWgtMge_offset, paut->mdMeDyn[ihigh].loMd.hw_btnrT_preWgtMge_offset, ratio);
 
+#if defined(RKAIQ_HAVE_BAYERTNR_V41)
     out->mdMeDyn.loAsRatio_hiMd0.sw_btnrT_hfLpf_strg = interpolation_f32(
                 paut->mdMeDyn[ilow].loAsRatio_hiMd0.sw_btnrT_hfLpf_strg, paut->mdMeDyn[ihigh].loAsRatio_hiMd0.sw_btnrT_hfLpf_strg, ratio);
+#else
+    out->mdMeDyn.hiMd.sw_btnrT_hfLpf_strg = interpolation_f32(
+            paut->mdMeDyn[ilow].hiMd.sw_btnrT_hfLpf_strg, paut->mdMeDyn[ihigh].hiMd.sw_btnrT_hfLpf_strg, ratio);
+#endif
     out->mdMeDyn.loAsRatio_hiMd0.hw_btnrT_loWgtStat_scale = interpolation_f32(
                 paut->mdMeDyn[ilow].loAsRatio_hiMd0.hw_btnrT_loWgtStat_scale, paut->mdMeDyn[ihigh].loAsRatio_hiMd0.hw_btnrT_loWgtStat_scale, ratio);
     out->mdMeDyn.loAsRatio_hiMd0.hw_btnrT_loWgtStatHdrS_scale = interpolation_f32(
@@ -575,8 +580,8 @@ XCamReturn BtnrSelectParam
     out->spNrDyn.outFrmFusion.noiseBal_preBaseOut.hw_btnrT_hiNoiseBal_strg = interpolation_f32(
                 paut->spNrDyn[ilow].outFrmFusion.noiseBal_preBaseOut.hw_btnrT_hiNoiseBal_strg, paut->spNrDyn[ihigh].outFrmFusion.noiseBal_preBaseOut.hw_btnrT_hiNoiseBal_strg, ratio);
     out->spNrDyn.outFrmFusion.noiseBal_preBaseOut.hw_btnrT_midNoiseBal_strg = interpolation_f32(
-        paut->spNrDyn[ilow].outFrmFusion.noiseBal_preBaseOut.hw_btnrT_midNoiseBal_strg, paut->spNrDyn[ihigh].outFrmFusion.noiseBal_preBaseOut.hw_btnrT_midNoiseBal_strg, ratio);
-    
+                paut->spNrDyn[ilow].outFrmFusion.noiseBal_preBaseOut.hw_btnrT_midNoiseBal_strg, paut->spNrDyn[ihigh].outFrmFusion.noiseBal_preBaseOut.hw_btnrT_midNoiseBal_strg, ratio);
+
     out->mdMeDyn.subLoMd0.diffCh.hw_btnrT_hFilt_strg = interpolation_f32(
                 paut->mdMeDyn[ilow].subLoMd0.diffCh.hw_btnrT_hFilt_strg, paut->mdMeDyn[ihigh].subLoMd0.diffCh.hw_btnrT_hFilt_strg, ratio);
     out->mdMeDyn.subLoMd0.sgmCh.hw_btnrT_hFilt_strg = interpolation_f32(

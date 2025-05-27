@@ -3380,11 +3380,11 @@ XCamReturn rk_aiq_uapi2_getSharpness(const rk_aiq_sys_ctx_t* ctx, unsigned int *
             fPercent = sharpV34Strength.percent;
         }
     */
-    if (CHECK_ISP_HW_V39()) {
-        asharp_strength_t sharpStrength;
-        ret = rk_aiq_user_api2_sharp_GetStrength(ctx, &sharpStrength);
-        fPercent = sharpStrength.percent;
-    }
+
+    asharp_strength_t sharpStrength;
+    ret = rk_aiq_user_api2_sharp_GetStrength(ctx, &sharpStrength);
+    fPercent = sharpStrength.percent;
+
     RKAIQ_IMGPROC_CHECK_RET(ret, "get sharpeness failed!");
 
     *level = (unsigned int)(fPercent * 100);

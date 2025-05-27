@@ -589,6 +589,8 @@ typedef struct {
 } rk_aiq_pdaf_algo_isopara_t;
 
 typedef struct rk_aiq_pdaf_resolution_s {
+    unsigned short imageWidth;
+    unsigned short imageHeight;
     unsigned short pdOutWidth;
     unsigned short pdOutHeight;
     unsigned short pdCropX;
@@ -630,6 +632,8 @@ typedef struct {
     float pdSatCntRatio;
     float pdLessTextureRatio;
     short pdTargetOffset;
+    unsigned short pdNumJobs;
+    bool pdUseFvTrigger;
     rk_aiq_pdaf_resolution_t pdResoInf;
 } rk_aiq_pdaf_algo_config_t;
 

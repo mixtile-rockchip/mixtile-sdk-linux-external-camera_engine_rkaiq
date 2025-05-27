@@ -82,6 +82,8 @@
 #include "algos/rk_aiq_api_types_rgbir.h"
 #include "isp/rk_aiq_isp_aibnr.h"
 #include "algos/rk_aiq_api_types_aibnr.h"
+#include "isp/rk_aiq_isp_airms.h"
+#include "algos/rk_aiq_api_types_airms.h"
 #include "isp/rk_aiq_isp_af33.h"
 //#include "algos/rk_aiq_api_types_af.h"
 RKAIQ_BEGIN_DECLARE
@@ -163,6 +165,8 @@ typedef struct {
     af_param_t af_calib;
     // M4_STRUCT_DESC("aibnr", "normal_ui_style")
     aibnr_api_attrib_t aibnr;
+    // M4_STRUCT_DESC("airms", "normal_ui_style")
+    airms_api_attrib_t airms;
 } CamCalibDbV2ContextIsp35_t;
 
 RKAIQ_END_DECLARE

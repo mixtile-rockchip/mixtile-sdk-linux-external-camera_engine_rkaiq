@@ -34,6 +34,48 @@ RKAIQ_BEGIN_DECLARE
 
 #if RKAIQ_HAVE_AIBNR
 
+typedef struct rk_post_btnr_param_s {
+    // rawInfo
+    int rawHgt;
+    int rawWid;
+    int rawHgtStd;
+    int rawWidStd;
+
+    void* pRaw;
+
+    // gainInfo
+    int gainHgt;
+    int gainWid;
+    int gainHgtStd;
+    int gainWidStd;
+
+    void* pGain;
+
+    float ISO;
+    int gainMode;
+    int bayerPattern; // 0--BGGR,1--GBRG,2--GRBG,3--RGGB
+} rk_post_btnr_param;
+
+typedef int (*rk_post_btnr_init)(rk_post_btnr_param* param);
+typedef int (*rk_post_btnr_proc)(rk_post_btnr_param* param);
+typedef int (*rk_post_btnr_deinit)(rk_post_btnr_param* param);
+
+struct PostBtnrOps {
+    rk_post_btnr_init btnr_init;
+    rk_post_btnr_proc btnr_proc;
+    rk_post_btnr_deinit btnr_deinit;
+};
+
+struct PostBtnrLibrary;
+struct PostBtnrLibrary {
+    bool (*Init)(struct PostBtnrLibrary* obj);
+    bool (*LoadSymbols)(struct PostBtnrLibrary* obj);
+    void (*Deinit)(struct PostBtnrLibrary* obj);
+
+    void* handle_;
+    struct PostBtnrOps ops_;
+};
+
 typedef struct ispbuf_addr_s {
     char *iir_addr;
     char *gain_addr;
@@ -76,6 +118,8 @@ typedef struct AibnrManager_s {
     AiqMutex_t iq_param_mutex;
     AiqMutex_t model_buf_mutex;
 
+    struct PostBtnrLibrary postBtnrLib;
+    rk_post_btnr_param postBtnrParam;
 } AibnrManager_t;
 
 XCamReturn AibnrManager_init(AibnrManager_t* pAibnrManager);

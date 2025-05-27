@@ -21,6 +21,7 @@
 #include "st_string.h"
 
 void hsv_dump_mod_param(const RkAiqAlgoCom* self, st_string* result);
+void hsv_v11_dump_mod_param(const RkAiqAlgoCom* self, st_string* result);
 void hsv_dump_mod_attr(const RkAiqAlgoCom* self, st_string* result);
 void hsv_dump_mod_status(const RkAiqAlgoCom* self, st_string* result);
 

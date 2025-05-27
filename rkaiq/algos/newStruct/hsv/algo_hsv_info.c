@@ -43,6 +43,89 @@ void hsv_dump_mod_param(const RkAiqAlgoCom* self, st_string* result) {
     aiq_string_printf(result, buffer);
     aiq_string_printf(result, "\n\n");
 }
+#if RKAIQ_HAVE_HSV_V11
+void hsv_v11_dump_mod_param(const RkAiqAlgoCom* self, st_string* result) {
+    char buffer[MAX_LINE_LENGTH] = {0};
+
+    aiq_info_dump_title(result, "module param");
+
+    HsvContext_t* ctx = (HsvContext_t*)(self->ctx);
+    hsv_api_attrib_t* tunning = &ctx->hsv_calib->tunning;
+
+    snprintf(buffer, MAX_LINE_LENGTH, "%-10s%-8s%-8s%-8s%-8s%-8s", "lutmode", "lut1d0", "lut1d1", "lut2d", "lut2d1", "lut2d2");
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n");
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+
+    snprintf(buffer, MAX_LINE_LENGTH,
+             "%-10s%-8s%-8s%-8s%-8s%-8s",
+             tunning->stAuto.sta.hsvCfg.hw_hsvT_lut_mode ? "1dAnd2d" : "only2d",
+             tunning->stAuto.sta.hsvCfg.hw_hsvT_lut1d0_en ? "on" : "off",
+             tunning->stAuto.sta.hsvCfg.hw_hsvT_lut1d1_en ? "on" : "off",
+             tunning->stAuto.sta.hsvCfg.hw_hsvT_lut2d_en ? "on" : "off",
+             tunning->stAuto.sta.hsvCfg.hw_hsvT_lut2d1_en ? "on" : "off",
+             tunning->stAuto.sta.hsvCfg.hw_hsvT_lut2d2_en ? "on" : "off");
+
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
+}
+#endif
+
+void hsv_lut1d_dump_mod_attr(int16_t* lut, char* lutname, int mode, st_string* result) {
+    char buffer[MAX_LINE_LENGTH] = {0};
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+
+    snprintf(buffer, MAX_LINE_LENGTH,
+             "%-8s%-8s%-8s%-12d%-12d%-12s",
+             lutname,
+             mode > 2 ? "Sat" : "Hue",
+             mode > 0 ? "Hue" : (mode % 2 ? "Value" : "Sat"),
+             lut[4], lut[21], "--");
+
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
+}
+
+void hsv_lut2d_dump_mod_attr(int16_t* lut, char* lutname, int mode, st_string* result) {
+    char buffer[MAX_LINE_LENGTH] = {0};
+
+    memset(buffer, 0, MAX_LINE_LENGTH);
+
+    char chl_out[5] = {0};
+    char chl_in[5] = {0};
+    if (mode >> 2) {
+        snprintf(chl_out, 5, "%s", "Val");
+        if (mode > 4) {
+            snprintf(chl_in, 5, "%s", "SxV");
+        } else {
+            snprintf(chl_in, 5, "%s", "HxV");
+        }
+    } else if (mode >> 1) {
+        snprintf(chl_out, 5, "%s", "Sat");
+        if (mode > 2) {
+            snprintf(chl_in, 5, "%s", "HxS");
+        } else {
+            snprintf(chl_in, 5, "%s", "SxV");
+        }
+    } else {
+        snprintf(chl_out, 5, "%s", "Hue");
+        if (mode > 0) {
+            snprintf(chl_in, 5, "%s", "HxV");
+        } else {
+            snprintf(chl_in, 5, "%s", "HxS");
+        }
+    }
+
+    snprintf(buffer, MAX_LINE_LENGTH,
+             "%-8s%-8s%-8s%-12d%-12d%-12d",
+             lutname, chl_in, chl_out,
+             lut[4], lut[21], lut[177]);
+
+    aiq_string_printf(result, buffer);
+    aiq_string_printf(result, "\n\n");
+}
 
 void hsv_dump_mod_attr(const RkAiqAlgoCom* self, st_string* result) {
     char buffer[MAX_LINE_LENGTH] = {0};
@@ -56,72 +139,24 @@ void hsv_dump_mod_attr(const RkAiqAlgoCom* self, st_string* result) {
     aiq_string_printf(result, buffer);
     aiq_string_printf(result, "\n");
 
-    int16_t* mat_tmp = ctx->undamped_lut.lut0;
+    hsv_lut1d_dump_mod_attr(ctx->undamped_lut.lut0, "lut1d0",
+                    ctx->calib_lut->lut1d0.hw_hsvT_lut1d_mode, result);
 
-    memset(buffer, 0, MAX_LINE_LENGTH);
+    hsv_lut1d_dump_mod_attr(ctx->undamped_lut.lut1, "lut1d1",
+                    ctx->calib_lut->lut1d1.hw_hsvT_lut1d_mode, result);
 
-    snprintf(buffer, MAX_LINE_LENGTH,
-             "%-8s%-8s%-8s%-12d%-12d%-12s",
-             "lut1d0",
-             ctx->calib_lut->lut1d0.hw_hsvT_lut1d_mode > 2 ? "Sat" : "Hue", 
-             ctx->calib_lut->lut1d0.hw_hsvT_lut1d_mode > 0 ? "Hue" :
-                (ctx->calib_lut->lut1d0.hw_hsvT_lut1d_mode % 2 ? "Value" : "Sat"),
-             mat_tmp[4], mat_tmp[21], "--");
+    hsv_lut2d_dump_mod_attr(ctx->undamped_lut.lut2, "lut2d",
+                            ctx->calib_lut->lut2d.hw_hsvT_lut2d_mode,
+                            result);
+#if RKAIQ_HAVE_HSV_V11
+    hsv_lut2d_dump_mod_attr(ctx->undamped_lut.lut2d1, "lut2d1",
+                            ctx->calib_lut->lut2d1.hw_hsvT_lut2d_mode,
+                            result);
 
-    aiq_string_printf(result, buffer);
-    aiq_string_printf(result, "\n\n");
-
-    mat_tmp = ctx->undamped_lut.lut1;
-
-    memset(buffer, 0, MAX_LINE_LENGTH);
-
-    snprintf(buffer, MAX_LINE_LENGTH,
-             "%-8s%-8s%-8s%-12d%-12d%-12s",
-             "lut1d1", 
-             ctx->calib_lut->lut1d1.hw_hsvT_lut1d_mode > 2 ? "Sat" : "Hue", 
-             ctx->calib_lut->lut1d1.hw_hsvT_lut1d_mode > 0 ? "Hue" :
-                (ctx->calib_lut->lut1d1.hw_hsvT_lut1d_mode % 2 ? "Val" : "Sat"),
-             mat_tmp[4], mat_tmp[21], "--");
-
-    aiq_string_printf(result, buffer);
-    aiq_string_printf(result, "\n\n");
-
-    mat_tmp = ctx->undamped_lut.lut2;
-    char chl_out[5] = {0};
-    char chl_in[5] = {0};
-    if (ctx->calib_lut->lut2d.hw_hsvT_lut2d_mode >> 2) {
-        snprintf(chl_out, 5, "%s", "Val");
-        if (ctx->calib_lut->lut2d.hw_hsvT_lut2d_mode > 4) {
-            snprintf(chl_in, 5, "%s", "SxV");
-        } else {
-            snprintf(chl_in, 5, "%s", "HxV");
-        }
-    } else if (ctx->calib_lut->lut2d.hw_hsvT_lut2d_mode >> 1) {
-        snprintf(chl_out, 5, "%s", "Sat");
-        if (ctx->calib_lut->lut2d.hw_hsvT_lut2d_mode > 2) {
-            snprintf(chl_in, 5, "%s", "HxS");
-        } else {
-            snprintf(chl_in, 5, "%s", "SxV");
-        }
-    } else {
-        snprintf(chl_out, 5, "%s", "Hue");
-        if (ctx->calib_lut->lut2d.hw_hsvT_lut2d_mode > 0) {
-            snprintf(chl_in, 5, "%s", "HxV");
-        } else {
-            snprintf(chl_in, 5, "%s", "HxS");
-        }
-    }
-
-    memset(buffer, 0, MAX_LINE_LENGTH);
-
-    snprintf(buffer, MAX_LINE_LENGTH,
-             "%-8s%-8s%-8s%-12d%-12d%-12d",
-             "lut2d", 
-             chl_in, chl_out,
-             mat_tmp[4], mat_tmp[21], mat_tmp[177]);
-
-    aiq_string_printf(result, buffer);
-    aiq_string_printf(result, "\n\n");
+    hsv_lut2d_dump_mod_attr(ctx->undamped_lut.lut2d2, "lut2d2",
+                            ctx->calib_lut->lut2d2.hw_hsvT_lut2d_mode,
+                            result);
+#endif
 }
 
 void hsv_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
@@ -158,7 +193,7 @@ void hsv_dump_mod_status(const RkAiqAlgoCom* self, st_string* result) {
 
     memset(buffer, 0, MAX_LINE_LENGTH);
     snprintf(buffer, MAX_LINE_LENGTH, "%-8d%-12d%-8s%-16s%-10.4f",
-             self->cid, self->frame_id, 
+             self->cid, self->frame_id,
              tunning->stAuto.sta.sw_hsvT_damp_en ? "Y" : "N",
              ctx->damp_converged ? "Y" : "N", swinfo->awbIIRDampCoef);
 

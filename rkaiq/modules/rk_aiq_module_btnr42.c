@@ -530,7 +530,7 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     pCfg->md_large_lo_gauss_filter_bypass_en = !pmdDyn->subDeepLoMd.hw_btnrT_lpf_en;
     pCfg->md_large_lo_md_wgt_bypass_en = !pmdDyn->subDeepLoMd.hw_btnrT_dLoMd_en;
     pCfg->pre_pix_out_mode = pmdDyn->frmFusion.hw_btnrT_frmFusion_mode;
-    pCfg->lpf_hi_bypass_en = !pmdDyn->loAsRatio_hiMd0.hw_btnrT_hfLpf_en;
+    pCfg->lpf_hi_bypass_en = !pmdDyn->hiMd.hw_btnrT_hfLpf_en;
     pCfg->lo_diff_vfilt_bypass_en = !pmdDyn->subLoMd0.diffCh.hw_btnrT_vFilt_en;
     pCfg->lpf_lo_bypass_en = !pmdDyn->subLoMd1.hw_btnrT_lpf_en;
     pCfg->lo_wgt_hfilt_en = pmdDyn->subLoMd1.hw_btnrT_hFilt_en;
@@ -630,7 +630,7 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
                                        pdyn->preDpc.dpc_nsBalSfThd.hw_btnrT_preWgt_en : pdyn->preDpc.dpc_nsBalNsStrg.hw_btnrT_preWgt_en;
 
     // REG: BAY3D_CTRL3
-    if (pmdDyn->hw_btnrT_md_mode == btnr_loAsRatio_hi0_mode) {
+    if (pmdDyn->hiMd.hw_btnrT_md_mode == btnr_loAsRatio_hi0_mode) {
         pCfg->wgt_cal_mode = 0;
     } else {
         pCfg->wgt_cal_mode = 1;
@@ -771,11 +771,11 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
 
     {
         int coeff[9];
-        if (pmdDyn->loAsRatio_hiMd0.sw_btnrT_hfLpfCfg_mode == btnr_cfgByFiltStrg_mode) {
-            bay_gauss7x5_filter_coeff(pmdDyn->loAsRatio_hiMd0.sw_btnrT_hfLpf_strg, 5, 7, 7, coeff);
+        if (pmdDyn->hiMd.sw_btnrT_hfLpfCfg_mode == btnr_cfgByFiltStrg_mode) {
+            bay_gauss7x5_filter_coeff(pmdDyn->hiMd.sw_btnrT_hfLpf_strg, 5, 7, 7, coeff);
         } else {
             for (i = 0; i < 9; i++)
-                coeff[i] = pmdDyn->loAsRatio_hiMd0.hw_btnrT_hfLpfSpatial_wgt[i];
+                coeff[i] = pmdDyn->hiMd.hw_btnrT_hfLpfSpatial_wgt[i];
         }
         // REG: BAY3D_HIWD0
         pCfg->lpf_hi_coeff[0] = CLIP(coeff[0], 0, 0x3ff);
@@ -1037,7 +1037,7 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     pCfg->mode0_wgt_out_max_limit = CLIP(tmp, 0, 0x7ff);
     tmp = (pmdDyn->mdWgtFilt.hw_btnrT_mdWgt_offset) * (1 << 10);
     pCfg->mode0_wgt_out_offset = CLIP(tmp, 0, 0x3ff);
-    if(pmdDyn->hw_btnrT_md_mode == btnr_loAsBias_hi1_mode) {
+    if(pmdDyn->hiMd.hw_btnrT_md_mode == btnr_loAsBias_hi1_mode) {
         pCfg->mode0_wgt_out_offset = 0;
     }
     /* BAY3D_LOCOEF0 */

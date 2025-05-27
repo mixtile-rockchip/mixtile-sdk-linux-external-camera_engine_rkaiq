@@ -88,6 +88,7 @@ typedef enum {
     XCORE_LOG_MODULE_AHSV,       // 10000000000FFF
     XCORE_LOG_MODULE_AIBNR,       // 20000000000FFF
     XCORE_LOG_MODULE_AMTD,       // 40000000000FFF
+    XCORE_LOG_MODULE_AIRMS,      // 80000000000FFF
 #if RKAIQ_HAVE_DUMPSYS
     XCORE_LOG_MODULE_ALL,
 #endif
@@ -322,29 +323,29 @@ extern xcore_cam_log_module_info_t g_xcore_log_infos[XCORE_LOG_MODULE_MAX];
 
 #define LOGK_AF(format,...)                                                                         \
     do {                                                                                            \
-        xcam_print_log(XCORE_LOG_MODULE_AF, XCORE_LOG_LEVEL_NONE, "K:" format "\n", ##__VA_ARGS__); \
+        xcam_print_log(XCORE_LOG_MODULE_AF, XCORE_LOG_LEVEL_NONE, "K:" format, ##__VA_ARGS__); \
     } while (0)
 #define LOGE_AF(format,...)                                                                         \
     do {                                                                                            \
-        xcam_print_log(XCORE_LOG_MODULE_AF, XCORE_LOG_LEVEL_ERR, "E:" format "\n", ##__VA_ARGS__);  \
+        xcam_print_log(XCORE_LOG_MODULE_AF, XCORE_LOG_LEVEL_ERR, "E:" format, ##__VA_ARGS__);  \
     } while (0)
 
 #define LOGW_AF(format,...)                                                                         \
     do {                                                                                            \
         if (XCORE_LOG_LEVEL_WARNING <= g_xcore_log_infos[XCORE_LOG_MODULE_AF].log_level)            \
-            xcam_print_log(XCORE_LOG_MODULE_AF, XCORE_LOG_LEVEL_WARNING, "W:" format "\n",          \
+            xcam_print_log(XCORE_LOG_MODULE_AF, XCORE_LOG_LEVEL_WARNING, "W:" format,          \
                            ##__VA_ARGS__);                                                          \
     } while (0)
 #define LOGI_AF(format,...)                                                                         \
     do {                                                                                            \
         if (XCORE_LOG_LEVEL_INFO <= g_xcore_log_infos[XCORE_LOG_MODULE_AF].log_level)               \
-            xcam_print_log(XCORE_LOG_MODULE_AF, XCORE_LOG_LEVEL_INFO, "I:" format "\n",             \
+            xcam_print_log(XCORE_LOG_MODULE_AF, XCORE_LOG_LEVEL_INFO, "I:" format,             \
                            ##__VA_ARGS__);                                                          \
     } while (0)
 #define LOGD_AF(format,...)                                                                         \
     do {                                                                                            \
         if (XCORE_LOG_LEVEL_DEBUG <= g_xcore_log_infos[XCORE_LOG_MODULE_AF].log_level)              \
-            xcam_print_log(XCORE_LOG_MODULE_AF, XCORE_LOG_LEVEL_DEBUG, "D:" format "\n",            \
+            xcam_print_log(XCORE_LOG_MODULE_AF, XCORE_LOG_LEVEL_DEBUG, "D:" format,            \
                            ##__VA_ARGS__);                                                          \
     } while (0)
 #define LOGV_AF(...)
@@ -703,7 +704,7 @@ extern xcore_cam_log_module_info_t g_xcore_log_infos[XCORE_LOG_MODULE_MAX];
 #define LOGW_AIBNR(...) XCAM_MODULE_LOG_WARNING(XCORE_LOG_MODULE_AIBNR, 0xff, ##__VA_ARGS__)
 #define LOGV_AIBNR(...) XCAM_MODULE_LOG_VERBOSE(XCORE_LOG_MODULE_AIBNR, 0xff, ##__VA_ARGS__)
 #define LOGI_AIBNR(...) XCAM_MODULE_LOG_INFO(XCORE_LOG_MODULE_AIBNR, 0xff, ##__VA_ARGS__)
-#define LOG1_AIBNR(...) XCAM_MODULE_LOG_LOW1(XCORE_LOG_MODULE_ANR, 0xff, ##__VA_ARGS__)
+#define LOG1_AIBNR(...) XCAM_MODULE_LOG_LOW1(XCORE_LOG_MODULE_AIBNR, 0xff, ##__VA_ARGS__)
 #define LOGK_AIBNR(...) XCAM_MODULE_LOG_KEY(XCORE_LOG_MODULE_AIBNR, 0xff, ##__VA_ARGS__)
 
 // define AMD module logs
@@ -715,6 +716,14 @@ extern xcore_cam_log_module_info_t g_xcore_log_infos[XCORE_LOG_MODULE_MAX];
 #define LOG1_AMTD(...) XCAM_MODULE_LOG_LOW1(XCORE_LOG_MODULE_AMTD, 0xff, ##__VA_ARGS__)
 #define LOGK_AMTD(...) XCAM_MODULE_LOG_KEY(XCORE_LOG_MODULE_AMTD, 0xff, ##__VA_ARGS__)
 
+// define airms module logs
+#define LOGD_AIRMS(...) XCAM_MODULE_LOG_DEBUG(XCORE_LOG_MODULE_AIRMS, 0xff, ##__VA_ARGS__)
+#define LOGE_AIRMS(...) XCAM_MODULE_LOG_ERROR(XCORE_LOG_MODULE_AIRMS, 0xff, ##__VA_ARGS__)
+#define LOGW_AIRMS(...) XCAM_MODULE_LOG_WARNING(XCORE_LOG_MODULE_AIRMS, 0xff, ##__VA_ARGS__)
+#define LOGV_AIRMS(...) XCAM_MODULE_LOG_VERBOSE(XCORE_LOG_MODULE_AIRMS, 0xff, ##__VA_ARGS__)
+#define LOGI_AIRMS(...) XCAM_MODULE_LOG_INFO(XCORE_LOG_MODULE_AIRMS, 0xff, ##__VA_ARGS__)
+#define LOG1_AIRMS(...) XCAM_MODULE_LOG_LOW1(XCORE_LOG_MODULE_AIRMS, 0xff, ##__VA_ARGS__)
+#define LOGK_AIRMS(...) XCAM_MODULE_LOG_KEY(XCORE_LOG_MODULE_AIRMS, 0xff, ##__VA_ARGS__)
 
 #if defined(USE_IMPLEMENT_C)
 #define XCAM_LOG_MODULE_ENTER(module)

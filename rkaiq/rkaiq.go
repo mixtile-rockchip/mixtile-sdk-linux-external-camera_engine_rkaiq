@@ -21,7 +21,11 @@ func rkaiqFlags(ctx android.BaseContext) []string {
     var cflags []string
     //fmt.Fprintf(os.Stderr, "%s\n", "deviceFlags called") //example prints
     //fmt.Fprintf(os.Stderr, "%s\n", ctx.AConfig())
-    board := ctx.Config().Getenv("TARGET_BOARD_PLATFORM") //currently using this for reference but you can refer to README for other variables.
+    var board  string
+    board = ctx.Config().Getenv("TARGET_BOARD_PLATFORM") //currently using this for reference but you can refer to README for other variables.
+    if(board == ""){
+        board = ctx.Config().VendorConfig("core_rockchip").String("platform")
+    }
     fmt.Fprintf(os.Stderr, ">>>>>>>>>>>>>>>>>>>>> %s\n", board)
     if board == "rv1126" {
        cflags = append(cflags, "-DISP_HW_V20")

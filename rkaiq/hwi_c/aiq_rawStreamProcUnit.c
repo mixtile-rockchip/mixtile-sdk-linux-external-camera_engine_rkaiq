@@ -114,6 +114,7 @@ void trigger_isp_readback(AiqRawStreamProcUnit_t* pRawStrProcUnit) {
         return;
     }
 
+RESTART:
     mapItem  = aiqMap_begin(pRawStrProcUnit->_isp_hdr_fid2ready_map);
     sequence = (intptr_t)mapItem->_key;
 
@@ -229,6 +230,10 @@ void trigger_isp_readback(AiqRawStreamProcUnit_t* pRawStrProcUnit) {
             aiqMutex_lock(&pRawStrProcUnit->_buf_mutex);
             // CaptureRawData::getInstance().update_capture_raw_status(_first_trigger);
         }
+    }
+
+    if (aiqMap_size(pRawStrProcUnit->_isp_hdr_fid2ready_map) > 0) {
+        goto RESTART;
     }
 out:
     aiqMutex_unlock(&pRawStrProcUnit->_buf_mutex);
@@ -657,6 +662,12 @@ XCamReturn AiqRawStreamProcUnit_set_rx_format(AiqRawStreamProcUnit_t* pRawStrPro
             break;
         }
 
+        if (pRawStrProcUnit->_camHw->_airms_en) {
+            int mem_mode = CSI_MEM_WORD_BIG_ALIGN;
+            int ret1 = pRawStrProcUnit->_dev[i]->io_control(
+                       pRawStrProcUnit->_dev[i], RKISP_CMD_SET_CSI_MEMORY_MODE, &mem_mode);
+        }
+
         ret = AiqV4l2Device_setFmt(pRawStrProcUnit->_dev[i], sns_sd_fmt->format.width,
                                    sns_sd_fmt->format.height, sns_v4l_pix_fmt, V4L2_FIELD_NONE, 0);
         if (ret < 0) {
@@ -682,6 +693,13 @@ XCamReturn AiqRawStreamProcUnit_set_rx_format2(AiqRawStreamProcUnit_t* pRawStrPr
         if (!pRawStrProcUnit->_dev[i]) {
             ret = XCAM_RETURN_ERROR_PARAM;
             break;
+        }
+
+        int mem_mode = CSI_MEM_COMPACT;
+        if (pRawStrProcUnit->_camHw->_airms_en) {
+            int mem_mode = CSI_MEM_WORD_BIG_ALIGN;
+            int ret1     = pRawStrProcUnit->_dev[i]->io_control(
+                           pRawStrProcUnit->_dev[i], RKISP_CMD_SET_CSI_MEMORY_MODE, &mem_mode);
         }
 
         ret = AiqV4l2Device_setFmt(pRawStrProcUnit->_dev[i], sns_sd_sel->r.width,

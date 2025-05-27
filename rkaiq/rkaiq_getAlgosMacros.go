@@ -595,6 +595,11 @@ func rkaiq_getAlgosMacros(macros_map map[string]bool) []string {
         }
     }
 
+    flag0 = macros_map["RKAIQ_HAVE_DUMPSYS"]
+    if (flag0) {
+        cflags = append(cflags, "-DRKAIQ_HAVE_DUMPSYS=1")
+    }
+
     for i, v := range cflags {
         fmt.Printf("%d %s\n", i, v)
     }

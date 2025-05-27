@@ -505,6 +505,15 @@ func rkaiq_getAlgosLib(macros_map map[string]bool) []string {
         static_lib = append(static_lib, "librkaiq_thirdaf")
     }
 
+    flag0 = macros_map["RKAIQ_HAVE_DUMPSYS"]
+    if flag0 {
+        static_lib = append(static_lib, "librkaiq_dumpcam_server")
+        static_lib = append(static_lib, "librkaiq_ipcs")
+        static_lib = append(static_lib, "librkaiq_info")
+        static_lib = append(static_lib, "librkaiq_cjson")
+        static_lib = append(static_lib, "librkaiq_argparse")
+    }
+
     // for i, v := range static_lib {
     //     fmt.Printf("%d %s\n", i, v)
     // }

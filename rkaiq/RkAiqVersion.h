@@ -867,10 +867,29 @@
  * - isp35 iq: modify sharp 
  * v6.0x30.3
  * - isp35 iq: modify awb, aibnr 
+ * v6.0x30.4
+ * - FEC: release v4.0.3.2
+ * - pdaf: update to v0.1.f
+ * - smartIr: release v2.0.6
+ * - fix bugs:
+ *  - hwi_c: fix frame rate decreased by condition wait
+ *  - core_c: fix msgHdlTh stuck
+ *  - hwi_c: fix green image when switching day to night
+ *  - c_base: use CLOCK_MONOTONIC instead of gettimeofday
+ *  - hwi_c: support more than 4 sensors from isp39
+ *  - sharp: fix sharpness get default strength is no default
+ *  - sysctl: fix bug of API updateIq
+ * - new features:
+ *  - add ai remosaic
+ *  - xcore: add rkaiq_set_log_callback
+ *  - awb: add scene detection function
+ *  - AIBNR: add post proc
+ *  - lsc: support otp
+ * - iqfiles: update isp35 iqfiles
  */
 
-#define RK_AIQ_VERSION_REAL_V "v6.0x30.3"
-#define RK_AIQ_RELEASE_DATE "2025-04-23"
+#define RK_AIQ_VERSION_REAL_V "v6.0x30.4"
+#define RK_AIQ_RELEASE_DATE "2025-05-26"
 
 #define RK_AIQ_IQ_HEAD_VERSION_REAL_V "v1.0.2"
 

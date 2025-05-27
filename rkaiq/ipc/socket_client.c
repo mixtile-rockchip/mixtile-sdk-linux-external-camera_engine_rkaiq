@@ -11,6 +11,10 @@
 #include "uAPI2/rk_aiq_user_api2_stats.h"
 #include "uAPI2/rk_aiq_user_api2_awb.h"
 #include "uAPI2/rk_aiq_user_api2_sysctl.h"
+#if defined(USE_NEWSTRUCT)
+#include "hwi_c/aiq_CamHwBase.h"
+#include "uAPI2_c/rk_aiq_api_private_c.h"
+#endif
 
 #define USE_IPC_SERVER
 
@@ -302,6 +306,23 @@ static void copyRkAiqExpParamComb_t2RkToolExpParam_t(RkAiqExpParamComb_t *in, Rk
     out->exp_sensor_params.isp_digital_gain        = in->exp_sensor_params.isp_digital_gain;
 }
 
+static void _getEffWbGain(void* aiqctx, uint32_t fid, RkToolAwbParam_t* out)
+{
+#if defined(USE_NEWSTRUCT)
+    aiq_isp_effect_params_t* ispParams = NULL;
+
+    AiqCamHw_getEffectiveIspParams(((rk_aiq_sys_ctx_t*)aiqctx)->_camHw, &ispParams, fid);
+    if (ispParams) {
+        struct isp32_awb_gain_cfg* in = &ispParams->awb_gain_cfg;
+        out->awb_gain_gb = (in->awb1_gain_gb >> 8) + (in->awb1_gain_gb & 0xFF) / 256.0f;
+        out->awb_gain_gr = (in->awb1_gain_gr >> 8) + (in->awb1_gain_gr & 0xFF) / 256.0f;
+        out->awb_gain_b = (in->awb1_gain_b >> 8) + (in->awb1_gain_b & 0xFF) / 256.0f;
+        out->awb_gain_r = (in->awb1_gain_r >> 8) + (in->awb1_gain_r & 0xFF) / 256.0f;
+        AIQ_REF_BASE_UNREF(&ispParams->_ref_base);
+    }
+#endif
+}
+
 rk_aiq_isp_tool_stats_t *socket_client_get_isp_statics(void* aiqctx)
 {
     rk_aiq_isp_statistics_t aiq_stats;
@@ -310,7 +331,7 @@ rk_aiq_isp_tool_stats_t *socket_client_get_isp_statics(void* aiqctx)
     XCamReturn ret = rk_aiq_uapi2_stats_getIspStats(aiqctx, &aiq_stats, 300);
     LOGI_IPC("%s: frameId: %d\n",__func__, tool_stats->frameID);
     if (ret == XCAM_RETURN_NO_ERROR) {
-        tool_stats->version = 0x0100;
+        tool_stats->version = 0x0101;
         tool_stats->frameID = aiq_stats.frame_id;
         copyRkAiqExpParamComb_t2RkToolExpParam_t(&aiq_stats.aec_stats.ae_exp.LinearExp, &tool_stats->linearExp);
         copyRkAiqExpParamComb_t2RkToolExpParam_t(&aiq_stats.aec_stats.ae_exp.HdrExp[0], &tool_stats->hdrExp[0]);
@@ -319,6 +340,8 @@ rk_aiq_isp_tool_stats_t *socket_client_get_isp_statics(void* aiqctx)
     } else {
         LOGE_IPC("%s: call rk_aiq_uapi2_stats_getIspStats error",  __func__);
     }
+
+    _getEffWbGain(aiqctx, aiq_stats.frame_id, &tool_stats->awbGain);
 
     return tool_stats;
 }

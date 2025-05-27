@@ -357,6 +357,7 @@ public:
         int spAlignedHeight;
         int mCamPhyId;
         uint8_t hdr_mode;
+        struct rkmodule_lsc_inf otp_lsc_Cfg;
 
         void reset() {
             xcam_mem_clear(ctxCfigs);

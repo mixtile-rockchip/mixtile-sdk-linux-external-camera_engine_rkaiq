@@ -664,6 +664,26 @@ static void init_withCalib(GlobalParamsManager_t* pMan)
         LOGE("no aibnr calib !");
     }
 #endif
+#if RKAIQ_HAVE_AIRMS
+    wrap_ptr = &pMan->mGlobalParams[RESULT_TYPE_AIRMS_PARAM];
+    airms_api_attrib_t* airms_calib = (airms_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(
+                (void*)(pMan->mCalibDb), airms));
+    if (airms_calib) {
+        wrap_ptr->opMode = &airms_calib->opMode;
+        wrap_ptr->en = &airms_calib->en;
+        wrap_ptr->bypass = &airms_calib->bypass;
+        wrap_ptr->man_param_ptr = &airms_calib->stMan;
+        wrap_ptr->aut_param_ptr = &airms_calib->stAuto;
+        pMan->mIsGlobalModulesUpdateBits |= ((uint64_t)1) << RESULT_TYPE_AIRMS_PARAM;
+        if (airms_calib->opMode == RK_AIQ_OP_MODE_INVALID) {
+            airms_calib->opMode = RK_AIQ_OP_MODE_MANUAL;
+        }
+        LOGK("Module airms: opMode:%d,en:%d,bypass:%d,man_ptr:%p",
+             *wrap_ptr->opMode, *wrap_ptr->en, *wrap_ptr->bypass, wrap_ptr->man_param_ptr);
+    } else {
+        LOGE("no airms calib !");
+    }
+#endif
 #endif
     EXIT_ANALYZER_FUNCTION();
 }
@@ -826,11 +846,11 @@ checkAlgoEnableInit(GlobalParamsManager_t* pMan) {
         *pMan->mGlobalParams[RESULT_TYPE_YNR_PARAM].bypass =
             !*pMan->mGlobalParams[RESULT_TYPE_YNR_PARAM].en ? 1 : *pMan->mGlobalParams[RESULT_TYPE_YNR_PARAM].bypass;
         *pMan->mGlobalParams[RESULT_TYPE_YNR_PARAM].en = 1;
-        *pMan->mGlobalParams[RESULT_TYPE_SHARPEN_PARAM].bypass = 
+        *pMan->mGlobalParams[RESULT_TYPE_SHARPEN_PARAM].bypass =
             !*pMan->mGlobalParams[RESULT_TYPE_SHARPEN_PARAM].en ? 1 : *pMan->mGlobalParams[RESULT_TYPE_SHARPEN_PARAM].bypass;
         *pMan->mGlobalParams[RESULT_TYPE_SHARPEN_PARAM].en = 1;
         *pMan->mGlobalParams[RESULT_TYPE_GAIN_PARAM].en = 1;
-        *pMan->mGlobalParams[RESULT_TYPE_ENH_PARAM].bypass = 
+        *pMan->mGlobalParams[RESULT_TYPE_ENH_PARAM].bypass =
             !*pMan->mGlobalParams[RESULT_TYPE_ENH_PARAM].en ? 1 : *pMan->mGlobalParams[RESULT_TYPE_ENH_PARAM].bypass;
         *pMan->mGlobalParams[RESULT_TYPE_ENH_PARAM].en = 1;
         LOGW("ynr, cnr, sharp and enh should be on or off in the same time, force to turn on ynr, cnr, sharp and enh");
@@ -846,7 +866,7 @@ checkAlgoEnableInit(GlobalParamsManager_t* pMan) {
     }
 #endif
 #if RKAIQ_HAVE_YUVME
-    if (*pMan->mGlobalParams[RESULT_TYPE_TNR_PARAM].en != *pMan->mGlobalParams[RESULT_TYPE_MOTION_PARAM].en && 
+    if (*pMan->mGlobalParams[RESULT_TYPE_TNR_PARAM].en != *pMan->mGlobalParams[RESULT_TYPE_MOTION_PARAM].en &&
         *pMan->mGlobalParams[RESULT_TYPE_MOTION_PARAM].en) {
         *pMan->mGlobalParams[RESULT_TYPE_MOTION_PARAM].en = *pMan->mGlobalParams[RESULT_TYPE_TNR_PARAM].en;
         LOGE("btnr and yuvme should be turned on or off simultaneously, btnr is disable now and can't open/close in runtime!");
@@ -862,25 +882,38 @@ checkAlgoEnableInit(GlobalParamsManager_t* pMan) {
         int lut0_mode = 0, lut1_mode = 0, lut2_mode = 0;
 #ifdef ISP_HW_V35
         hsv_api_attrib_t* attr = &hsv_calib->tunning;
-        hsv_lutcfg_mode_t hsv_lut_mode;
+        hsv_param_static_t* hsvCfg;
         rk_aiq_op_mode_t mode = *pMan->mGlobalParams[RESULT_TYPE_HSV_PARAM].opMode;
         if (mode == RK_AIQ_OP_MODE_AUTO) {
-            hsv_lut_mode = attr->stAuto.sta.hsvCfg.hw_hsvT_lut_mode;
+            hsvCfg = &attr->stAuto.sta.hsvCfg;
         } else {
-            hsv_lut_mode = attr->stMan.sta.hw_hsvT_lut_mode;
+            hsvCfg = &attr->stMan.sta;
+        }
+        if (hsvCfg->hw_hsvT_lut_mode == hsv_1dAnd2d_mode) {
+            if (hsvCfg->hw_hsvT_lut2d1_en || hsvCfg->hw_hsvT_lut2d2_en) {
+                LOGE("lut2d1/lut2d2 should be off when hsv lut mode is 1dAnd2d. "
+                    "Please turn off by hsv.sta.hw_hsvT_lut2d1_en, hsv.sta.hw_hsvT_lut2d2_en!");
+                *pMan->mGlobalParams[RESULT_TYPE_HSV_PARAM].en = 0;
+            }
+        } else if (hsvCfg->hw_hsvT_lut_mode == hsv_only2d_mode) {
+            if (hsvCfg->hw_hsvT_lut1d0_en || hsvCfg->hw_hsvT_lut1d1_en) {
+                LOGE("lut1d0/lut1d1 should be off when hsv lut mode is only2d. "
+                    "Please turn off by hsv.sta.hw_hsvT_lut1d0_en, hsv.sta.hw_hsvT_lut1d1_en!");
+                *pMan->mGlobalParams[RESULT_TYPE_HSV_PARAM].en = 0;
+            }
         }
 #endif
-        for (int i = 0;i < tblAll_len;i++) {     
+        for (int i = 0;i < tblAll_len;i++) {
 #ifdef ISP_HW_V33
             lut0_mode = calibdb->tableAll[i].meshGain.lut1d0.hw_hsvT_lut1d_mode == 3? 1:calibdb->tableAll[i].meshGain.lut1d0.hw_hsvT_lut1d_mode;
             lut1_mode = calibdb->tableAll[i].meshGain.lut1d1.hw_hsvT_lut1d_mode == 3? 1:calibdb->tableAll[i].meshGain.lut1d1.hw_hsvT_lut1d_mode;
             lut2_mode = calibdb->tableAll[i].meshGain.lut2d.hw_hsvT_lut2d_mode / 2;
 #elif defined(ISP_HW_V35)
-            if (hsv_lut_mode == hsv_1dAnd2d_mode) {
+            if (hsvCfg->hw_hsvT_lut_mode == hsv_1dAnd2d_mode) {
                 lut0_mode = calibdb->tableAll[i].meshGain.lut1d0.hw_hsvT_lut1d_mode == 3? 1:calibdb->tableAll[i].meshGain.lut1d0.hw_hsvT_lut1d_mode;
                 lut1_mode = calibdb->tableAll[i].meshGain.lut1d1.hw_hsvT_lut1d_mode == 3? 1:calibdb->tableAll[i].meshGain.lut1d1.hw_hsvT_lut1d_mode;
                 lut2_mode = calibdb->tableAll[i].meshGain.lut2d.hw_hsvT_lut2d_mode / 2;
-            } else if (hsv_lut_mode == hsv_only2d_mode) {
+            } else if (hsvCfg->hw_hsvT_lut_mode == hsv_only2d_mode) {
                 lut0_mode = calibdb->tableAll[i].meshGain.lut2d.hw_hsvT_lut2d_mode / 2;
                 lut1_mode = calibdb->tableAll[i].meshGain.lut2d1.hw_hsvT_lut2d_mode / 2;
                 lut2_mode = calibdb->tableAll[i].meshGain.lut2d2.hw_hsvT_lut2d_mode / 2;
@@ -912,8 +945,8 @@ checkAlgoEnableInit(GlobalParamsManager_t* pMan) {
         char print_buf[160];
         if (!checkLscAlgoParams(pMan, psta, print_buf)) {
             LOGE("%s", print_buf);
-            *pMan->mGlobalParams[RESULT_TYPE_LSC_PARAM].en = 0;  
-        }     
+            *pMan->mGlobalParams[RESULT_TYPE_LSC_PARAM].en = 0;
+        }
     } else {
         LOGE("no lsc calib !");
     }
@@ -1206,7 +1239,7 @@ aiq_params_base_t* GlobalParamsManager_getAndClearPending2(GlobalParamsManager_t
 	aiqMutex_unlock(&pMan->mAlgoMutex[type]);
     EXIT_ANALYZER_FUNCTION();
     return NULL;
-	
+
 }
 
 XCamReturn GlobalParamsManager_getAndClearPendingLocked(GlobalParamsManager_t* pMan, rk_aiq_global_params_wrap_t* wrap)
@@ -1635,13 +1668,25 @@ static bool checkAlgoParams(GlobalParamsManager_t* pMan, rk_aiq_global_params_wr
             lut0_mode = attr.stMan.dyn.lut1d0.hw_hsvT_lut1d_mode==3? 1: attr.stMan.dyn.lut1d0.hw_hsvT_lut1d_mode;
             lut1_mode = attr.stMan.dyn.lut1d1.hw_hsvT_lut1d_mode==3? 1: attr.stMan.dyn.lut1d1.hw_hsvT_lut1d_mode;
             lut2_mode = attr.stMan.dyn.lut2d.hw_hsvT_lut2d_mode / 2;
-#endif            
+#endif
 #if defined(ISP_HW_V35)
             if (attr.stMan.sta.hw_hsvT_lut_mode == hsv_1dAnd2d_mode) {
+                if (attr.stMan.sta.hw_hsvT_lut2d1_en || attr.stMan.sta.hw_hsvT_lut2d2_en) {
+                    LOGE("lut2d1/lut2d2 should be off when hsv lut mode is 1dAnd2d. "
+                        "Please turn off by hsv.sta.hw_hsvT_lut2d1_en, hsv.sta.hw_hsvT_lut2d2_en!");
+                    socket_client_setNote(pMan->_socket, IPC_RET_UAPI_ERROR, "lut2d1/lut2d2 should be off when hsv lut mode is 1dAnd2d. "
+                        "Please turn off by hsv.sta.hw_hsvT_lut2d1_en, hsv.sta.hw_hsvT_lut2d2_en!\n");
+                }
                 lut0_mode = attr.stMan.dyn.lut1d0.hw_hsvT_lut1d_mode==3? 1: attr.stMan.dyn.lut1d0.hw_hsvT_lut1d_mode;
                 lut1_mode = attr.stMan.dyn.lut1d1.hw_hsvT_lut1d_mode==3? 1: attr.stMan.dyn.lut1d1.hw_hsvT_lut1d_mode;
                 lut2_mode = attr.stMan.dyn.lut2d.hw_hsvT_lut2d_mode / 2;
             } else if (attr.stMan.sta.hw_hsvT_lut_mode == hsv_only2d_mode) {
+                if (attr.stMan.sta.hw_hsvT_lut1d0_en || attr.stMan.sta.hw_hsvT_lut1d1_en) {
+                    LOGE("lut1d0/lut1d1 should be off when hsv lut mode is only2d. "
+                        "Please turn off by hsv.sta.hw_hsvT_lut1d0_en, hsv.sta.hw_hsvT_lut1d1_en!");
+                    socket_client_setNote(pMan->_socket, IPC_RET_UAPI_ERROR, "lut1d0/lut1d1 should be off when hsv lut mode is only2d. "
+                        "Please turn off by hsv.sta.hw_hsvT_lut1d0_en, hsv.sta.hw_hsvT_lut1d1_en!\n");
+                }
                 lut0_mode = attr.stMan.dyn.lut2d.hw_hsvT_lut2d_mode / 2;
                 lut1_mode = attr.stMan.dyn.lut2d1.hw_hsvT_lut2d_mode / 2;
                 lut2_mode = attr.stMan.dyn.lut2d2.hw_hsvT_lut2d_mode / 2;
@@ -1654,7 +1699,6 @@ static bool checkAlgoParams(GlobalParamsManager_t* pMan, rk_aiq_global_params_wr
                     "Please configure by hsv.dyn.lut1d0.hw_hsvT_lut1d_mode, hsv.dyn.lut1d1.hw_hsvT_lut1d_mode, hsv.dyn.lut2d.hw_hsvT_lut2d_mode!\n");
                 return false;
             }
-            
         }
 #ifdef ISP_HW_V35
         if (state != AIQ_STATE_INITED && state != AIQ_STATE_STOPED) {
@@ -1723,7 +1767,7 @@ static bool checkAlgoParams(GlobalParamsManager_t* pMan, rk_aiq_global_params_wr
 }
 
 static bool checkLscAlgoParams(GlobalParamsManager_t* pMan, lsc_param_static_t* psta, char* print_buf) {
-    if (psta->sw_lscT_meshGrid_mode == 0) {     
+    if (psta->sw_lscT_meshGrid_mode == 0) {
         if (fabs(psta->meshGrid.posX_f[0]) > DIVMIN ||
             fabs(psta->meshGrid.posY_f[0]) > DIVMIN ||
             fabs(psta->meshGrid.posX_f[LSC_MESHGRID_SIZE] - 1) > DIVMIN ||

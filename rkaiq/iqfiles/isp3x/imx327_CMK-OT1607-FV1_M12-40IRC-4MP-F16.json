@@ -6218,6 +6218,7 @@
 									"pdDiscardRegionEn":	0,
 									"pdLessTextureRatio":	0.25,
 									"pdTargetOffset":	0,
+									"pdNumJobs":	1,
 									"pdCalibInf":	{
 										"pdGainMapW":	32,
 										"pdGainMapH":	32,

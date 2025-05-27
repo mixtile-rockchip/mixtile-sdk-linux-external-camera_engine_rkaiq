@@ -408,6 +408,11 @@ static XCamReturn newAiqParamPool(AiqCore_t* pAiqCore, int type) {
             NEW_PARAMS_POOL(RESULT_TYPE_AIBNR_PARAM, rk_aiq_isp_aibnr_params_t);
             break;
 #endif
+#if RKAIQ_HAVE_AIRMS
+        case RK_AIQ_ALGO_TYPE_AIRMS:
+            NEW_PARAMS_POOL(RESULT_TYPE_AIRMS_PARAM, rk_aiq_isp_airms_params_t);
+            break;
+#endif
         default:
             break;
     }
@@ -1736,6 +1741,11 @@ static XCamReturn getAiqParamsBuffer(AiqCore_t* pAiqCore, AiqFullParams_t* aiqPa
             NEW_PARAMS_BUFFER(AIBNR);
 #endif
             break;
+        case RK_AIQ_ALGO_TYPE_AIRMS:
+#if RKAIQ_HAVE_AIRMS
+            NEW_PARAMS_BUFFER(AIRMS);
+#endif
+            break;
         default:
             break;
     }
@@ -2000,9 +2010,6 @@ XCamReturn AiqCore_prepare(AiqCore_t * pAiqCore,
 	}
 
 	pAiqCore->mAlogsComSharedParams.snsDes = *sensor_des;
-	if (pAiqCore->mUserOtpInfo.otp_awb.flag) {
-		pAiqCore->mAlogsComSharedParams.snsDes.otp_awb = pAiqCore->mUserOtpInfo.otp_awb;
-	}
 	pAiqCore->mAlogsComSharedParams.working_mode    = mode;
 	pAiqCore->mAlogsComSharedParams.spWidth         = pAiqCore->mSpWidth;
 	pAiqCore->mAlogsComSharedParams.spHeight        = pAiqCore->mSpHeight;
@@ -3162,6 +3169,7 @@ static struct iqModStrToAlgoMap_s iqModuleStrToAlgoEnumMap[] = {
 	{"rgbir", RK_AIQ_ALGO_TYPE_ARGBIR},
 	{"ldc", RK_AIQ_ALGO_TYPE_ALDC},
     {"aibnr", RK_AIQ_ALGO_TYPE_AIBNR},
+    {"airms", RK_AIQ_ALGO_TYPE_AIRMS},
 };
 
 static void mapModStrListToEnum(AiqCore_t* pAiqCore, TuningCalib* change_name_list) {
