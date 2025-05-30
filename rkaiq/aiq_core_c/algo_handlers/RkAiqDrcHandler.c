@@ -365,16 +365,30 @@ static XCamReturn _handlerDrc_processing(AiqAlgoHandler_t* pAlgoHandler) {
         pAlgoHandler->mProcOutParam->cfg_update = true;
         LOGD_ATMO("trans params update");
     }
+#if 0
     rk_aiq_isp_drc_v39_t* drcRes = (rk_aiq_isp_drc_params_t*)pBase->_data;
     AiqDrcHandler_t* pdrcHandler = (AiqDrcHandler_t*)pAlgoHandler;
     drcRes->damping = &pdrcHandler->damping;
     if (pdrcHandler->damping) {
         pAlgoHandler->mProcOutParam->cfg_update = true;
     }
-
+#endif
     RKAIQCORE_CHECK_RET(ret, "drc algo processing failed");
 
     EXIT_ANALYZER_FUNCTION();
+    return ret;
+}
+
+XCamReturn _handlerDrc_genIspResult(AiqAlgoHandler_t* pAlgoHandler,
+        AiqFullParams_t* params, AiqFullParams_t* cur_params) {
+    XCamReturn ret = AiqAlgoHandler_genIspResult_common(pAlgoHandler, params, cur_params);
+    AiqDrcHandler_t* pdrcHandler = (AiqDrcHandler_t*)pAlgoHandler;
+    aiq_params_base_t* pBase = params->pParamsArray[RESULT_TYPE_DRC_PARAM];
+    rk_aiq_isp_drc_v39_t* drcRes = (rk_aiq_isp_drc_params_t*)pBase->_data;
+    drcRes->damping = &pdrcHandler->damping;
+    if (pdrcHandler->damping) {
+        pAlgoHandler->mProcOutParam->cfg_update = true;
+    }
     return ret;
 }
 
@@ -384,7 +398,7 @@ AiqAlgoHandler_t* AiqAlgoHandlerDrc_constructor(RkAiqAlgoDesComm* des, AiqCore_t
 		return NULL;
 	AiqAlgoHandler_constructor(pHdl, des, aiqCore);
     pHdl->processing   = _handlerDrc_processing;
-    pHdl->genIspResult = AiqAlgoHandler_genIspResult_common;
+    pHdl->genIspResult = _handlerDrc_genIspResult/*AiqAlgoHandler_genIspResult_common*/;
     pHdl->prepare      = _handlerDrc_prepare;
     pHdl->init         = _handlerDrc_init;
 	return pHdl;

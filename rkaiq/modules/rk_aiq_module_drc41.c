@@ -164,8 +164,10 @@ void rk_aiq_drc41_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
     bool LongFrmMode = false;
     if (cvtinfo->frameNum > 1) {
         LongFrmMode = cvtinfo->ae_exp->HdrExp[cvtinfo->frameNum - 1].exp_real_params.longfrm_mode;
-        L2S_Ratio   = 1.0f;
-        cvtinfo->L2S_Ratio = 1.0f;
+        if (LongFrmMode) {
+            L2S_Ratio          = 1.0f;
+            cvtinfo->L2S_Ratio = 1.0f;
+        }
     }
 
     // clip drc gain

@@ -2257,9 +2257,11 @@ XCamReturn AiqCamHwBase_init(AiqCamHwBase_t* pCamHw, const char* sns_ent_name) {
         }
 
 #if RKAIQ_HAVE_AIRMS
-        pCamHw->mAiRmsProcUnit =
-            (AiqAiRmsStreamProcUnit_t*)aiq_mallocz(sizeof(AiqAiRmsStreamProcUnit_t));
-        AiqAiRmsStreamProcUnit_init(pCamHw->mAiRmsProcUnit, s_info->aiisp_info);
+        if (s_info->aiisp_info) {
+            pCamHw->mAiRmsProcUnit =
+                (AiqAiRmsStreamProcUnit_t*)aiq_mallocz(sizeof(AiqAiRmsStreamProcUnit_t));
+            AiqAiRmsStreamProcUnit_init(pCamHw->mAiRmsProcUnit, s_info->aiisp_info);
+        }
 #endif
 
         AiqRawStreamProcUnit_set_devices(pCamHw->mRawProcUnit, pCamHw->mIspCoreDev, pCamHw);
