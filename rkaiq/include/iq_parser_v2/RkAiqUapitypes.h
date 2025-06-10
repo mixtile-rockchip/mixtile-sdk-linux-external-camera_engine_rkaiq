@@ -1238,6 +1238,10 @@ typedef struct __aiq_uapi_t {
     // M4_STRUCT_DESC("aibnr_uapi", "iso_list_template")
     airms_uapi_t airms_uapi;
 #endif
+#if defined(ISP_HW_V35)
+    // M4_STRUCT_DESC("interpIso_uapi", "iso_list_template")
+    algo_interp_iso_list_t interpIso_uapi;
+#endif
 } RkaiqUapi_t;
 
 #ifdef __cplusplus

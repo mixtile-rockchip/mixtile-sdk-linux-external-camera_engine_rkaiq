@@ -1156,12 +1156,22 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
 
     bayertnr_luma2sigmax_config_v41(pTransParams, &cvtinfo->blc_res, cvtinfo->preDGain);
 
+
     bool auto_sig_curve_spnruse = psta->sigmaEnv.sw_btnrCfg_sigma_mode == btnr_autoSigma_mode;
     sigbins = 20;
 
     for(i = 0; i < sigbins; i++) {
         pCfg->tnr_luma2sigma_x[i] = CLIP(pTransParams->tnr_luma_sigma_x[i], 0, 0xfff);
     }
+
+    //printf("oyyf tnr sigmax[] :");
+    if(pTransParams->isTransfBypass  || opMode == RK_AIQ_OP_MODE_MANUAL) {
+        for(i = 0; i < sigbins; i++) {
+            pCfg->tnr_luma2sigma_x[i] = pdyn->sigmaEnv.hw_btnrC_mdSigma_curve.idx[i];
+            //printf("%d ", pCfg->tnr_luma2sigma_x[i]);
+        }
+    }
+    //printf("\n");
 
     //x_step must be 2^n
     int x_step = 0;
@@ -1174,15 +1184,13 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
     pCfg->tnr_luma2sigma_x[sigbins - 1] =  pCfg->pix_max_limit;
 
 
+
     if(psta->sigmaEnv.sw_btnrCfg_sigma_mode == btnr_manualSigma_mode || cvtinfo->isFirstFrame || bayertnr_default_noise_curve_use) {
         pTransParams->bayertnr_auto_sig_count_en = 0;
 
         if( pTransParams->isTransfBypass || opMode == RK_AIQ_OP_MODE_MANUAL) {
             for(i = 0; i < sigbins; i++) {
                 pTransParams->tnr_luma_sigma_y[i] = pdyn->sigmaEnv.hw_btnrC_mdSigma_curve.val[i];
-                if(opMode == RK_AIQ_OP_MODE_MANUAL) {
-                    pCfg->tnr_luma2sigma_x[i] = pdyn->sigmaEnv.hw_btnrC_mdSigma_curve.idx[i];
-                }
             }
         } else if(pTransParams->isHdrMode) {
             uint16_t shortY[sigbins];
@@ -1366,9 +1374,7 @@ void rk_aiq_btnr42_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_i
         if(pTransParams->isTransfBypass || opMode == RK_AIQ_OP_MODE_MANUAL) {
             for(i = 0; i < spnrsigbins; i++) {
                 pCfg->pre_spnr_luma2sigma_y[i] = CLIP((int)(pdyn->sigmaEnv.hw_btnrC_preSpNrSgm_curve.val[i]), 0, max_sig);
-                if(opMode == RK_AIQ_OP_MODE_MANUAL) {
-                    pCfg->pre_spnr_luma2sigma_x[i] = pdyn->sigmaEnv.hw_btnrC_preSpNrSgm_curve.idx[i];
-                }
+                pCfg->pre_spnr_luma2sigma_x[i] = pdyn->sigmaEnv.hw_btnrC_preSpNrSgm_curve.idx[i];
             }
         } else if(pTransParams->isHdrMode ) {
             uint16_t shortY[spnrsigbins];

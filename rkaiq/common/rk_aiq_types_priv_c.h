@@ -546,9 +546,9 @@ typedef enum _RkAiqIspUniteMode {
 #elif defined(ISP_HW_V30)
 #define RK_AIQ_ISP_CIF_INPUT_MAX_SIZE 3840 * 2160
 #elif defined(ISP_HW_V33)
-#define RK_AIQ_ISP_CIF_INPUT_MAX_SIZE 2880 * 1620 
+#define RK_AIQ_ISP_CIF_INPUT_MAX_SIZE 2880 * 1620
 #elif defined(ISP_HW_V35)
-#define RK_AIQ_ISP_CIF_INPUT_MAX_SIZE 2880 * 1620 
+#define RK_AIQ_ISP_CIF_INPUT_MAX_SIZE 2880 * 1620
 #else
 #define RK_AIQ_ISP_CIF_INPUT_MAX_SIZE 3840 * 2160
 #endif

@@ -318,4 +318,7 @@ XCamReturn
 rk_aiq_get_ayuvme_info(const rk_aiq_sys_ctx_t *sys_ctx,
                        ayuvme_uapi_info_t *info);
 
+XCamReturn
+rk_aiq_uapi2_query_algoInterpIsoInfo(const rk_aiq_sys_ctx_t *sys_ctx,
+                       algo_interp_iso_list_t* info);
 #endif /*__RK_AIQ_USER_API2_WRAPPER_H__*/

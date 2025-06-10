@@ -319,7 +319,8 @@ static XCamReturn RkEventPollThread_poll_event_loop(AiqPollThread_t* pTh) {
         if (pTh->_poll_callback && pTh->_stream) {
             AiqHwAinnEvt_t ainn_evt;
             struct rkisp_aiisp_ev_info* aiisp_ev_info = (struct rkisp_aiisp_ev_info*)pEvtTh->_event.u.data;
-            LOGD_AIBNR("aibnr: event ISP_POLL_AIISP frameid %d", aiisp_ev_info->sequence);
+            LOGD_AIBNR("aibnr: event ISP_POLL_AIISP frameid %d, _event 0x%x, id %d",
+                aiisp_ev_info->sequence, pEvtTh->_event.type, pEvtTh->_event.id);
 
             ainn_evt._base.frame_id              = aiisp_ev_info->sequence;
             ainn_evt._base.type                  = pTh->_dev_type;
@@ -701,13 +702,14 @@ static XCamReturn AiqAibnr_set_Isp_linecnt(AiqAibnrIspStream_t* pIspPartStrm, st
     aiisp_cfg_io.mode = aiisp_cfg.mode;
     aiisp_cfg_io.wr_linecnt = aiisp_cfg.wr_linecnt;
     aiisp_cfg_io.rd_linecnt = aiisp_cfg.rd_linecnt;
+    aiisp_cfg_io.wr_mode = 0;
     res = AiqV4l2SubDevice_ioctl(pIspPartStrm->_base._dev, RKISP_CMD_SET_AIISP_LINECNT, &aiisp_cfg_io);
     if (res) {
         LOGE_CAMHW_SUBM(ISP20HW_SUBM, "set aiisp linecnt failed! %d", res);
         return XCAM_RETURN_ERROR_IOCTL;
     }
-    LOGK_CAMHW_SUBM(ISP20HW_SUBM, "aiisp wr_linecnt is %d rd_linecnt is %d", aiisp_cfg.wr_linecnt,
-                    aiisp_cfg.rd_linecnt);
+    LOGK_CAMHW_SUBM(ISP20HW_SUBM, "aiisp mode is %d wr_linecnt is %d rd_linecnt is %d",
+        aiisp_cfg_io.mode, aiisp_cfg.wr_linecnt, aiisp_cfg.rd_linecnt);
     return XCAM_RETURN_NO_ERROR;
 }
 

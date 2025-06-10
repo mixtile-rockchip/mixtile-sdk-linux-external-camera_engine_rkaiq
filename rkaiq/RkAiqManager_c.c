@@ -683,7 +683,7 @@ XCamReturn AiqManager_init(AiqManager_t* pAiqManager, const char* sns_ent_name, 
 #endif
 
 #if RKAIQ_HAVE_AIBNR
-    AibnrManager_init(&pAiqManager->mAibnrManager);
+    AibnrManager_init(pAiqManager, &pAiqManager->mAibnrManager);
 #endif
     RknnManager_init(&pAiqManager->mRknnManager);
 

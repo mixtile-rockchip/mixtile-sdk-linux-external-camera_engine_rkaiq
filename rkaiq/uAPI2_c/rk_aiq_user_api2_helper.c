@@ -582,6 +582,7 @@ RkAiqUapiDesc_t rkaiq_uapidesc_list[] = {
     __RKAIQUAPI_DESC_DEF("/uapi/0/mge_uapi/info", mge_status_t, NULL, rk_aiq_user_api2_merge_QueryStatus),
     __RKAIQUAPI_DESC_DEF("/uapi/0/ver_uapi/ver_info", rk_aiq_version_info_t, NULL, rk_aiq_uapi2_get_aiqversion_info),
     __RKAIQUAPI_DESC_DEF("/uapi/0/module_ctl_uapi/module_ctl", rk_aiq_module_list_t, rk_aiq_uapi2_sysctl_setModuleEn, rk_aiq_uapi2_sysctl_getModuleEn),
+    __RKAIQUAPI_DESC_DEF("/uapi/0/interpIso_uapi/info", algo_interp_iso_list_t, NULL, rk_aiq_uapi2_query_algoInterpIsoInfo),
     __RKAIQUAPI_DESC_DEF("/uapi/0/lsc_uapi/attr", lsc_api_attrib_t, rk_aiq_user_api2_lsc_SetAttrib, rk_aiq_user_api2_lsc_GetAttrib),
     __RKAIQUAPI_DESC_DEF("/uapi/0/lsc_uapi/calibdb", alsc_lscCalib_t, rk_aiq_user_api2_lsc_setCalib_forTool, rk_aiq_user_api2_lsc_GetCalib),
     __RKAIQUAPI_DESC_DEF("/uapi/0/lsc_uapi/info", lsc_status_t, NULL, rk_aiq_user_api2_lsc_QueryStatus),

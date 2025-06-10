@@ -30,6 +30,9 @@
 #define RKAIISP_CMD_INIT_AIRMS_BUFPOOL		\
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 4, struct rkaiisp_rmsbuf_info)
 
+#define RKAIISP_CMD_GET_YNRBUF_INFO            \
+	_IOR('V', BASE_VIDIOC_PRIVATE + 5, struct rkaiisp_ynrbuf_info)
+
 /**********************EVENT_PRIVATE***************************/
 #define RKAIISP_V4L2_EVENT_AIISP_DONE		(V4L2_EVENT_PRIVATE_START + 1)
 
@@ -50,7 +53,8 @@ enum rkaiisp_chn_src {
 	AIISP_LAST_OUT,
 	VICAP_BAYER_RAW,
 	ALLZERO_SIGMA,
-	ALLZERO_NARMAP
+	ALLZERO_NARMAP,
+	ISP_FINAL_Y
 };
 
 enum rkaiisp_exealgo {
@@ -63,7 +67,8 @@ enum rkaiisp_model_mode {
 	SINGLE_MODE,
 	COMBO_MODE,
 	SINGLEX2_MODE,
-	REMOSAIC_MODE
+	REMOSAIC_MODE,
+	AIYNR_MODE
 };
 
 enum rkaiisp_exemode {
@@ -76,6 +81,13 @@ struct rkaiisp_airms_st {
 	int sequence;
 	int inbuf_idx;
 	int outbuf_idx;
+} __attribute__ ((packed));
+
+struct rkaiisp_ynrbuf_info {
+	int width;
+	int height;
+	__u32 buf_cnt;
+	int dma_fd[8];
 } __attribute__ ((packed));
 
 union rkaiisp_queue_buf {

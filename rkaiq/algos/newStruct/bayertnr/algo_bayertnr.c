@@ -363,7 +363,9 @@ XCamReturn BtnrSelectParam
 (
     BtnrContext_t *pBtnrCtx,
     btnr_param_t* out,
-    int iso)
+    int iso,
+    bool is_aibnr_autorun,
+    int aibnr_fixIndex)
 {
     LOGD_ANR("%s(%d): enter!\n", __FUNCTION__, __LINE__);
 
@@ -379,7 +381,14 @@ XCamReturn BtnrSelectParam
     }
 
     pre_interp(iso, pBtnrCtx->iso_list, 13, &ilow, &ihigh, &ratio);
+    if (aibnr_fixIndex != -1 && is_aibnr_autorun) {
+        ilow = aibnr_fixIndex;
+        ihigh = aibnr_fixIndex;
+        ratio = 0;
+    }
     uratio = ratio * (1 << RATIO_FIXBIT);
+    LOGD_ANR("%s ilow %d, ihigh %d, ratio %f, aibnr_fixIndex %d, is_aibnr_autorun %d",
+        __func__, ilow, ihigh, ratio, aibnr_fixIndex, is_aibnr_autorun);
 
     if (ratio > 0.5)
         inear = ihigh;
@@ -719,6 +728,9 @@ XCamReturn Abtnr_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpa
     BtnrContext_t* pBtnrCtx = (BtnrContext_t *)inparams->ctx;
     btnr_api_attrib_t* btnr_attrib = pBtnrCtx->btnr_attrib;
     btnr_param_t* btnr_res = outparams->algoRes;
+    bool is_aibnr_autorun = inparams->u.proc.is_aibnr_autorun;
+    bool is_aibnr_force_update = inparams->u.proc.is_aibnr_force_update;
+    int aibnr_fixIndex = inparams->u.proc.aibnr_fixIndex;
 
     if (btnr_attrib->opMode != RK_AIQ_OP_MODE_AUTO) {
         LOGE_ANR("mode is %d, not auto mode, ignore", btnr_attrib->opMode);
@@ -737,7 +749,7 @@ XCamReturn Abtnr_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpa
     bool need_recal = pBtnrCtx->isReCal_;
 
     bool init = inparams->u.proc.init;
-    if (inparams->u.proc.is_attrib_update || inparams->u.proc.init) {
+    if (inparams->u.proc.is_attrib_update || inparams->u.proc.init || is_aibnr_force_update) {
         need_recal = true;
     }
 
@@ -767,7 +779,7 @@ XCamReturn Abtnr_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpa
         BtnrApplyStrength(pBtnrCtx, btnr_res);
 #endif
 #if defined(RKAIQ_HAVE_BAYERTNR_V41) || defined(RKAIQ_HAVE_BAYERTNR_V42)
-        BtnrSelectParam(pBtnrCtx, btnr_res, iso);
+        BtnrSelectParam(pBtnrCtx, btnr_res, iso, is_aibnr_autorun, aibnr_fixIndex);
         BtnrApplyStrength(pBtnrCtx, btnr_res);
 #endif
         outparams->cfg_update = true;

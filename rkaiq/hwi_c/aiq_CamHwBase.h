@@ -303,6 +303,7 @@ typedef struct AiqCamHwBase_s {
     XCamReturn (*aibnr_setIspBufInf)(AiqCamHwBase_t* pCamHw, struct rkaiisp_ispbuf_info *ispbuf_info);
     XCamReturn (*aibnr_setParamInf)(AiqCamHwBase_t* pCamHw, struct rkaiisp_param_info *param_info);
     XCamReturn (*aibnr_setModelInf)(AiqCamHwBase_t* pCamHw, RkAiqAibnrModelInfo_t *pAibnrModelInfo);
+    XCamReturn (*aibnr_setLinecnt)(AiqCamHwBase_t* pCamHw, struct rkisp_aiisp_cfg *aibnr_cfg);
 #endif
 
 // AIRMS

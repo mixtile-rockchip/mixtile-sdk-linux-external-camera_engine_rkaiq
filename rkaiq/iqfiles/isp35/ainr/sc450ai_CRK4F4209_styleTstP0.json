@@ -1739,7 +1739,7 @@
 							"awbGnCalcOth":	{
 								"fstFrm_wbgain":	[2.1032, 1, 1, 1.7568],
 								"advSiteRec":	{
-									"advSiteRec_en":	0,
+									"advSiteRec_en":        0,
 									"kpRecFrm_num":	3,
 									"advSiteInfo_name":	"/tmp/avaSiteInfo",
 									"smartAdv_en":	1,
@@ -19353,6 +19353,11 @@
 									},
 									"model_dir":	{
 										"sw_aiBnrCfg_model_dir":	"/etc/iqfiles/sc450ai/bnr/combo_x1_G8"
+									},
+									"swOn_cfg":	{
+										"sw_aiBnrT_autoSwOn_thred":	"aiBnr_swOnAt_isoIdx3",
+										"sw_aiBnrT_autoSwGap_thred":	"aiBnr_swOffGap_isoIdx1",
+										"sw_aiBnrT_manualBnrHw_en":	0
 									}
 								},
 								"dyn":	[{
@@ -19381,8 +19386,7 @@
 											"sw_aiBnrT_nonLinear_scale":	1,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso50.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso50.bin"
 										}
 									}, {
 										"calib":	{
@@ -19410,8 +19414,7 @@
 											"sw_aiBnrT_nonLinear_scale":	1,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso100.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso100.bin"
 										}
 									}, {
 										"calib":	{
@@ -19439,8 +19442,7 @@
 											"sw_aiBnrT_nonLinear_scale":	1,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso200.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso200.bin"
 										}
 									}, {
 										"calib":	{
@@ -19468,8 +19470,7 @@
 											"sw_aiBnrT_nonLinear_scale":	1,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso400.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso400.bin"
 										}
 									}, {
 										"calib":	{
@@ -19497,8 +19498,7 @@
 											"sw_aiBnrT_nonLinear_scale":	1,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso800.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso800.bin"
 										}
 									}, {
 										"calib":	{
@@ -19526,8 +19526,7 @@
 											"sw_aiBnrT_nonLinear_scale":	1,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso1600.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso1600.bin"
 										}
 									}, {
 										"calib":	{
@@ -19555,8 +19554,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso3200.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso3200.bin"
 										}
 									}, {
 										"calib":	{
@@ -19584,8 +19582,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso6400.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso6400.bin"
 										}
 									}, {
 										"calib":	{
@@ -19613,8 +19610,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso12800.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso12800.bin"
 										}
 									}, {
 										"calib":	{
@@ -19642,8 +19638,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso25600.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso25600.bin"
 										}
 									}, {
 										"calib":	{
@@ -19671,8 +19666,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso51200.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso51200.bin"
 										}
 									}, {
 										"calib":	{
@@ -19700,8 +19694,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso102400.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso102400.bin"
 										}
 									}, {
 										"calib":	{
@@ -19729,8 +19722,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso204800.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso204800.bin"
 										}
 									}]
 							},
@@ -19741,6 +19733,11 @@
 									},
 									"model_dir":	{
 										"sw_aiBnrCfg_model_dir":	"/etc/iqfiles/sc450ai/bnr/combo_x1_G8"
+									},
+									"swOn_cfg":	{
+										"sw_aiBnrT_autoSwOn_thred":	"aiBnr_swOnAt_isoIdx3",
+										"sw_aiBnrT_autoSwGap_thred":	"aiBnr_swOffGap_isoIdx1",
+										"sw_aiBnrT_manualBnrHw_en":	0
 									}
 								},
 								"dyn":	{
@@ -19769,8 +19766,7 @@
 										"sw_aiBnrT_nonLinear_scale":	0.7,
 										"sw_aiBnrT_nonLinear_ratio":	0.5,
 										"sw_aiBnrT_nonLinear_adjust":	1,
-										"sw_aiBnrT_model_file":	"iso204800.bin",
-										"sw_aiBnrT_doRknn_en":	0
+										"sw_aiBnrT_model_file":	"iso204800.bin"
 									}
 								}
 							}
@@ -21147,7 +21143,7 @@
 							"awbGnCalcOth":	{
 								"fstFrm_wbgain":	[2.1032, 1, 1, 1.7568],
 								"advSiteRec":	{
-									"advSiteRec_en":	0,
+									"advSiteRec_en":        0,
 									"kpRecFrm_num":	3,
 									"advSiteInfo_name":	"/tmp/avaSiteInfo",
 									"smartAdv_en":	1,
@@ -38761,6 +38757,11 @@
 									},
 									"model_dir":	{
 										"sw_aiBnrCfg_model_dir":	"/etc/iqfiles/sc450ai/bnr/combo_x1_G8"
+									},
+									"swOn_cfg":	{
+										"sw_aiBnrT_autoSwOn_thred":	"aiBnr_swOnAt_isoIdx3",
+										"sw_aiBnrT_autoSwGap_thred":	"aiBnr_swOffGap_isoIdx1",
+										"sw_aiBnrT_manualBnrHw_en":	0
 									}
 								},
 								"dyn":	[{
@@ -38789,8 +38790,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso50.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso50.bin"
 										}
 									}, {
 										"calib":	{
@@ -38818,8 +38818,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso100.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso100.bin"
 										}
 									}, {
 										"calib":	{
@@ -38847,8 +38846,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso200.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso200.bin"
 										}
 									}, {
 										"calib":	{
@@ -38876,8 +38874,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso400.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso400.bin"
 										}
 									}, {
 										"calib":	{
@@ -38905,8 +38902,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso800.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso800.bin"
 										}
 									}, {
 										"calib":	{
@@ -38934,8 +38930,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso1600.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso1600.bin"
 										}
 									}, {
 										"calib":	{
@@ -38963,8 +38958,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso3200.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso3200.bin"
 										}
 									}, {
 										"calib":	{
@@ -38992,8 +38986,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso6400.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso6400.bin"
 										}
 									}, {
 										"calib":	{
@@ -39021,8 +39014,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso12800.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso12800.bin"
 										}
 									}, {
 										"calib":	{
@@ -39050,8 +39042,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso25600.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso25600.bin"
 										}
 									}, {
 										"calib":	{
@@ -39079,8 +39070,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso51200.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso51200.bin"
 										}
 									}, {
 										"calib":	{
@@ -39108,8 +39098,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso102400.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso102400.bin"
 										}
 									}, {
 										"calib":	{
@@ -39137,8 +39126,7 @@
 											"sw_aiBnrT_nonLinear_scale":	0.7,
 											"sw_aiBnrT_nonLinear_ratio":	0.5,
 											"sw_aiBnrT_nonLinear_adjust":	1,
-											"sw_aiBnrT_model_file":	"iso204800.bin",
-											"sw_aiBnrT_doRknn_en":	0
+											"sw_aiBnrT_model_file":	"iso204800.bin"
 										}
 									}]
 							},
@@ -39149,6 +39137,11 @@
 									},
 									"model_dir":	{
 										"sw_aiBnrCfg_model_dir":	"/etc/iqfiles/sc450ai/bnr/combo_x1_G8"
+									},
+									"swOn_cfg":	{
+										"sw_aiBnrT_autoSwOn_thred":	"aiBnr_swOnAt_isoIdx3",
+										"sw_aiBnrT_autoSwGap_thred":	"aiBnr_swOffGap_isoIdx1",
+										"sw_aiBnrT_manualBnrHw_en":	0
 									}
 								},
 								"dyn":	{
@@ -39177,8 +39170,7 @@
 										"sw_aiBnrT_nonLinear_scale":	0.7,
 										"sw_aiBnrT_nonLinear_ratio":	0.5,
 										"sw_aiBnrT_nonLinear_adjust":	1,
-										"sw_aiBnrT_model_file":	"iso50.bin",
-										"sw_aiBnrT_doRknn_en":	0
+										"sw_aiBnrT_model_file":	"iso50.bin"
 									}
 								}
 							}

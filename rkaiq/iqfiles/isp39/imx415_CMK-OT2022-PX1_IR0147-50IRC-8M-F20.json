@@ -1638,7 +1638,7 @@
 							"awbGnCalcOth":	{
 								"fstFrm_wbgain":	[1.9153, 1, 1, 2.0081],
 								"advSiteRec":	{
-									"advSiteRec_en":	1,
+									"advSiteRec_en":        0,
 									"kpRecFrm_num":	3,
 									"advSiteInfo_name":	"/tmp/avaSiteInfo",
 									"smartAdv_en":	1,
@@ -14602,7 +14602,7 @@
 							"awbGnCalcOth":	{
 								"fstFrm_wbgain":	[1.9153, 1, 1, 2.0081],
 								"advSiteRec":	{
-									"advSiteRec_en":	1,
+									"advSiteRec_en":        0,
 									"kpRecFrm_num":	3,
 									"advSiteInfo_name":	"/tmp/avaSiteInfo",
 									"smartAdv_en":	1,
@@ -27256,7 +27256,7 @@
 							"awbGnCalcOth":	{
 								"fstFrm_wbgain":	[1.9153, 1, 1, 2.0081],
 								"advSiteRec":	{
-									"advSiteRec_en":	1,
+									"advSiteRec_en":        0,
 									"kpRecFrm_num":	3,
 									"advSiteInfo_name":	"/tmp/avaSiteInfo",
 									"smartAdv_en":	1,

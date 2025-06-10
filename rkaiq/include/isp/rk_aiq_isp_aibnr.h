@@ -323,16 +323,6 @@ typedef struct aibnr_param_tunning_s {
         M4_NOTES(Model info file.\n
         Freq of use: High))  */
     char sw_aiBnrT_model_file[AIBNR_MODEL_FILENAME_LEN];
-    /* M4_GENERIC_DESC(
-        M4_ALIAS(sw_aiBnrT_doRknn_en),
-        M4_TYPE(bool),
-        M4_DEFAULT(0),
-        M4_HIDE_EX(0),
-        M4_RO(0),
-        M4_ORDER(22),
-        M4_NOTES(The enable bit of the rknn after AIBNR.\n
-        Freq of use: low))  */
-    bool sw_aiBnrT_doRknn_en;
 } aibnr_param_tunning_t;
 
 typedef struct aibnr_param_dyn_s {
@@ -390,6 +380,62 @@ typedef struct aibnr_model_dir_s {
     char sw_aiBnrCfg_model_dir[AIBNR_MODEL_DIRNAME_LEN];
 } aibnr_model_dir_t;
 
+typedef enum aiBnr_swOnAt_isoIdx_e {
+    aiBnr_swOnAt_isoIdx0 = 0,
+    aiBnr_swOnAt_isoIdx1,
+    aiBnr_swOnAt_isoIdx2,
+    aiBnr_swOnAt_isoIdx3,
+    aiBnr_swOnAt_isoIdx4,
+    aiBnr_swOnAt_isoIdx5,
+    aiBnr_swOnAt_isoIdx6,
+    aiBnr_swOnAt_isoIdx7,
+    aiBnr_swOnAt_isoIdx8,
+    aiBnr_swOnAt_isoIdx9,
+    aiBnr_swOnAt_isoIdx10,
+    aiBnr_swOnAt_isoIdx11,
+    aiBnr_swOnAt_isoIdx12,
+    aiBnr_swOnAt_isoIdxMax
+} aiBnr_swOnAt_isoIdx_t;
+
+typedef enum aiBnr_swGap_e {
+    aiBnr_swOffGap_isoIdx1 = 0
+} aiBnr_swGap_t;
+
+typedef struct aibnr_swOn_cfg_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(sw_aiBnrT_autoSwOn_thred),
+        M4_TYPE(enum),
+        M4_ENUM_DEF(aiBnr_swOnAt_isoIdx_t),
+        M4_DEFAULT(aiBnr_swOnAt_isoIdx0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(Aibnr on iso index thred.\n
+        Freq of use: high))  */
+    aiBnr_swOnAt_isoIdx_t sw_aiBnrT_autoSwOn_thred;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(sw_aiBnrT_autoSwGap_thred),
+        M4_TYPE(enum),
+        M4_ENUM_DEF(aiBnr_swGap_t),
+        M4_DEFAULT(aiBnr_swOffGap_isoIdx1),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(1),
+        M4_NOTES(Aibnr sw on iso index thred.\n
+        Freq of use: high))  */
+    aiBnr_swGap_t sw_aiBnrT_autoSwGap_thred;
+	/* M4_GENERIC_DESC(
+        M4_ALIAS(sw_aiBnrT_manualBnrHw_en),
+        M4_TYPE(bool),
+        M4_DEFAULT(1),
+        M4_HIDE_EX(0),
+        M4_RO(1),
+        M4_ORDER(2),
+        M4_NOTES(Aibnr manual en bit.\n
+        Freq of use: High))  */
+	bool sw_aiBnrT_manualBnrHw_en;
+} aibnr_swOn_cfg_t;
+
 typedef struct aibnr_params_static_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(debug),
@@ -409,6 +455,15 @@ typedef struct aibnr_params_static_s {
         M4_ORDER(1),
         M4_NOTES(TODO))  */
     aibnr_model_dir_t model_dir;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(aibnr_swOn_cfg_t),
+        M4_TYPE(struct),
+        M4_UI_MODULE(normal_ui_style),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(2),
+        M4_NOTES(TODO))  */
+    aibnr_swOn_cfg_t swOn_cfg;
 } aibnr_params_static_t;
 
 typedef struct aibnr_param_s {

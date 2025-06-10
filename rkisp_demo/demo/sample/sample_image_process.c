@@ -24,7 +24,11 @@
 #include "sample_ae_module.h"
 #include "sample_awb_module.h"
 #include "sample_accm_module.h"
+#if USE_NEWSTRUCT && !defined(ISP_HW_V39)
+#include "sample_hsv_module.h"
+#else
 #include "sample_a3dlut_module.h"
+#endif
 #include "sample_adrc_module.h"
 #include "sample_amerge_module.h"
 #include "sample_agamma_module.h"
@@ -82,7 +86,11 @@ static struct module_sample_info module_samples[] = {
 #else
     MODULE_INFO(RK_ISP_ACCM, sample_accm_module, sample_print_accm_info),
 #endif
+#if USE_NEWSTRUCT && !defined(ISP_HW_V39)
+    MODULE_INFO(RK_ISP_A3DLUT, sample_hsv_module, sample_print_hsv_info),
+#else
     MODULE_INFO(RK_ISP_A3DLUT, sample_a3dlut_module, sample_print_a3dlut_info),
+#endif
     MODULE_INFO(RK_ISP_ADRC, sample_adrc_module, sample_print_adrc_info),
     MODULE_INFO(RK_ISP_AMERGE, sample_amerge_module, sample_print_amerge_info),
     MODULE_INFO(RK_ISP_AGAMMA, sample_agamma_module, sample_print_agamma_info),

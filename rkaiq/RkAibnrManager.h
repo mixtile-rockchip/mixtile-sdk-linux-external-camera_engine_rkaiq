@@ -21,6 +21,9 @@
 #include "hwi_c/aiq_CamHwBase.h"
 #include "rk-aiisp-config.h"
 #include "c_base/aiq_mutex.h"
+#include "algo_handlers/RkAiqAeHandler.h"
+#include "algo_camgroup_handlers/RkAiqCamGroupAeHandle.h"
+
 
 RKAIQ_BEGIN_DECLARE
 
@@ -33,48 +36,6 @@ RKAIQ_BEGIN_DECLARE
 #define AIBNR_AIISP_MODE                 BOTHEVENT_TO_AIQ
 
 #if RKAIQ_HAVE_AIBNR
-
-typedef struct rk_post_btnr_param_s {
-    // rawInfo
-    int rawHgt;
-    int rawWid;
-    int rawHgtStd;
-    int rawWidStd;
-
-    void* pRaw;
-
-    // gainInfo
-    int gainHgt;
-    int gainWid;
-    int gainHgtStd;
-    int gainWidStd;
-
-    void* pGain;
-
-    float ISO;
-    int gainMode;
-    int bayerPattern; // 0--BGGR,1--GBRG,2--GRBG,3--RGGB
-} rk_post_btnr_param;
-
-typedef int (*rk_post_btnr_init)(rk_post_btnr_param* param);
-typedef int (*rk_post_btnr_proc)(rk_post_btnr_param* param);
-typedef int (*rk_post_btnr_deinit)(rk_post_btnr_param* param);
-
-struct PostBtnrOps {
-    rk_post_btnr_init btnr_init;
-    rk_post_btnr_proc btnr_proc;
-    rk_post_btnr_deinit btnr_deinit;
-};
-
-struct PostBtnrLibrary;
-struct PostBtnrLibrary {
-    bool (*Init)(struct PostBtnrLibrary* obj);
-    bool (*LoadSymbols)(struct PostBtnrLibrary* obj);
-    void (*Deinit)(struct PostBtnrLibrary* obj);
-
-    void* handle_;
-    struct PostBtnrOps ops_;
-};
 
 typedef struct ispbuf_addr_s {
     char *iir_addr;
@@ -97,6 +58,7 @@ typedef struct AibnrManager_s {
     bool is_start;
     bool is_param_update;
     bool is_parambuf_prepare;
+    bool is_state_error;
     int dump_raw_num;
     uint32_t model_max_runcnt;
     uint32_t isp_acq_width;
@@ -111,6 +73,7 @@ typedef struct AibnrManager_s {
     RkAiqAibnrModelInfo_t mAibnrModelInfo;
     CamCalibDbV2Context_t* pCalibDbV2;
     AiqCamHwBase_t* pCamHw;
+    AiqManager_t* pAiqManager;
 
     ispbuf_addr_t ispbuf_addr[AIBNR_ISP_BUF_MAX];
     bool aiisp_idx_pool[AIBNR_AIISP_BUF_CNT];
@@ -118,11 +81,16 @@ typedef struct AibnrManager_s {
     AiqMutex_t iq_param_mutex;
     AiqMutex_t model_buf_mutex;
 
-    struct PostBtnrLibrary postBtnrLib;
-    rk_post_btnr_param postBtnrParam;
+    bool doAiisp_en;
+    bool apiFrmRate_valid;
+    ae_frmRate_t apiFrmRate;
+    ae_frmRate_t iqFrmRate;
+    AiqAlgoHandler_t* aeHandler;
+    bool is_group;
+    AiqMutex_t apiFrmRate_mutex;
 } AibnrManager_t;
 
-XCamReturn AibnrManager_init(AibnrManager_t* pAibnrManager);
+XCamReturn AibnrManager_init(AiqManager_t* pAiqManager, AibnrManager_t* pAibnrManager);
 XCamReturn AibnrManager_setCalib(AibnrManager_t* pAibnrManager, CamCalibDbV2Context_t* pCalibDbV2);
 XCamReturn AibnrManager_deinit(AibnrManager_t* pAibnrManager);
 XCamReturn AibnrManager_prepare(AibnrManager_t* pAibnrManager, AiqCamHwBase_t* pCamHw, CamCalibDbV2Context_t* pCalibDbV2,
@@ -134,6 +102,8 @@ XCamReturn AibnrManager_hdlEvent(AibnrManager_t* pAibnrManager, AiqHwAinnEvt_t *
 XCamReturn AibnrManager_setCalib(AibnrManager_t* pAibnrManager, CamCalibDbV2Context_t* pCalibDbV2);
 bool AibnrManager_isNeedRknn(AibnrManager_t* pAibnrManager);
 int AibnrManager_dumpRaw(AibnrManager_t* pAibnrManager, int dump_raw_num);
+XCamReturn AibnrManager_setFrmRate(AiqAlgoHandler_t* aeHandler, bool is_group,
+    AibnrManager_t* pAibnrManager, ae_api_expSwAttr_t *expSwAttr);
 
 #endif
 

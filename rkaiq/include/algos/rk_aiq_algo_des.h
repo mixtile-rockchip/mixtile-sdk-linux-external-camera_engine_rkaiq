@@ -164,10 +164,13 @@ typedef struct prepare_s {
 typedef struct proc_s {
     bool init;
     int iso;
+    int aibnr_fixIndex;
     bool fill_light_on;
     bool gray_mode;
     bool is_bw_sensor;
     bool is_attrib_update;
+    bool is_aibnr_autorun;
+    bool is_aibnr_force_update;
     RKAiqAecExpInfo_t *preExp;
     RKAiqAecExpInfo_t *curExp;
     RKAiqAecExpInfo_t *nxtExp;

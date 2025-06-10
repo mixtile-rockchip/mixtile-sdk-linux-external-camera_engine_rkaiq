@@ -1684,6 +1684,8 @@ static XCamReturn _poll_buffer_ready(void* ctx, AiqHwEvt_t* evt, int dev_index) 
 #if RKAIQ_HAVE_AIBNR
 static XCamReturn AiqCamHw_aibnr_init(AiqCamHwBase_t* pCamHw, AibnrManager_t* pAibnrManager, struct rkisp_aiisp_cfg *aibnr_cfg)
 {
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
     if (!pCamHw->mAiIspDev)
         return XCAM_RETURN_ERROR_FAILED;
 
@@ -1696,10 +1698,10 @@ static XCamReturn AiqCamHw_aibnr_init(AiqCamHwBase_t* pCamHw, AibnrManager_t* pA
                                 ISP_POLL_AIISP);
         pCamHw->mAibnrIspStream->_base.setPollCallback(&pCamHw->mAibnrIspStream->_base,
                                                            &pCamHw->mPollCb);
-        pCamHw->mAibnrIspStream->set_aiisp_linecnt(pCamHw->mAibnrIspStream, pCamHw->mAibnr_cfg);
+        ret = pCamHw->mAibnrIspStream->set_aiisp_linecnt(pCamHw->mAibnrIspStream, pCamHw->mAibnr_cfg);
     } else {
         // restart aiisp for restart aiq without deinit
-        pCamHw->mAibnrIspStream->set_aiisp_linecnt(pCamHw->mAibnrIspStream, pCamHw->mAibnr_cfg);
+        ret = pCamHw->mAibnrIspStream->set_aiisp_linecnt(pCamHw->mAibnrIspStream, pCamHw->mAibnr_cfg);
     }
 
     if (!pCamHw->mAibnrAiispStream) {
@@ -1709,17 +1711,19 @@ static XCamReturn AiqCamHw_aibnr_init(AiqCamHwBase_t* pCamHw, AibnrManager_t* pA
         pCamHw->mAibnrAiispStream->_base.setPollCallback(&pCamHw->mAibnrAiispStream->_base,
                                                         &pCamHw->mPollCb);
     }
-    return XCAM_RETURN_NO_ERROR;
+    return ret;
 }
 
 static XCamReturn AiqCamHw_aibnr_prepare(AiqCamHwBase_t* pCamHw)
 {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
 
-    if (pCamHw->mAiIspDev)
+    if (pCamHw->mAiIspDev) {
+        AiqV4l2Device_setBufCnt(pCamHw->mAiIspDev, 6);
         AiqV4l2Device_prepare(pCamHw->mAiIspDev);
-    else
+    } else {
         ret = XCAM_RETURN_ERROR_FAILED;
+    }
 
     return ret;
 }
@@ -1934,6 +1938,22 @@ static XCamReturn AiqCamHw_aibnr_setModelInf(AiqCamHwBase_t* pCamHw, RkAiqAibnrM
     memcpy(&pCamHw->_mIspParamsCvt->mCommonCvtInfo.aibnrModelInfo, pAibnrModelInfo, sizeof(RkAiqAibnrModelInfo_t));
     return XCAM_RETURN_NO_ERROR;
 }
+
+static XCamReturn AiqCamHw_aibnr_setLinecnt(AiqCamHwBase_t* pCamHw, struct rkisp_aiisp_cfg *aibnr_cfg)
+{
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+    if (!pCamHw->mAiIspDev)
+        return XCAM_RETURN_ERROR_FAILED;
+
+    pCamHw->mAibnr_cfg = *aibnr_cfg;
+
+    if (pCamHw->mAibnrIspStream)
+        ret = pCamHw->mAibnrIspStream->set_aiisp_linecnt(pCamHw->mAibnrIspStream, pCamHw->mAibnr_cfg);
+
+    return ret;
+}
+
 #endif
 
 XCamReturn AiqCamHwBase_init(AiqCamHwBase_t* pCamHw, const char* sns_ent_name) {
@@ -2306,6 +2326,7 @@ XCamReturn AiqCamHwBase_init(AiqCamHwBase_t* pCamHw, const char* sns_ent_name) {
     pCamHw->aibnr_setIspBufInf = AiqCamHw_aibnr_setIspBufInf;
     pCamHw->aibnr_setParamInf  = AiqCamHw_aibnr_setParamInf;
     pCamHw->aibnr_setModelInf  = AiqCamHw_aibnr_setModelInf;
+    pCamHw->aibnr_setLinecnt   = AiqCamHw_aibnr_setLinecnt;
 
     if (s_info->aiisp_info) {
         pCamHw->mAiIspCoreDev = (AiqV4l2SubDevice_t*)aiq_mallocz(sizeof(AiqV4l2SubDevice_t));
@@ -5728,7 +5749,7 @@ retry:
 
 #if defined(RKAIQ_HAVE_MULTIISP) && defined(ISP_HW_V35)
         struct isp35_isp_params_cfg ori_params;
-        if (g_mIsMultiIspMode) {
+        if (g_mIsMultiIspMode && ispUniteMode != RK_AIQ_ISP_UNITE_MODE_NORMAL) {
             ori_params = *isp_params;
             pCamHw->mParamsSplitter->SplitIspParams(pCamHw->mParamsSplitter, &ori_params,
                                                     isp_params);

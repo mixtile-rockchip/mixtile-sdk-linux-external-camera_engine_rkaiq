@@ -171,6 +171,9 @@ static struct RkAiqAlgoDesCommExt g_default_3a_des[] = {
 #if RKAIQ_HAVE_AWB_V39
     // { &g_RkIspAlgoDescAwb.common,           RK_AIQ_CORE_ANALYZE_AWB,    1, 2, 39,   awbGrpConds        },
 #endif
+#if RKAIQ_HAVE_AIBNR
+    { &g_RkIspAlgoDescAibnr.common,         RK_AIQ_CORE_ANALYZE_GRP0,    0,  1,  0, grp0Conds          },
+#endif
 #if RKAIQ_HAVE_CAC_V30
     { &g_RkIspAlgoDescCac.common,          RK_AIQ_CORE_ANALYZE_GRP0,   0, 0, 0,   grp0Conds          },
 #endif
@@ -258,13 +261,10 @@ static struct RkAiqAlgoDesCommExt g_default_3a_des[] = {
     { &g_RkIspAlgoDescLdch.common,         RK_AIQ_CORE_ANALYZE_OTHER,  0, 0, 0,    otherGrpCondsV3x },
 #endif
 #endif
-#if RKAIQ_HAVE_AIBNR
-    { &g_RkIspAlgoDescAibnr.common,         RK_AIQ_CORE_ANALYZE_GRP0,    0,  1,  0, grp0Conds          },
-#endif
 #if (RKAIQ_HAVE_AMTD_V1)
     { &g_RkIspAlgoDescAmtd.common,      RK_AIQ_CORE_ANALYZE_AE,     0, 0, 0,    {grp_conds_array_info(aeGrpCondV3x)}},
 #endif
-#if RKAIQ_HAVE_AIBNR
+#if RKAIQ_HAVE_AIRMS
     { &g_RkIspAlgoDescAirms.common,         RK_AIQ_CORE_ANALYZE_GRP0,    0,  1,  0, grp0Conds          },
 #endif
     { NULL,                                 RK_AIQ_CORE_ANALYZE_ALL,    0, 0, 0,    {0, 0}             },
