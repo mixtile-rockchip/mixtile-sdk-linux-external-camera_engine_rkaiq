@@ -3168,9 +3168,9 @@
 								}
 							},
 							"awbGnCalcOth":	{
-								"fstFrm_wbgain":	[2.1032, 1, 1, 1.7568],
+								"fstFrm_wbgain":	[2.1986, 1, 1, 2.0476],
 								"advSiteRec":	{
-									"advSiteRec_en":	1,
+									"advSiteRec_en":	0,
 									"kpRecFrm_num":	3,
 									"advSiteInfo_name":	"/tmp/avaSiteInfo",
 									"smartAdv_en":	1,
@@ -20780,7 +20780,7 @@
 							"stAuto":	{
 								"sta":	{
 									"debug":	{
-										"sw_aiBnrT_debug_mode":	"aibnr_debugGain_mode"
+										"sw_aiBnrT_debug_mode":	"aibnr_debugOff_mode"
 									},
 									"model_dir":	{
 										"sw_aiBnrCfg_model_dir":	"/etc/iqfiles/sc850sl/bnr/single_x2_G8"
@@ -24007,9 +24007,9 @@
 								}
 							},
 							"awbGnCalcOth":	{
-								"fstFrm_wbgain":	[2.1032, 1, 1, 1.7568],
+								"fstFrm_wbgain":	[2.1986, 1, 1, 2.0476],
 								"advSiteRec":	{
-									"advSiteRec_en":	1,
+									"advSiteRec_en":	0,
 									"kpRecFrm_num":	3,
 									"advSiteInfo_name":	"/tmp/avaSiteInfo",
 									"smartAdv_en":	1,
