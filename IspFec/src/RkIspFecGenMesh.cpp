@@ -64,6 +64,13 @@ RkIspFecGenMesh::init(int32_t srcWidth, int32_t srcHeight,
     RKALGO_MESH_TYPE_E enMeshType        = RKALGO_MESH_TYPE_FEC;     /* 硬件类型 */
     RKALGO_FEC_VERSION_E enFecVersion    = RKALGO_FEC_VERSION_1126B; /* 硬件FEC版本 */
     RKALGO_MESH_STEP_OPT_E enMeshStepOpt = RKALGO_MESH_STEP_32x16;   /* 映射表的采样步长选项 */
+    if (dstWidth >= 1920) {
+        enMeshStepOpt = RKALGO_MESH_STEP_32x16;
+    } else if (dstWidth >= 512) {
+        enMeshStepOpt = RKALGO_MESH_STEP_16x8;
+    } else {
+        enMeshStepOpt = RKALGO_MESH_STEP_4x4;
+    }
 
     /* 下采样浮点表的相关参数 */
     memset(&mFloatMeshInfo, 0, sizeof(mFloatMeshInfo));
