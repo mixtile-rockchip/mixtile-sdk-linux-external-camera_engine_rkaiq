@@ -71,7 +71,13 @@ static XCamReturn _SensorHw_setLinearSensorExposure(AiqSensorHw_t* pSnsHw,
 
     memset(&ctrl, 0, sizeof(ctrl));
     ctrl.id    = V4L2_CID_VBLANK;
-    ctrl.value = frame_line_length - sensor_desc.sensor_output_height;
+    if (pSnsHw->userVts) {
+        ctrl.value = pSnsHw->userVts;
+        LOGI_CAMHW_SUBM(SENSOR_SUBM, "cam%d use user vts:%d",
+                        pSnsHw->mCamPhyId, ctrl.value);
+    } else {
+        ctrl.value = frame_line_length - sensor_desc.sensor_output_height;
+    }
     if (AiqV4l2SubDevice_ioctl(pSnsHw->mSd, VIDIOC_S_CTRL, &ctrl) < 0) {
         LOGE_CAMHW_SUBM(SENSOR_SUBM, "cam%d failed to set vblank result(val: %d)",
                         pSnsHw->mCamPhyId, ctrl.value);
@@ -163,7 +169,13 @@ static XCamReturn _SensorHw_setHdrSensorExposure(AiqSensorHw_t* pSnsHw, RKAiqAec
 
     memset(&ctrl, 0, sizeof(ctrl));
     ctrl.id    = V4L2_CID_VBLANK;
-    ctrl.value = frame_line_length - sensor_desc.sensor_output_height;
+    if (pSnsHw->userVts) {
+        ctrl.value = pSnsHw->userVts;
+        LOGI_CAMHW_SUBM(SENSOR_SUBM, "cam%d use user vts:%d",
+                        pSnsHw->mCamPhyId, ctrl.value);
+    } else {
+        ctrl.value = frame_line_length - sensor_desc.sensor_output_height;
+    }
     if (AiqV4l2SubDevice_ioctl(pSnsHw->mSd, VIDIOC_S_CTRL, &ctrl) < 0) {
         LOGE_CAMHW_SUBM(SENSOR_SUBM, "failed to set vblank result(val: %d)", ctrl.value);
         return XCAM_RETURN_ERROR_IOCTL;
@@ -246,7 +258,13 @@ static XCamReturn _SensorHw_setLinearSensorExposure2(AiqSensorHw_t* pSnsHw,
 
     memset(&ctrl, 0, sizeof(ctrl));
     ctrl.id    = V4L2_CID_VBLANK;
-    ctrl.value = frame_line_length - sensor_desc.sensor_output_height;
+    if (pSnsHw->userVts) {
+        ctrl.value = pSnsHw->userVts;
+        LOGI_CAMHW_SUBM(SENSOR_SUBM, "cam%d use user vts:%d",
+                        pSnsHw->mCamPhyId, ctrl.value);
+    } else {
+        ctrl.value = frame_line_length - sensor_desc.sensor_output_height;
+    }
     if (AiqV4l2SubDevice_ioctl(pSnsHw->mSd, VIDIOC_S_CTRL, &ctrl) < 0) {
         LOGE_CAMHW_SUBM(SENSOR_SUBM, "cid: %d failed to set vblank result(val: %d)",
                         pSnsHw->mCamPhyId, ctrl.value);
@@ -343,7 +361,13 @@ static XCamReturn _SensorHw_setHdrSensorExposure2(AiqSensorHw_t* pSnsHw,
 
     memset(&ctrl, 0, sizeof(ctrl));
     ctrl.id    = V4L2_CID_VBLANK;
-    ctrl.value = frame_line_length - sensor_desc.sensor_output_height;
+    if (pSnsHw->userVts) {
+        ctrl.value = pSnsHw->userVts;
+        LOGI_CAMHW_SUBM(SENSOR_SUBM, "cam%d use user vts:%d",
+                        pSnsHw->mCamPhyId, ctrl.value);
+    } else {
+        ctrl.value = frame_line_length - sensor_desc.sensor_output_height;
+    }
     if (AiqV4l2SubDevice_ioctl(pSnsHw->mSd, VIDIOC_S_CTRL, &ctrl) < 0) {
         LOGE_CAMHW_SUBM(SENSOR_SUBM, "cid:%d failed to set vblank result(val: %d)",
                         pSnsHw->mCamPhyId, ctrl.value);
@@ -1571,7 +1595,7 @@ XCamReturn _SensorHw_stop(AiqSensorHw_t* pSnsHw) {
 
     _SensorHw_set_sync_mode(pSnsHw, NO_SYNC_MODE);
     ret = (*v4l2_dev->stop)(v4l2_dev);
-
+    pSnsHw->userVts = 0;
     EXIT_CAMHW_FUNCTION();
     aiqMutex_unlock(&pSnsHw->_mutex);
 

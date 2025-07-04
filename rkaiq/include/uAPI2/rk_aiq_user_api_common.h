@@ -89,6 +89,7 @@ typedef enum antiFlickerMode_e {
 typedef struct frameRateInfo_s {
     opMode_t         mode;
     unsigned int     fps; /* valid when manual mode*/
+    unsigned int     vts; /* if not 0, directly to driver, override ae fps */
 } frameRateInfo_t;
 
 typedef struct rk_aiq_version_info_s {

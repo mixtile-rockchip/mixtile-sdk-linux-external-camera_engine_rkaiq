@@ -1008,6 +1008,10 @@ XCamReturn rk_aiq_uapi2_setFrameRate(const rk_aiq_sys_ctx_t* ctx, frameRateInfo_
         expSwAttr.commCtrl.frmRate.sw_aeT_frmRate_val  = info.fps;
     }
     ret = rk_aiq_user_api2_ae_setExpSwAttr(ctx, expSwAttr);
+
+    if (ctx->_camHw && ctx->_camHw->_mSensorDev)
+        AiqSensorHw_setUserVts(ctx->_camHw->_mSensorDev, info.vts);
+
     RKAIQ_IMGPROC_CHECK_RET(ret, "set exp attr failed!\nsetFrameRate failed!");
     IMGPROC_FUNC_EXIT
     return ret;

@@ -146,7 +146,7 @@ struct AiqSensorHw_s {
     // dump info
     rk_aiq_exposure_sensor_descriptor desc;
 #endif
-
+    uint32_t userVts;
     // export api
     XCamReturn (*setExposureParams)(AiqSensorHw_t* pBaseSns, AiqAecExpInfoWrapper_t* expPar);
     XCamReturn (*getSensorModeData)(AiqSensorHw_t* pBaseSns, const char* sns_ent_name,
@@ -183,6 +183,11 @@ void AiqSensorHw_deinit(AiqSensorHw_t* pSnsHw);
 
 XCamReturn _SensorHw_stop(AiqSensorHw_t* pSnsHw);
 void AiqSensorHw_clean(AiqSensorHw_t* pSnsHw);
+#define AiqSensorHw_setUserVts(pSnsHw, vts) \
+    (pSnsHw)->userVts = vts
+
+#define AiqSensorHw_getUserVts(pSnsHw) \
+    pSnsHw->userVts
 
 RKAIQ_END_DECLARE
 
