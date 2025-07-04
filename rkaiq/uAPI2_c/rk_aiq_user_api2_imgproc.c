@@ -1009,14 +1009,22 @@ XCamReturn rk_aiq_uapi2_setFrameRate(const rk_aiq_sys_ctx_t* ctx, frameRateInfo_
     }
     ret = rk_aiq_user_api2_ae_setExpSwAttr(ctx, expSwAttr);
 
-    if (ctx->_camHw && ctx->_camHw->_mSensorDev)
-        AiqSensorHw_setUserVts(ctx->_camHw->_mSensorDev, info.vts);
-
     RKAIQ_IMGPROC_CHECK_RET(ret, "set exp attr failed!\nsetFrameRate failed!");
     IMGPROC_FUNC_EXIT
     return ret;
 
 }
+
+XCamReturn rk_aiq_uapi2_setSnsVts(const rk_aiq_sys_ctx_t* ctx, uint32_t vts)
+{
+    IMGPROC_FUNC_ENTER
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    if (ctx->_camHw && ctx->_camHw->_mSensorDev)
+        AiqSensorHw_setUserVts(ctx->_camHw->_mSensorDev, vts);
+    IMGPROC_FUNC_EXIT
+    return ret;
+}
+
 /*
 *****************************
 *
