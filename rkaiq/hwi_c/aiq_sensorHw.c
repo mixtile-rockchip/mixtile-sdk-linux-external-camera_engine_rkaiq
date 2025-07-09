@@ -71,13 +71,7 @@ static XCamReturn _SensorHw_setLinearSensorExposure(AiqSensorHw_t* pSnsHw,
 
     memset(&ctrl, 0, sizeof(ctrl));
     ctrl.id    = V4L2_CID_VBLANK;
-    if (pSnsHw->userVts) {
-        ctrl.value = pSnsHw->userVts;
-        LOGI_CAMHW_SUBM(SENSOR_SUBM, "cam%d use user vts:%d",
-                        pSnsHw->mCamPhyId, ctrl.value);
-    } else {
-        ctrl.value = frame_line_length - sensor_desc.sensor_output_height;
-    }
+    ctrl.value = frame_line_length - sensor_desc.sensor_output_height;
     if (AiqV4l2SubDevice_ioctl(pSnsHw->mSd, VIDIOC_S_CTRL, &ctrl) < 0) {
         LOGE_CAMHW_SUBM(SENSOR_SUBM, "cam%d failed to set vblank result(val: %d)",
                         pSnsHw->mCamPhyId, ctrl.value);
@@ -169,13 +163,7 @@ static XCamReturn _SensorHw_setHdrSensorExposure(AiqSensorHw_t* pSnsHw, RKAiqAec
 
     memset(&ctrl, 0, sizeof(ctrl));
     ctrl.id    = V4L2_CID_VBLANK;
-    if (pSnsHw->userVts) {
-        ctrl.value = pSnsHw->userVts;
-        LOGI_CAMHW_SUBM(SENSOR_SUBM, "cam%d use user vts:%d",
-                        pSnsHw->mCamPhyId, ctrl.value);
-    } else {
-        ctrl.value = frame_line_length - sensor_desc.sensor_output_height;
-    }
+    ctrl.value = frame_line_length - sensor_desc.sensor_output_height;
     if (AiqV4l2SubDevice_ioctl(pSnsHw->mSd, VIDIOC_S_CTRL, &ctrl) < 0) {
         LOGE_CAMHW_SUBM(SENSOR_SUBM, "failed to set vblank result(val: %d)", ctrl.value);
         return XCAM_RETURN_ERROR_IOCTL;
@@ -258,13 +246,7 @@ static XCamReturn _SensorHw_setLinearSensorExposure2(AiqSensorHw_t* pSnsHw,
 
     memset(&ctrl, 0, sizeof(ctrl));
     ctrl.id    = V4L2_CID_VBLANK;
-    if (pSnsHw->userVts) {
-        ctrl.value = pSnsHw->userVts;
-        LOGI_CAMHW_SUBM(SENSOR_SUBM, "cam%d use user vts:%d",
-                        pSnsHw->mCamPhyId, ctrl.value);
-    } else {
-        ctrl.value = frame_line_length - sensor_desc.sensor_output_height;
-    }
+    ctrl.value = frame_line_length - sensor_desc.sensor_output_height;
     if (AiqV4l2SubDevice_ioctl(pSnsHw->mSd, VIDIOC_S_CTRL, &ctrl) < 0) {
         LOGE_CAMHW_SUBM(SENSOR_SUBM, "cid: %d failed to set vblank result(val: %d)",
                         pSnsHw->mCamPhyId, ctrl.value);
@@ -361,13 +343,7 @@ static XCamReturn _SensorHw_setHdrSensorExposure2(AiqSensorHw_t* pSnsHw,
 
     memset(&ctrl, 0, sizeof(ctrl));
     ctrl.id    = V4L2_CID_VBLANK;
-    if (pSnsHw->userVts) {
-        ctrl.value = pSnsHw->userVts;
-        LOGI_CAMHW_SUBM(SENSOR_SUBM, "cam%d use user vts:%d",
-                        pSnsHw->mCamPhyId, ctrl.value);
-    } else {
-        ctrl.value = frame_line_length - sensor_desc.sensor_output_height;
-    }
+    ctrl.value = frame_line_length - sensor_desc.sensor_output_height;
     if (AiqV4l2SubDevice_ioctl(pSnsHw->mSd, VIDIOC_S_CTRL, &ctrl) < 0) {
         LOGE_CAMHW_SUBM(SENSOR_SUBM, "cid:%d failed to set vblank result(val: %d)",
                         pSnsHw->mCamPhyId, ctrl.value);
@@ -768,6 +744,22 @@ static XCamReturn _SensorHw_setI2cDAta(AiqSensorHw_t* pSnsHw, aiq_pending_split_
     return XCAM_RETURN_NO_ERROR;
 }
 
+static void _SensorHw_setUserVts(AiqSensorHw_t* pBaseSns) {
+    struct v4l2_control ctrl;
+    memset(&ctrl, 0, sizeof(ctrl));
+    ctrl.id    = V4L2_CID_VBLANK;
+    if (pBaseSns->userVts) {
+        ctrl.value = pBaseSns->userVts;
+        LOGI_CAMHW_SUBM(SENSOR_SUBM, "cam%d use user vts:%d",
+                        pSnsHw->mCamPhyId, ctrl.value);
+
+        if (AiqV4l2SubDevice_ioctl(pBaseSns->mSd, VIDIOC_S_CTRL, &ctrl) < 0) {
+            LOGE_CAMHW_SUBM(SENSOR_SUBM, "cam%d failed to set vblank result(val: %d)",
+                            pBaseSns->mCamPhyId, ctrl.value);
+        }
+    }
+}
+
 XCamReturn SensorHw_handle_sof(AiqSensorHw_t* pBaseSns, int64_t time, uint32_t frameid) {
     ENTER_CAMHW_FUNCTION();
     int effecting_frame_id            = 0;
@@ -874,6 +866,8 @@ XCamReturn SensorHw_handle_sof(AiqSensorHw_t* pBaseSns, int64_t time, uint32_t f
 
         _SensorHw_setSensorDpcc(pSns, &exp_time->SensorDpccInfo);
     }
+
+    _SensorHw_setUserVts(pSns);
 
     if (set_time) {
         aiqMutex_lock(&pSns->_mutex);
