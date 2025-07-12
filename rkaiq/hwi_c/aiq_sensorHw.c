@@ -749,9 +749,11 @@ static void _SensorHw_setUserVts(AiqSensorHw_t* pBaseSns) {
     memset(&ctrl, 0, sizeof(ctrl));
     ctrl.id    = V4L2_CID_VBLANK;
     if (pBaseSns->userVts) {
-        ctrl.value = pBaseSns->userVts;
+        rk_aiq_exposure_sensor_descriptor sensor_desc;
+        SensorHw_getSensorDescriptor(pBaseSns, &sensor_desc);
+        ctrl.value = pBaseSns->userVts - sensor_desc.sensor_output_height;
         LOGI_CAMHW_SUBM(SENSOR_SUBM, "cam%d use user vts:%d",
-                        pSnsHw->mCamPhyId, ctrl.value);
+                        pBaseSns->mCamPhyId, ctrl.value);
 
         if (AiqV4l2SubDevice_ioctl(pBaseSns->mSd, VIDIOC_S_CTRL, &ctrl) < 0) {
             LOGE_CAMHW_SUBM(SENSOR_SUBM, "cam%d failed to set vblank result(val: %d)",
