@@ -424,7 +424,7 @@ typedef struct aibnr_swOn_cfg_s {
         M4_NOTES(Aibnr sw on iso index thred.\n
         Freq of use: high))  */
     aiBnr_swGap_t sw_aiBnrT_autoSwGap_thred;
-	/* M4_GENERIC_DESC(
+    /* M4_GENERIC_DESC(
         M4_ALIAS(sw_aiBnrT_manualBnrHw_en),
         M4_TYPE(bool),
         M4_DEFAULT(1),
@@ -433,8 +433,67 @@ typedef struct aibnr_swOn_cfg_s {
         M4_ORDER(2),
         M4_NOTES(Aibnr manual en bit.\n
         Freq of use: High))  */
-	bool sw_aiBnrT_manualBnrHw_en;
+    bool sw_aiBnrT_manualBnrHw_en;
 } aibnr_swOn_cfg_t;
+
+typedef struct aibnr_gainBorder_cfg_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(sw_aiBnrT_borderHdl_en),
+        M4_TYPE(bool),
+        M4_DEFAULT(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(Aibnr manual en bit.\n
+        Freq of use: High))  */
+    bool sw_aiBnrT_borderHdl_en;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(sw_aiBnrT_gainHborder_val),
+        M4_TYPE(u32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0, 64),
+        M4_DEFAULT(4),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(Gain border value.\n
+        Freq of use: High))  */
+    unsigned char sw_aiBnrT_gainHborder_val;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(sw_aiBnrT_gainHborder_val),
+        M4_TYPE(u32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0, 64),
+        M4_DEFAULT(4),
+        M4_DIGIT_EX(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(1),
+        M4_NOTES(Gain border value.\n
+        Freq of use: High))  */
+    unsigned char sw_aiBnrT_gainWborder_val;
+} aibnr_gainBorder_cfg_t;
+
+typedef enum aiBnr_modelRunMode_e {
+    aiBnr_singleX2G8_mode = 0,
+    aiBnr_comboX1G8_mode,
+    aiBnr_comboX0G12_mode,
+} aiBnr_modelRunMode_t;
+
+typedef struct aibnr_model_cfg_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(sw_aiBnrCfg_modelRun_mode),
+        M4_TYPE(enum),
+        M4_ENUM_DEF(aiBnr_modelRunMode_t),
+        M4_DEFAULT(aiBnr_singleX2G8_mode),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(Aibnr model mode.\n
+        Freq of use: high))  */
+    aiBnr_modelRunMode_t sw_aiBnrCfg_modelRun_mode;
+} aibnr_model_cfg_t;
 
 typedef struct aibnr_params_static_s {
     /* M4_GENERIC_DESC(
@@ -456,7 +515,7 @@ typedef struct aibnr_params_static_s {
         M4_NOTES(TODO))  */
     aibnr_model_dir_t model_dir;
     /* M4_GENERIC_DESC(
-        M4_ALIAS(aibnr_swOn_cfg_t),
+        M4_ALIAS(swOn_cfg),
         M4_TYPE(struct),
         M4_UI_MODULE(normal_ui_style),
         M4_HIDE_EX(0),
@@ -464,6 +523,24 @@ typedef struct aibnr_params_static_s {
         M4_ORDER(2),
         M4_NOTES(TODO))  */
     aibnr_swOn_cfg_t swOn_cfg;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(border_cfg),
+        M4_TYPE(struct),
+        M4_UI_MODULE(normal_ui_style),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(3),
+        M4_NOTES(TODO))  */
+    aibnr_gainBorder_cfg_t border_cfg;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(model_cfg),
+        M4_TYPE(struct),
+        M4_UI_MODULE(normal_ui_style),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(4),
+        M4_NOTES(TODO))  */
+    aibnr_model_cfg_t model_cfg;
 } aibnr_params_static_t;
 
 typedef struct aibnr_param_s {

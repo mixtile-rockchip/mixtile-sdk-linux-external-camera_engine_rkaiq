@@ -10,6 +10,7 @@
 #include "common/rkisp2-config.h"
 
 #define RKAIISP_PYRAMID_LAYER_NUM		4
+#define RKAIISP_AIYNR_LAYER_NUM			5
 #define RKAIISP_MAX_RUNCNT			8
 #define RKAIISP_MAX_ISPBUF			8
 #define RKAIISP_MODEL_UPDATE			0x01
@@ -33,6 +34,12 @@
 #define RKAIISP_CMD_GET_YNRBUF_INFO            \
 	_IOR('V', BASE_VIDIOC_PRIVATE + 5, struct rkaiisp_ynrbuf_info)
 
+#define RKAIISP_CMD_SET_MEMORY_MODE		\
+	_IOW('V', BASE_VIDIOC_PRIVATE + 6, enum rkaiisp_mem_mode)
+
+#define RKAIISP_CMD_CLEAR_IQPARAMS		\
+	_IO('V', BASE_VIDIOC_PRIVATE + 7)
+
 /**********************EVENT_PRIVATE***************************/
 #define RKAIISP_V4L2_EVENT_AIISP_DONE		(V4L2_EVENT_PRIVATE_START + 1)
 
@@ -54,7 +61,8 @@ enum rkaiisp_chn_src {
 	VICAP_BAYER_RAW,
 	ALLZERO_SIGMA,
 	ALLZERO_NARMAP,
-	ISP_FINAL_Y
+	ISP_FINAL_Y,
+	VICAP_BAYER_RAW_DOWN
 };
 
 enum rkaiisp_exealgo {
@@ -68,13 +76,19 @@ enum rkaiisp_model_mode {
 	COMBO_MODE,
 	SINGLEX2_MODE,
 	REMOSAIC_MODE,
-	AIYNR_MODE
+	AIYNR_MODE,
+	REMOSAIC_USEL1_MODE
 };
 
 enum rkaiisp_exemode {
 	BOTHEVENT_TO_AIQ,
 	ISPEVENT_IN_KERNEL,
 	BOTHEVENT_IN_KERNEL
+};
+
+enum rkaiisp_mem_mode {
+	SINGLE_MEMODE,
+	COMBO_MEMODE,
 };
 
 struct rkaiisp_airms_st {

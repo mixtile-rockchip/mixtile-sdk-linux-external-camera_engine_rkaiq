@@ -73,6 +73,7 @@
 
 #include "newStruct/aibnr/include/aibnr_algo_api.h"
 #include "newStruct/airms/include/airms_algo_api.h"
+#include "newStruct/aiynr/include/aiynr_algo_api.h"
 #include "c_base/aiq_list.h"
 
 
@@ -712,5 +713,17 @@ typedef struct {
 
 // airms
 typedef airms_param_t rk_aiq_isp_airms_params_t;
+
+// aiynr
+typedef struct rk_aiq_isp_aiynr_params_s {
+    aiynr_param_t aiynr_param;
+    bool is_bypass;
+    bool is_hdr;
+    bool sw_nar_inverse;
+    uint16_t sw_neg_noiselimit;
+    uint16_t sw_pos_noiselimit;
+    uint16_t sw_in_comp_y[33];
+    uint16_t sw_out_decomp_y[33];
+} rk_aiq_isp_aiynr_params_t;
 
 #endif

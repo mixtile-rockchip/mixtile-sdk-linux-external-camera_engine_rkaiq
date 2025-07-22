@@ -34,8 +34,56 @@ RKAIQ_BEGIN_DECLARE
 #define AIBNR_AIISP_BUF_CNT              3
 #define AIBNR_ISP_BUF_MAX                AIBNR_GAIN_BUF_CNT
 #define AIBNR_AIISP_MODE                 BOTHEVENT_TO_AIQ
+#define AIBNR_INBUF_MAX_WIDTH            (4096)
 
 #if RKAIQ_HAVE_AIBNR
+
+typedef struct rk_post_bnr_param_s {
+    // rawInfo
+    int rawHgt;
+    int rawWid;
+    int rawHgtStd;
+    int rawWidStd;
+
+    void* pRaw;
+
+    // gainInfo
+    int gainHgt;
+    int gainWid;
+    int gainHgtStd;
+    int gainWidStd;
+
+    int gainHborder;
+    int gainWborder;
+
+    void* pGain;
+
+    float ISO;
+    int gainMode;
+    int bayerPattern; // 0--BGGR,1--GBRG,2--GRBG,3--RGGB
+
+    char sns_name[32];
+} rk_post_bnr_param;
+
+typedef int (*rk_post_bnr_init)(rk_post_bnr_param* param);
+typedef int (*rk_post_bnr_proc)(rk_post_bnr_param* param);
+typedef int (*rk_post_bnr_deinit)(rk_post_bnr_param* param);
+
+struct PostBnrOps {
+    rk_post_bnr_init bnr_init;
+    rk_post_bnr_proc bnr_proc;
+    rk_post_bnr_deinit bnr_deinit;
+};
+
+struct PostBnrLibrary;
+struct PostBnrLibrary {
+    bool (*Init)(struct PostBnrLibrary* obj);
+    bool (*LoadSymbols)(struct PostBnrLibrary* obj);
+    void (*Deinit)(struct PostBnrLibrary* obj);
+
+    void* handle_;
+    struct PostBnrOps ops_;
+};
 
 typedef struct ispbuf_addr_s {
     char *iir_addr;
@@ -81,6 +129,9 @@ typedef struct AibnrManager_s {
     AiqMutex_t iq_param_mutex;
     AiqMutex_t model_buf_mutex;
 
+    struct PostBnrLibrary postBnrLib;
+    rk_post_bnr_param postBnrParam;
+
     bool doAiisp_en;
     bool apiFrmRate_valid;
     ae_frmRate_t apiFrmRate;
@@ -88,6 +139,8 @@ typedef struct AibnrManager_s {
     AiqAlgoHandler_t* aeHandler;
     bool is_group;
     AiqMutex_t apiFrmRate_mutex;
+    enum rkaiisp_mem_mode mMemMode;
+    bool pBtnr2En;
 } AibnrManager_t;
 
 XCamReturn AibnrManager_init(AiqManager_t* pAiqManager, AibnrManager_t* pAibnrManager);

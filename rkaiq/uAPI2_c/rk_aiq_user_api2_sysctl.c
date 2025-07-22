@@ -55,6 +55,10 @@
 #include "rk_ipcs_service.h"
 #endif
 
+#if RKAIQ_HAVE_AIBNR
+#include "uAPI2/rk_aiq_user_api2_aibnr.h"
+#endif
+
 int g_rkaiq_isp_hw_ver = 0;
 static bool g_bypass_uapi = false;
 
@@ -1606,6 +1610,12 @@ rk_aiq_uapi2_sysctl_getModuleEn(const rk_aiq_sys_ctx_t* ctx,
     mod->module_ctl[RESULT_TYPE_AF_PARAM].bypass = 0;
     mod->module_ctl[RESULT_TYPE_AF_PARAM].opMode = mode == OP_AUTO ? RK_AIQ_OP_MODE_AUTO : RK_AIQ_OP_MODE_MANUAL;
 #endif
+#ifdef RKAIQ_HAVE_AIBNR
+    aibnr_status_t status;
+    rk_aiq_user_api2_aibnr_QueryStatus(sys_ctx, &status);
+    mod->module_ctl[RESULT_TYPE_AIBNR_PARAM].en = status.stMan.sta.swOn_cfg.sw_aiBnrT_manualBnrHw_en;
+ #endif
+
     return ret;
 }
 
@@ -2485,6 +2495,13 @@ rk_aiq_uapi2_setRawBufNum(rk_aiq_sys_ctx_t* ctx, uint16_t buf_num)
     return ret;
 }
 
+void rk_aiq_uapi2_setImuData(const rk_aiq_sys_ctx_t* ctx, AiqImuData_t *data)
+{
+    ENTER_XCORE_FUNCTION();
+    AiqManager_pushImuData(ctx->_rkAiqManager, data);
+    EXIT_XCORE_FUNCTION();
+}
+
 #ifdef USE_IMPLEMENT_C
 void rk_aiq_uapi2_get_version_info(rk_aiq_ver_info_t* vers)
 {
@@ -2601,6 +2618,16 @@ rk_aiq_uapi2_sysctl_setSnsSyncMode(const rk_aiq_sys_ctx_t* ctx, enum rkmodule_sy
     return sensorHw->set_sync_mode(sensorHw, sync_mode);
 }
 
+XCamReturn rk_aiq_uapi2_sysctl_getHdrComprCurve(const rk_aiq_sys_ctx_t* ctx,
+                                                RkAiqHdrCompr_t* compr) {
+    if (ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
+        LOGE("not support !");
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+
+    return AiqCamHw_getHdrComprCurve(ctx->_camHw, compr);
+}
+
 #include "rk_aiq_user_api2_common.c"
 #if defined(ISP_HW_V39)
 #include "rk_aiq_user_api2_3dlut.c"
@@ -2626,6 +2653,7 @@ rk_aiq_uapi2_sysctl_setSnsSyncMode(const rk_aiq_sys_ctx_t* ctx, enum rkmodule_sy
 #include "rk_aiq_user_api2_aeMeas.c"
 #include "rk_aiq_user_api2_blc.c"
 #include "rk_aiq_user_api2_btnr.c"
+#include "rk_aiq_user_api2_btnr2.c"
 #include "rk_aiq_user_api2_cac.c"
 #include "rk_aiq_user_api2_ccm.c"
 #include "rk_aiq_user_api2_cgc.c"
@@ -2657,4 +2685,6 @@ rk_aiq_uapi2_sysctl_setSnsSyncMode(const rk_aiq_sys_ctx_t* ctx, enum rkmodule_sy
 #include "rk_aiq_user_api2_aibnr.c"
 #include "rk_aiq_user_api2_amtd.c"
 #include "rk_aiq_user_api2_airms.c"
+#include "rk_aiq_user_api2_aiynr.c"
+#include "rk_aiq_user_api2_fpnSw.c"
 #endif

@@ -62,6 +62,7 @@
 #include "sample_rgbir_module.h"
 #include "sample_sysctl.h"
 #include "sample_aibnr_module.h"
+#include "sample_aiynr_module.h"
 
 struct module_sample_info {
     const char * const name;
@@ -165,6 +166,7 @@ static void sample_usage()
     printf("\t y) RGBIR:       module test sample.\n");
     printf("\t A) SYSCTL:       module test sample.\n");
     printf("\t B) AIBNR:      module test sample.\n");
+    printf("\t C) AIYNR:      module test sample.\n");
     printf("\t z) ALL:       module test sample.\n");
     printf("\n");
     printf("\t please press the key: ");
@@ -402,6 +404,11 @@ XCamReturn sample_main (const void *arg)
     case 'B': {
         printf("enter AIBNR module test\n");
         sample_aibnr_module(arg);
+        break;
+    }
+    case 'C': {
+        printf("enter AIYNR module test\n");
+        sample_aiynr_module(arg);
         break;
     }
     case 'z': {

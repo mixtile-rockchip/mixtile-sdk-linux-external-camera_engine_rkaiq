@@ -891,10 +891,13 @@
  * - should updated with isp driver:
  *   - https://10.10.10.29/c/rk/kernel/+/263634
  *   - https://10.10.10.29/c/rk/kernel/+/262660/3
+ * v6.0x31.0
+ * - Support btnr2, aiYnr, btnr memc, scene_cis
+ * - isp driver should be v3.1.0 
  */
 
-#define RK_AIQ_VERSION_REAL_V "v6.0x30.5"
-#define RK_AIQ_RELEASE_DATE "2025-06-10"
+#define RK_AIQ_VERSION_REAL_V "v6.0x31.0"
+#define RK_AIQ_RELEASE_DATE "2025-08-01"
 
 #define RK_AIQ_IQ_HEAD_VERSION_REAL_V "v1.0.2"
 

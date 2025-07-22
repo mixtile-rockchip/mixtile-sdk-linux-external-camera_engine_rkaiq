@@ -72,10 +72,12 @@ static int getHDRFrameNum(const rk_aiq_sys_ctx_t* ctx)
         break;
     case RK_AIQ_ISP_HDR_MODE_2_FRAME_HDR:
     case RK_AIQ_ISP_HDR_MODE_2_LINE_HDR:
+    case RK_AIQ_ISP_HDR_MODE_2_BUILTIN:
         FrameNum = 2;
         break;
     case RK_AIQ_ISP_HDR_MODE_3_FRAME_HDR:
     case RK_AIQ_ISP_HDR_MODE_3_LINE_HDR:
+    case RK_AIQ_ISP_HDR_MODE_3_BUILTIN:
         FrameNum = 3;
         break;
     default:

@@ -51,6 +51,7 @@
 #include "algo_handlers/RkAiqAibnrHandler.h"
 #include "algo_handlers/RkAiqAmtdHandler.h"
 #include "algo_handlers/RkAiqAirmsHandler.h"
+#include "algo_handlers/RkAiqAiynrHandler.h"
 #include "interpolation.h"
 
 
@@ -67,6 +68,7 @@ struct {
     {RK_AIQ_ALGO_TYPE_AWB, AiqAlgoHandlerAwb_constructor, AiqAlgoHandler_destructor},
     {RK_AIQ_ALGO_TYPE_ABLC, AiqAlgoHandlerBlc_constructor, AiqAlgoHandler_destructor},
     {RK_AIQ_ALGO_TYPE_AMFNR, AiqAlgoHandlerBtnr_constructor, AiqAlgoHandler_destructor},
+    {RK_AIQ_ALGO_TYPE_BAYERTNR2, AiqAlgoHandlerBtnr2_constructor, AiqAlgoHandler_destructor},
     {RK_AIQ_ALGO_TYPE_ACNR, AiqAlgoHandlerCnr_constructor, AiqAlgoHandler_destructor},
     {RK_AIQ_ALGO_TYPE_ADEBAYER, AiqAlgoHandlerDm_constructor, AiqAlgoHandler_destructor},
     {RK_AIQ_ALGO_TYPE_ADPCC, AiqAlgoHandlerDpc_constructor, AiqAlgoHandler_destructor},
@@ -118,6 +120,9 @@ struct {
 #endif
 #if RKAIQ_HAVE_AIRMS
     {RK_AIQ_ALGO_TYPE_AIRMS, AiqAlgoHandlerAirms_constructor, AiqAlgoHandler_destructor},
+#endif
+#if RKAIQ_HAVE_AIYNR
+    {RK_AIQ_ALGO_TYPE_AIYNR, AiqAlgoHandlerAiynr_constructor, AiqAlgoHandler_destructor},
 #endif
 
 };
@@ -594,8 +599,7 @@ XCamReturn AiqAlgoHandler_queryInterpIso_common(AiqAlgoHandler_t* pAlgoHandler,
     bool isFixedAlgo = (pAlgoHandler->mDes->type == RK_AIQ_ALGO_TYPE_AMFNR ||
                        pAlgoHandler->mDes->type == RK_AIQ_ALGO_TYPE_ACNR ||
                        pAlgoHandler->mDes->type == RK_AIQ_ALGO_TYPE_ASHARP ||
-                       pAlgoHandler->mDes->type == RK_AIQ_ALGO_TYPE_AYNR ||
-                       pAlgoHandler->mDes->type == RK_AIQ_ALGO_TYPE_AIBNR);
+                       pAlgoHandler->mDes->type == RK_AIQ_ALGO_TYPE_AYNR);
 
     if (isFixedAlgo && (sharedCom->aibnr_fixIndex != -1)) {
         *isoH = sharedCom->calibv2->sensor_info->iso_list[sharedCom->aibnr_fixIndex];

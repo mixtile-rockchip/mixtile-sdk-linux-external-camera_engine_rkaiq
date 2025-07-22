@@ -885,6 +885,51 @@ algo_bayertnr_GetStrength(RkAiqAlgoContext *ctx, float *strg, bool *strg_en)
     return XCAM_RETURN_NO_ERROR;
 }
 
+static XCamReturn
+create_context_l2(RkAiqAlgoContext **context, const AlgoCtxInstanceCfg* cfg)
+{
+    XCamReturn result = XCAM_RETURN_NO_ERROR;
+    CamCalibDbV2Context_t *pCalibDbV2 = cfg->calibv2;
+
+    BtnrContext_t* ctx = aiq_mallocz(sizeof(BtnrContext_t));
+    if (ctx == NULL) {
+        LOGE_ANR("%s create context failed!", __func__);
+        return XCAM_RETURN_ERROR_MEM;
+    }
+    ctx->btnr_attrib =
+        (btnr_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(pCalibDbV2, bayertnr2));
+
+    *context = (RkAiqAlgoContext* )ctx;
+    LOGV_ANR("%s: Btnr (exit)\n", __FUNCTION__ );
+
+    *context = (RkAiqAlgoContext*)ctx;
+    return result;
+}
+
+static XCamReturn
+prepare_l2(RkAiqAlgoCom* params)
+{
+    XCamReturn result = XCAM_RETURN_NO_ERROR;
+    BtnrContext_t* pBtnrCtx = (BtnrContext_t *)params->ctx;
+
+    if(!!(params->u.prepare.conf_type & RK_AIQ_ALGO_CONFTYPE_UPDATECALIB )) {
+        // just update calib ptr
+        if (params->u.prepare.conf_type & RK_AIQ_ALGO_CONFTYPE_UPDATECALIB_PTR) {
+            pBtnrCtx->btnr_attrib =
+                (btnr_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(params->u.prepare.calibv2, bayertnr2));
+            pBtnrCtx->iso_list = params->u.prepare.calibv2->sensor_info->iso_list;
+            return XCAM_RETURN_NO_ERROR;
+        }
+    }
+
+    pBtnrCtx->working_mode = params->u.prepare.working_mode;
+    pBtnrCtx->btnr_attrib =
+        (btnr_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(params->u.prepare.calibv2, bayertnr2));
+    pBtnrCtx->iso_list = params->u.prepare.calibv2->sensor_info->iso_list;
+    pBtnrCtx->isReCal_ = true;
+    return result;
+}
+
 #define RKISP_ALGO_ABAYERTNR_VERSION     "v0.0.9"
 #define RKISP_ALGO_ABAYERTNR_VENDOR      "Rockchip"
 #define RKISP_ALGO_ABAYERTNR_DESCRIPTION "Rockchip btnr algo for ISP32"
@@ -900,6 +945,22 @@ RkAiqAlgoDescription g_RkIspAlgoDescBayertnr = {
         .destroy_context = destroy_context,
     },
     .prepare = prepare,
+    .pre_process = NULL,
+    .processing = processing,
+    .post_process = NULL,
+};
+
+RkAiqAlgoDescription g_RkIspAlgoDescBayertnr2 = {
+    .common = {
+        .version = RKISP_ALGO_ABAYERTNR_VERSION,
+        .vendor  = RKISP_ALGO_ABAYERTNR_VENDOR,
+        .description = RKISP_ALGO_ABAYERTNR_DESCRIPTION,
+        .type    = RK_AIQ_ALGO_TYPE_BAYERTNR2,
+        .id      = 0,
+        .create_context  = create_context_l2,
+        .destroy_context = destroy_context,
+    },
+    .prepare = prepare_l2,
     .pre_process = NULL,
     .processing = processing,
     .post_process = NULL,
