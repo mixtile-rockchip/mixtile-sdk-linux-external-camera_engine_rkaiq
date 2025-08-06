@@ -76,6 +76,9 @@
 #include "newStruct/aiynr/include/aiynr_algo_api.h"
 #include "c_base/aiq_list.h"
 
+#ifdef ISP_HW_V35
+#include "include/common/rk-isp35-config.h"
+#endif
 
 typedef struct Aynr_ProcResult_V3_s Aynr_ProcResult_V3_t;
 typedef struct Aynr_ProcResult_V22_s Aynr_ProcResult_V22_t;
@@ -700,6 +703,9 @@ typedef struct rk_aiq_isp_aibnr_params_s {
     uint16_t sw_in_comp_y[33];
     uint16_t sw_out_decomp_y[33];
     int frameIso;
+#ifdef ISP_HW_V35
+    struct isp35_ai_cfg ai_cfg;
+#endif
 } rk_aiq_isp_aibnr_params_t;
 
 typedef struct {

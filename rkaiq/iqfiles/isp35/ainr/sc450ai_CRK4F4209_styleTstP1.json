@@ -182,8 +182,8 @@
 									"sw_aeT_whiteDelay_val":	2
 								},
 								"frmRate":	{
-									"sw_aeT_frmRate_mode":	"ae_frmRate_fix_mode",
-									"sw_aeT_frmRate_val":	10
+									"sw_aeT_frmRate_mode":	"ae_frmRate_auto_mode",
+									"sw_aeT_frmRate_val":	0
 								},
 								"antiFlicker":	{
 									"sw_aeT_antiFlicker_en":	1,
@@ -1737,7 +1737,7 @@
 								}
 							},
 							"awbGnCalcOth":	{
-								"fstFrm_wbgain":	[2.1032, 1, 1, 1.7568],
+								"fstFrm_wbgain":	[1.95, 1, 1, 2.238],
 								"advSiteRec":	{
 									"advSiteRec_en":        0,
 									"kpRecFrm_num":	3,
@@ -22612,6 +22612,10 @@
 									},
 									"model_cfg":	{
 										"sw_aiBnrCfg_modelRun_mode":	"aiBnr_comboX1G8_mode"
+									},
+									"frmRate":	{
+										"sw_aibnrT_frmRate_mode":	"aibnr_frmRate_fix_mode",
+										"sw_aibnrT_frmRate_val":	10
 									}
 								},
 								"dyn":	[{
@@ -23000,6 +23004,10 @@
 									},
 									"model_cfg":	{
 										"sw_aiBnrCfg_modelRun_mode":	"aiBnr_comboX1G8_mode"
+									},
+									"frmRate":	{
+										"sw_aibnrT_frmRate_mode":	"aibnr_frmRate_fix_mode",
+										"sw_aibnrT_frmRate_val":	10
 									}
 								},
 								"dyn":	{

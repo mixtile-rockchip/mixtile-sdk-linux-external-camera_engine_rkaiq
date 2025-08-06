@@ -1479,7 +1479,7 @@
 								}
 							},
 							"awbGnCalcOth":	{
-								"fstFrm_wbgain":	[2.1032, 1, 1, 1.7568],
+								"fstFrm_wbgain":	[1.955, 1, 1, 2.238],
 								"advSiteRec":	{
 									"advSiteRec_en":        0,
 									"kpRecFrm_num":	3,
@@ -23820,7 +23820,7 @@
 								}
 							},
 							"awbGnCalcOth":	{
-								"fstFrm_wbgain":	[2.1032, 1, 1, 1.7568],
+								"fstFrm_wbgain":	[1.955, 1, 1, 2.238],
 								"advSiteRec":	{
 									"advSiteRec_en":        0,
 									"kpRecFrm_num":	3,

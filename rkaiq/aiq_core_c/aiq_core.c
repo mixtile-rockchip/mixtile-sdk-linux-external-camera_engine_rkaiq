@@ -797,9 +797,11 @@ static uint64_t getReqAlgoResMask(AiqCore_t* pAiqCore, int algoType) {
             tmp |= 1ULL << RESULT_TYPE_AIYNR_PARAM;
             break;
 #endif
+#if 0
         case RK_AIQ_ALGO_TYPE_BAYERTNR2:
             tmp |= 1ULL << RESULT_TYPE_TNR2_PARAM;
             break;
+#endif
         default:
             break;
     }

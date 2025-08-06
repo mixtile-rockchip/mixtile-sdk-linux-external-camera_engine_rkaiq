@@ -208,6 +208,10 @@ typedef rkisp_isp2x_stat_buffer rkisp_isp_stat_buffer;
         }
 		AiqCamHw_notify_sof(pAiqManager->mCamHw, hwres);
 
+#if RKAIQ_HAVE_AIBNR
+        AibnrManager_notify_sof(&pAiqManager->mAibnrManager);
+#endif
+
 		Aiqisp20Evt_t hw_evt;
 		AiqCamHw_make_ispHwEvt(pAiqManager->mCamHw,
 				&hw_evt, hwres->frame_id, V4L2_EVENT_FRAME_SYNC,

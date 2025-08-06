@@ -1901,7 +1901,7 @@ static XCamReturn AiqCamHw_aibnr_doNrnn(AiqCamHwBase_t* pCamHw, struct rkisp_aii
 
 static XCamReturn AiqCamHw_aibnr_doIspBe(AiqCamHwBase_t* pCamHw, struct rkisp_aiisp_st *isp_in)
 {
-    if (pCamHw->mAibnrIspStream) {
+    if (pCamHw->mAibnrIspStream && pCamHw->_isp_stream_status != ISP_STREAM_STATUS_STREAM_OFF) {
         return pCamHw->mAibnrIspStream->start_ispbe_hdl(pCamHw->mAibnrIspStream, isp_in);
     }
     return XCAM_RETURN_NO_ERROR;

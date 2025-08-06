@@ -152,6 +152,7 @@ struct AiqSensorHw_s {
     uint32_t userVts;
 
     calibdb_cis_blc_t cis_blc;
+    int32_t mCisHdrMode;
 
     // export api
     XCamReturn (*setExposureParams)(AiqSensorHw_t* pBaseSns, AiqAecExpInfoWrapper_t* expPar);

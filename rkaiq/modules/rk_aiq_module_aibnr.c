@@ -365,6 +365,7 @@ void rk_aiq_aibnr_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
     ai_cfg->aipre_zp = 0;                     // 8 bits, [-128, 127]
 
     rk_aiq_aibnr_params_print(ai_cfg);
+    isp_aibnr_param->ai_cfg = *ai_cfg;
 
     return;
 }

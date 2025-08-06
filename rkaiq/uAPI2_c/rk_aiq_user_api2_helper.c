@@ -542,6 +542,7 @@ RkAiqUapiDesc_t rkaiq_uapidesc_list[] = {
     __RKAIQUAPI_DESC_DEF("/uapi/0/dm_uapi/info", dm_status_t, NULL, rk_aiq_user_api2_dm_QueryStatus),
     __RKAIQUAPI_DESC_DEF("/uapi/0/btnr_uapi/attr", btnr_api_attrib_t, rk_aiq_user_api2_btnr_SetAttrib, rk_aiq_user_api2_btnr_GetAttrib),
     __RKAIQUAPI_DESC_DEF("/uapi/0/btnr_uapi/info", btnr_status_t, NULL, rk_aiq_user_api2_btnr_QueryStatus),
+    __RKAIQUAPI_DESC_DEF("/uapi/0/btnr_uapi/stats", btnr_stats_cp_t, NULL, rk_aiq_user_api2_btnr_QueryStats),
     __RKAIQUAPI_DESC_DEF("/uapi/0/gamma_uapi/attr", gamma_api_attrib_t, rk_aiq_user_api2_gamma_SetAttrib, rk_aiq_user_api2_gamma_GetAttrib),
     __RKAIQUAPI_DESC_DEF("/uapi/0/gamma_uapi/info", gamma_status_t, NULL, rk_aiq_user_api2_gamma_QueryStatus),
     __RKAIQUAPI_DESC_DEF("/uapi/0/drc_uapi/attr", drc_api_attrib_t, rk_aiq_user_api2_drc_SetAttrib, rk_aiq_user_api2_drc_GetAttrib),

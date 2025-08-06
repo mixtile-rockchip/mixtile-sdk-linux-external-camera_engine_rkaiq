@@ -435,6 +435,7 @@ XCamReturn AibnrManager_prepare(AibnrManager_t* pAibnrManager, AiqCamHwBase_t* p
 {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
     aibnr_api_attrib_t *aibnr_attrib = (aibnr_api_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(pCalibDbV2, aibnr));
+    aibnr_params_static_t* psta = &(aibnr_attrib->stAuto.sta);
     struct rkaiisp_ispbuf_info *ispbuf_info = &pAibnrManager->ispbuf_info;
     AibnrModelBuf_t *aibnrModelBuf = &pAibnrManager->mAibnrModelBuf;
     struct rkaiisp_param_info param_info;
@@ -458,6 +459,12 @@ XCamReturn AibnrManager_prepare(AibnrManager_t* pAibnrManager, AiqCamHwBase_t* p
     } else {
         pAibnrManager->pBtnr2En = false;
     }
+
+    pAibnrManager->iqFrmRate.sw_aeT_frmRate_mode = (ae_frmRate_mode_t)psta->frmRate.sw_aibnrT_frmRate_mode;
+    pAibnrManager->iqFrmRate.sw_aeT_frmRate_val = psta->frmRate.sw_aibnrT_frmRate_val;
+    LOGK_AIBNR("record iqFrmRate: mode %d, fps %f",
+        pAibnrManager->iqFrmRate.sw_aeT_frmRate_mode,
+        pAibnrManager->iqFrmRate.sw_aeT_frmRate_val);
 
     if (!pAibnrManager->is_enable) {
         LOGD_AIBNR("%s: aibnr is disabled.", __func__);
@@ -694,19 +701,54 @@ XCamReturn AibnrManager_updateParams(AibnrManager_t* pAibnrManager, rk_aiq_isp_a
     if (!first_param) {
         aiqMutex_lock(&pAibnrManager->apiFrmRate_mutex);
         if (pAibnrManager->doAiisp_en != isp_aibnr_params->aibnr_param.sta.swOn_cfg.sw_aiBnrT_manualBnrHw_en) {
+            if (pAibnrManager->doAiisp_en && pAibnrManager->doAiisp_delaycnt > 0) {
+                pAibnrManager->doAiisp_en = isp_aibnr_params->aibnr_param.sta.swOn_cfg.sw_aiBnrT_manualBnrHw_en;
+                LOGK_AIBNR("%s: switch on aiisp is break off, doAiisp_delaycnt %d",
+                    __func__, pAibnrManager->doAiisp_delaycnt);
+                pAibnrManager->mAibnrCfg.mode = 0;
+                pAibnrManager->doAiisp_delaycnt = 0;
+                pAibnrManager->doAiisp_framecnt = 0;
+                change_frmRate(pAibnrManager);
+                aiqMutex_unlock(&pAibnrManager->apiFrmRate_mutex);
+                goto CONTINUE;
+            }
+            else if (pAibnrManager->doAiisp_en && pAibnrManager->doAiisp_delaycnt == 0 && pAibnrManager->doAiisp_framecnt == 0) {
+                pAibnrManager->doAiisp_en = isp_aibnr_params->aibnr_param.sta.swOn_cfg.sw_aiBnrT_manualBnrHw_en;
+                pAibnrManager->doAiisp_delaycnt = 1;
+                pAibnrManager->doAiisp_framecnt = 0;
+                LOGK_AIBNR("%s: switch on aiisp is not complete, doAiisp_delaycnt %d",
+                    __func__, pAibnrManager->doAiisp_delaycnt);
+                if (!pAibnrManager->pBtnr2En) {
+                    pAibnrManager->mAibnrCfg.mode = pAibnrManager->doAiisp_en ? 1 : 0;
+                } else {
+                    pAibnrManager->mAibnrCfg.mode = pAibnrManager->doAiisp_en ? 2 : 0;
+                }
+                aiqMutex_unlock(&pAibnrManager->apiFrmRate_mutex);
+                goto CONTINUE;
+            }
+
             pAibnrManager->doAiisp_en = isp_aibnr_params->aibnr_param.sta.swOn_cfg.sw_aiBnrT_manualBnrHw_en;
             if (!pAibnrManager->pBtnr2En) {
                 pAibnrManager->mAibnrCfg.mode = pAibnrManager->doAiisp_en ? 1 : 0;
             } else {
                 pAibnrManager->mAibnrCfg.mode = pAibnrManager->doAiisp_en ? 2 : 0;
             }
-            ret = pAibnrManager->pCamHw->aibnr_setLinecnt(pAibnrManager->pCamHw, &pAibnrManager->mAibnrCfg);
-            if (ret) {
-                pAibnrManager->is_state_error = true;
-                LOGE_AIBNR("%s: aibnr_setLinecnt error.", __func__);
-                aiqMutex_unlock(&pAibnrManager->apiFrmRate_mutex);
-                return ret;
+
+            if (pAibnrManager->doAiisp_en && AIBNR_DOAIISP_ON_DELAYCNT > 0) {
+                pAibnrManager->doAiisp_delaycnt = AIBNR_DOAIISP_ON_DELAYCNT;
+                pAibnrManager->doAiisp_framecnt = 0;
+            } else {
+                pAibnrManager->doAiisp_delaycnt = 0;
+                pAibnrManager->doAiisp_framecnt = 0;
+                ret = pAibnrManager->pCamHw->aibnr_setLinecnt(pAibnrManager->pCamHw, &pAibnrManager->mAibnrCfg);
+                if (ret) {
+                    pAibnrManager->is_state_error = true;
+                    LOGE_AIBNR("%s: aibnr_setLinecnt error.", __func__);
+                    aiqMutex_unlock(&pAibnrManager->apiFrmRate_mutex);
+                    return ret;
+                }
             }
+
             change_frmRate(pAibnrManager);
             if (pAibnrManager->doAiisp_en)
                 pAibnrManager->pCamHw->aibnr_clrIqParam(pAibnrManager->pCamHw);
@@ -714,10 +756,17 @@ XCamReturn AibnrManager_updateParams(AibnrManager_t* pAibnrManager, rk_aiq_isp_a
         aiqMutex_unlock(&pAibnrManager->apiFrmRate_mutex);
     }
 
+CONTINUE:
     if (!pAibnrManager->doAiisp_en && !first_param) {
         LOGD_AIBNR("%s: aiisp is auto skip, frameIso %d.", __func__, isp_aibnr_params->frameIso);
         return XCAM_RETURN_BYPASS;
     }
+
+    aiqMutex_lock(&pAibnrManager->apiFrmRate_mutex);
+    if (pAibnrManager->doAiisp_en && pAibnrManager->doAiisp_delaycnt > 0) {
+        pAibnrManager->pCamHw->aibnr_clrIqParam(pAibnrManager->pCamHw);
+    }
+    aiqMutex_unlock(&pAibnrManager->apiFrmRate_mutex);
 
     pAibnrManager->pCamHw->aibnr_getParamsBuf(pAibnrManager->pCamHw, &pV4l2Buf);
     if (pV4l2Buf) {
@@ -856,6 +905,175 @@ XCamReturn AibnrManager_deinit(AibnrManager_t* pAibnrManager)
     aiqMutex_deInit(&pAibnrManager->apiFrmRate_mutex);
 
     return ret;
+}
+
+static int dump_aibnr_iq_params(AibnrManager_t* pAibnrManager, FILE *fp)
+{
+    rk_aiq_isp_aibnr_params_t* params = &pAibnrManager->last_aibnr_params;
+    aibnr_param_t* cur_param = &params->aibnr_param;
+    aibnr_params_static_t *sta = &cur_param->sta;
+    aibnr_param_dyn_t *dyn = &cur_param->dyn;
+    aibnr_param_calib_t *calib = &dyn->calib;
+    aibnr_param_tunning_t *tunning = &dyn->tunning;
+
+    fprintf(fp, "%s\n", "aibnr iq params");
+
+    fprintf(fp, "is_hdr=%d iso=%d\n",
+            params->is_hdr, params->frameIso);
+
+    fprintf(fp, "sw_aiBnrC_blkPrev_offset=%f\n",
+            calib->sw_aiBnrC_blkPrev_offset);
+
+    fprintf(fp, "sw_aiBnrC_blkPost_offset=%f\n",
+            calib->sw_aiBnrC_blkPost_offset);
+
+    fprintf(fp, "sw_aiBnrC_shotNoise_val=%f\n",
+            calib->sw_aiBnrC_shotNoise_val);
+
+    fprintf(fp, "sw_aiBnrC_readNoise_val=%f\n",
+            calib->sw_aiBnrC_readNoise_val);
+
+    fprintf(fp, "sw_aiBnrC_fixedNoise_val=%f\n",
+            calib->sw_aiBnrC_fixedNoise_val);
+
+    fprintf(fp, "sw_aiBnrT_totalNr_strg=%f\n",
+            tunning->sw_aiBnrT_totalNr_strg);
+
+    fprintf(fp, "sw_aiBnrT_shotNr_strg=%f\n",
+            tunning->sw_aiBnrT_shotNr_strg);
+
+    fprintf(fp, "sw_aiBnrT_readNr_strg=%f\n",
+            tunning->sw_aiBnrT_readNr_strg);
+
+    fprintf(fp, "sw_aiBnrT_fixedNr_strg=%f\n",
+            tunning->sw_aiBnrT_fixedNr_strg);
+
+    fprintf(fp, "sw_aiBnrT_motionBias_offset=%f\n",
+            tunning->sw_aiBnrT_motionBias_offset);
+
+    fprintf(fp, "sw_aiBnrT_motionGain_strg=%f\n",
+            tunning->sw_aiBnrT_motionGain_strg);
+
+    fprintf(fp, "sw_aiBnrT_noiseAdd_ratio=%f\n",
+            tunning->sw_aiBnrT_noiseAdd_ratio);
+
+    fprintf(fp, "sw_aiBnrT_noiseAdd_limit=%f\n",
+            tunning->sw_aiBnrT_noiseAdd_limit);
+
+    fprintf(fp, "sw_aiBnrT_noiseAddMot_offset=%f\n",
+            tunning->sw_aiBnrT_noiseAddMot_offset);
+
+    fprintf(fp, "sw_aiBnrT_noiseAddMot_coeff=%f\n",
+            tunning->sw_aiBnrT_noiseAddMot_coeff);
+
+    fprintf(fp, "sw_aiBnrT_noiseAddLuma_offset=%f\n",
+            tunning->sw_aiBnrT_noiseAddLuma_offset);
+
+    fprintf(fp, "sw_aiBnrT_noiseAddLuma_coeff=%f\n",
+            tunning->sw_aiBnrT_noiseAddLuma_coeff);
+
+    fprintf(fp, "sw_aiBnrT_noiseAddLumaClip_th=%f\n",
+            tunning->sw_aiBnrT_noiseAddLumaClip_th);
+
+    fprintf(fp, "sw_aiBnrT_noiseAddLumaStatic_th=%f\n",
+            tunning->sw_aiBnrT_noiseAddLumaStatic_th);
+
+    fprintf(fp, "sw_aiBnrT_nonLinear_scale=%f\n",
+            tunning->sw_aiBnrT_nonLinear_scale);
+
+    fprintf(fp, "sw_aiBnrT_nonLinear_ratio=%f\n",
+            tunning->sw_aiBnrT_nonLinear_ratio);
+
+    fprintf(fp, "sw_aiBnrT_nonLinear_adjust=%f\n",
+            tunning->sw_aiBnrT_nonLinear_adjust);
+
+    fprintf(fp, "sw_aiBnrCfg_model_dir=%s\n",
+            sta->model_dir.sw_aiBnrCfg_model_dir);
+
+    fprintf(fp, "sw_aiBnrT_model_file=%s\n",
+            tunning->sw_aiBnrT_model_file);
+
+    fprintf(fp, "sw_aiBnrT_debug_mode=%d\n",
+            sta->debug.sw_aiBnrT_debug_mode);
+
+    fprintf(fp, "sw_aiBnrT_autoSwOn_thred=%d\n",
+            sta->swOn_cfg.sw_aiBnrT_autoSwOn_thred);
+
+    fprintf(fp, "sw_aiBnrT_autoSwGap_thred=%d\n",
+            sta->swOn_cfg.sw_aiBnrT_autoSwGap_thred);
+
+    fprintf(fp, "sw_aiBnrT_manualBnrHw_en=%d\n",
+            sta->swOn_cfg.sw_aiBnrT_manualBnrHw_en);
+
+    return 0;
+}
+
+static void dump_aibnr_hwi_params(AibnrManager_t* pAibnrManager, FILE *fp)
+{
+    rk_aiq_isp_aibnr_params_t* params = &pAibnrManager->last_aibnr_params;
+    struct isp35_ai_cfg *ai_cfg = &params->ai_cfg;
+
+    fprintf(fp, "%s\n", "aipre hwi params");
+
+    fprintf(fp, "%-15s%-13d%-13d\n", "AIPRE_CTRL",
+            ai_cfg->aipre_luma2gain_dis, ai_cfg->aipre_narmap_inv);
+
+    fprintf(fp, "%-15s%-13d%-13d%-13d\n", "AIPRE_NL_PRE",
+            ai_cfg->aipre_scale, ai_cfg->aipre_zp,
+            ai_cfg->aipre_black_lvl);
+
+    fprintf(fp, "%-15s%-13d%-13d%-13d\n", "AIPRE_GAIN",
+            ai_cfg->aipre_gain_alpha, ai_cfg->aipre_global_gain,
+            ai_cfg->aipre_gain_ratio);
+
+    fprintf(fp, "%-15s%-13d%-13d%-13d\n", "AIPRE_NOISE0",
+            ai_cfg->aipre_noise_mot_offset, ai_cfg->aipre_noise_mot_gain,
+            ai_cfg->aipre_noise_luma_offset);
+
+    fprintf(fp, "%-15s%-13d%-13d%-13d\n", "AIPRE_NOISE1",
+            ai_cfg->aipre_noise_luma_gain, ai_cfg->aipre_noise_luma_clip,
+            ai_cfg->aipre_noise_luma_static);
+
+    fprintf(fp, "%-15s%-13d%-13d\n", "AIPRE_NOISE2",
+            ai_cfg->aipre_nar_manual, ai_cfg->aipre_nar_manual_alpha);
+
+    for (int i = 0; i < ISP35_AI_SIGMA_NUM; i+=3) {
+        fprintf(fp, "%-15s%-13d%-13d%-13d\n", "AIPRE_SIGMA",
+                ai_cfg->aipre_sigma_y[i], ai_cfg->aipre_sigma_y[i+1],
+                ai_cfg->aipre_sigma_y[i+2]);
+    }
+
+    fprintf(fp, "%-15s%-13d%-13d%-13d%-13d%-13d\n", "VPSL_PYR",
+            ai_cfg->pyr_yraw_mode, ai_cfg->pyr_sigma_en, ai_cfg->pyr_yraw_sel,
+            ai_cfg->pyr_gain_leftshift, ai_cfg->pyr_blacklvl_sig);
+
+    for (int i = 0; i < ISP35_VPSL_SIGMA_NUM; i+=9) {
+        fprintf(fp, "%-15s%-13d%-13d%-13d%-13d%-13d%-13d%-13d%-13d%-13d\n", "VPSL_SIGMA",
+                ai_cfg->pyr_sigma_y[i+0], ai_cfg->pyr_sigma_y[i+1],ai_cfg->pyr_sigma_y[i+2],
+                ai_cfg->pyr_sigma_y[i+3], ai_cfg->pyr_sigma_y[i+4],ai_cfg->pyr_sigma_y[i+5],
+                ai_cfg->pyr_sigma_y[i+6], ai_cfg->pyr_sigma_y[i+7],ai_cfg->pyr_sigma_y[i+8]);
+    }
+}
+
+static void dump_aibnr_params(AibnrManager_t* pAibnrManager, char *filename)
+{
+    FILE *fp = NULL;
+
+    fp = fopen(filename, "wb");
+    if (!fp) {
+        LOGE_AIBNR("can not open file %s", filename);
+        return;
+    }
+
+    aiqMutex_lock(&pAibnrManager->iq_param_mutex);
+    dump_aibnr_iq_params(pAibnrManager, fp);
+    dump_aibnr_hwi_params(pAibnrManager, fp);
+    aiqMutex_unlock(&pAibnrManager->iq_param_mutex);
+
+    if (fp) {
+        LOGK_AIBNR("dump aibnr params to filename %s", filename);
+        fclose(fp);
+    }
 }
 
 static XCamReturn dump_dmabuf(char *filename, u32 dma_fd, u32 size)
@@ -1117,6 +1335,9 @@ static XCamReturn AibnrManager_doIspBe(AibnrManager_t* pAibnrManager, struct rki
         sprintf(dump_file, "%s/%04d_%02d_aiisp.raw", AIBNR_DUMPBUF_DIR, frame_id, idx);
         dump_dmabuf(dump_file, buf_inf->buf_fd[idx], buf_inf->buf_size);
 
+        sprintf(dump_file, "%s/%04d_aibnr_params.txt", AIBNR_DUMPBUF_DIR, frame_id);
+        dump_aibnr_params(pAibnrManager, dump_file);
+
         aiqMutex_lock(&pAibnrManager->iq_param_mutex);
         isp_aibnr_params = &pAibnrManager->last_aibnr_params;
         sprintf(dump_file, "%s/%s",
@@ -1173,6 +1394,7 @@ static XCamReturn AibnrManager_doIspBe(AibnrManager_t* pAibnrManager, struct rki
         pAibnrManager->is_bypass,
         pAibnrManager->doAiisp_en);
     pAibnrManager->pCamHw->aibnr_doIspBe(pAibnrManager->pCamHw, isp_in);
+    pAibnrManager->doAiisp_framecnt++;
     return XCAM_RETURN_NO_ERROR;
 }
 
@@ -1322,18 +1544,6 @@ XCamReturn AibnrManager_setFrmRate(AiqAlgoHandler_t* aeHandler, bool is_group,
     }
 
     aiqMutex_lock(&pAibnrManager->apiFrmRate_mutex);
-    if (!pAibnrManager->apiFrmRate_valid) {
-        if (is_group) {
-            AiqAlgoCamGroupAeHandler_getExpSwAttr((AiqAlgoCamGroupAeHandler_t*)aeHandler, &tmpExpSwAttr);
-        } else {
-            AiqAlgoHandlerAe_getExpSwAttr((AiqAlgoHandlerAe_t*)aeHandler, &tmpExpSwAttr);
-        }
-
-        pAibnrManager->iqFrmRate = tmpExpSwAttr.commCtrl.frmRate;
-        LOGK_AIBNR("record iqFrmRate: mode %d, fps %f",
-            pAibnrManager->iqFrmRate.sw_aeT_frmRate_mode,
-            pAibnrManager->iqFrmRate.sw_aeT_frmRate_val);
-    }
     pAibnrManager->apiFrmRate = expSwAttr->commCtrl.frmRate;
     pAibnrManager->apiFrmRate_valid = true;
     pAibnrManager->is_group = is_group;
@@ -1352,6 +1562,78 @@ XCamReturn AibnrManager_setFrmRate(AiqAlgoHandler_t* aeHandler, bool is_group,
     LOGK_AIBNR("record apiFrmRate: mode %d, fps %f",
         pAibnrManager->apiFrmRate.sw_aeT_frmRate_mode,
         pAibnrManager->apiFrmRate.sw_aeT_frmRate_val);
+
+    return ret;
+}
+
+//#define DUMP_BYFILE
+#ifdef DUMP_BYFILE
+static bool getValueFromFile(const char* path, int* pos) {
+    const char* delim = " ";
+    char buffer[16]   = {0};
+    int fp;
+
+    fp = open(path, O_RDONLY | O_SYNC);
+    if (fp != -1) {
+        if (read(fp, buffer, sizeof(buffer)) <= 0) {
+            LOGE_AF("read %s failed!", path);
+            goto OUT;
+        } else {
+            char* p = NULL;
+
+            p = strtok(buffer, delim);
+            if (p != NULL) {
+                *pos = atoi(p);
+            }
+        }
+        close(fp);
+        return true;
+    }
+
+OUT:
+    return false;
+}
+#endif
+
+XCamReturn AibnrManager_notify_sof(AibnrManager_t* pAibnrManager)
+{
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+    if (pAibnrManager) {
+#ifdef DUMP_BYFILE
+    int aibnr_dump = 0;
+
+    if (getValueFromFile("/data/.aibnr_dump", &aibnr_dump) == true) {
+        if (aibnr_dump != 0) {
+            AibnrManager_dumpRaw(pAibnrManager, aibnr_dump);
+            remove("/data/.aibnr_dump");
+        }
+    }
+#endif
+        aiqMutex_lock(&pAibnrManager->apiFrmRate_mutex);
+        if (pAibnrManager->doAiisp_delaycnt > 0) {
+            pAibnrManager->doAiisp_delaycnt--;
+            if (pAibnrManager->doAiisp_delaycnt == 0) {
+                pAibnrManager->doAiisp_framecnt = 0;
+                LOGK_AIBNR("%s: switch aiisp complete, doAiisp_en %d", __func__, pAibnrManager->doAiisp_en);
+                ret = pAibnrManager->pCamHw->aibnr_setLinecnt(pAibnrManager->pCamHw, &pAibnrManager->mAibnrCfg);
+                if (ret) {
+                    pAibnrManager->is_state_error = true;
+                    LOGE_AIBNR("%s: aibnr_setLinecnt error.", __func__);
+                    aiqMutex_unlock(&pAibnrManager->apiFrmRate_mutex);
+                    return ret;
+                }
+
+                if (pAibnrManager->doAiisp_en) {
+                    aiqMutex_lock(&pAibnrManager->idx_pool_mutex);
+                    for (int i = 0; i < AIBNR_AIISP_BUF_CNT; i++)
+                         pAibnrManager->aiisp_idx_pool[i] = false;
+                    aiqMutex_unlock(&pAibnrManager->idx_pool_mutex);
+                }
+            }
+        }
+        aiqMutex_unlock(&pAibnrManager->apiFrmRate_mutex);
+    }
 
     return ret;
 }

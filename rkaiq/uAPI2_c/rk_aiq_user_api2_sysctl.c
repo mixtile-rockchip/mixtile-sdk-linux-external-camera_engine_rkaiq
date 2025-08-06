@@ -1357,6 +1357,9 @@ rk_aiq_uapi2_sysctl_prepare(const rk_aiq_sys_ctx_t* ctx,
     ret = AiqManager_prepare(ctx->_rkAiqManager, width, height, mode);
     RKAIQSYS_CHECK_RET(ret, ret, "prepare failed !");
 
+#if RKAIQ_HAVE_AIBNR
+    rk_aiq_user_api2_aibnr_RecDefFps(ctx);
+#endif
     LOGK("cid[%d] %s success. mode:%d ", ctx->_camPhyId, __func__, mode);
 
     EXIT_XCORE_FUNCTION();

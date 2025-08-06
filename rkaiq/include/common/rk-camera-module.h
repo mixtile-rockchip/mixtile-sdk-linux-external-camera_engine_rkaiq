@@ -242,19 +242,19 @@
 	_IOR('V', BASE_VIDIOC_PRIVATE + 56, struct rkmodule_error_info)
 
 #define RKMODULE_SET_EXPAND_SINGLE_MODE       \
-	_IOW('V', BASE_VIDIOC_PRIVATE + 56, __u32)
+	_IOW('V', BASE_VIDIOC_PRIVATE + 57, __u32)
 
 #define RKMODULE_SET_LENC  \
-	_IOW('V', BASE_VIDIOC_PRIVATE + 57, struct rkmodule_lenc_gain)
+	_IOW('V', BASE_VIDIOC_PRIVATE + 58, struct rkmodule_lenc_gain)
 
 #define RKMODULE_GET_LENC_INFO  \
-	_IOR('V', BASE_VIDIOC_PRIVATE + 58, struct rkmodule_lenc_info)
+	_IOR('V', BASE_VIDIOC_PRIVATE + 59, struct rkmodule_lenc_info)
 
 #define RKMODULE_SET_REG_SETTING  \
-	_IOW('V', BASE_VIDIOC_PRIVATE + 59, struct rkmodule_reg_setting)
+	_IOW('V', BASE_VIDIOC_PRIVATE + 60, struct rkmodule_reg_setting)
 
 #define RKMODULE_SET_BAYER_MODE       \
-	_IOW('V', BASE_VIDIOC_PRIVATE + 60, struct rkmodule_bayer_param)
+	_IOW('V', BASE_VIDIOC_PRIVATE + 61, struct rkmodule_bayer_param)
 
 #define RKMODULE_GET_HDR_COMPR_SINGLE_FRAME_INFO  \
 	_IOR('V', BASE_VIDIOC_PRIVATE + 62, struct rkmodule_hdr_compr_single_frame_info)

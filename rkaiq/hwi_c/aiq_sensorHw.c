@@ -1601,6 +1601,9 @@ static XCamReturn _SensorHw_setExpMode(AiqSensorHw_t* pSnsHw, uint32_t mode) {
         LOGE_CAMHW_SUBM(SENSOR_SUBM, "failed to set exp mode %d, use mode %d", mode, defMode);
         return XCAM_RETURN_ERROR_IOCTL;
     }
+
+    pSnsHw->mCisHdrMode = mode;
+
     LOGD_CAMHW_SUBM(SENSOR_SUBM, "set exposure mode: %d\n", mode);
     return XCAM_RETURN_NO_ERROR;
 }
@@ -2182,6 +2185,7 @@ void AiqSensorHw_init(AiqSensorHw_t* pSnsHw, const char* name, int cid) {
     pSnsHw->_mirror         = 0;
     pSnsHw->_flip           = 0;
     pSnsHw->dcg_mode        = -1;
+    pSnsHw->mCisHdrMode     = 0;
 
     {
         // init pool

@@ -112,6 +112,46 @@ typedef struct {
     dm_status_t info;
 } dm_uapi_t;
 
+// copy from rk_aiq_module_btnr_common.h
+typedef struct {
+    /* M4_GENERIC_DESC(
+       M4_ALIAS(frameId),
+       M4_TYPE(u32),
+       M4_SIZE_EX(1,1),
+       M4_RANGE_EX(0,1048575),
+       M4_DEFAULT(0),
+       M4_HIDE_EX(0),
+       M4_RO(1),
+       M4_ORDER(0),
+       M4_NOTES(sigma stats frame id, read only.\n
+       Freq of use: low))  */
+    uint32_t id;
+    /* M4_GENERIC_DESC(
+       M4_ALIAS(sigma_num),
+       M4_TYPE(u32),
+       M4_SIZE_EX(1,1),
+       M4_RANGE_EX(0,20),
+       M4_DEFAULT(0),
+       M4_HIDE_EX(0),
+       M4_RO(1),
+       M4_ORDER(0),
+       M4_NOTES(sigma stats array size, read only.\n
+       Freq of use: low))  */
+    uint32_t sigma_num;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(sigma_y),
+        M4_TYPE(u16),
+        M4_SIZE_EX(0,20),
+        M4_RANGE_EX(0,65535),
+        M4_DEFAULT(0),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(sigma stats array, read only.\n
+        Freq of use: low))  */
+    uint16_t sigma_y[20];
+} btnr_stats_cp_t;
+
 typedef struct {
     /* M4_GENERIC_DESC(
        M4_ALIAS(attr),
@@ -121,6 +161,8 @@ typedef struct {
     btnr_api_attrib_t attr;
     // M4_STRUCT_DESC("info", "tuning_status")
     btnr_status_t info;
+    // M4_STRUCT_DESC("stats", "normal_ui_style")
+    btnr_stats_cp_t stats;
 } btnr_uapi_t;
 
 typedef struct {

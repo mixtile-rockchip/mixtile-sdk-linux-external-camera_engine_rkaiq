@@ -495,6 +495,38 @@ typedef struct aibnr_model_cfg_s {
     aiBnr_modelRunMode_t sw_aiBnrCfg_modelRun_mode;
 } aibnr_model_cfg_t;
 
+typedef enum aibnr_frmRate_mode_e {
+    aibnr_frmRate_auto_mode = 0,
+    aibnr_frmRate_fix_mode = 1,
+} aibnr_frmRate_mode_t;
+
+typedef struct aibnr_frmRate_s {
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(sw_aibnrT_frmRate_mode),
+        M4_TYPE(enum),
+        M4_ENUM_DEF(aibnr_frmRate_mode_t),
+        M4_DEFAULT(aibnr_frmRate_fix_mode),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(0),
+        M4_NOTES(The working mode of frame rate control.\n
+        Freq of use: high))  */
+    aibnr_frmRate_mode_t sw_aibnrT_frmRate_mode;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(sw_aibnrT_frmRate_val),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,1),
+        M4_RANGE_EX(0,255),
+        M4_DEFAULT(0),
+        M4_DIGIT_EX(2),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(1),
+        M4_NOTES(The value of frame rate.\n
+        Freq of use: high))  */
+    float sw_aibnrT_frmRate_val;
+} aibnr_frmRate_t;
+
 typedef struct aibnr_params_static_s {
     /* M4_GENERIC_DESC(
         M4_ALIAS(debug),
@@ -541,6 +573,15 @@ typedef struct aibnr_params_static_s {
         M4_ORDER(4),
         M4_NOTES(TODO))  */
     aibnr_model_cfg_t model_cfg;
+    /* M4_GENERIC_DESC(
+        M4_ALIAS(frmRate),
+        M4_TYPE(struct),
+        M4_UI_MODULE(normal_ui_style),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(5),
+        M4_NOTES(TODO))  */
+	aibnr_frmRate_t frmRate;
 } aibnr_params_static_t;
 
 typedef struct aibnr_param_s {
