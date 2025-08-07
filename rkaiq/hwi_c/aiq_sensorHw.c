@@ -750,6 +750,15 @@ static void _SensorHw_setUserVts(AiqSensorHw_t* pBaseSns) {
     memset(&ctrl, 0, sizeof(ctrl));
     ctrl.id    = V4L2_CID_VBLANK;
     if (pBaseSns->userVts) {
+        ctrl.id    = V4L2_CID_EXPOSURE;
+        if (AiqV4l2SubDevice_ioctl(pBaseSns->mSd, VIDIOC_G_CTRL, &ctrl) < 0)
+            return;
+        if (ctrl.value > (int32_t)(pBaseSns->userVts)) {
+            LOGI_CAMHW_SUBM(SENSOR_SUBM, "cam%d ignore user vts:%d < exp:%d",
+                            pBaseSns->mCamPhyId, ctrl.value, ctrl.value);
+            return;
+        }
+        memset(&ctrl, 0, sizeof(ctrl));
         rk_aiq_exposure_sensor_descriptor sensor_desc;
         SensorHw_getSensorDescriptor(pBaseSns, &sensor_desc);
         ctrl.value = pBaseSns->userVts - sensor_desc.sensor_output_height;
