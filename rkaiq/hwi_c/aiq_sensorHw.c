@@ -748,7 +748,6 @@ static XCamReturn _SensorHw_setI2cDAta(AiqSensorHw_t* pSnsHw, aiq_pending_split_
 static void _SensorHw_setUserVts(AiqSensorHw_t* pBaseSns) {
     struct v4l2_control ctrl;
     memset(&ctrl, 0, sizeof(ctrl));
-    ctrl.id    = V4L2_CID_VBLANK;
     if (pBaseSns->userVts) {
         ctrl.id    = V4L2_CID_EXPOSURE;
         if (AiqV4l2SubDevice_ioctl(pBaseSns->mSd, VIDIOC_G_CTRL, &ctrl) < 0)
@@ -761,6 +760,7 @@ static void _SensorHw_setUserVts(AiqSensorHw_t* pBaseSns) {
         memset(&ctrl, 0, sizeof(ctrl));
         rk_aiq_exposure_sensor_descriptor sensor_desc;
         SensorHw_getSensorDescriptor(pBaseSns, &sensor_desc);
+        ctrl.id    = V4L2_CID_VBLANK;
         ctrl.value = pBaseSns->userVts - sensor_desc.sensor_output_height;
         LOGI_CAMHW_SUBM(SENSOR_SUBM, "cam%d use user vts:%d",
                         pBaseSns->mCamPhyId, ctrl.value);
