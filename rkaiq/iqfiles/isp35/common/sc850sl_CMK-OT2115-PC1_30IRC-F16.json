@@ -34,7 +34,7 @@
 		},
 		"CISTimeSet":	{
 			"Linear":	{
-				"CISTimeRegMin":	1,
+				"CISTimeRegMin":	2,
 				"CISLinTimeRegMaxFac":	{
 					"fCoeff":	[1, 4]
 				},
