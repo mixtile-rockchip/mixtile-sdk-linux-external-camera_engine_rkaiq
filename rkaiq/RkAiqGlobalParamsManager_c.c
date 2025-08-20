@@ -1245,15 +1245,18 @@ GlobalParamsManager_set_ModuleEn(GlobalParamsManager_t* pMan, rk_aiq_module_list
                 ret |= ret2;
                 continue;
             }
-			aiqMutex_lock(&pMan->mAlgoMutex[cur_type]);
-            *pMan->mGlobalParams[cur_type].en = mod->module_ctl[i].en;
+            aiqMutex_lock(&pMan->mAlgoMutex[cur_type]);
+            if (cur_type != RESULT_TYPE_AIBNR_PARAM && cur_type != RESULT_TYPE_AIRMS_PARAM &&
+                cur_type != RESULT_TYPE_AIYNR_PARAM) {
+                *pMan->mGlobalParams[cur_type].en = mod->module_ctl[i].en;
+            }
             *pMan->mGlobalParams[cur_type].bypass = mod->module_ctl[i].bypass;
             if(mod->module_ctl[i].opMode == RK_AIQ_OP_MODE_AUTO || mod->module_ctl[i].opMode == RK_AIQ_OP_MODE_MANUAL)
                 *pMan->mGlobalParams[cur_type].opMode = mod->module_ctl[i].opMode;
             else
                 LOGE("%s invalid opMode %d", __func__ ,mod->module_ctl[i].opMode);
             pMan->mIsGlobalModulesUpdateBits |= ((uint64_t)1) << cur_type;
-			aiqMutex_unlock(&pMan->mAlgoMutex[cur_type]);
+            aiqMutex_unlock(&pMan->mAlgoMutex[cur_type]);
         }
     }
     EXIT_ANALYZER_FUNCTION();

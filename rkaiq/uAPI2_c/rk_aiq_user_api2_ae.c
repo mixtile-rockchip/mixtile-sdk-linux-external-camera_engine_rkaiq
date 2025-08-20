@@ -1093,7 +1093,7 @@ XCamReturn rk_aiq_user_api2_ae_setExpSwAttr(
                 if (!camCtx)
                     continue;
 
-                ret = AibnrManager_setFrmRate((AiqAlgoHandler_t*)algo_handle, true, &sys_ctx->_rkAiqManager->mAibnrManager, &newExpSwAttr);
+                ret = AibnrManager_setFrmRate((AiqAlgoHandler_t*)algo_handle, true, &camCtx->_rkAiqManager->mAibnrManager, &newExpSwAttr);
                 if (ret != XCAM_RETURN_NO_ERROR) {
                     ret = AiqAlgoCamGroupAeHandler_setExpSwAttr(algo_handle, newExpSwAttr);
                 }
@@ -1112,7 +1112,7 @@ XCamReturn rk_aiq_user_api2_ae_setExpSwAttr(
                     (AiqAlgoHandlerAe_t*)camCtx->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AE];
                 if (algo_handle) {
 #if RKAIQ_HAVE_AIBNR
-                    ret = AibnrManager_setFrmRate((AiqAlgoHandler_t*)algo_handle, false, &sys_ctx->_rkAiqManager->mAibnrManager, &newExpSwAttr);
+                    ret = AibnrManager_setFrmRate((AiqAlgoHandler_t*)algo_handle, false, &camCtx->_rkAiqManager->mAibnrManager, &newExpSwAttr);
                     if (ret != XCAM_RETURN_NO_ERROR) {
                         ret = AiqAlgoHandlerAe_setExpSwAttr(algo_handle, newExpSwAttr);
                     }
