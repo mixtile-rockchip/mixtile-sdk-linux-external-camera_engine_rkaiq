@@ -7532,13 +7532,17 @@ XCamReturn AiqCamHw_setUserOtpInfo(AiqCamHwBase_t* pCamHw, rk_aiq_user_otp_info_
 static XCamReturn SetLastAeExpToRttShared(AiqCamHwBase_t* pCamHw) {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
     unsigned long cmd;
+    struct rkisp_thunderboot_resmem_head *head = NULL;
     AiqV4l2SubDevice_t* mIspCoreDev = pCamHw->mIspCoreDev;
 #if defined(ISP_HW_V33)
     struct rkisp33_thunderboot_resmem_head fastAeAwbInfo;
+    head = &fastAeAwbInfo.head;
 #elif defined(ISP_HW_V35)
-    struct rkisp35_thunderboot_resmem_head fastAeAwbInfo;
+    struct rkisp_thunderboot_resmem_head fastAeAwbInfo;
+    head = &fastAeAwbInfo;
 #else
     struct rkisp32_thunderboot_resmem_head fastAeAwbInfo;
+    head = &fastAeAwbInfo.head;
 #endif
 
 #if defined(ISP_HW_V33)
@@ -7566,32 +7570,32 @@ static XCamReturn SetLastAeExpToRttShared(AiqCamHwBase_t* pCamHw) {
         }
 
         if (pCamHw->mWorkingMode == RK_AIQ_WORKING_MODE_NORMAL) {
-            fastAeAwbInfo.head.exp_gain[0] =
+            head->exp_gain[0] =
                 (uint32_t)(last_ae->aecExpInfo.LinearExp.exp_real_params.analog_gain * (1 << 16));
-            fastAeAwbInfo.head.exp_time[0] = (uint32_t)(
+            head->exp_time[0] = (uint32_t)(
                 last_ae->aecExpInfo.LinearExp.exp_real_params.integration_time * (1 << 16));
-            fastAeAwbInfo.head.exp_isp_dgain[0] =
+            head->exp_isp_dgain[0] =
                 (uint32_t)(last_ae->aecExpInfo.LinearExp.exp_real_params.isp_dgain * (1 << 16));
         } else {
-            fastAeAwbInfo.head.exp_gain[0] =
+            head->exp_gain[0] =
                 (uint32_t)(last_ae->aecExpInfo.HdrExp[0].exp_real_params.analog_gain * (1 << 16));
-            fastAeAwbInfo.head.exp_time[0] = (uint32_t)(
+            head->exp_time[0] = (uint32_t)(
                 last_ae->aecExpInfo.HdrExp[0].exp_real_params.integration_time * (1 << 16));
-            fastAeAwbInfo.head.exp_isp_dgain[0] =
+            head->exp_isp_dgain[0] =
                 (uint32_t)(last_ae->aecExpInfo.HdrExp[0].exp_real_params.isp_dgain * (1 << 16));
 
-            fastAeAwbInfo.head.exp_gain[0] =
+            head->exp_gain[0] =
                 (uint32_t)(last_ae->aecExpInfo.HdrExp[1].exp_real_params.analog_gain * (1 << 16));
-            fastAeAwbInfo.head.exp_time[0] = (uint32_t)(
+            head->exp_time[0] = (uint32_t)(
                 last_ae->aecExpInfo.HdrExp[1].exp_real_params.integration_time * (1 << 16));
-            fastAeAwbInfo.head.exp_isp_dgain[0] =
+            head->exp_isp_dgain[0] =
                 (uint32_t)(last_ae->aecExpInfo.HdrExp[1].exp_real_params.isp_dgain * (1 << 16));
 
-            fastAeAwbInfo.head.exp_gain[0] =
+            head->exp_gain[0] =
                 (uint32_t)(last_ae->aecExpInfo.HdrExp[2].exp_real_params.analog_gain * (1 << 16));
-            fastAeAwbInfo.head.exp_time[0] = (uint32_t)(
+            head->exp_time[0] = (uint32_t)(
                 last_ae->aecExpInfo.HdrExp[2].exp_real_params.integration_time * (1 << 16));
-            fastAeAwbInfo.head.exp_isp_dgain[0] =
+            head->exp_isp_dgain[0] =
                 (uint32_t)(last_ae->aecExpInfo.HdrExp[2].exp_real_params.isp_dgain * (1 << 16));
         }
 
@@ -7612,8 +7616,8 @@ static XCamReturn SetLastAeExpToRttShared(AiqCamHwBase_t* pCamHw) {
         }
 
         LOGK_CAMHW("save last exp to rtt share: gain: 0x%x time 0x%x isp_dgain %0x",
-                   fastAeAwbInfo.head.exp_gain[0], fastAeAwbInfo.head.exp_time[0],
-                   fastAeAwbInfo.head.exp_isp_dgain[0]);
+                   head->exp_gain[0], head->exp_time[0],
+                   head->exp_isp_dgain[0]);
     }
 
     if (pCamHw->mTbInfo.is_start_again) {

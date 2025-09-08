@@ -2007,10 +2007,12 @@ char* rk_aiq_uapi2_sysctl_readiq(const rk_aiq_sys_ctx_t* sys_ctx, char* param)
     return ret_str;
 }
 
-#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
+#if defined(ISP_HW_V33)
 static XCamReturn _get_fast_aewb_from_drv(const char* sensor_name, struct rkisp33_thunderboot_resmem_head* fastAeAwbInfo)
-#else
+#elif defined(ISP_HW_V32)
 static XCamReturn _get_fast_aewb_from_drv(const char* sensor_name, struct rkisp32_thunderboot_resmem_head* fastAeAwbInfo)
+#else
+static XCamReturn _get_fast_aewb_from_drv(const char* sensor_name, struct rkisp_thunderboot_resmem_head* fastAeAwbInfo)
 #endif
 {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
@@ -2026,10 +2028,12 @@ static XCamReturn _get_fast_aewb_from_drv(const char* sensor_name, struct rkisp3
     ret = AiqV4l2SubDevice_init(&IspCoreDev, s_info->isp_info->isp_dev_path);
     if (!ret) {
         IspCoreDev._v4l_base.open(&IspCoreDev._v4l_base, false);
-#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
+#if defined(ISP_HW_V33)
         if (IspCoreDev._v4l_base.io_control(&IspCoreDev._v4l_base, RKISP_CMD_GET_TB_HEAD_V33, fastAeAwbInfo) < 0)
-#else
+#elif defined(ISP_HW_V32)
         if (IspCoreDev._v4l_base.io_control(&IspCoreDev._v4l_base, RKISP_CMD_GET_TB_HEAD_V32, fastAeAwbInfo) < 0)
+#else
+        if (IspCoreDev._v4l_base.io_control(&IspCoreDev._v4l_base, RKISP_CMD_GET_TB_HEAD, fastAeAwbInfo) < 0)
 #endif
             ret = XCAM_RETURN_ERROR_FAILED;
         IspCoreDev._v4l_base.close(&IspCoreDev._v4l_base);
@@ -2041,10 +2045,16 @@ static XCamReturn _get_fast_aewb_from_drv(const char* sensor_name, struct rkisp3
 
 static void _set_fast_aewb_as_init(const rk_aiq_sys_ctx_t* ctx, rk_aiq_working_mode_t mode)
 {
-#if defined(ISP_HW_V33) || defined(ISP_HW_V35)
+    struct rkisp_thunderboot_resmem_head *head = NULL;
+#if defined(ISP_HW_V33)
     struct rkisp33_thunderboot_resmem_head fastAeAwbInfo;
-#else
+    head = &fastAeAwbInfo.head;
+#elif defined(ISP_HW_V32)
     struct rkisp32_thunderboot_resmem_head fastAeAwbInfo;
+    head = &fastAeAwbInfo.head;
+#else
+    struct rkisp_thunderboot_resmem_head fastAeAwbInfo;
+    head = &fastAeAwbInfo;
 #endif
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
     rk_aiq_tb_info_t info;
@@ -2095,9 +2105,9 @@ static void _set_fast_aewb_as_init(const rk_aiq_sys_ctx_t* ctx, rk_aiq_working_m
 
             LinExpAttr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
             LinExpAttr.sync.done = false;
-            LinExpAttr.Params.InitExp.InitTimeValue = (float)fastAeAwbInfo.head.exp_time[0] / (1 << 16);
-            LinExpAttr.Params.InitExp.InitGainValue = (float)fastAeAwbInfo.head.exp_gain[0] / (1 << 16);
-            LinExpAttr.Params.InitExp.InitIspDGainValue = (float)fastAeAwbInfo.head.exp_isp_dgain[0] / (1 << 16);
+            LinExpAttr.Params.InitExp.InitTimeValue = (float)head->exp_time[0] / (1 << 16);
+            LinExpAttr.Params.InitExp.InitGainValue = (float)head->exp_gain[0] / (1 << 16);
+            LinExpAttr.Params.InitExp.InitIspDGainValue = (float)head->exp_isp_dgain[0] / (1 << 16);
 
             ret = rk_aiq_user_api2_ae_setLinExpAttr(ctx, LinExpAttr);
 
@@ -2110,15 +2120,15 @@ static void _set_fast_aewb_as_init(const rk_aiq_sys_ctx_t* ctx, rk_aiq_working_m
 
             HdrExpAttr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
             HdrExpAttr.sync.done = false;
-            HdrExpAttr.Params.InitExp.InitTimeValue[0] = (float)fastAeAwbInfo.head.exp_time[0] / (1 << 16);
-            HdrExpAttr.Params.InitExp.InitGainValue[0] = (float)fastAeAwbInfo.head.exp_gain[0] / (1 << 16);
-            HdrExpAttr.Params.InitExp.InitIspDGainValue[0] = (float)fastAeAwbInfo.head.exp_isp_dgain[0] / (1 << 16);
-            HdrExpAttr.Params.InitExp.InitTimeValue[1] = (float)fastAeAwbInfo.head.exp_time[1] / (1 << 16);
-            HdrExpAttr.Params.InitExp.InitGainValue[1] = (float)fastAeAwbInfo.head.exp_gain[1] / (1 << 16);
-            HdrExpAttr.Params.InitExp.InitIspDGainValue[1] = (float)fastAeAwbInfo.head.exp_isp_dgain[1] / (1 << 16);
-            HdrExpAttr.Params.InitExp.InitTimeValue[2] = (float)fastAeAwbInfo.head.exp_time[2] / (1 << 16);
-            HdrExpAttr.Params.InitExp.InitGainValue[2] = (float)fastAeAwbInfo.head.exp_gain[2] / (1 << 16);
-            HdrExpAttr.Params.InitExp.InitIspDGainValue[2] = (float)fastAeAwbInfo.head.exp_isp_dgain[2] / (1 << 16);
+            HdrExpAttr.Params.InitExp.InitTimeValue[0] = (float)head->exp_time[0] / (1 << 16);
+            HdrExpAttr.Params.InitExp.InitGainValue[0] = (float)head->exp_gain[0] / (1 << 16);
+            HdrExpAttr.Params.InitExp.InitIspDGainValue[0] = (float)head->exp_isp_dgain[0] / (1 << 16);
+            HdrExpAttr.Params.InitExp.InitTimeValue[1] = (float)head->exp_time[1] / (1 << 16);
+            HdrExpAttr.Params.InitExp.InitGainValue[1] = (float)head->exp_gain[1] / (1 << 16);
+            HdrExpAttr.Params.InitExp.InitIspDGainValue[1] = (float)head->exp_isp_dgain[1] / (1 << 16);
+            HdrExpAttr.Params.InitExp.InitTimeValue[2] = (float)head->exp_time[2] / (1 << 16);
+            HdrExpAttr.Params.InitExp.InitGainValue[2] = (float)head->exp_gain[2] / (1 << 16);
+            HdrExpAttr.Params.InitExp.InitIspDGainValue[2] = (float)head->exp_isp_dgain[2] / (1 << 16);
 
             ret = rk_aiq_user_api2_ae_setHdrExpAttr(ctx, HdrExpAttr);
 
@@ -2133,9 +2143,9 @@ static void _set_fast_aewb_as_init(const rk_aiq_sys_ctx_t* ctx, rk_aiq_working_m
             ae_api_linExpAttr_t LinExpAttr;
             ret = rk_aiq_user_api2_ae_getLinExpAttr(ctx, &LinExpAttr);
 
-            LinExpAttr.initExp.sw_aeT_initTime_val = (float)fastAeAwbInfo.head.exp_time[0] / (1 << 16);
-            LinExpAttr.initExp.sw_aeT_initGain_val = (float)fastAeAwbInfo.head.exp_gain[0] / (1 << 16);
-            LinExpAttr.initExp.sw_aeT_initIspDGain_val = (float)fastAeAwbInfo.head.exp_isp_dgain[0] / (1 << 16);
+            LinExpAttr.initExp.sw_aeT_initTime_val = (float)head->exp_time[0] / (1 << 16);
+            LinExpAttr.initExp.sw_aeT_initGain_val = (float)head->exp_gain[0] / (1 << 16);
+            LinExpAttr.initExp.sw_aeT_initIspDGain_val = (float)head->exp_isp_dgain[0] / (1 << 16);
 
             ret = rk_aiq_user_api2_ae_setLinExpAttr(ctx, LinExpAttr);
 
@@ -2145,15 +2155,15 @@ static void _set_fast_aewb_as_init(const rk_aiq_sys_ctx_t* ctx, rk_aiq_working_m
             ae_api_hdrExpAttr_t HdrExpAttr;
             ret = rk_aiq_user_api2_ae_getHdrExpAttr(ctx, &HdrExpAttr);
 
-            HdrExpAttr.initExp.sw_aeT_initTime_val[0] = (float)fastAeAwbInfo.head.exp_time[0] / (1 << 16);
-            HdrExpAttr.initExp.sw_aeT_initGain_val[0] = (float)fastAeAwbInfo.head.exp_gain[0] / (1 << 16);
-            HdrExpAttr.initExp.sw_aeT_initIspDGain_val[0] = (float)fastAeAwbInfo.head.exp_isp_dgain[0] / (1 << 16);
-            HdrExpAttr.initExp.sw_aeT_initTime_val[1] = (float)fastAeAwbInfo.head.exp_time[1] / (1 << 16);
-            HdrExpAttr.initExp.sw_aeT_initGain_val[1] = (float)fastAeAwbInfo.head.exp_gain[1] / (1 << 16);
-            HdrExpAttr.initExp.sw_aeT_initIspDGain_val[1] = (float)fastAeAwbInfo.head.exp_isp_dgain[1] / (1 << 16);
-            HdrExpAttr.initExp.sw_aeT_initTime_val[2] = (float)fastAeAwbInfo.head.exp_time[2] / (1 << 16);
-            HdrExpAttr.initExp.sw_aeT_initGain_val[2] = (float)fastAeAwbInfo.head.exp_gain[2] / (1 << 16);
-            HdrExpAttr.initExp.sw_aeT_initIspDGain_val[2] = (float)fastAeAwbInfo.head.exp_isp_dgain[2] / (1 << 16);
+            HdrExpAttr.initExp.sw_aeT_initTime_val[0] = (float)head->exp_time[0] / (1 << 16);
+            HdrExpAttr.initExp.sw_aeT_initGain_val[0] = (float)head->exp_gain[0] / (1 << 16);
+            HdrExpAttr.initExp.sw_aeT_initIspDGain_val[0] = (float)head->exp_isp_dgain[0] / (1 << 16);
+            HdrExpAttr.initExp.sw_aeT_initTime_val[1] = (float)head->exp_time[1] / (1 << 16);
+            HdrExpAttr.initExp.sw_aeT_initGain_val[1] = (float)head->exp_gain[1] / (1 << 16);
+            HdrExpAttr.initExp.sw_aeT_initIspDGain_val[1] = (float)head->exp_isp_dgain[1] / (1 << 16);
+            HdrExpAttr.initExp.sw_aeT_initTime_val[2] = (float)head->exp_time[2] / (1 << 16);
+            HdrExpAttr.initExp.sw_aeT_initGain_val[2] = (float)head->exp_gain[2] / (1 << 16);
+            HdrExpAttr.initExp.sw_aeT_initIspDGain_val[2] = (float)head->exp_isp_dgain[2] / (1 << 16);
 
             ret = rk_aiq_user_api2_ae_setHdrExpAttr(ctx, HdrExpAttr);
 
