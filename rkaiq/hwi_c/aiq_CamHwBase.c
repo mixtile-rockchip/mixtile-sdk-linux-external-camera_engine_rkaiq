@@ -4769,11 +4769,9 @@ XCamReturn AiqCamHw_stop(AiqCamHwBase_t* pCamHw) {
     } else {
         if (pCamHw->mIspParamsDev) AiqV4l2Device_stop(pCamHw->mIspParamsDev);
 
-        if (!pCamHw->mNoReadBack) {
-            ret = _hdr_mipi_stop(pCamHw);
-            if (ret < 0) {
-                LOGE_CAMHW_SUBM(ISP20HW_SUBM, "hdr mipi stop err: %d\n", ret);
-            }
+        ret = _hdr_mipi_stop(pCamHw);
+        if (ret < 0) {
+            LOGE_CAMHW_SUBM(ISP20HW_SUBM, "hdr mipi stop err: %d\n", ret);
         }
     }
 
