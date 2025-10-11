@@ -593,7 +593,7 @@ static inline int calibdbV2_from_tuningdb(CamCalibDbV2Context_t *dst,
     memcpy(dst->module_info, &src->module_calib, sizeof(CalibDb_Module_ParaV2_t));
     memcpy(dst->sys_cfg, &src->sys_static_cfg,
            sizeof(CalibDb_SysStaticCfg_ParaV2_t));
-    memcpy(&dst->scene_cis, &src->calib_cis, sizeof(calibdb_cis_para_t));
+    memcpy(dst->scene_cis, &src->calib_cis, sizeof(calibdb_cis_para_t));
 #if defined(ISP_HW_V20)
     memcpy(dst->calib_scene, &src->calib_scene,
            sizeof(CamCalibDbV2ContextIsp20_t));
