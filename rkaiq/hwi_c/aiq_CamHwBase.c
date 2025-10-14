@@ -36,6 +36,7 @@
 #include "include/common/rkisp21-config.h"
 #include "include/common/rkisp3-config.h"
 #include "include/common/rkisp32-config.h"
+#include "include/common/rkcif-config.h"
 #include "iq_parser_v2/cis_head.h"
 
 // #include "aiq_core/thumbnails.h"
@@ -1426,6 +1427,36 @@ media_unref:
                 // *s_full_info->ispp_info;
             }
         }
+
+        int lvds_fd = -1;
+        int connect_id;
+        char lvdsPath[DEV_PATH_LEN];
+        AiqV4l2SubDevice_t lvdsDev;
+
+        for (iter = g_mSensorHwInfos; iter != NULL; iter = iter->next) {
+            //set connect id
+            if (!iter->data.isp_info)
+                continue;
+            strncpy(lvdsPath, iter->data.isp_info->linked_vicap_sd_path, sizeof(lvdsPath));
+            if (strlen(lvdsPath) > 0) {
+                AiqV4l2SubDevice_init(&lvdsDev, lvdsPath);
+                AiqV4l2SubDevice_open(&lvdsDev, false);
+                lvds_fd = lvdsDev._v4l_base._fd;
+                if (lvds_fd < 0) {
+                    LOGE_CAMHW_SUBM(SENSOR_SUBM, "failed to get lvds_fd, value is %d\n", lvds_fd);
+                    continue;
+                }
+
+                if (xcam_device_ioctl(lvds_fd, RKCIF_CMD_GET_CONNECT_ID, &connect_id) < 0) {
+                    LOGE_CAMHW_SUBM(SENSOR_SUBM, "failed to get stream connect id! lvds_fd is %d\n",
+                                    lvds_fd);
+                    AiqV4l2SubDevice_deinit(&lvdsDev);
+                    continue;
+                }
+                iter->data.connect_id = connect_id;
+                AiqV4l2SubDevice_deinit(&lvdsDev);
+            }
+        }
     }
 
     /* Look for free isp&ispp link to fake camera */
@@ -2444,11 +2475,13 @@ XCamReturn AiqCamHwBase_init(AiqCamHwBase_t* pCamHw, const char* sns_ent_name) {
         pCamHw->_linked_to_isp = false;
         pCamHw->_linked_to_1608 = false;
         pCamHw->_linked_to_serdes = true;
+#if 0
         if (!pCamHw->use_rkrawstream)
             LOGK_CAMHW("linked to serdes, force to use_rkrawstream");
+        pCamHw->use_rkrawstream = true;
+#endif
         if (pCamHw->mIsListenStrmEvt)
             LOGK_CAMHW("linked to serdes, set mIsListenStrmEvt to false");
-        pCamHw->use_rkrawstream = true;
         pCamHw->mIsListenStrmEvt = false;
     }
     // airms

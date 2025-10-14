@@ -658,6 +658,7 @@ typedef struct {
     bool linked_to_serdes;
     bool dvp_itf;
     struct rkmodule_inf mod_info;
+    int connect_id;
 } rk_sensor_full_info_t;
 
 typedef void (*ref_t)(void* ops_ctx, void* cfg);

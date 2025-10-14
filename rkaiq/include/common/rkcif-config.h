@@ -37,6 +37,9 @@
 #define RKCIF_CMD_SET_QUICK_STREAM \
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 8, struct rkcif_quick_stream_param)
 
+#define RKCIF_CMD_GET_CONNECT_ID \
+	_IOWR('V', BASE_VIDIOC_PRIVATE + 19, int)
+
 #define RKCIF_CMD_SET_SENSOR_FLIP_START \
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 20, int)
 
