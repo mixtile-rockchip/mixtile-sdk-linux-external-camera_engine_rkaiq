@@ -367,6 +367,20 @@ rk_aiq_user_api2_af_GetFocusPos(const rk_aiq_sys_ctx_t* sys_ctx, int* pos)
     return ret;
 }
 
+XCamReturn
+rk_aiq_user_api2_af_GetPdafLibOutput(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_pdlib_output* pdlib_output, int timeout_ms)
+{
+    RKAIQ_API_SMART_LOCK(sys_ctx);
+    AiqAlgoHandlerAf_t* algo_handle =
+        (AiqAlgoHandlerAf_t*)sys_ctx->_analyzer->mAlgoHandleMaps[RK_AIQ_ALGO_TYPE_AF];
+
+    if (algo_handle) {
+        return AiqAlgoHandlerAf_getPdafLibOutput(algo_handle, pdlib_output, timeout_ms);
+    }
+
+    return XCAM_RETURN_ERROR_FAILED;
+}
+
 #else
 
 XCamReturn
@@ -497,6 +511,12 @@ rk_aiq_user_api2_af_setAngleZ(const rk_aiq_sys_ctx_t* sys_ctx, float angleZ)
 
 XCamReturn
 rk_aiq_user_api2_af_GetFocusPos(const rk_aiq_sys_ctx_t* sys_ctx, int* pos)
+{
+    return XCAM_RETURN_ERROR_UNKNOWN;
+}
+
+XCamReturn
+rk_aiq_user_api2_af_GetPdafLibOutput(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_pdlib_output* pdlib_output, int timeout_ms)
 {
     return XCAM_RETURN_ERROR_UNKNOWN;
 }

@@ -1343,9 +1343,11 @@ rk_aiq_uapi2_ae_register(const rk_aiq_sys_ctx_t* ctx, rk_aiq_pfnAe_t* cbs)
 
     if(!cbs) {
         LOGD_AEC_SUBM(0xff, "RK AE");
+        cast_ctx->_isCustomAe = false;
     } else {
         LOGD_AEC_SUBM(0xff, "CUSTOM AE");
         algoCtx->aiq_ctx = (rk_aiq_sys_ctx_t*)(ctx);
+        cast_ctx->_isCustomAe = true;
         LOGD_AEC_SUBM(0xff, "register custom ae algo sucess for sys_ctx %p, lib_id %d !",
                       ctx,
                       desc->common.id);

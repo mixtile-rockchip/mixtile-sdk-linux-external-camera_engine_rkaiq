@@ -1418,6 +1418,7 @@ media_unref:
             hwinfo->fl_ir_strth_adj_sup = 0;
             hwinfo->is_multi_isp_mode        = fullinfo->isp_info->is_multi_isp_mode;
             hwinfo->multi_isp_extended_pixel = mMultiIspExtendedPixel;
+            hwinfo->sensor_info.phyId = i;
             CamHwIsp20::mSensorHwInfos[fullinfo->sensor_name] = fullinfo;
             CamHwIsp20::mCamHwInfos[fullinfo->sensor_name] = hwinfo;
             LOGI_CAMHW_SUBM(ISP20HW_SUBM, "fake camera %d link to isp(%d) to ispp(%d)\n",
@@ -2605,6 +2606,8 @@ CamHwIsp20::setLensVcmCfg(struct rkmodule_inf& mod_info)
     LensHw* lensHw = mLensDev.get_cast_ptr<LensHw>();
     rk_aiq_lens_vcmcfg old_cfg, new_cfg;
     int old_maxpos, new_maxpos;
+    struct rk_cam_otp_info otp_info;
+    struct rkmodule_af_otp *af_otp[RKMODULE_AF_OTP_MAX_LEN] = { NULL };
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
 
     if (lensHw) {
@@ -2617,6 +2620,7 @@ CamHwIsp20::setLensVcmCfg(struct rkmodule_inf& mod_info)
 
         CalibDbV2_Af_VcmCfg_t* vcmcfg = &_cur_calib_infos.af.vcmcfg;
         float posture_diff = vcmcfg->posture_diff;
+        float extend_range_ratio = vcmcfg->extend_range_ratio;
 
         new_cfg = old_cfg;
         if (vcmcfg->start_current != -1) {
@@ -2631,24 +2635,54 @@ CamHwIsp20::setLensVcmCfg(struct rkmodule_inf& mod_info)
 
         if (vcmcfg->start_current == -1 && vcmcfg->rated_current == -1 && vcmcfg->step_mode == -1) {
             if (mod_info.af.flag) {
-                new_cfg.start_ma = mod_info.af.af_otp[0].vcm_start;
-                new_cfg.rated_ma = mod_info.af.af_otp[0].vcm_end;
+                int range    = new_cfg.rated_ma - new_cfg.start_ma;
+                int start_ma = new_cfg.start_ma;
+                int rated_ma = new_cfg.rated_ma;
 
-                if (posture_diff != 0) {
-                    int range = new_cfg.rated_ma - new_cfg.start_ma;
-                    int start_ma = new_cfg.start_ma;
-                    int rated_ma = new_cfg.rated_ma;
+                for (int i = 0; i < mod_info.af.dir_cnt; i++) {
+                    if (mod_info.af.af_otp[i].vcm_dir == AF_OTP_DIR_HORIZONTAL)
+                        af_otp[0] = &mod_info.af.af_otp[i];
+                    else if (mod_info.af.af_otp[i].vcm_dir == AF_OTP_DIR_UP)
+                        af_otp[1] = &mod_info.af.af_otp[i];
+                    else if (mod_info.af.af_otp[i].vcm_dir == AF_OTP_DIR_DOWN)
+                        af_otp[2] = &mod_info.af.af_otp[i];
+                }
 
-                    new_cfg.start_ma = start_ma - (int)(range * posture_diff);
-                    new_cfg.rated_ma = rated_ma + (int)(range * posture_diff);
+                start_ma = af_otp[0]->vcm_start;
+                rated_ma = af_otp[0]->vcm_end;
+                range    = rated_ma - start_ma;
+                if (extend_range_ratio != 0) {
+                    start_ma = start_ma - (int)(range * extend_range_ratio);
+                    rated_ma = rated_ma + (int)(range * extend_range_ratio);
 
-                    if (new_cfg.start_ma < 0)
-                        new_cfg.start_ma = 0;
-                    if (new_cfg.rated_ma > 1023)
-                        new_cfg.rated_ma = 1023;
+                    if (start_ma < 0)
+                        start_ma = 0;
+                    if (rated_ma > 1023)
+                        rated_ma = 1023;
 
-                    LOGD_AF("posture_diff %f, start_ma %d -> %d, rated_ma %d -> %d",
-                            posture_diff, start_ma, new_cfg.start_ma, rated_ma, new_cfg.rated_ma);
+                    LOGD_AF("extend_range_ratio %f, start_ma %d -> %d, rated_ma %d -> %d", extend_range_ratio,
+                        af_otp[0]->vcm_start, start_ma, af_otp[0]->vcm_end, rated_ma);
+                }
+
+                new_cfg.start_ma = start_ma;
+                new_cfg.rated_ma = rated_ma;
+                if (vcmcfg->use_gsensor) {
+                    otp_info.otp_valid    = false;
+                    otp_info.hysteresis   = -1;
+                    otp_info.startCurrent = start_ma;
+                    otp_info.endCurrent   = rated_ma;
+                    if (af_otp[1] && af_otp[0]) {
+                        otp_info.posture = af_otp[1]->vcm_start - af_otp[0]->vcm_start;
+                        otp_info.otp_valid = true;
+                    } else if (af_otp[2] && af_otp[0]) {
+                        otp_info.posture = af_otp[0]->vcm_start - af_otp[2]->vcm_start;
+                        otp_info.otp_valid = true;
+                    } else if (posture_diff != 0) {
+                        otp_info.posture = (int)(range * posture_diff);
+                        otp_info.otp_valid = true;
+                    }
+                    if (otp_info.otp_valid)
+                        lensHw->setOTPData(&otp_info);
                 }
             }
         }
@@ -2828,7 +2862,9 @@ CamHwIsp20::setCalib(const CamCalibDbV2Context_t* calibv2)
         vcmcfg->rated_current = af_v33->VcmCfg.RatedCurrent;
         vcmcfg->step_mode = af_v33->VcmCfg.StepMode;
         vcmcfg->extra_delay = af_v33->VcmCfg.ExtraDelay;
+        vcmcfg->extend_range_ratio = af_v33->VcmCfg.ExtendRangeRatio;
         vcmcfg->posture_diff = af_v33->VcmCfg.PostureDiff;
+        vcmcfg->use_gsensor = af_v33->VcmCfg.UseGsensor;
     } else {
         memset(&_cur_calib_infos.af.vcmcfg, 0, sizeof(CalibDbV2_Af_VcmCfg_t));
     }
@@ -3377,7 +3413,7 @@ CamHwIsp20::hdr_mipi_stop()
         }
     }
     if (mCifScaleStream.ptr())
-        mCifScaleStream->stop();
+        mCifScaleStream->stopTreadOnly();
     return ret;
 }
 

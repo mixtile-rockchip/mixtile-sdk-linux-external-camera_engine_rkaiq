@@ -357,7 +357,7 @@ void rk_aiq_aibnr_params_cvt(void* attr, isp_params_t* isp_params, common_cvt_in
             sig = sqrt(sig) * quant_val * dul * preDgain / ratio * logScale;
             sig = MIN(sig, 1);
 
-            ai_cfg->pyr_sigma_y[i * AIBNR_SIGMA_LUT_COL_LEN_9 + j] = sig * 255;
+            ai_cfg->pyr_sigma_y[i * AIBNR_SIGMA_LUT_COL_LEN_9 + j] = sig * 255 * tunning->sw_aiBnrT_bnrValueNr_strg[j];
         }
     }
 

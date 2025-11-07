@@ -3825,6 +3825,12 @@ XCamReturn rk_aiq_uapi2_setAngleZ(const rk_aiq_sys_ctx_t* ctx, float angleZ)
     return XCAM_RETURN_ERROR_UNKNOWN;
 }
 
+XCamReturn rk_aiq_uapi2_getPdafLibOutput(const rk_aiq_sys_ctx_t* ctx, rk_aiq_pdlib_output* pdlib_output, int timeout_ms)
+{
+    LOGE("not support to call %s for current chip", __FUNCTION__);
+    return XCAM_RETURN_ERROR_UNKNOWN;
+}
+
 #else
 XCamReturn rk_aiq_uapi2_setFocusMode(const rk_aiq_sys_ctx_t* ctx, opMode_t mode)
 {
@@ -4088,6 +4094,17 @@ XCamReturn rk_aiq_uapi2_setAngleZ(const rk_aiq_sys_ctx_t* ctx, float angleZ)
 
     return ret;
 }
+
+XCamReturn rk_aiq_uapi2_getPdafLibOutput(const rk_aiq_sys_ctx_t* ctx, rk_aiq_pdlib_output* pdlib_output, int timeout_ms)
+{
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    IMGPROC_FUNC_ENTER
+    ret = rk_aiq_user_api2_af_GetPdafLibOutput(ctx, pdlib_output, timeout_ms);
+    IMGPROC_FUNC_EXIT
+
+    return ret;
+}
+
 #endif
 
 XCamReturn rk_aiq_uapi2_setAcolorSwInfo(const rk_aiq_sys_ctx_t* ctx,

@@ -143,8 +143,6 @@ typedef struct {
     lsc_calib_attrib_t lsc;
     // M4_STRUCT_DESC("bayertnr", "normal_ui_style")
     btnr_api_attrib_t bayertnr;
-    // M4_STRUCT_DESC("bayertnr2", "normal_ui_style")
-    btnr_api_attrib_t bayertnr2;
     // M4_STRUCT_DESC("texEst", "normal_ui_style")
     texEst_api_attrib_t texEst;
     // M4_STRUCT_DESC("ynr", "normal_ui_style")

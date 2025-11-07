@@ -25,6 +25,11 @@
 #include "af/rk_aiq_uapi_af_int.h"
 
 static void _handlerAf_deinit(AiqAlgoHandler_t* pHdl) {
+    AiqAlgoHandlerAf_t* pAfHdl = (AiqAlgoHandlerAf_t*)pHdl;
+
+    aiqMutex_deInit(&pAfHdl->mAeStableMutex);
+    aiqMutex_deInit(&pAfHdl->mPdLibOutputMutex);
+    aiqCond_deInit(&pAfHdl->mPdLibOutputCond);
     AiqAlgoHandler_deinit(pHdl);
 }
 
@@ -42,6 +47,8 @@ static void _handlerAf_init(AiqAlgoHandler_t* pHdl) {
 
     AiqAlgoHandlerAf_t* pAfHdl = (AiqAlgoHandlerAf_t*)pHdl;
     aiqMutex_init(&pAfHdl->mAeStableMutex);
+    aiqMutex_init(&pAfHdl->mPdLibOutputMutex);
+    aiqCond_init(&pAfHdl->mPdLibOutputCond);
     pAfHdl->mAfMeasResSyncFalg = -1;
     pAfHdl->mAfFocusResSyncFalg = -1;
 
@@ -81,6 +88,20 @@ static XCamReturn _handlerAf_prepare(AiqAlgoHandler_t* pAlgoHandler) {
                 af_config_int->com.u.prepare.sns_op_width,
                 af_config_int->com.u.prepare.sns_op_height);
     }
+
+    EXIT_ANALYZER_FUNCTION();
+    return XCAM_RETURN_NO_ERROR;
+}
+
+static XCamReturn _handlerAf_stop(AiqAlgoHandler_t* pAlgoHandler) {
+    ENTER_ANALYZER_FUNCTION();
+
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    AiqAlgoHandlerAf_t* pAfHdl = (AiqAlgoHandlerAf_t*)pAlgoHandler;
+
+    aiqMutex_lock(&pAfHdl->mPdLibOutputMutex);
+    aiqCond_broadcast(&pAfHdl->mPdLibOutputCond);
+    aiqMutex_unlock(&pAfHdl->mPdLibOutputMutex);
 
     EXIT_ANALYZER_FUNCTION();
     return XCAM_RETURN_NO_ERROR;
@@ -297,6 +318,10 @@ static XCamReturn _handlerAf_genIspResult(AiqAlgoHandler_t* pAlgoHandler, AiqFul
         //LOGD_AF("[%d] focus params needn't update", shared->frameId);
     }
 
+    aiqMutex_lock(&pAfHdl->mPdLibOutputMutex);
+    aiqCond_broadcast(&pAfHdl->mPdLibOutputCond);
+    aiqMutex_unlock(&pAfHdl->mPdLibOutputMutex);
+
     EXIT_ANALYZER_FUNCTION();
 
     return ret;
@@ -312,6 +337,7 @@ AiqAlgoHandler_t* AiqAlgoHandlerAf_constructor(RkAiqAlgoDesComm* des, AiqCore_t*
     pHdl->prepare      = _handlerAf_prepare;
     pHdl->init         = _handlerAf_init;
     pHdl->deinit       = _handlerAf_deinit;
+    pHdl->stop         = _handlerAf_stop;
     return pHdl;
 }
 #ifdef RKAIQ_HAVE_AF
@@ -654,4 +680,47 @@ XCamReturn AiqAlgoHandlerAf_setAeStable(AiqAlgoHandlerAf_t* pAfHdl, bool ae_stab
     EXIT_ANALYZER_FUNCTION();
     return ret;
 }
+
+/*
+ * timeout: -1 next, 0 current, > 0 wait next until timeout
+ */
+XCamReturn AiqAlgoHandlerAf_getPdafLibOutput(AiqAlgoHandlerAf_t* pAfHdl, rk_aiq_pdlib_output* pdlib_output, int timeout_ms) {
+    ENTER_ANALYZER_FUNCTION();
+
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    AiqAlgoHandler_t* pHdl = (AiqAlgoHandler_t*)pAfHdl;
+
+    if (!pHdl->mEnable)
+        return XCAM_RETURN_BYPASS;
+
+    if (pHdl->mAiqCore->mState != RK_AIQ_CORE_STATE_STARTED &&
+        pHdl->mAiqCore->mState != RK_AIQ_CORE_STATE_RUNNING) {
+        LOGW_AF("in state %d\n", pHdl->mAiqCore->mState);
+        aiqMutex_unlock(&pHdl->mAiqCore->mApiMutex);
+        return XCAM_RETURN_BYPASS;
+    }
+
+    aiqMutex_lock(&pAfHdl->mPdLibOutputMutex);
+
+    if (timeout_ms < 0) {
+        // equal to -1
+        aiqCond_wait(&pAfHdl->mPdLibOutputCond, &pAfHdl->mPdLibOutputMutex);
+    } else if (timeout_ms > 0){
+        int ret =
+            aiqCond_timedWait(&pAfHdl->mPdLibOutputCond, &pAfHdl->mPdLibOutputMutex, timeout_ms*1000);
+        if (ret == ETIMEDOUT) {
+            aiqMutex_unlock(&pAfHdl->mPdLibOutputMutex);
+            return XCAM_RETURN_ERROR_TIMEOUT;
+        }
+    } else {
+        // get current
+    }
+
+    rk_aiq_uapi_af_getPdafLibOutput(pHdl->mAlgoCtx, pdlib_output);
+    aiqMutex_unlock(&pAfHdl->mPdLibOutputMutex);
+
+    return XCAM_RETURN_NO_ERROR;
+}
+
+
 #endif

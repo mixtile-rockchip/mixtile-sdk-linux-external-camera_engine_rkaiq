@@ -165,16 +165,6 @@ typedef struct {
     btnr_stats_cp_t stats;
 } btnr_uapi_t;
 
-typedef struct {
-    /* M4_GENERIC_DESC(
-       M4_ALIAS(attr),
-       M4_TYPE(struct),
-       M4_UI_MODULE(tuning_param),
-       M4_REF(/bayertnr2)) */
-    btnr_api_attrib_t attr;
-    // M4_STRUCT_DESC("info", "tuning_status")
-    btnr_status_t info;
-} btnr2_uapi_t;
 
 typedef struct {
     /* M4_GENERIC_DESC(
@@ -539,11 +529,11 @@ typedef struct __awb_uapi {
        M4_UI_MODULE(tuning_param),
        M4_REF(/wb)) */
     awb_api_attrib_t attr;
+#endif
     // M4_STRUCT_DESC("mode", "normal_ui_style")
     uapi_wb_mode_t mode;
     // M4_STRUCT_DESC("wbgain", "normal_ui_style")
     uapi_wb_gain_t wbgain;
-#endif
 } awb_uapi_t;
 
 typedef struct __amerge_uapi {
@@ -1140,6 +1130,8 @@ typedef struct __aiq_uapi_t {
 #if (USE_NEWSTRUCT == 0)
     // M4_STRUCT_DESC("ae_uapi", "normal_ui_style")
     ae_uapi_t ae_uapi;
+    // M4_STRUCT_DESC("awb_uapi", "normal_ui_style")
+    awb_uapi_t awb_uapi;
 #endif
 #if defined(ISP_HW_V20)
     // M4_STRUCT_DESC("atmo_uapi", "normal_ui_style")
@@ -1231,8 +1223,6 @@ typedef struct __aiq_uapi_t {
     dm_uapi_t dm_uapi;
     // M4_STRUCT_DESC("btnr_uapi", "iso_list_template")
     btnr_uapi_t btnr_uapi;
-    // M4_STRUCT_V2_DESC("btnr2_uapi", "iso_list_template", "0", "0", "/uapi/0/btnr_uapi")
-    btnr2_uapi_t btnr2_uapi;
     // M4_STRUCT_DESC("gamma_uapi", "iso_list_template")
     gamma_uapi_t gamma_uapi;
     // M4_STRUCT_DESC("drc_uapi", "iso_list_template")

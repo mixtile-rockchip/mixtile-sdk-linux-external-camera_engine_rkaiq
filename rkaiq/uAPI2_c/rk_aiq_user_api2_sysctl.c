@@ -1096,11 +1096,11 @@ rk_aiq_uapi2_sysctl_init(const char* sns_ent_name,
                     cnts++;;
                     tmp = tmp->next;
                 }
-                AiqDevBufCnt_t cfgs[cnts];
+                AiqDevBufCntsInfo_t cfgs[cnts];
                 tmp = pPreinitCfg->dev_buf_cnt_map;
                 for (int j = 0; j < cnts; j++) {
-                    cfgs[j]._dev_name = tmp->dev_ent;
-                    cfgs[j].cnts = tmp->buf_cnt;
+                    strcpy(cfgs[j]._devName, tmp->dev_ent);
+                    cfgs[j]._bufCnts = tmp->buf_cnt;
                     tmp = tmp->next;
                 }
                 AiqCamHw_setDevBufCnt(ctx->_camHw, cfgs, cnts);
@@ -1617,7 +1617,7 @@ rk_aiq_uapi2_sysctl_getModuleEn(const rk_aiq_sys_ctx_t* ctx,
     aibnr_status_t status;
     rk_aiq_user_api2_aibnr_QueryStatus(sys_ctx, &status);
     mod->module_ctl[RESULT_TYPE_AIBNR_PARAM].en = status.stMan.sta.swOn_cfg.sw_aiBnrT_manualBnrHw_en;
- #endif
+#endif
 
     return ret;
 }
@@ -2515,6 +2515,19 @@ void rk_aiq_uapi2_setImuData(const rk_aiq_sys_ctx_t* ctx, AiqImuData_t *data)
     EXIT_XCORE_FUNCTION();
 }
 
+XCamReturn rk_aiq_uapi2_setSingleRawBufAsyncMode(const rk_aiq_sys_ctx_t* ctx, bool async)
+{
+    ENTER_XCORE_FUNCTION();
+    if (!ctx && !ctx->_camHw) {
+        LOGE("%s: ctx %p or ctx->_camHw %p is invalied\n", __func__, ctx, ctx->_camHw);
+        return XCAM_RETURN_ERROR_PARAM;
+    }
+
+    return AiqCamHw_setSingleRawBufAsyncMode(ctx->_camHw, async);
+
+    EXIT_XCORE_FUNCTION();
+}
+
 #ifdef USE_IMPLEMENT_C
 void rk_aiq_uapi2_get_version_info(rk_aiq_ver_info_t* vers)
 {
@@ -2632,7 +2645,7 @@ rk_aiq_uapi2_sysctl_setSnsSyncMode(const rk_aiq_sys_ctx_t* ctx, enum rkmodule_sy
 }
 
 XCamReturn rk_aiq_uapi2_sysctl_getHdrComprCurve(const rk_aiq_sys_ctx_t* ctx,
-                                                RkAiqHdrCompr_t* compr) {
+        RkAiqHdrCompr_t* compr) {
     if (ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
         LOGE("not support !");
         return XCAM_RETURN_ERROR_FAILED;
@@ -2666,7 +2679,6 @@ XCamReturn rk_aiq_uapi2_sysctl_getHdrComprCurve(const rk_aiq_sys_ctx_t* ctx,
 #include "rk_aiq_user_api2_aeMeas.c"
 #include "rk_aiq_user_api2_blc.c"
 #include "rk_aiq_user_api2_btnr.c"
-#include "rk_aiq_user_api2_btnr2.c"
 #include "rk_aiq_user_api2_cac.c"
 #include "rk_aiq_user_api2_ccm.c"
 #include "rk_aiq_user_api2_cgc.c"

@@ -827,6 +827,17 @@ XCamReturn rk_aiq_uapi2_resetZoom(const rk_aiq_sys_ctx_t* ctx);
 */
 XCamReturn rk_aiq_uapi2_setAngleZ(const rk_aiq_sys_ctx_t* ctx, float angleZ);
 
+/*
+*****************************
+*
+* Desc: getPdafLibOutput
+* Argument:
+*
+*
+*****************************
+*/
+XCamReturn rk_aiq_uapi2_getPdafLibOutput(const rk_aiq_sys_ctx_t* ctx, rk_aiq_pdlib_output* pdlib_output, int timeout_ms);
+
 
 /*
 *****************************

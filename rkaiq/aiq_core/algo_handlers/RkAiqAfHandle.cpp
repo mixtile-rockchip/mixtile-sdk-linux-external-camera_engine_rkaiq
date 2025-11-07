@@ -404,6 +404,40 @@ XCamReturn RkAiqAfHandleInt::setAeStable(bool ae_stable) {
     return ret;
 }
 
+XCamReturn RkAiqAfHandleInt::getPdafLibOutput(rk_aiq_pdlib_output* pdlib_output, int timeout_ms)
+{
+    ENTER_ANALYZER_FUNCTION();
+
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    int code = 0;
+
+    if (!mEnable) {
+        return XCAM_RETURN_BYPASS;
+    }
+
+    if (!mAiqCore->isRunningState()) {
+        LOGW_AF("aiq not in running state");
+        return XCAM_RETURN_BYPASS;
+    }
+
+    {
+        SmartLock locker (mPdLibOutputMutex);
+
+        if (timeout_ms < 0)
+            code = mPdLibOutputCond.wait(mPdLibOutputMutex);
+        else if (timeout_ms > 0) {
+            code = mPdLibOutputCond.timedwait(mPdLibOutputMutex, timeout_ms * 1000);
+            if (code == ETIMEDOUT)
+                return XCAM_RETURN_ERROR_TIMEOUT;
+        }
+    }
+
+    rk_aiq_uapi_af_getPdafLibOutput(mAlgoCtx, pdlib_output);
+
+    EXIT_ANALYZER_FUNCTION();
+    return ret;
+}
+
 XCamReturn RkAiqAfHandleInt::prepare() {
     ENTER_ANALYZER_FUNCTION();
 
@@ -721,9 +755,27 @@ XCamReturn RkAiqAfHandleInt::genIspResult(RkAiqFullParams* params, RkAiqFullPara
         //LOGD_AF("[%d] focus params needn't update", shared->frameId);
     }
 
+    {
+        SmartLock locker (mPdLibOutputMutex);
+
+        mPdLibOutputCond.broadcast();
+    }
+
     EXIT_ANALYZER_FUNCTION();
 
     return ret;
+}
+
+XCamReturn RkAiqAfHandleInt::stop() {
+    ENTER_ANALYZER_FUNCTION();
+
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    SmartLock locker (mPdLibOutputMutex);
+
+    mPdLibOutputCond.broadcast();
+
+    EXIT_ANALYZER_FUNCTION();
+    return XCAM_RETURN_NO_ERROR;
 }
 
 }  // namespace RkCam

@@ -103,6 +103,9 @@
 
 #define RKISP_CMD_AIAWB_BUF \
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 29, struct rkisp_aiawb_buffd)
+
+#define RKISP_CMD_BTNR_WGT_READY \
+	_IO('V', BASE_VIDIOC_PRIVATE + 30)
 /****************ISP VIDEO IOCTL******************************/
 
 #define RKISP_CMD_GET_CSI_MEMORY_MODE \

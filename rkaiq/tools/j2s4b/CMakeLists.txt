@@ -133,12 +133,13 @@ foreach(IQPATH ${RKAIQ_AINR_IQFILES})
             file(WRITE ${CMAKE_BINARY_DIR}/${TARGET_BIN_NAME} "")
         endif()
         execute_process(
-            COMMAND ${CMAKE_COMMAND} -E create_symlink ${TARGET_BIN_NAME} ${TAGT_NAME}
+            COMMAND ${CMAKE_COMMAND} -E create_symlink ${TARGET_BIN_NAME} ${TAGT_AINR_NAME}
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
             OUTPUT_VARIABLE SYMLINK_RESULT
         )
-        install(PROGRAMS "${CMAKE_BINARY_DIR}/${TAGT_NAME}" DESTINATION
-            usr/share/iqfiles/ainr)
+        install(PROGRAMS "${CMAKE_BINARY_DIR}/${TAGT_AINR_NAME}" DESTINATION
+            usr/share/iqfiles/ainr
+            RENAME ${TAGT_NAME})
     else ()
         add_custom_target(
             ${BIN_PROJ_NAME}
@@ -201,12 +202,13 @@ foreach(IQPATH ${RKAIQ_COMMON_IQFILES})
             file(WRITE ${CMAKE_BINARY_DIR}/${TARGET_BIN_NAME} "")
         endif()
         execute_process(
-            COMMAND ${CMAKE_COMMAND} -E create_symlink ${TARGET_BIN_NAME} ${TAGT_NAME}
+            COMMAND ${CMAKE_COMMAND} -E create_symlink ${TARGET_BIN_NAME} ${TAGT_COMMON_NAME}
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
             OUTPUT_VARIABLE SYMLINK_RESULT
         )
-        install(PROGRAMS "${CMAKE_BINARY_DIR}/${TAGT_NAME}" DESTINATION
-            usr/share/iqfiles/common)
+        install(PROGRAMS "${CMAKE_BINARY_DIR}/${TAGT_COMMON_NAME}" DESTINATION
+            usr/share/iqfiles/common
+            RENAME ${TAGT_NAME})
     else ()
         add_custom_target(
             ${BIN_PROJ_NAME}

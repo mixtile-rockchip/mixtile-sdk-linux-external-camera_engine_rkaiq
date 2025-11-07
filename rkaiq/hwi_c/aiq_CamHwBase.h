@@ -58,6 +58,7 @@ typedef struct AibnrManager_s AibnrManager_t;
 #if RKAIQ_HAVE_AIYNR
 typedef struct AiynrManager_s AiynrManager_t;
 #endif
+typedef struct AiqBtnrDsReproc_s AiqBtnrDsReproc_t;
 
 enum cam_hw_state_e {
     CAM_HW_STATE_INVALID,
@@ -131,7 +132,7 @@ typedef enum rkaiq_stream_type_e {
 } rkaiq_stream_type_t;
 
 typedef struct AiqDevBufCntsInfo_s {
-    char _devName[16];
+    char _devName[64];
     int _bufCnts;
 } AiqDevBufCntsInfo_t;
 
@@ -267,6 +268,7 @@ typedef struct AiqCamHwBase_s {
         void* iir_address[RKISP_BUFFER_MAX];
         void* gain_address[RKISP_BUFFER_MAX];
         void* aiisp_address[RKISP_BUFFER_MAX];
+        void* wgt_address[RKISP_BUFFER_MAX];
         bool _init;
     } _bnrDrvBuf;
     XCamReturn (*prepare)(AiqCamHwBase_t* pCamHw, uint32_t width, uint32_t height, int mode,
@@ -298,6 +300,9 @@ typedef struct AiqCamHwBase_s {
     bool mMemcEn;
     AiqMemcIirStream_t* mIspMemcIirStream;
 
+    // btnr2
+    AiqBtnrDsReproc_t* mBtnrDsReproc;
+
 #if RKAIQ_HAVE_AIBNR
     bool use_ainn;
     RkAiqAibnrModelInfo_t mAibnrModelInfo;
@@ -323,6 +328,8 @@ typedef struct AiqCamHwBase_s {
     XCamReturn (*aibnr_setModelInf)(AiqCamHwBase_t* pCamHw, RkAiqAibnrModelInfo_t *pAibnrModelInfo);
     XCamReturn (*aibnr_setLinecnt)(AiqCamHwBase_t* pCamHw, struct rkisp_aiisp_cfg *aibnr_cfg);
     XCamReturn (*aibnr_clrIqParam)(AiqCamHwBase_t* pCamHw);
+
+    XCamReturn (*btnrWgtReproc_updateEn)(AiqCamHwBase_t* pCamHw, bool en);
 #endif
 
 // AIRMS
@@ -435,12 +442,7 @@ PdafSensorType_t AiqCamHw_get_pdaf_type(AiqCamHwBase_t* pCamHw);
 #endif
 void AiqCamHw_setTbInfo(AiqCamHwBase_t* pCamHw, rk_aiq_tb_info_t* info);
 
-typedef struct AiqDevBufCnt_s {
-    char* _dev_name;
-    int cnts;
-} AiqDevBufCnt_t;
-
-void AiqCamHw_setDevBufCnt(AiqCamHwBase_t* pCamHw, AiqDevBufCnt_t* devBufCntsInfo, int cnt);
+void AiqCamHw_setDevBufCnt(AiqCamHwBase_t* pCamHw, AiqDevBufCntsInfo_t* devBufCntsInfo, int cnt);
 XCamReturn AiqCamHw_reset_hardware(AiqCamHwBase_t* pCamHw);
 
 const char* AiqCamHw_rawReproc_preInit(const char* isp_driver);
@@ -472,6 +474,7 @@ XCamReturn AiqCamHw_setSnsOtpInfo(AiqCamHwBase_t* pCamHw, struct rkmodule_awb_in
                                   struct rkmodule_lsc_inf* otp_lsc, rk_aiq_user_otp_info_t* user_otp);
 XCamReturn AiqCamHw_pushImuData(AiqCamHwBase_t* pCamHw, AiqImuData_t *data);
 bool AiqCamHw_getMemcNeededDelay(AiqCamHwBase_t* pCamHw);
+XCamReturn AiqCamHw_queryFpnSwStatus(AiqCamHwBase_t* pCamHw, void *status);
 
 #define CamHW_setManager(pMan, pRkAiqManager) \
         (pMan)->rkAiqManager = pRkAiqManager
@@ -481,6 +484,8 @@ XCamReturn AiqCamHw_setUserOtpInfo(AiqCamHwBase_t* pCamHw, rk_aiq_user_otp_info_
         (pCamHw)->mIsListenStrmEvt = isListen
 
 XCamReturn AiqCamHw_getHdrComprCurve(AiqCamHwBase_t* pCamHw, RkAiqHdrCompr_t* compr);
+
+XCamReturn AiqCamHw_setSingleRawBufAsyncMode(AiqCamHwBase_t* pCamHw, bool mode);
 
 XCAM_END_DECLARE
 

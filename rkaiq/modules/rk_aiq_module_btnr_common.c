@@ -364,6 +364,43 @@ void bayertnr_save_stats(void *stats_buffer, btnr_cvt_info_t *pBtnrInfo)
                    btnr_stats->sigma_y[19]);
 #endif
         }
+
+        if (stats->meas_type & ISP35_STAT_BAY3D_L2) {
+            uint8_t min_idx = 0;
+            for (uint8_t i = 0; i < pBtnrInfo->stats_buffer_cnt; i++) {
+                if (pBtnrInfo->mBtnr2Stats[min_idx].id > pBtnrInfo->mBtnr2Stats[i].id)
+                    min_idx = i;
+            }
+            btnr_stats_t *btnr2_stats = &pBtnrInfo->mBtnr2Stats[min_idx];
+            btnr2_stats->id = stats->frame_id;
+            btnr2_stats->sigma_num = stats->stat.bay3d.sigma_num;
+            for (uint8_t i = 0; i < 20; i++) {
+                btnr2_stats->sigma_y[i] = stats->stat.bay3d.sigma_y[i];
+            }
+#if 0
+            printf("btnr sigma stats [%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d]\n",
+                   btnr2_stats->sigma_y[0],
+                   btnr2_stats->sigma_y[1],
+                   btnr2_stats->sigma_y[2],
+                   btnr2_stats->sigma_y[3],
+                   btnr2_stats->sigma_y[4],
+                   btnr2_stats->sigma_y[5],
+                   btnr2_stats->sigma_y[6],
+                   btnr2_stats->sigma_y[7],
+                   btnr2_stats->sigma_y[8],
+                   btnr2_stats->sigma_y[9],
+                   btnr2_stats->sigma_y[10],
+                   btnr2_stats->sigma_y[11],
+                   btnr2_stats->sigma_y[12],
+                   btnr2_stats->sigma_y[13],
+                   btnr2_stats->sigma_y[14],
+                   btnr2_stats->sigma_y[15],
+                   btnr2_stats->sigma_y[16],
+                   btnr2_stats->sigma_y[17],
+                   btnr2_stats->sigma_y[18],
+                   btnr2_stats->sigma_y[19]);
+#endif
+        }
     }
 #endif
 
@@ -414,6 +451,18 @@ btnr_stats_t *bayertnr_get_stats(btnr_cvt_info_t *pBtnrInfo, uint32_t frameId)
     }
     return &pBtnrInfo->mBtnrStats[idx];
 }
+
+btnr_stats_t *bayertnr2_get_stats(btnr_cvt_info_t *pBtnrInfo, uint32_t frameId)
+{
+    uint8_t idx = 0;
+
+    for (uint8_t i = 0; i < pBtnrInfo->stats_buffer_cnt; i++) {
+        if (pBtnrInfo->mBtnr2Stats[i].id == frameId - pBtnrInfo->stats_delay_cnt)
+            idx = i;
+    }
+    return &pBtnrInfo->mBtnr2Stats[idx];
+}
+
 #if defined(RKAIQ_HAVE_SHARP_V40) || defined(RKAIQ_HAVE_SHARP_V41)
 sharp_stats_t *sharp_get_stats(btnr_cvt_info_t *pBtnrInfo, uint32_t frameId)
 {

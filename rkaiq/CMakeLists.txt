@@ -1257,6 +1257,10 @@ set (HWI_C_SRC
     hwi_c/aiq_dumpRkRaw.c
     )
 
+if (RKAIQ_ISP_VERSION STREQUAL "35")
+    list(APPEND HWI_C_SRC hwi_c/rawReprocess/aiq_btnrReproc.c)
+endif()
+
 if (RKAIQ_HAVE_MEMC)
     list(APPEND HWI_C_SRC hwi_c/rawReprocess/RkAiqMemcManager.c)
     add_compile_options(-DRKAIQ_HAVE_MEMC=1)

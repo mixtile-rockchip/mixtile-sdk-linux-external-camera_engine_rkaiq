@@ -68,7 +68,6 @@ struct {
     {RK_AIQ_ALGO_TYPE_AWB, AiqAlgoHandlerAwb_constructor, AiqAlgoHandler_destructor},
     {RK_AIQ_ALGO_TYPE_ABLC, AiqAlgoHandlerBlc_constructor, AiqAlgoHandler_destructor},
     {RK_AIQ_ALGO_TYPE_AMFNR, AiqAlgoHandlerBtnr_constructor, AiqAlgoHandler_destructor},
-    {RK_AIQ_ALGO_TYPE_BAYERTNR2, AiqAlgoHandlerBtnr2_constructor, AiqAlgoHandler_destructor},
     {RK_AIQ_ALGO_TYPE_ACNR, AiqAlgoHandlerCnr_constructor, AiqAlgoHandler_destructor},
     {RK_AIQ_ALGO_TYPE_ADEBAYER, AiqAlgoHandlerDm_constructor, AiqAlgoHandler_destructor},
     {RK_AIQ_ALGO_TYPE_ADPCC, AiqAlgoHandlerDpc_constructor, AiqAlgoHandler_destructor},
@@ -571,7 +570,7 @@ AiqAlgoHandler_queryStatus_common(AiqAlgoHandler_t* pAlgoHandler,
 }
 
 XCamReturn AiqAlgoHandler_queryInterpIso_common(AiqAlgoHandler_t* pAlgoHandler,
-                                             uint32_t* interpIso, uint32_t* isoH, uint32_t* isoL)
+        uint32_t* interpIso, uint32_t* isoH, uint32_t* isoL)
 {
     ENTER_ANALYZER_FUNCTION();
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
@@ -589,17 +588,17 @@ XCamReturn AiqAlgoHandler_queryInterpIso_common(AiqAlgoHandler_t* pAlgoHandler,
     *interpIso = shared->iso;
     if (pCurBase) {
         if (pHdl->mOpMode == RK_AIQ_OP_MODE_MANUAL) {
-           *isoL = 0;
-           *isoH = 0;
-           aiqMutex_unlock(&pHdl->mCfgMutex);
-           return ret;
+            *isoL = 0;
+            *isoH = 0;
+            aiqMutex_unlock(&pHdl->mCfgMutex);
+            return ret;
         }
     }
 
     bool isFixedAlgo = (pAlgoHandler->mDes->type == RK_AIQ_ALGO_TYPE_AMFNR ||
-                       pAlgoHandler->mDes->type == RK_AIQ_ALGO_TYPE_ACNR ||
-                       pAlgoHandler->mDes->type == RK_AIQ_ALGO_TYPE_ASHARP ||
-                       pAlgoHandler->mDes->type == RK_AIQ_ALGO_TYPE_AYNR);
+                        pAlgoHandler->mDes->type == RK_AIQ_ALGO_TYPE_ACNR ||
+                        pAlgoHandler->mDes->type == RK_AIQ_ALGO_TYPE_ASHARP ||
+                        pAlgoHandler->mDes->type == RK_AIQ_ALGO_TYPE_AYNR);
 
     if (isFixedAlgo && (sharedCom->aibnr_fixIndex != -1)) {
         *isoH = sharedCom->calibv2->sensor_info->iso_list[sharedCom->aibnr_fixIndex];
@@ -609,9 +608,9 @@ XCamReturn AiqAlgoHandler_queryInterpIso_common(AiqAlgoHandler_t* pAlgoHandler,
         int iLow = 0, iHigh = 0;
         pre_interp(shared->iso, sharedCom->calibv2->sensor_info->iso_list, 13, &iLow, &iHigh, &ratio);
         if (iLow != -1)
-           *isoL =  sharedCom->calibv2->sensor_info->iso_list[iLow];
+            *isoL =  sharedCom->calibv2->sensor_info->iso_list[iLow];
         if (iHigh != -1)
-           *isoH =  sharedCom->calibv2->sensor_info->iso_list[iHigh];
+            *isoH =  sharedCom->calibv2->sensor_info->iso_list[iHigh];
     }
 
     aiqMutex_unlock(&pHdl->mCfgMutex);

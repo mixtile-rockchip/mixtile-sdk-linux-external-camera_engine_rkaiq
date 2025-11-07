@@ -204,6 +204,9 @@ XCamReturn AiqRawStreamCapUnit_init(AiqRawStreamCapUnit_t* pRawStrCapUnit,
     pRawStrCapUnit->_mipi_dev_max   = 1;
     pRawStrCapUnit->_state          = RAW_CAP_STATE_INVALID;
     pRawStrCapUnit->_isExtDev       = false;
+
+    pRawStrCapUnit->_single_buffer_async_mode = false;
+
 #if RKAIQ_HAVE_DUMPSYS
     pRawStrCapUnit->data_mode = 0;
 #endif
@@ -720,14 +723,8 @@ XCamReturn AiqRawStreamCapUnit_reset_hardware(AiqRawStreamCapUnit_t* pRawStrCapU
     return ret;
 }
 
-XCamReturn AiqRawStreamCapUnit_set_csi_mem_word_big_align(AiqRawStreamCapUnit_t* pRawStrCapUnit,
-                                                          uint32_t width, uint32_t height,
-                                                          uint32_t sns_v4l_pix_fmt,
-                                                          int8_t sns_bpp) {
+XCamReturn AiqRawStreamCapUnit_set_csi_mem_word_align_mode(AiqRawStreamCapUnit_t* pRawStrCapUnit, int mode) {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
-
-    LOGD_CAMHW_SUBM(ISP20HW_SUBM, "sensor fmt 0x%x, %dx%d, sns_bpp: %d", sns_v4l_pix_fmt, width,
-                    height, sns_bpp);
 
     int i = 0;
     for (i = 0; i < 3; i++) {
@@ -736,19 +733,17 @@ XCamReturn AiqRawStreamCapUnit_set_csi_mem_word_big_align(AiqRawStreamCapUnit_t*
             break;
         }
 
-        if (((width / 2 - RKMOUDLE_UNITE_EXTEND_PIXEL) * sns_bpp / 8) & 0xf) {
-            int mem_mode = CSI_LVDS_MEM_WORD_HIGH_ALIGN;
-            int ret1     = pRawStrCapUnit->_dev[i]->io_control(
-                pRawStrCapUnit->_dev[i], RKCIF_CMD_SET_CSI_MEMORY_MODE, &mem_mode);
-            if (ret1) {
-                LOGE_CAMHW_SUBM(ISP20HW_SUBM, "set CSI_MEM_WORD_BIG_ALIGN failed!\n");
-                ret = XCAM_RETURN_ERROR_IOCTL;
-            } else {
-                LOGD_CAMHW_SUBM(ISP20HW_SUBM, "set the memory mode of vicap to big align");
+        int mem_mode = mode;
+        int ret1     = pRawStrCapUnit->_dev[i]->io_control(
+            pRawStrCapUnit->_dev[i], RKCIF_CMD_SET_CSI_MEMORY_MODE, &mem_mode);
+        if (ret1) {
+            LOGE_CAMHW_SUBM(ISP20HW_SUBM, "set CSI_MEM_WORD_BIG_ALIGN failed!\n");
+            ret = XCAM_RETURN_ERROR_IOCTL;
+        } else {
+            LOGD_CAMHW_SUBM(ISP20HW_SUBM, "set the memory mode of vicap to big align");
 #if RKAIQ_HAVE_DUMPSYS
-                pRawStrCapUnit->data_mode = mem_mode;
+            pRawStrCapUnit->data_mode = mem_mode;
 #endif
-            }
         }
     }
 
@@ -802,6 +797,30 @@ XCamReturn AiqRawStreamCapUnit_setSwStreamInfo(AiqRawStreamCapUnit_t* pRawStrCap
 {
     pRawStrCapUnit->_sw_stream_ctx = sw_stream_ctx;
     pRawStrCapUnit->_send_sync_buf_func = send_sync_buf_func;
+
+    return XCAM_RETURN_NO_ERROR;
+}
+
+XCamReturn AiqRawStreamCapUnit_setSingleBufAsyncMode(AiqRawStreamCapUnit_t* pRawStrCapUnit, bool async)
+{
+
+    int mode = async ? 1 : 0;
+
+    if (pRawStrCapUnit->_dev[0]) {
+
+        int buf_cnt = AiqV4l2Device_getBufCnt(pRawStrCapUnit->_dev[0]);
+        if (buf_cnt != 1) {
+            LOGE_CAMHW_SUBM(ISP20HW_SUBM, "set single buffer async mode, but buf cnt is %d!", buf_cnt);
+            return XCAM_RETURN_ERROR_FAILED;
+        }
+
+        int ret = pRawStrCapUnit->_dev[0]->io_control(pRawStrCapUnit->_dev[0], RKCIF_CMD_SINGLE_BUF_MODE,
+                                            &mode);
+        if (ret < 0) {
+            LOGE_CAMHW_SUBM(ISP20HW_SUBM, "set single buffer async mode failed!");
+            return XCAM_RETURN_ERROR_IOCTL;
+        }
+    }
 
     return XCAM_RETURN_NO_ERROR;
 }

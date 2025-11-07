@@ -131,7 +131,6 @@ typedef enum _camAlgoResultType {
     RESULT_TYPE_AIRMS_PARAM,
     RESULT_TYPE_AIYNR_PARAM,
     RESULT_TYPE_FPNSW_PARAM,
-    RESULT_TYPE_TNR2_PARAM,
     RESULT_TYPE_MAX_PARAM,
 } camAlgoResultType;
 
@@ -523,7 +522,7 @@ typedef enum {
 typedef enum {
     // old version
     RKAIQ_SENSOR_HDR_MODE_DCG = 0,       // 2frame
-    RKAIQ_SENSOR_HDR_MODE_STAGGER = 1,   // 2frame 
+    RKAIQ_SENSOR_HDR_MODE_STAGGER = 1,   // 2frame
     // new version
     // TODO: only used by AE, new mode value need to be same with upper exp mode
     RKAIQ_SENSOR_HDR3_DCG_VS,

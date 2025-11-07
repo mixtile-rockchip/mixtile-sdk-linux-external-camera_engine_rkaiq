@@ -20,6 +20,7 @@
 
 #define AIBNR_MODEL_DIRNAME_LEN     128
 #define AIBNR_MODEL_FILENAME_LEN    64
+#define AIBNR_VALURENR_STRG_LEN     9
 
 typedef struct aibnr_param_calib_s {
     /* M4_GENERIC_DESC(
@@ -159,7 +160,7 @@ typedef struct aibnr_param_tunning_s {
         M4_ALIAS(sw_aiBnrT_motionGain_strg),
         M4_TYPE(f32),
         M4_SIZE_EX(1,1),
-        M4_RANGE_EX(0.0, 4.0),
+        M4_RANGE_EX(-4.0, 4.0),
         M4_DEFAULT(0),
         M4_DIGIT_EX(3),
         M4_HIDE_EX(0),
@@ -312,6 +313,19 @@ typedef struct aibnr_param_tunning_s {
         Freq of use: High))  */
     float sw_aiBnrT_nonLinear_adjust;
     /* M4_GENERIC_DESC(
+        M4_ALIAS(sw_aiBnrT_nonLinear_adjust),
+        M4_TYPE(f32),
+        M4_SIZE_EX(1,9),
+        M4_RANGE_EX(0.0, 4.0),
+        M4_DEFAULT([1, 1, 1, 1, 1, 1, 1, 1, 1]),
+        M4_DIGIT_EX(1),
+        M4_HIDE_EX(0),
+        M4_RO(0),
+        M4_ORDER(21),
+        M4_NOTES(Non linear ratio value.\n
+        Freq of use: High))  */
+    float sw_aiBnrT_bnrValueNr_strg[AIBNR_VALURENR_STRG_LEN];
+    /* M4_GENERIC_DESC(
         M4_ALIAS(sw_aiBnrT_model_file),
         M4_TYPE(string),
         M4_SIZE_EX(1,1),
@@ -319,7 +333,7 @@ typedef struct aibnr_param_tunning_s {
         M4_DEFAULT("iso50.bin"),
         M4_HIDE_EX(0),
         M4_RO(1),
-        M4_ORDER(21),
+        M4_ORDER(22),
         M4_NOTES(Model info file.\n
         Freq of use: High))  */
     char sw_aiBnrT_model_file[AIBNR_MODEL_FILENAME_LEN];
@@ -517,7 +531,7 @@ typedef struct aibnr_frmRate_s {
         M4_TYPE(f32),
         M4_SIZE_EX(1,1),
         M4_RANGE_EX(0,255),
-        M4_DEFAULT(0),
+        M4_DEFAULT(10),
         M4_DIGIT_EX(2),
         M4_HIDE_EX(0),
         M4_RO(0),

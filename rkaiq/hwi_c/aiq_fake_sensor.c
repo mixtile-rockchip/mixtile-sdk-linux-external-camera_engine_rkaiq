@@ -560,7 +560,7 @@ static XCamReturn _enqueue_rawbuffer(AiqFakeSensorHw_t* pFakeSns, struct rk_aiq_
         pSnsExp->aecExpInfo.LinearExp.exp_sensor_params.digital_gain_global = 1;
         pSnsExp->aecExpInfo.LinearExp.exp_sensor_params.isp_digital_gain    = 1;
         pSnsExp->aecExpInfo.LinearExp.exp_real_params.digital_gain          = 1.0f;
-        pSnsExp->aecExpInfo.LinearExp.exp_real_params.isp_dgain             = 1.0f;
+        pSnsExp->aecExpInfo.LinearExp.exp_real_params.isp_dgain             = vbuf->buf_info[0].exp_ispdgain;
 
         pSnsExp->aecExpInfo.HdrExp[2].exp_sensor_params.analog_gain_code_global =
             vbuf->buf_info[2].exp_gain_reg;
@@ -571,7 +571,7 @@ static XCamReturn _enqueue_rawbuffer(AiqFakeSensorHw_t* pFakeSns, struct rk_aiq_
         pSnsExp->aecExpInfo.HdrExp[2].exp_sensor_params.digital_gain_global = 1;
         pSnsExp->aecExpInfo.HdrExp[2].exp_sensor_params.isp_digital_gain    = 1;
         pSnsExp->aecExpInfo.HdrExp[2].exp_real_params.digital_gain          = 1.0f;
-        pSnsExp->aecExpInfo.HdrExp[2].exp_real_params.isp_dgain             = 1.0f;
+        pSnsExp->aecExpInfo.HdrExp[2].exp_real_params.isp_dgain             = vbuf->buf_info[2].exp_ispdgain;
 
         pSnsExp->aecExpInfo.HdrExp[1].exp_sensor_params.analog_gain_code_global =
             vbuf->buf_info[1].exp_gain_reg;
@@ -582,7 +582,7 @@ static XCamReturn _enqueue_rawbuffer(AiqFakeSensorHw_t* pFakeSns, struct rk_aiq_
         pSnsExp->aecExpInfo.HdrExp[1].exp_sensor_params.digital_gain_global = 1;
         pSnsExp->aecExpInfo.HdrExp[1].exp_sensor_params.isp_digital_gain    = 1;
         pSnsExp->aecExpInfo.HdrExp[1].exp_real_params.digital_gain          = 1.0f;
-        pSnsExp->aecExpInfo.HdrExp[1].exp_real_params.isp_dgain             = 1.0f;
+        pSnsExp->aecExpInfo.HdrExp[1].exp_real_params.isp_dgain             = vbuf->buf_info[1].exp_ispdgain;
 
         pSnsExp->aecExpInfo.HdrExp[0].exp_sensor_params.analog_gain_code_global =
             vbuf->buf_info[0].exp_gain_reg;
@@ -593,7 +593,7 @@ static XCamReturn _enqueue_rawbuffer(AiqFakeSensorHw_t* pFakeSns, struct rk_aiq_
         pSnsExp->aecExpInfo.HdrExp[0].exp_sensor_params.digital_gain_global = 1;
         pSnsExp->aecExpInfo.HdrExp[0].exp_sensor_params.isp_digital_gain    = 1;
         pSnsExp->aecExpInfo.HdrExp[0].exp_real_params.digital_gain          = 1.0f;
-        pSnsExp->aecExpInfo.HdrExp[0].exp_real_params.isp_dgain             = 1.0f;
+        pSnsExp->aecExpInfo.HdrExp[0].exp_real_params.isp_dgain             = vbuf->buf_info[0].exp_ispdgain;
 
         aiqMap_insert(pSnsHw->_effecting_exp_map, (void*)(intptr_t)fid, &pSnsExp);
         LOGD_CAMHW_SUBM(FAKECAM_SUBM, "add id[%d] to the effected exp map", fid);

@@ -226,7 +226,6 @@ static struct RkAiqAlgoDesCommExt g_default_3a_des[] = {
 #endif
 #if (RKAIQ_HAVE_BAYERTNR_V42)
     { &g_RkIspAlgoDescBayertnr.common,     RK_AIQ_CORE_ANALYZE_GRP0,    0, 0, 0, grp0Conds          },
-    { &g_RkIspAlgoDescBayertnr2.common,     RK_AIQ_CORE_ANALYZE_GRP0,    0, 0, 0, grp0Conds          },
 #endif
 #if (RKAIQ_HAVE_CNR_V36)
     { &g_RkIspAlgoDescCnr.common,           RK_AIQ_CORE_ANALYZE_GRP0,    0,  1,  0, grp0Conds          },

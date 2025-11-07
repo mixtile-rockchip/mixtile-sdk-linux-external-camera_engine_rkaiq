@@ -951,7 +951,7 @@ XCamReturn AiqAnalyzeGroupManager_resetDelayCnt(AiqAnalyzeGroupManager_t* pGroup
     pGroupMan->mDefaultDelayCnt = delayCnt;
     for (int i = 0; i < RK_AIQ_CORE_ANALYZE_MAX; i++) {
         if (pGroupMan->mGroupMap[i]) {
-            for (int j = 0; j < pGroupMan->mGroupMap[i]->mGrpConds.size; j++) {
+            for (uint32_t j = 0; j < pGroupMan->mGroupMap[i]->mGrpConds.size; j++) {
                 switch (pGroupMan->mGroupMap[i]->mGrpConds.conds[j].cond) {
                     case XCAM_MESSAGE_AEC_STATS_OK:
                     case XCAM_MESSAGE_AWB_STATS_OK:

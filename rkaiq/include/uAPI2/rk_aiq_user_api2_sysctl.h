@@ -632,6 +632,16 @@ void rk_aiq_uapi2_setImuData(const rk_aiq_sys_ctx_t* ctx, AiqImuData_t *data);
 XCamReturn rk_aiq_uapi2_sysctl_getHdrComprCurve(const rk_aiq_sys_ctx_t* ctx,
                                                 RkAiqHdrCompr_t* compr);
 
+
+/*!
+ * \brief get hdr compr curve
+ *
+ * \param[in] ctx             the context returned by \ref rk_aiq_uapi2_sysctl_init
+ * \param[in] async           async mode
+ * \return return 0 if success
+ */
+XCamReturn rk_aiq_uapi2_setSingleRawBufAsyncMode(const rk_aiq_sys_ctx_t* ctx, bool async);
+
 RKAIQ_END_DECLARE
 
 #endif

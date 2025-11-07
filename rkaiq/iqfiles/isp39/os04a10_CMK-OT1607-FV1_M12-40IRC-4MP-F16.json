@@ -12683,6 +12683,11 @@
 								"PdCenterMinFv":	0,
 								"PdCenterMinRatio":	0,
 								"PdHighlightRatio":	0.5,
+								"PdUnStableCnt_thred":	10,
+								"PdSearchCnt_thred":	4,
+								"PdChgDirCnt_thred":	2,
+								"PdFocusNearObject":	0,
+								"PdNearObjectRatio":	0.7,
 								"PdStepRatio":	[1, 1, 1, 0.9, 0.8, 0.7, 0.7],
 								"PdStepDefocus":	[32, 64, 96, 128, 160, 192, 224],
 								"PdIsoPara":	[{
@@ -12702,6 +12707,7 @@
 										"NoConfCntThresh":	4,
 										"RoiBlkCntW":	3,
 										"RoiBlkCntH":	3,
+										"BadPdRatio":	0,
 										"FineSearchTbl":	{
 											"FineSearchTbl_len":	2,
 											"Confidence":	[0.5, 0],
@@ -12725,6 +12731,7 @@
 										"NoConfCntThresh":	4,
 										"RoiBlkCntW":	1,
 										"RoiBlkCntH":	1,
+										"BadPdRatio":	0,
 										"FineSearchTbl":	{
 											"FineSearchTbl_len":	2,
 											"Confidence":	[0.5, 0],
@@ -25556,6 +25563,11 @@
 								"PdCenterMinFv":	0,
 								"PdCenterMinRatio":	0,
 								"PdHighlightRatio":	0.5,
+								"PdUnStableCnt_thred":	10,
+								"PdSearchCnt_thred":	4,
+								"PdChgDirCnt_thred":	2,
+								"PdFocusNearObject":	0,
+								"PdNearObjectRatio":	0.7,
 								"PdStepRatio":	[1, 1, 1, 0.9, 0.8, 0.7, 0.7],
 								"PdStepDefocus":	[32, 64, 96, 128, 160, 192, 224],
 								"PdIsoPara":	[{
@@ -25575,6 +25587,7 @@
 										"NoConfCntThresh":	4,
 										"RoiBlkCntW":	3,
 										"RoiBlkCntH":	3,
+										"BadPdRatio":	0,
 										"FineSearchTbl":	{
 											"FineSearchTbl_len":	2,
 											"Confidence":	[0.5, 0],
@@ -25598,6 +25611,7 @@
 										"NoConfCntThresh":	4,
 										"RoiBlkCntW":	1,
 										"RoiBlkCntH":	1,
+										"BadPdRatio":	0,
 										"FineSearchTbl":	{
 											"FineSearchTbl_len":	2,
 											"Confidence":	[0.5, 0],

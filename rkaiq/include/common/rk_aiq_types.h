@@ -414,6 +414,16 @@ typedef struct {
     int max_pos;
 } rk_aiq_af_focusrange;
 
+#define PDLIBMAP_MAX_WIDTH     15
+#define PDLIBMAP_MAX_HEIGHT    15
+typedef struct {
+    uint32_t frame_id;
+    uint16_t map_width;
+    uint16_t map_height;
+    float confidence_map[PDLIBMAP_MAX_WIDTH * PDLIBMAP_MAX_HEIGHT];
+    int16_t defocus_map[PDLIBMAP_MAX_WIDTH * PDLIBMAP_MAX_HEIGHT];
+} rk_aiq_pdlib_output;
+
 #define AIBNR_MODEL_PATH_LEN             256
 typedef struct RkAiqAibnrModelInfo_s {
     char model_file[RK_AIQ_ISO_STEP_MAX][AIBNR_MODEL_PATH_LEN];

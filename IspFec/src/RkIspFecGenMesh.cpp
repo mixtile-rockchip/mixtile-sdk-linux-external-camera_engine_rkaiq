@@ -17,10 +17,11 @@
 
 #include "include_prv/RkIspFecGenMesh.h"
 
-#include <bits/unique_ptr.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <sys/time.h>
+
+#include <memory>
 
 #include "RkIspFecComm.h"
 
@@ -522,8 +523,6 @@ int32_t RkIspFecGenMesh::saveFloatMeshRK(const char* savePath,
     uint32_t srcH                = pStFloatMeshInfoRk->srcH;
     uint32_t dstW                = pStFloatMeshInfoRk->dstW;
     uint32_t dstH                = pStFloatMeshInfoRk->dstH;
-    uint32_t meshStepW           = pStFloatMeshInfoRk->meshStepW;
-    uint32_t meshStepH           = pStFloatMeshInfoRk->meshStepH;
     uint64_t u64FloatMeshBufSize = pStFloatMeshInfoRk->u64FloatMeshBufSize;
 
     char floatMeshXPath[1024];

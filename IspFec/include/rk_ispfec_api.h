@@ -18,7 +18,17 @@
 #ifndef _RK_ISPFEC_API_H_
 #define _RK_ISPFEC_API_H_
 
+#if defined(__ANDROID__) && !CMAKE_BUILD_ANDROID
+#if defined(ISP_HW_V30)
+#include "android/rkfec_config_v10.h"
+#elif defined(ISP_HW_V35)
+#include "android/rkfec_config_v20.h"
+#else
+#error "Please define supported ISP version!!!, eg: -DISP_HW_V30"
+#endif
+#else
 #include "rkfec_config.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {

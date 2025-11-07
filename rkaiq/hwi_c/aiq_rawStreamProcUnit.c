@@ -769,14 +769,8 @@ void AiqRawStreamProcUnit_send_sync_buf(AiqRawStreamProcUnit_t* pRawStrProcUnit,
     aiqCond_broadcast(&pRawStrProcUnit->_buf_cond);
 }
 
-XCamReturn AiqRawStreamProcUnit_set_csi_mem_word_big_align(AiqRawStreamProcUnit_t* pRawStrProcUnit,
-                                                           uint32_t width, uint32_t height,
-                                                           uint32_t sns_v4l_pix_fmt,
-                                                           int8_t sns_bpp) {
+XCamReturn AiqRawStreamProcUnit_set_csi_mem_word_align_mode(AiqRawStreamProcUnit_t* pRawStrProcUnit, int mode) {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
-
-    LOGD_CAMHW_SUBM(ISP20HW_SUBM, "sensor fmt 0x%x, %dx%d, sns_bpp: %d", sns_v4l_pix_fmt, width,
-                    height, sns_bpp);
 
     for (int i = 0; i < 3; i++) {
         if (!pRawStrProcUnit->_dev[i]) {
@@ -784,19 +778,17 @@ XCamReturn AiqRawStreamProcUnit_set_csi_mem_word_big_align(AiqRawStreamProcUnit_
             break;
         }
 
-        if (((width / 2 - RKMOUDLE_UNITE_EXTEND_PIXEL) * sns_bpp / 8) & 0xf) {
-            int mem_mode = CSI_MEM_WORD_BIG_ALIGN;
-            int ret1     = pRawStrProcUnit->_dev[i]->io_control(
-                pRawStrProcUnit->_dev[i], RKISP_CMD_SET_CSI_MEMORY_MODE, &mem_mode);
-            if (ret1) {
-                LOGE_CAMHW_SUBM(ISP20HW_SUBM, "set CSI_MEM_WORD_BIG_ALIGN failed !\n");
-                ret = XCAM_RETURN_ERROR_IOCTL;
-            } else {
-                LOGD_CAMHW_SUBM(ISP20HW_SUBM, "set the memory mode of isp rx to big align");
+        int mem_mode = mode;
+        int ret1     = pRawStrProcUnit->_dev[i]->io_control(
+            pRawStrProcUnit->_dev[i], RKISP_CMD_SET_CSI_MEMORY_MODE, &mem_mode);
+        if (ret1) {
+            LOGE_CAMHW_SUBM(ISP20HW_SUBM, "set CSI_MEM_WORD_BIG_ALIGN failed !\n");
+            ret = XCAM_RETURN_ERROR_IOCTL;
+        } else {
+            LOGD_CAMHW_SUBM(ISP20HW_SUBM, "set the memory mode of isp rx to big align");
 #if RKAIQ_HAVE_DUMPSYS
-                pRawStrProcUnit->data_mode = mem_mode;
+            pRawStrProcUnit->data_mode = mem_mode;
 #endif
-            }
         }
     }
 

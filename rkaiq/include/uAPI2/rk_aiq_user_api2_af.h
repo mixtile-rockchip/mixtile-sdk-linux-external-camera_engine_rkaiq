@@ -70,6 +70,8 @@ XCamReturn
 rk_aiq_user_api2_af_setAngleZ(const rk_aiq_sys_ctx_t* sys_ctx, float angleZ);
 XCamReturn
 rk_aiq_user_api2_af_GetFocusPos(const rk_aiq_sys_ctx_t* sys_ctx, int* pos);
+XCamReturn
+rk_aiq_user_api2_af_GetPdafLibOutput(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_pdlib_output* pdlib_output, int timeout_ms);
 #endif
 RKAIQ_END_DECLARE
 

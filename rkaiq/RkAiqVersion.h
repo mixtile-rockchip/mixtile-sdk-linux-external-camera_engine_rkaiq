@@ -894,10 +894,18 @@
  * v6.0x31.0
  * - Support btnr2, aiYnr, btnr memc, scene_cis
  * - isp driver should be v3.1.0 
+ * v6.0x32.0
+ * - iq: modify af,btnr attrib
+ * - isp driver should be v3.2.0
+ * - TB: add header struct size check
+ * - PDAF: update to v0.2.1
+ * - awb: fix earlier awb logic
+ * - fakecam: rk_aiq_frame_info_t add ispdgain
+ * - awb: fix tunning tool can't use api get awbgain cause by 4c52544
  */
 
-#define RK_AIQ_VERSION_REAL_V "v6.0x31.0"
-#define RK_AIQ_RELEASE_DATE "2025-08-01"
+#define RK_AIQ_VERSION_REAL_V "v6.0x32.0"
+#define RK_AIQ_RELEASE_DATE "2025-11-07"
 
 #define RK_AIQ_IQ_HEAD_VERSION_REAL_V "v1.0.2"
 

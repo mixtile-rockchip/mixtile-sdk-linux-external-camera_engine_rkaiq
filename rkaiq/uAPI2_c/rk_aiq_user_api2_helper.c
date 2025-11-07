@@ -636,8 +636,6 @@ RkAiqUapiDesc_t rkaiq_uapidesc_list[] = {
 #endif
 #if defined(ISP_HW_V35)
     __RKAIQUAPI_DESC_DEF("/uapi/0/af_uapi/attr", af_param_t, rk_aiq_user_api2_af_SetCalib, rk_aiq_user_api2_af_GetCalib),
-    __RKAIQUAPI_DESC_DEF("/uapi/0/btnr2_uapi/attr", btnr_api_attrib_t, rk_aiq_user_api2_btnr2_SetAttrib, rk_aiq_user_api2_btnr2_GetAttrib),
-    __RKAIQUAPI_DESC_DEF("/uapi/0/btnr2_uapi/info", btnr_status_t, NULL, rk_aiq_user_api2_btnr2_QueryStatus),
 #endif
 #if RKAIQ_HAVE_AIBNR
     __RKAIQUAPI_DESC_DEF("/uapi/0/aibnr_uapi/attr", aibnr_api_attrib_t, rk_aiq_user_api2_aibnr_SetAttrib, rk_aiq_user_api2_aibnr_GetAttrib),

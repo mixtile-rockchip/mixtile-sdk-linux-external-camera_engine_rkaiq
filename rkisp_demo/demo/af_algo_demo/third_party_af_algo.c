@@ -1091,3 +1091,62 @@ int32_t custom_af_run(rk_aiq_sys_ctx_t* ctx)
 
     return 0;
 }
+
+static void print_pdaf_stats(rk_aiq_pdlib_output *pdlib_output)
+{
+    printf("frame_id %d, map_width %d, map_height %d\n",
+        pdlib_output->frame_id, pdlib_output->map_width, pdlib_output->map_height);
+    printf("defocus_map\n");
+    for (int i = 0; i < pdlib_output->map_height; i++) {
+        for (int j = 0; j < pdlib_output->map_width; j++) {
+            printf("%08d, ", pdlib_output->defocus_map[pdlib_output->map_width * i + j]);
+        }
+        printf("\n");
+    }
+    printf("confidence_map\n");
+    for (int i = 0; i < pdlib_output->map_height; i++) {
+        for (int j = 0; j < pdlib_output->map_width; j++) {
+            printf("%08f, ", pdlib_output->confidence_map[pdlib_output->map_width * i + j]);
+        }
+        printf("\n");
+    }
+}
+
+static void* pdaf_thread(void* args) {
+    rk_aiq_sys_ctx_t* ctx = (rk_aiq_sys_ctx_t*)args;
+    XCamReturn ret;
+    pthread_detach (pthread_self());
+    printf("begin pdaf thread\n");
+
+    while(1) {
+        // get pdaf stats
+        rk_aiq_pdlib_output pdlib_output;
+        ret = rk_aiq_uapi2_getPdafLibOutput(ctx, &pdlib_output, -1);
+        if (ret == XCAM_RETURN_NO_ERROR) {
+            print_pdaf_stats(&pdlib_output);
+        } else {
+            if (ret == XCAM_RETURN_BYPASS) {
+                printf("aiq is not running !\n");
+                break;
+            } else if (ret == XCAM_RETURN_ERROR_TIMEOUT) {
+                printf("aiq timeout!\n");
+                continue;
+            } else if (ret == XCAM_RETURN_ERROR_FAILED) {
+                printf("aiq failed!\n");
+                break;
+            }
+        }
+
+    }
+    printf("end pdaf stats thread\n");
+    return 0;
+}
+
+int32_t custom_pdaf_run(rk_aiq_sys_ctx_t* ctx)
+{
+    pthread_t af_tid;
+    pthread_create(&af_tid, NULL, pdaf_thread, ctx);
+
+    return 0;
+}
+

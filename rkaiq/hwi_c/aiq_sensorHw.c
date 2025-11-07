@@ -805,12 +805,12 @@ static XCamReturn _SensorHw_updateBlcWbgain(AiqSensorHw_t* pSnsHw, uint32_t frmI
             int blc_shift = 12 - blc_cfg_info.bit_width;//12bit to 10 bit
             //LOGE_AWB("en:%d,meanBlc:%0x, blc_shift:%d", ispParams->bls_cfg.enable_auto, (__u32)meanBlc, blc_shift);
             if(blc_shift > 0) {
-                for(int i = 0; i < blc.group_num; i++) {
+                for(uint32_t i = 0; i < blc.group_num; i++) {
                     blc.blc_type[i] = (enum rkmodule_blc_type)i;
                     blc.blc[i] = (__u32) (meanBlc) >> blc_shift;
                 }
             } else {
-                for(int i = 0; i < blc.group_num; i++) {
+                for(uint32_t i = 0; i < blc.group_num; i++) {
                     blc.blc_type[i] = (enum rkmodule_blc_type)i;
                     blc.blc[i] = (__u32) (meanBlc) << (-blc_shift);
                 }
@@ -826,7 +826,7 @@ static XCamReturn _SensorHw_updateBlcWbgain(AiqSensorHw_t* pSnsHw, uint32_t frmI
             int wbgain_shift = 8 - wbg_cfg_info.fine_bit;//8bit to 10bit
             if (pSnsHw->_working_mode == RK_AIQ_WORKING_MODE_NORMAL) {
                 if(wbgain_shift < 0) {
-                    for(int i = 0; i < wbgain.group_num; i++) {
+                    for(uint32_t i = 0; i < wbgain.group_num; i++) {
                         wbgain.wb_gain_type[i] = (enum rkmodule_wb_type)i;
                         wbgain.wb_gain[i].r_gain = ispParams->awb_gain_cfg.awb1_gain_r << (-wbgain_shift);
                         wbgain.wb_gain[i].gr_gain = ispParams->awb_gain_cfg.awb1_gain_gr <<(-wbgain_shift);
@@ -834,7 +834,7 @@ static XCamReturn _SensorHw_updateBlcWbgain(AiqSensorHw_t* pSnsHw, uint32_t frmI
                         wbgain.wb_gain[i].b_gain = ispParams->awb_gain_cfg.awb1_gain_b << (-wbgain_shift);
                     }
                 } else {
-                    for(int i = 0; i < wbgain.group_num; i++) {
+                    for(uint32_t i = 0; i < wbgain.group_num; i++) {
                         wbgain.wb_gain_type[i] = (enum rkmodule_wb_type)i;
                         wbgain.wb_gain[i].r_gain = ispParams->awb_gain_cfg.awb1_gain_r >> wbgain_shift;
                         wbgain.wb_gain[i].gr_gain = ispParams->awb_gain_cfg.awb1_gain_gr >> wbgain_shift;
@@ -844,7 +844,7 @@ static XCamReturn _SensorHw_updateBlcWbgain(AiqSensorHw_t* pSnsHw, uint32_t frmI
                 }
             } else {
                 if(wbgain_shift < 0) {
-                    for(int i = 0; i < wbgain.group_num; i++) {
+                    for(uint32_t i = 0; i < wbgain.group_num; i++) {
                         wbgain.wb_gain_type[i] = (enum rkmodule_wb_type)i;
                         wbgain.wb_gain[i].r_gain = ispParams->awb_gain_cfg.gain0_red << (-wbgain_shift);
                         wbgain.wb_gain[i].gr_gain = ispParams->awb_gain_cfg.gain0_green_r <<(-wbgain_shift);
@@ -852,7 +852,7 @@ static XCamReturn _SensorHw_updateBlcWbgain(AiqSensorHw_t* pSnsHw, uint32_t frmI
                         wbgain.wb_gain[i].b_gain = ispParams->awb_gain_cfg.gain0_blue << (-wbgain_shift);
                     }
                 }else {
-                    for(int i = 0; i < wbgain.group_num; i++) {
+                    for(uint32_t i = 0; i < wbgain.group_num; i++) {
                         wbgain.wb_gain_type[i] = (enum rkmodule_wb_type)i;
                         wbgain.wb_gain[i].r_gain = ispParams->awb_gain_cfg.gain0_red >> wbgain_shift;
                         wbgain.wb_gain[i].gr_gain = ispParams->awb_gain_cfg.gain0_green_r >> wbgain_shift;
@@ -1106,6 +1106,18 @@ static uint32_t sensorHw_get_v4l2_pixelformat(uint32_t pixelcode) {
             break;
         case MEDIA_BUS_FMT_Y12_1X12:
             pixelformat = V4L2_PIX_FMT_Y12;
+            break;
+        case MEDIA_BUS_FMT_SBGGR14_1X14:
+            pixelformat = V4L2_PIX_FMT_SBGGR14;
+            break;
+        case MEDIA_BUS_FMT_SGBRG14_1X14:
+            pixelformat = V4L2_PIX_FMT_SGBRG14;
+            break;
+        case MEDIA_BUS_FMT_SGRBG14_1X14:
+            pixelformat = V4L2_PIX_FMT_SGRBG14;
+            break;
+        case MEDIA_BUS_FMT_SRGGB14_1X14:
+            pixelformat = V4L2_PIX_FMT_SRGGB14;
             break;
         case MEDIA_BUS_FMT_SBGGR16_1X16:
             pixelformat = V4L2_PIX_FMT_SBGGR16;
@@ -1589,7 +1601,7 @@ static XCamReturn _SensorHw_getExpMode(AiqSensorHw_t* pSnsHw, uint32_t *mode) {
 
 static XCamReturn _SensorHw_setExpMode(AiqSensorHw_t* pSnsHw, uint32_t mode) {
     uint32_t defMode = 0;
-    if (mode == -1) {
+    if (mode == (uint32_t)-1) {
         _SensorHw_updateBlcWbgain(pSnsHw, 0);
         return XCAM_RETURN_NO_ERROR;
     }
@@ -2059,7 +2071,7 @@ static XCamReturn _SensorHw_set_regSetting(AiqSensorHw_t* pSnsHw,
         reg_setting.binning_mode = BAYER_BINNING_2X2;
     }
     reg_setting.reg_num = regSetting->regCtrl_num;
-    for (int i = 0; i < reg_setting.reg_num; i++) {
+    for (uint32_t i = 0; i < reg_setting.reg_num; i++) {
         reg_setting.reg_list[i].reg_addr = regSetting->regCtrl[i].regAddr;
         reg_setting.reg_list[i].reg_val  = regSetting->regCtrl[i].regVal;
     }
@@ -2090,7 +2102,7 @@ static XCamReturn _SensorHw_set_qbcRmsc(AiqSensorHw_t* pSnsHw, calibdb_cis_qbc_r
 
     qbc_rmsc.bayer_mode = qbcRmsc->en;
     qbc_rmsc.reg_num    = qbcRmsc->sta.regCtrl_num;
-    for (int i = 0; i < qbc_rmsc.reg_num; i++) {
+    for (uint32_t i = 0; i < qbc_rmsc.reg_num; i++) {
         qbc_rmsc.reg_list[i].reg_addr = qbcRmsc->sta.regCtrl[i].regAddr;
         qbc_rmsc.reg_list[i].reg_val  = qbcRmsc->sta.regCtrl[i].regVal;
     }

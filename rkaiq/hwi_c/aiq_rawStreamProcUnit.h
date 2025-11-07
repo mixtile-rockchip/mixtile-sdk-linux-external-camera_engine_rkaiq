@@ -117,10 +117,7 @@ XCamReturn AiqRawStreamProcUnit_capture_raw_ctl(AiqRawStreamProcUnit_t* pRawStrP
                                                 capture_raw_t type, int count,
                                                 const char* capture_dir, char* output_dir);
 XCamReturn AiqRawStreamProcUnit_notify_capture_raw(AiqRawStreamProcUnit_t* pRawStrProcUnit);
-XCamReturn AiqRawStreamProcUnit_set_csi_mem_word_big_align(AiqRawStreamProcUnit_t* pRawStrProcUnit,
-                                                           uint32_t width, uint32_t height,
-                                                           uint32_t sns_v4l_pix_fmt,
-                                                           int8_t sns_bpp);
+XCamReturn AiqRawStreamProcUnit_set_csi_mem_word_align_mode(AiqRawStreamProcUnit_t* pRawStrProcUnit, int mode);
 void AiqRawStreamProcUnit_setPollCallback(AiqRawStreamProcUnit_t* pRawStrProcUnit,
                                           AiqPollCallback_t* cb);
 
