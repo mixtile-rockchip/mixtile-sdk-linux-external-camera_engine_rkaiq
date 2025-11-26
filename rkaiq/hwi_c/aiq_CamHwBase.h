@@ -312,6 +312,7 @@ typedef struct AiqCamHwBase_s {
     struct rkaiisp_param_info mAibnrParamInfo;
     AibnrManager_t* mAibnrManager;
     bool mAibnrBufPoolInit;
+    rk_aiq_aibnr_buffer_count_t mAibnrBufCnt;
     XCamReturn (*aibnr_init)(AiqCamHwBase_t* pCamHw, AibnrManager_t* pAibnrManager, struct rkisp_aiisp_cfg *aibnr_cfg);
     XCamReturn (*aibnr_prepare)(AiqCamHwBase_t* pCamHw);
     XCamReturn (*aibnr_start)(AiqCamHwBase_t* pCamHw);
@@ -486,6 +487,11 @@ XCamReturn AiqCamHw_setUserOtpInfo(AiqCamHwBase_t* pCamHw, rk_aiq_user_otp_info_
 XCamReturn AiqCamHw_getHdrComprCurve(AiqCamHwBase_t* pCamHw, RkAiqHdrCompr_t* compr);
 
 XCamReturn AiqCamHw_setSingleRawBufAsyncMode(AiqCamHwBase_t* pCamHw, bool mode);
+
+XCamReturn AiqCamHw_setAiBnrBufCnt(AiqCamHwBase_t* pCamHw,
+                                   rk_aiq_aibnr_buffer_count_t aibnr_buf_cnt);
+XCamReturn AiqCamHw_getAiBnrBufCnt(AiqCamHwBase_t* pCamHw,
+                                   rk_aiq_aibnr_buffer_count_t* aibnr_buf_cnt);
 
 XCAM_END_DECLARE
 

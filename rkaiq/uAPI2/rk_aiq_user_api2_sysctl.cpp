@@ -837,4 +837,9 @@ rk_aiq_uapi2_sysctl_setSnsSyncMode(const rk_aiq_sys_ctx_t* ctx, enum rkmodule_sy
     return dynamic_cast<CamHwIsp20*>(ctx->_camHw.ptr())->setSnsSyncMode(sync_mode);
 }
 
+XCamReturn rk_aiq_uapi2_setAiBnrBufCnt(const rk_aiq_sys_ctx_t* ctx,
+                                       rk_aiq_aibnr_buffer_count_t aibnr_buf_cnt) {
+    return XCAM_RETURN_ERROR_FAILED;
+}
+
 #endif

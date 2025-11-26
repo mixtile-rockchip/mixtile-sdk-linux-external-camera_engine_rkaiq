@@ -2680,6 +2680,8 @@ XCamReturn AiqCamHwBase_init(AiqCamHwBase_t* pCamHw, const char* sns_ent_name) {
     pCamHw->aibnr_clrIqParam   = AiqCamHw_aibnr_clrIqParam;
 
     pCamHw->btnrWgtReproc_updateEn = AiqCamHw_btnrWgtReproc_updateEn;
+    pCamHw->mAibnrBufCnt.isp_fe    = AIBNR_IIR_BUF_CNT;
+    pCamHw->mAibnrBufCnt.isp_be    = AIBNR_AIISP_BUF_CNT;
 #endif
 
     //AIYNR
@@ -3905,11 +3907,26 @@ static XCamReturn _init_bay3dbuf(AiqCamHwBase_t* pCamHw, void* isp_params) {
         else
             pCamHw->_bnrDrvBuf._bay3dbuf.u.v35.aibnr_l2 = 0;
 
-        pCamHw->_bnrDrvBuf._bay3dbuf.iir.buf_cnt              = AIBNR_IIR_BUF_CNT;
+        uint16_t feBuf_cnt = pCamHw->mAibnrBufCnt.isp_fe;
+        uint16_t beBuf_cnt = pCamHw->mAibnrBufCnt.isp_be;
+        if (!feBuf_cnt) {
+            feBuf_cnt                   = AIBNR_IIR_BUF_CNT;
+            pCamHw->mAibnrBufCnt.isp_fe = feBuf_cnt;
+        }
+
+        if (!beBuf_cnt) {
+            beBuf_cnt                   = AIBNR_AIISP_BUF_CNT;
+            pCamHw->mAibnrBufCnt.isp_be = beBuf_cnt;
+        }
+
+        pCamHw->_bnrDrvBuf._bay3dbuf.iir.buf_cnt              = feBuf_cnt;
         pCamHw->_bnrDrvBuf._bay3dbuf.u.v35.gain.buf_cnt       = AIBNR_GAIN_BUF_CNT;
-        pCamHw->_bnrDrvBuf._bay3dbuf.u.v35.aipre_gain.buf_cnt = AIBNR_AIPRE_BUF_CNT;
-        pCamHw->_bnrDrvBuf._bay3dbuf.u.v35.vpsl.buf_cnt       = AIBNR_VPSL_BUF_CNT;
-        pCamHw->_bnrDrvBuf._bay3dbuf.u.v35.aiisp.buf_cnt      = AIBNR_AIISP_BUF_CNT;
+        pCamHw->_bnrDrvBuf._bay3dbuf.u.v35.aipre_gain.buf_cnt = feBuf_cnt;
+        pCamHw->_bnrDrvBuf._bay3dbuf.u.v35.vpsl.buf_cnt       = feBuf_cnt;
+        pCamHw->_bnrDrvBuf._bay3dbuf.u.v35.aiisp.buf_cnt      = beBuf_cnt;
+
+        LOGK_AIBNR("request feBuf_cnt %d, beBuf_cnt %d", pCamHw->mAibnrBufCnt.isp_fe,
+                   pCamHw->mAibnrBufCnt.isp_be);
         //pCamHw->_bnrDrvBuf._bay3dbuf.u.v35.y_src.buf_cnt      = AIBNR_AIISP_BUF_CNT;
     } else if (aiynr_en) {
         pCamHw->use_aiisp = true;
@@ -8245,6 +8262,40 @@ XCamReturn AiqCamHw_getHdrComprCurve(AiqCamHwBase_t* pCamHw, RkAiqHdrCompr_t* co
     AiqSensorHw_t* mSensorSubdev = pCamHw->_mSensorDev;
 
     return AiqSensorHw_getHdrComprCurve(mSensorSubdev, compr);
+}
+
+XCamReturn AiqCamHw_setAiBnrBufCnt(AiqCamHwBase_t* pCamHw,
+                                   rk_aiq_aibnr_buffer_count_t aibnr_buf_cnt) {
+#if RKAIQ_HAVE_AIBNR
+    if (pCamHw->_state == CAM_HW_STATE_PREPARED || pCamHw->_state == CAM_HW_STATE_STARTED) {
+        LOGE_CAMHW_SUBM(ISP20HW_SUBM, "Can't set aibnr buf cnt in state(%d)", pCamHw->_state);
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+
+    LOGK_CAMHW_SUBM(ISP20HW_SUBM, "set aibnr buf cnt to (isp_fe: %d, isp_be: %d)",
+                    aibnr_buf_cnt.isp_fe, aibnr_buf_cnt.isp_be);
+
+    pCamHw->mAibnrBufCnt = aibnr_buf_cnt;
+
+    return XCAM_RETURN_NO_ERROR;
+#else
+    return XCAM_RETURN_ERROR_FAILED;
+#endif
+}
+
+XCamReturn AiqCamHw_getAiBnrBufCnt(AiqCamHwBase_t* pCamHw,
+                                   rk_aiq_aibnr_buffer_count_t* aibnr_buf_cnt) {
+#if RKAIQ_HAVE_AIBNR
+    if (!pCamHw) {
+        LOGE_CAMHW_SUBM(ISP20HW_SUBM, "invalid params");
+        return XCAM_RETURN_ERROR_PARAM;
+    }
+
+    *aibnr_buf_cnt = pCamHw->mAibnrBufCnt;
+    return XCAM_RETURN_NO_ERROR;
+#else
+    return XCAM_RETURN_ERROR_FAILED;
+#endif
 }
 
 XCAM_END_DECLARE

@@ -153,6 +153,10 @@ XCamReturn rk_aiq_user_api2_ae_getFrameHdrAttr(
 }
 
 #else
+#define RETURN_IF_CUSTOM_AE(sys_ctx) \
+    if (sys_ctx->_isCustomAe) \
+        return XCAM_RETURN_NO_ERROR;
+
 XCamReturn rk_aiq_user_api2_ae_setExpWinAttr(
     const rk_aiq_sys_ctx_t* sys_ctx,
     const Uapi_ExpWin_t ExpWin)
@@ -161,6 +165,8 @@ XCamReturn rk_aiq_user_api2_ae_setExpWinAttr(
     CHECK_USER_API_ENABLE2(sys_ctx);
     CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AE);
     RKAIQ_API_SMART_LOCK(sys_ctx);
+
+    RETURN_IF_CUSTOM_AE(sys_ctx)
 
     if (sys_ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
 #ifdef RKAIQ_ENABLE_CAMGROUP
@@ -187,6 +193,8 @@ XCamReturn rk_aiq_user_api2_ae_getExpWinAttr(
 {
     RKAIQ_API_SMART_LOCK(sys_ctx);
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+    RETURN_IF_CUSTOM_AE(sys_ctx)
 
     if (sys_ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
 #ifdef RKAIQ_ENABLE_CAMGROUP
@@ -215,6 +223,8 @@ XCamReturn rk_aiq_user_api2_ae_setAecStatsCfg(
     CHECK_USER_API_ENABLE2(sys_ctx);
     CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AE);
     RKAIQ_API_SMART_LOCK(sys_ctx);
+
+    RETURN_IF_CUSTOM_AE(sys_ctx)
 
     if (sys_ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
 #ifdef RKAIQ_ENABLE_CAMGROUP
@@ -259,6 +269,8 @@ XCamReturn rk_aiq_user_api2_ae_getAecStatsCfg(
 {
     RKAIQ_API_SMART_LOCK(sys_ctx);
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+    RETURN_IF_CUSTOM_AE(sys_ctx)
 
     if (sys_ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
 #ifdef RKAIQ_ENABLE_CAMGROUP
@@ -307,6 +319,8 @@ XCamReturn rk_aiq_user_api2_ae_setExpSubWinAttr
     CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AE);
     RKAIQ_API_SMART_LOCK(sys_ctx);
 
+    RETURN_IF_CUSTOM_AE(sys_ctx)
+
     if (sys_ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
 #ifdef RKAIQ_ENABLE_CAMGROUP
         LOGW("%s: not support camgroup mode!", __FUNCTION__);
@@ -333,6 +347,8 @@ XCamReturn rk_aiq_user_api2_ae_getExpSubWinAttr
 ) {
     RKAIQ_API_SMART_LOCK(sys_ctx);
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+    RETURN_IF_CUSTOM_AE(sys_ctx)
 
     if (sys_ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
 #ifdef RKAIQ_ENABLE_CAMGROUP
@@ -364,6 +380,8 @@ XCamReturn rk_aiq_user_api2_ae_setFrameHdrAttr(
     CHECK_USER_API_ENABLE2(sys_ctx);
     CHECK_USER_API_ENABLE(RK_AIQ_ALGO_TYPE_AE);
     RKAIQ_API_SMART_LOCK(sys_ctx);
+
+    RETURN_IF_CUSTOM_AE(sys_ctx)
 
     if (sys_ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
 #ifdef RKAIQ_ENABLE_CAMGROUP
@@ -408,6 +426,8 @@ XCamReturn rk_aiq_user_api2_ae_getFrameHdrAttr(
 {
     RKAIQ_API_SMART_LOCK(sys_ctx);
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+    RETURN_IF_CUSTOM_AE(sys_ctx)
 
     if (sys_ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
 #ifdef RKAIQ_ENABLE_CAMGROUP
@@ -1067,10 +1087,6 @@ XCamReturn rk_aiq_user_api2_ae_queryExpResInfo(
 }
 
 #else
-#define RETURN_IF_CUSTOM_AE(sys_ctx) \
-    if (sys_ctx->_isCustomAe) \
-        return XCAM_RETURN_NO_ERROR;
-
 XCamReturn rk_aiq_user_api2_ae_setExpSwAttr(
     const rk_aiq_sys_ctx_t* sys_ctx,
     const ae_api_expSwAttr_t expSwAttr)

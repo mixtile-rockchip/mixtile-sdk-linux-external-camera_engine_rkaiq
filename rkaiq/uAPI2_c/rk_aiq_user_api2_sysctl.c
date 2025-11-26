@@ -2654,6 +2654,16 @@ XCamReturn rk_aiq_uapi2_sysctl_getHdrComprCurve(const rk_aiq_sys_ctx_t* ctx,
     return AiqCamHw_getHdrComprCurve(ctx->_camHw, compr);
 }
 
+XCamReturn rk_aiq_uapi2_setAiBnrBufCnt(const rk_aiq_sys_ctx_t* ctx,
+                                       rk_aiq_aibnr_buffer_count_t aibnr_buf_cnt) {
+    if (ctx->cam_type == RK_AIQ_CAM_TYPE_GROUP) {
+        LOGE("not support !");
+        return XCAM_RETURN_ERROR_FAILED;
+    }
+
+    return AiqCamHw_setAiBnrBufCnt(ctx->_camHw, aibnr_buf_cnt);
+}
+
 #include "rk_aiq_user_api2_common.c"
 #if defined(ISP_HW_V39)
 #include "rk_aiq_user_api2_3dlut.c"

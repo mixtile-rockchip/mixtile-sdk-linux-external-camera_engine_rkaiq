@@ -144,6 +144,9 @@ typedef struct AibnrManager_s {
     bool pBtnr2En;
     uint32_t doAiisp_delaycnt;
     uint32_t doAiisp_framecnt;
+
+    uint16_t feBuf_cnt;
+    uint16_t beBuf_cnt;
 } AibnrManager_t;
 
 XCamReturn AibnrManager_init(AiqManager_t* pAiqManager, AibnrManager_t* pAibnrManager);

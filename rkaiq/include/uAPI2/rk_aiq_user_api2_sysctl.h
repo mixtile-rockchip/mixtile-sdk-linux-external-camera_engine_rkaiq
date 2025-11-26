@@ -642,6 +642,18 @@ XCamReturn rk_aiq_uapi2_sysctl_getHdrComprCurve(const rk_aiq_sys_ctx_t* ctx,
  */
 XCamReturn rk_aiq_uapi2_setSingleRawBufAsyncMode(const rk_aiq_sys_ctx_t* ctx, bool async);
 
+/*!
+ * \brief set aibnr buf cnt
+ *
+ * \param[in] ctx             the context returned by \ref rk_aiq_uapi2_sysctl_init
+ * \param[in] aibnr_buf_cnt   aibnr buffer count
+ * \return return 0 if success
+ * \note This interface should be called after \ref rk_aiq_uapi2_sysctl_init and before \ref
+ * rk_aiq_uapi2_sysctl_prepare
+ */
+XCamReturn rk_aiq_uapi2_setAiBnrBufCnt(const rk_aiq_sys_ctx_t* ctx,
+                                       rk_aiq_aibnr_buffer_count_t aibnr_buf_cnt);
+
 RKAIQ_END_DECLARE
 
 #endif
