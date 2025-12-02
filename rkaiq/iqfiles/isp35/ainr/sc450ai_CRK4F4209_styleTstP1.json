@@ -9217,9 +9217,9 @@
 										"mdSigma":	{
 											"hw_btnrT_sigma_scale":	1,
 											"hw_btnrT_sigmaHdrS_scale":	1,
-											"sw_btnrT_sigmaIdxFltCfg_mode":	"btnr_cfgByFiltStrg_mode",
+											"sw_btnrT_sigmaIdxFltCfg_mode":	"btnr_cfgByFiltCoeff_mode",
 											"hw_btnrT_sigmaIdxFilt_strg":	4,
-											"hw_btnrT_sigmaIdxFilt_coeff":	[0, 0, 0, 0, 0, 0]
+											"hw_btnrT_sigmaIdxFilt_coeff":	[16, 10, 10, 10, 10, 10]
 										},
 										"subLoMd0":	{
 											"diffCh":	{
@@ -9331,7 +9331,7 @@
 										},
 										"loMd":	{
 											"hw_btnrT_loMd_en":	1,
-											"hw_btnrT_loMd_mode":	"btnr_subLoMd1Only_mode",
+											"hw_btnrT_loMd_mode":	"btnr_subDeepLoMdOnly_mode",
 											"hw_btnrT_preWgtMge_scale":	2,
 											"hw_btnrT_preWgtMge_offset":	1
 										},
@@ -9340,28 +9340,28 @@
 											"hw_btnrT_hfLpf_en":	1,
 											"sw_btnrT_hfLpfCfg_mode":	"btnr_cfgByFiltStrg_mode",
 											"hw_btnrT_hfLpfSpatial_wgt":	[178, 99, 60, 22, 13, 3, 0, 1, 1],
-											"sw_btnrT_hfLpf_strg":	1.5
+											"sw_btnrT_hfLpf_strg":	1
 										},
 										"loAsRatio_hiMd0":	{
-											"hw_btnrT_loWgtStat_scale":	1,
-											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_hiNsBase_ratio":	3,
-											"hw_btnrT_mdWgt_maxLimit":	2
+											"hw_btnrT_loWgtStat_scale":	2,
+											"hw_btnrT_loWgtStatHdrS_scale":	0.7,
+											"hw_btnrT_hiNsBase_ratio":	2.5,
+											"hw_btnrT_mdWgt_maxLimit":	1
 										},
 										"loAsBias_hiMd1":	{
-											"hw_btnrT_hiMd_en":	1,
-											"hw_btnrT_loWgtStat_negOff":	0.5,
-											"hw_btnrT_loWgtStatHdrS_negOff":	0.5,
-											"hw_btnrT_loWgtStat_scale":	0.3,
-											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_mdWgt_offset":	0.7,
-											"hw_btnrT_mdWgt_minLimit":	0.1,
-											"hw_btnrT_mdWgt_maxLimit":	2,
+											"hw_btnrT_hiMd_en":	0,
+											"hw_btnrT_loWgtStat_negOff":	0,
+											"hw_btnrT_loWgtStatHdrS_negOff":	0.6,
+											"hw_btnrT_loWgtStat_scale":	1,
+											"hw_btnrT_loWgtStatHdrS_scale":	0.7,
+											"hw_btnrT_mdWgt_offset":	0.707,
+											"hw_btnrT_mdWgt_minLimit":	0.05,
+											"hw_btnrT_mdWgt_maxLimit":	15.9,
 											"hw_btnrT_mdWgt_scale":	2.4,
 											"hw_btnrT_mdWgtHdrS_scale":	1.4
 										},
 										"mdWgtFilt":	{
-											"hw_btnrT_mdWgt_offset":	0
+											"hw_btnrT_mdWgt_offset":	0.5
 										},
 										"memc":	{
 											"hw_btnrT_memc_en":	0,
@@ -9505,7 +9505,7 @@
 										},
 										"loMd":	{
 											"hw_btnrT_loMd_en":	1,
-											"hw_btnrT_loMd_mode":	"btnr_subLoMd1Only_mode",
+											"hw_btnrT_loMd_mode":	"btnr_subDeepLoMdOnly_mode",
 											"hw_btnrT_preWgtMge_scale":	2,
 											"hw_btnrT_preWgtMge_offset":	1
 										},
@@ -9517,22 +9517,22 @@
 											"sw_btnrT_hfLpf_strg":	1
 										},
 										"loAsRatio_hiMd0":	{
-											"hw_btnrT_loWgtStat_scale":	1,
+											"hw_btnrT_loWgtStat_scale":	2,
 											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_hiNsBase_ratio":	3,
-											"hw_btnrT_mdWgt_maxLimit":	2
+											"hw_btnrT_hiNsBase_ratio":	2.5,
+											"hw_btnrT_mdWgt_maxLimit":	1
 										},
 										"loAsBias_hiMd1":	{
-											"hw_btnrT_hiMd_en":	1,
-											"hw_btnrT_loWgtStat_negOff":	0.5,
+											"hw_btnrT_hiMd_en":	0,
+											"hw_btnrT_loWgtStat_negOff":	0,
 											"hw_btnrT_loWgtStatHdrS_negOff":	0.5,
-											"hw_btnrT_loWgtStat_scale":	0.3,
-											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_mdWgt_offset":	0.7,
-											"hw_btnrT_mdWgt_minLimit":	0.1,
-											"hw_btnrT_mdWgt_maxLimit":	2,
+											"hw_btnrT_loWgtStat_scale":	1,
+											"hw_btnrT_loWgtStatHdrS_scale":	0.7,
+											"hw_btnrT_mdWgt_offset":	0.4,
+											"hw_btnrT_mdWgt_minLimit":	0.05,
+											"hw_btnrT_mdWgt_maxLimit":	15.9,
 											"hw_btnrT_mdWgt_scale":	2.4,
-											"hw_btnrT_mdWgtHdrS_scale":	1.4
+											"hw_btnrT_mdWgtHdrS_scale":	2.4
 										},
 										"mdWgtFilt":	{
 											"hw_btnrT_mdWgt_offset":	0
@@ -9679,7 +9679,7 @@
 										},
 										"loMd":	{
 											"hw_btnrT_loMd_en":	1,
-											"hw_btnrT_loMd_mode":	"btnr_subLoMd1Only_mode",
+											"hw_btnrT_loMd_mode":	"btnr_subDeepLoMdOnly_mode",
 											"hw_btnrT_preWgtMge_scale":	2,
 											"hw_btnrT_preWgtMge_offset":	1
 										},
@@ -9691,22 +9691,22 @@
 											"sw_btnrT_hfLpf_strg":	1
 										},
 										"loAsRatio_hiMd0":	{
-											"hw_btnrT_loWgtStat_scale":	1,
+											"hw_btnrT_loWgtStat_scale":	2,
 											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_hiNsBase_ratio":	3,
-											"hw_btnrT_mdWgt_maxLimit":	2
+											"hw_btnrT_hiNsBase_ratio":	2.2,
+											"hw_btnrT_mdWgt_maxLimit":	1
 										},
 										"loAsBias_hiMd1":	{
-											"hw_btnrT_hiMd_en":	1,
-											"hw_btnrT_loWgtStat_negOff":	0.5,
+											"hw_btnrT_hiMd_en":	0,
+											"hw_btnrT_loWgtStat_negOff":	0,
 											"hw_btnrT_loWgtStatHdrS_negOff":	0.5,
-											"hw_btnrT_loWgtStat_scale":	0.3,
-											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_mdWgt_offset":	0.7,
-											"hw_btnrT_mdWgt_minLimit":	0.1,
-											"hw_btnrT_mdWgt_maxLimit":	2,
+											"hw_btnrT_loWgtStat_scale":	1,
+											"hw_btnrT_loWgtStatHdrS_scale":	0.7,
+											"hw_btnrT_mdWgt_offset":	0.5,
+											"hw_btnrT_mdWgt_minLimit":	0.05,
+											"hw_btnrT_mdWgt_maxLimit":	15.9,
 											"hw_btnrT_mdWgt_scale":	2.4,
-											"hw_btnrT_mdWgtHdrS_scale":	1.4
+											"hw_btnrT_mdWgtHdrS_scale":	2.4
 										},
 										"mdWgtFilt":	{
 											"hw_btnrT_mdWgt_offset":	0
@@ -9853,7 +9853,7 @@
 										},
 										"loMd":	{
 											"hw_btnrT_loMd_en":	1,
-											"hw_btnrT_loMd_mode":	"btnr_subLoMd1Only_mode",
+											"hw_btnrT_loMd_mode":	"btnr_subDeepLoMdOnly_mode",
 											"hw_btnrT_preWgtMge_scale":	2,
 											"hw_btnrT_preWgtMge_offset":	1
 										},
@@ -9865,22 +9865,22 @@
 											"sw_btnrT_hfLpf_strg":	1
 										},
 										"loAsRatio_hiMd0":	{
-											"hw_btnrT_loWgtStat_scale":	1,
+											"hw_btnrT_loWgtStat_scale":	2,
 											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_hiNsBase_ratio":	3,
-											"hw_btnrT_mdWgt_maxLimit":	2
+											"hw_btnrT_hiNsBase_ratio":	2.15,
+											"hw_btnrT_mdWgt_maxLimit":	1
 										},
 										"loAsBias_hiMd1":	{
-											"hw_btnrT_hiMd_en":	1,
-											"hw_btnrT_loWgtStat_negOff":	0.5,
+											"hw_btnrT_hiMd_en":	0,
+											"hw_btnrT_loWgtStat_negOff":	0,
 											"hw_btnrT_loWgtStatHdrS_negOff":	0.5,
 											"hw_btnrT_loWgtStat_scale":	1,
-											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_mdWgt_offset":	0.45,
-											"hw_btnrT_mdWgt_minLimit":	0.1,
-											"hw_btnrT_mdWgt_maxLimit":	2,
+											"hw_btnrT_loWgtStatHdrS_scale":	0.7,
+											"hw_btnrT_mdWgt_offset":	0.5,
+											"hw_btnrT_mdWgt_minLimit":	0.05,
+											"hw_btnrT_mdWgt_maxLimit":	15.9,
 											"hw_btnrT_mdWgt_scale":	2.4,
-											"hw_btnrT_mdWgtHdrS_scale":	1.4
+											"hw_btnrT_mdWgtHdrS_scale":	2.4
 										},
 										"mdWgtFilt":	{
 											"hw_btnrT_mdWgt_offset":	0
@@ -10039,22 +10039,22 @@
 											"sw_btnrT_hfLpf_strg":	1
 										},
 										"loAsRatio_hiMd0":	{
-											"hw_btnrT_loWgtStat_scale":	1,
+											"hw_btnrT_loWgtStat_scale":	2,
 											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_hiNsBase_ratio":	3,
-											"hw_btnrT_mdWgt_maxLimit":	2
+											"hw_btnrT_hiNsBase_ratio":	2.1,
+											"hw_btnrT_mdWgt_maxLimit":	1
 										},
 										"loAsBias_hiMd1":	{
-											"hw_btnrT_hiMd_en":	1,
-											"hw_btnrT_loWgtStat_negOff":	0.5,
+											"hw_btnrT_hiMd_en":	0,
+											"hw_btnrT_loWgtStat_negOff":	0,
 											"hw_btnrT_loWgtStatHdrS_negOff":	0.5,
 											"hw_btnrT_loWgtStat_scale":	1,
-											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_mdWgt_offset":	0.45,
-											"hw_btnrT_mdWgt_minLimit":	0.1,
-											"hw_btnrT_mdWgt_maxLimit":	2,
+											"hw_btnrT_loWgtStatHdrS_scale":	0.7,
+											"hw_btnrT_mdWgt_offset":	0.5,
+											"hw_btnrT_mdWgt_minLimit":	0.05,
+											"hw_btnrT_mdWgt_maxLimit":	15.9,
 											"hw_btnrT_mdWgt_scale":	2.4,
-											"hw_btnrT_mdWgtHdrS_scale":	1.4
+											"hw_btnrT_mdWgtHdrS_scale":	2.4
 										},
 										"mdWgtFilt":	{
 											"hw_btnrT_mdWgt_offset":	0
@@ -10076,7 +10076,7 @@
 											"hw_btnrT_loFusion_maxLimit":	32,
 											"hw_btnrT_loFusionHdrS_minLimit":	0,
 											"hw_btnrT_loFusionHdrS_maxLimit":	32,
-											"hw_btnrT_loMotion_maxLimit":	4,
+											"hw_btnrT_loMotion_maxLimit":	2,
 											"hw_btnrT_loRbSoftThd_scale":	0,
 											"hw_btnrT_loGgSoftThd_scale":	0,
 											"hw_btnrT_loSoftThd_minLimit":	0,
@@ -10210,25 +10210,25 @@
 											"hw_btnrT_hfLpf_en":	1,
 											"sw_btnrT_hfLpfCfg_mode":	"btnr_cfgByFiltStrg_mode",
 											"hw_btnrT_hfLpfSpatial_wgt":	[178, 99, 60, 22, 13, 3, 0, 1, 1],
-											"sw_btnrT_hfLpf_strg":	1.2
+											"sw_btnrT_hfLpf_strg":	1
 										},
 										"loAsRatio_hiMd0":	{
-											"hw_btnrT_loWgtStat_scale":	1,
+											"hw_btnrT_loWgtStat_scale":	2,
 											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_hiNsBase_ratio":	3,
-											"hw_btnrT_mdWgt_maxLimit":	2
+											"hw_btnrT_hiNsBase_ratio":	2,
+											"hw_btnrT_mdWgt_maxLimit":	1
 										},
 										"loAsBias_hiMd1":	{
-											"hw_btnrT_hiMd_en":	1,
-											"hw_btnrT_loWgtStat_negOff":	0.5,
+											"hw_btnrT_hiMd_en":	0,
+											"hw_btnrT_loWgtStat_negOff":	0,
 											"hw_btnrT_loWgtStatHdrS_negOff":	0.5,
 											"hw_btnrT_loWgtStat_scale":	1,
-											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_mdWgt_offset":	0.4,
-											"hw_btnrT_mdWgt_minLimit":	0.1,
-											"hw_btnrT_mdWgt_maxLimit":	2,
+											"hw_btnrT_loWgtStatHdrS_scale":	0.7,
+											"hw_btnrT_mdWgt_offset":	0.5,
+											"hw_btnrT_mdWgt_minLimit":	0.05,
+											"hw_btnrT_mdWgt_maxLimit":	15.9,
 											"hw_btnrT_mdWgt_scale":	2.4,
-											"hw_btnrT_mdWgtHdrS_scale":	1.4
+											"hw_btnrT_mdWgtHdrS_scale":	2.4
 										},
 										"mdWgtFilt":	{
 											"hw_btnrT_mdWgt_offset":	0
@@ -10384,25 +10384,25 @@
 											"hw_btnrT_hfLpf_en":	1,
 											"sw_btnrT_hfLpfCfg_mode":	"btnr_cfgByFiltStrg_mode",
 											"hw_btnrT_hfLpfSpatial_wgt":	[178, 99, 60, 22, 13, 3, 0, 1, 1],
-											"sw_btnrT_hfLpf_strg":	1.2
+											"sw_btnrT_hfLpf_strg":	1
 										},
 										"loAsRatio_hiMd0":	{
-											"hw_btnrT_loWgtStat_scale":	1,
+											"hw_btnrT_loWgtStat_scale":	2,
 											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_hiNsBase_ratio":	3,
-											"hw_btnrT_mdWgt_maxLimit":	2
+											"hw_btnrT_hiNsBase_ratio":	2,
+											"hw_btnrT_mdWgt_maxLimit":	1
 										},
 										"loAsBias_hiMd1":	{
 											"hw_btnrT_hiMd_en":	0,
-											"hw_btnrT_loWgtStat_negOff":	0.5,
+											"hw_btnrT_loWgtStat_negOff":	0,
 											"hw_btnrT_loWgtStatHdrS_negOff":	0.5,
 											"hw_btnrT_loWgtStat_scale":	1,
-											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_mdWgt_offset":	0.4,
-											"hw_btnrT_mdWgt_minLimit":	0.1,
-											"hw_btnrT_mdWgt_maxLimit":	2,
+											"hw_btnrT_loWgtStatHdrS_scale":	0.7,
+											"hw_btnrT_mdWgt_offset":	0.5,
+											"hw_btnrT_mdWgt_minLimit":	0.05,
+											"hw_btnrT_mdWgt_maxLimit":	15.9,
 											"hw_btnrT_mdWgt_scale":	2.4,
-											"hw_btnrT_mdWgtHdrS_scale":	1.4
+											"hw_btnrT_mdWgtHdrS_scale":	2.4
 										},
 										"mdWgtFilt":	{
 											"hw_btnrT_mdWgt_offset":	0
@@ -10558,25 +10558,25 @@
 											"hw_btnrT_hfLpf_en":	1,
 											"sw_btnrT_hfLpfCfg_mode":	"btnr_cfgByFiltStrg_mode",
 											"hw_btnrT_hfLpfSpatial_wgt":	[178, 99, 60, 22, 13, 3, 0, 1, 1],
-											"sw_btnrT_hfLpf_strg":	1.6
+											"sw_btnrT_hfLpf_strg":	1
 										},
 										"loAsRatio_hiMd0":	{
-											"hw_btnrT_loWgtStat_scale":	1,
+											"hw_btnrT_loWgtStat_scale":	2,
 											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_hiNsBase_ratio":	3,
+											"hw_btnrT_hiNsBase_ratio":	2,
 											"hw_btnrT_mdWgt_maxLimit":	2
 										},
 										"loAsBias_hiMd1":	{
 											"hw_btnrT_hiMd_en":	0,
-											"hw_btnrT_loWgtStat_negOff":	0.5,
+											"hw_btnrT_loWgtStat_negOff":	0,
 											"hw_btnrT_loWgtStatHdrS_negOff":	0.5,
 											"hw_btnrT_loWgtStat_scale":	1,
-											"hw_btnrT_loWgtStatHdrS_scale":	1,
+											"hw_btnrT_loWgtStatHdrS_scale":	0.7,
 											"hw_btnrT_mdWgt_offset":	0.4,
-											"hw_btnrT_mdWgt_minLimit":	0.1,
-											"hw_btnrT_mdWgt_maxLimit":	2,
+											"hw_btnrT_mdWgt_minLimit":	0.05,
+											"hw_btnrT_mdWgt_maxLimit":	8,
 											"hw_btnrT_mdWgt_scale":	2.4,
-											"hw_btnrT_mdWgtHdrS_scale":	1.4
+											"hw_btnrT_mdWgtHdrS_scale":	2.4
 										},
 										"mdWgtFilt":	{
 											"hw_btnrT_mdWgt_offset":	0
@@ -10595,7 +10595,7 @@
 										"frmFusion":	{
 											"hw_btnrT_frmFusion_mode":	"btnr_kalMdOnly_mode",
 											"hw_btnrT_loFusion_minLimit":	0,
-											"hw_btnrT_loFusion_maxLimit":	48,
+											"hw_btnrT_loFusion_maxLimit":	32,
 											"hw_btnrT_loFusionHdrS_minLimit":	0,
 											"hw_btnrT_loFusionHdrS_maxLimit":	32,
 											"hw_btnrT_loMotion_maxLimit":	4,
@@ -10732,25 +10732,25 @@
 											"hw_btnrT_hfLpf_en":	1,
 											"sw_btnrT_hfLpfCfg_mode":	"btnr_cfgByFiltStrg_mode",
 											"hw_btnrT_hfLpfSpatial_wgt":	[178, 99, 60, 22, 13, 3, 0, 1, 1],
-											"sw_btnrT_hfLpf_strg":	1.5
+											"sw_btnrT_hfLpf_strg":	1
 										},
 										"loAsRatio_hiMd0":	{
-											"hw_btnrT_loWgtStat_scale":	1,
+											"hw_btnrT_loWgtStat_scale":	2,
 											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_hiNsBase_ratio":	3,
-											"hw_btnrT_mdWgt_maxLimit":	2
+											"hw_btnrT_hiNsBase_ratio":	2,
+											"hw_btnrT_mdWgt_maxLimit":	1
 										},
 										"loAsBias_hiMd1":	{
 											"hw_btnrT_hiMd_en":	0,
 											"hw_btnrT_loWgtStat_negOff":	0,
 											"hw_btnrT_loWgtStatHdrS_negOff":	0.5,
 											"hw_btnrT_loWgtStat_scale":	1,
-											"hw_btnrT_loWgtStatHdrS_scale":	1,
+											"hw_btnrT_loWgtStatHdrS_scale":	0.7,
 											"hw_btnrT_mdWgt_offset":	0.4,
-											"hw_btnrT_mdWgt_minLimit":	0.1,
-											"hw_btnrT_mdWgt_maxLimit":	2,
+											"hw_btnrT_mdWgt_minLimit":	0.15,
+											"hw_btnrT_mdWgt_maxLimit":	8,
 											"hw_btnrT_mdWgt_scale":	2.4,
-											"hw_btnrT_mdWgtHdrS_scale":	1.4
+											"hw_btnrT_mdWgtHdrS_scale":	2.4
 										},
 										"mdWgtFilt":	{
 											"hw_btnrT_mdWgt_offset":	0
@@ -10769,7 +10769,7 @@
 										"frmFusion":	{
 											"hw_btnrT_frmFusion_mode":	"btnr_kalMdOnly_mode",
 											"hw_btnrT_loFusion_minLimit":	0,
-											"hw_btnrT_loFusion_maxLimit":	64,
+											"hw_btnrT_loFusion_maxLimit":	32,
 											"hw_btnrT_loFusionHdrS_minLimit":	0,
 											"hw_btnrT_loFusionHdrS_maxLimit":	32,
 											"hw_btnrT_loMotion_maxLimit":	4,
@@ -10906,25 +10906,25 @@
 											"hw_btnrT_hfLpf_en":	1,
 											"sw_btnrT_hfLpfCfg_mode":	"btnr_cfgByFiltStrg_mode",
 											"hw_btnrT_hfLpfSpatial_wgt":	[178, 99, 60, 22, 13, 3, 0, 1, 1],
-											"sw_btnrT_hfLpf_strg":	1.5
+											"sw_btnrT_hfLpf_strg":	1
 										},
 										"loAsRatio_hiMd0":	{
-											"hw_btnrT_loWgtStat_scale":	1,
+											"hw_btnrT_loWgtStat_scale":	2,
 											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_hiNsBase_ratio":	3,
-											"hw_btnrT_mdWgt_maxLimit":	2
+											"hw_btnrT_hiNsBase_ratio":	2,
+											"hw_btnrT_mdWgt_maxLimit":	1
 										},
 										"loAsBias_hiMd1":	{
 											"hw_btnrT_hiMd_en":	0,
-											"hw_btnrT_loWgtStat_negOff":	0.5,
+											"hw_btnrT_loWgtStat_negOff":	0,
 											"hw_btnrT_loWgtStatHdrS_negOff":	0.5,
 											"hw_btnrT_loWgtStat_scale":	1,
-											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_mdWgt_offset":	0.5,
-											"hw_btnrT_mdWgt_minLimit":	0.1,
-											"hw_btnrT_mdWgt_maxLimit":	2,
+											"hw_btnrT_loWgtStatHdrS_scale":	0.7,
+											"hw_btnrT_mdWgt_offset":	0.35,
+											"hw_btnrT_mdWgt_minLimit":	0.15,
+											"hw_btnrT_mdWgt_maxLimit":	8,
 											"hw_btnrT_mdWgt_scale":	2.4,
-											"hw_btnrT_mdWgtHdrS_scale":	1.4
+											"hw_btnrT_mdWgtHdrS_scale":	2.4
 										},
 										"mdWgtFilt":	{
 											"hw_btnrT_mdWgt_offset":	0
@@ -10943,7 +10943,7 @@
 										"frmFusion":	{
 											"hw_btnrT_frmFusion_mode":	"btnr_kalMdOnly_mode",
 											"hw_btnrT_loFusion_minLimit":	0,
-											"hw_btnrT_loFusion_maxLimit":	64,
+											"hw_btnrT_loFusion_maxLimit":	32,
 											"hw_btnrT_loFusionHdrS_minLimit":	0,
 											"hw_btnrT_loFusionHdrS_maxLimit":	32,
 											"hw_btnrT_loMotion_maxLimit":	4,
@@ -11080,7 +11080,7 @@
 											"hw_btnrT_hfLpf_en":	1,
 											"sw_btnrT_hfLpfCfg_mode":	"btnr_cfgByFiltStrg_mode",
 											"hw_btnrT_hfLpfSpatial_wgt":	[178, 99, 60, 22, 13, 3, 0, 1, 1],
-											"sw_btnrT_hfLpf_strg":	2.2
+											"sw_btnrT_hfLpf_strg":	1
 										},
 										"loAsRatio_hiMd0":	{
 											"hw_btnrT_loWgtStat_scale":	2,
@@ -11093,12 +11093,12 @@
 											"hw_btnrT_loWgtStat_negOff":	0,
 											"hw_btnrT_loWgtStatHdrS_negOff":	0.5,
 											"hw_btnrT_loWgtStat_scale":	1,
-											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_mdWgt_offset":	1.1,
-											"hw_btnrT_mdWgt_minLimit":	0.3,
+											"hw_btnrT_loWgtStatHdrS_scale":	0.7,
+											"hw_btnrT_mdWgt_offset":	0.55,
+											"hw_btnrT_mdWgt_minLimit":	0.05,
 											"hw_btnrT_mdWgt_maxLimit":	2,
-											"hw_btnrT_mdWgt_scale":	3,
-											"hw_btnrT_mdWgtHdrS_scale":	1.4
+											"hw_btnrT_mdWgt_scale":	4,
+											"hw_btnrT_mdWgtHdrS_scale":	2.4
 										},
 										"mdWgtFilt":	{
 											"hw_btnrT_mdWgt_offset":	0
@@ -11117,7 +11117,7 @@
 										"frmFusion":	{
 											"hw_btnrT_frmFusion_mode":	"btnr_kalMdOnly_mode",
 											"hw_btnrT_loFusion_minLimit":	0,
-											"hw_btnrT_loFusion_maxLimit":	128,
+											"hw_btnrT_loFusion_maxLimit":	32,
 											"hw_btnrT_loFusionHdrS_minLimit":	0,
 											"hw_btnrT_loFusionHdrS_maxLimit":	32,
 											"hw_btnrT_loMotion_maxLimit":	4,
@@ -11254,7 +11254,7 @@
 											"hw_btnrT_hfLpf_en":	1,
 											"sw_btnrT_hfLpfCfg_mode":	"btnr_cfgByFiltStrg_mode",
 											"hw_btnrT_hfLpfSpatial_wgt":	[178, 99, 60, 22, 13, 3, 0, 1, 1],
-											"sw_btnrT_hfLpf_strg":	2.2
+											"sw_btnrT_hfLpf_strg":	1
 										},
 										"loAsRatio_hiMd0":	{
 											"hw_btnrT_loWgtStat_scale":	2,
@@ -11267,12 +11267,12 @@
 											"hw_btnrT_loWgtStat_negOff":	0,
 											"hw_btnrT_loWgtStatHdrS_negOff":	0.5,
 											"hw_btnrT_loWgtStat_scale":	1,
-											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_mdWgt_offset":	1.1,
-											"hw_btnrT_mdWgt_minLimit":	0.3,
-											"hw_btnrT_mdWgt_maxLimit":	2,
-											"hw_btnrT_mdWgt_scale":	3,
-											"hw_btnrT_mdWgtHdrS_scale":	1.4
+											"hw_btnrT_loWgtStatHdrS_scale":	0.7,
+											"hw_btnrT_mdWgt_offset":	0.35,
+											"hw_btnrT_mdWgt_minLimit":	0.05,
+											"hw_btnrT_mdWgt_maxLimit":	1.5,
+											"hw_btnrT_mdWgt_scale":	2.4,
+											"hw_btnrT_mdWgtHdrS_scale":	2.4
 										},
 										"mdWgtFilt":	{
 											"hw_btnrT_mdWgt_offset":	0
@@ -11291,7 +11291,7 @@
 										"frmFusion":	{
 											"hw_btnrT_frmFusion_mode":	"btnr_kalMdOnly_mode",
 											"hw_btnrT_loFusion_minLimit":	0,
-											"hw_btnrT_loFusion_maxLimit":	128,
+											"hw_btnrT_loFusion_maxLimit":	32,
 											"hw_btnrT_loFusionHdrS_minLimit":	0,
 											"hw_btnrT_loFusionHdrS_maxLimit":	32,
 											"hw_btnrT_loMotion_maxLimit":	4,
@@ -11428,7 +11428,7 @@
 											"hw_btnrT_hfLpf_en":	1,
 											"sw_btnrT_hfLpfCfg_mode":	"btnr_cfgByFiltStrg_mode",
 											"hw_btnrT_hfLpfSpatial_wgt":	[178, 99, 60, 22, 13, 3, 0, 1, 1],
-											"sw_btnrT_hfLpf_strg":	2.2
+											"sw_btnrT_hfLpf_strg":	1
 										},
 										"loAsRatio_hiMd0":	{
 											"hw_btnrT_loWgtStat_scale":	2,
@@ -11441,12 +11441,12 @@
 											"hw_btnrT_loWgtStat_negOff":	0,
 											"hw_btnrT_loWgtStatHdrS_negOff":	0.5,
 											"hw_btnrT_loWgtStat_scale":	1,
-											"hw_btnrT_loWgtStatHdrS_scale":	1,
-											"hw_btnrT_mdWgt_offset":	1.1,
-											"hw_btnrT_mdWgt_minLimit":	0.3,
-											"hw_btnrT_mdWgt_maxLimit":	2,
-											"hw_btnrT_mdWgt_scale":	3,
-											"hw_btnrT_mdWgtHdrS_scale":	1.4
+											"hw_btnrT_loWgtStatHdrS_scale":	0.7,
+											"hw_btnrT_mdWgt_offset":	0.35,
+											"hw_btnrT_mdWgt_minLimit":	0.05,
+											"hw_btnrT_mdWgt_maxLimit":	1.5,
+											"hw_btnrT_mdWgt_scale":	2.4,
+											"hw_btnrT_mdWgtHdrS_scale":	2.4
 										},
 										"mdWgtFilt":	{
 											"hw_btnrT_mdWgt_offset":	0
@@ -11465,7 +11465,7 @@
 										"frmFusion":	{
 											"hw_btnrT_frmFusion_mode":	"btnr_kalMdOnly_mode",
 											"hw_btnrT_loFusion_minLimit":	0,
-											"hw_btnrT_loFusion_maxLimit":	128,
+											"hw_btnrT_loFusion_maxLimit":	32,
 											"hw_btnrT_loFusionHdrS_minLimit":	0,
 											"hw_btnrT_loFusionHdrS_maxLimit":	32,
 											"hw_btnrT_loMotion_maxLimit":	4,
@@ -29731,7 +29731,7 @@
 							"bypass":	0,
 							"stAuto":	{
 								"sta":	{
-									"dLoMd_mode":	"btnr_dLoMdPreOnly_mode",
+									"dLoMd_mode":	"btnr_dLoMdCurOrPre_mode",
 									"dLoWgtFilt_mode":	"btnr_dLoWgtFilt7x7_mode",
 									"hw_btnrCfg_pixDomain_mode":	"btnr_pixLog2Domain_mode",
 									"transCfg":	{
@@ -30422,8 +30422,8 @@
 												"sw_btnrT_dLoSrc_mode":	"btnr_subLoMd1_mode",
 												"hw_btnrT_minFilt_en":	1,
 												"hw_btnrT_lpf_en":	1,
-												"hw_btnrT_wgt_scale":	4,
-												"hw_btnrT_wgt_offset":	0.8,
+												"hw_btnrT_wgt_scale":	16,
+												"hw_btnrT_wgt_offset":	0,
 												"sw_btnrT_wgt2FusionLmt_negOff":	0.5,
 												"sw_btnrT_wgt2FusionLmt_scale":	4,
 												"hw_btnrT_wgt2FussionLmt_offset":	1
@@ -30596,8 +30596,8 @@
 												"sw_btnrT_dLoSrc_mode":	"btnr_subLoMd1_mode",
 												"hw_btnrT_minFilt_en":	1,
 												"hw_btnrT_lpf_en":	1,
-												"hw_btnrT_wgt_scale":	4,
-												"hw_btnrT_wgt_offset":	0.3,
+												"hw_btnrT_wgt_scale":	16,
+												"hw_btnrT_wgt_offset":	0.09,
 												"sw_btnrT_wgt2FusionLmt_negOff":	0.5,
 												"sw_btnrT_wgt2FusionLmt_scale":	4,
 												"hw_btnrT_wgt2FussionLmt_offset":	1
@@ -30770,8 +30770,8 @@
 												"sw_btnrT_dLoSrc_mode":	"btnr_subLoMd1_mode",
 												"hw_btnrT_minFilt_en":	1,
 												"hw_btnrT_lpf_en":	1,
-												"hw_btnrT_wgt_scale":	4,
-												"hw_btnrT_wgt_offset":	0.3,
+												"hw_btnrT_wgt_scale":	16,
+												"hw_btnrT_wgt_offset":	0.09,
 												"sw_btnrT_wgt2FusionLmt_negOff":	0.5,
 												"sw_btnrT_wgt2FusionLmt_scale":	4,
 												"hw_btnrT_wgt2FussionLmt_offset":	0.9
@@ -30944,8 +30944,8 @@
 												"sw_btnrT_dLoSrc_mode":	"btnr_subLoMd1_mode",
 												"hw_btnrT_minFilt_en":	1,
 												"hw_btnrT_lpf_en":	1,
-												"hw_btnrT_wgt_scale":	4,
-												"hw_btnrT_wgt_offset":	0.32,
+												"hw_btnrT_wgt_scale":	16,
+												"hw_btnrT_wgt_offset":	0.1,
 												"sw_btnrT_wgt2FusionLmt_negOff":	0.5,
 												"sw_btnrT_wgt2FusionLmt_scale":	4,
 												"hw_btnrT_wgt2FussionLmt_offset":	1
@@ -31118,8 +31118,8 @@
 												"sw_btnrT_dLoSrc_mode":	"btnr_subLoMd1_mode",
 												"hw_btnrT_minFilt_en":	1,
 												"hw_btnrT_lpf_en":	1,
-												"hw_btnrT_wgt_scale":	4,
-												"hw_btnrT_wgt_offset":	0.32,
+												"hw_btnrT_wgt_scale":	16,
+												"hw_btnrT_wgt_offset":	0.1,
 												"sw_btnrT_wgt2FusionLmt_negOff":	0.5,
 												"sw_btnrT_wgt2FusionLmt_scale":	4,
 												"hw_btnrT_wgt2FussionLmt_offset":	1
@@ -31292,8 +31292,8 @@
 												"sw_btnrT_dLoSrc_mode":	"btnr_subLoMd1_mode",
 												"hw_btnrT_minFilt_en":	1,
 												"hw_btnrT_lpf_en":	1,
-												"hw_btnrT_wgt_scale":	4,
-												"hw_btnrT_wgt_offset":	0.29,
+												"hw_btnrT_wgt_scale":	16,
+												"hw_btnrT_wgt_offset":	0.11,
 												"sw_btnrT_wgt2FusionLmt_negOff":	0.5,
 												"sw_btnrT_wgt2FusionLmt_scale":	4,
 												"hw_btnrT_wgt2FussionLmt_offset":	1
@@ -31466,8 +31466,8 @@
 												"sw_btnrT_dLoSrc_mode":	"btnr_subLoMd1_mode",
 												"hw_btnrT_minFilt_en":	1,
 												"hw_btnrT_lpf_en":	1,
-												"hw_btnrT_wgt_scale":	4,
-												"hw_btnrT_wgt_offset":	0.24,
+												"hw_btnrT_wgt_scale":	16,
+												"hw_btnrT_wgt_offset":	0.11,
 												"sw_btnrT_wgt2FusionLmt_negOff":	0.5,
 												"sw_btnrT_wgt2FusionLmt_scale":	4,
 												"hw_btnrT_wgt2FussionLmt_offset":	1
@@ -31640,8 +31640,8 @@
 												"sw_btnrT_dLoSrc_mode":	"btnr_subLoMd1_mode",
 												"hw_btnrT_minFilt_en":	1,
 												"hw_btnrT_lpf_en":	1,
-												"hw_btnrT_wgt_scale":	4,
-												"hw_btnrT_wgt_offset":	0.24,
+												"hw_btnrT_wgt_scale":	16,
+												"hw_btnrT_wgt_offset":	0.12,
 												"sw_btnrT_wgt2FusionLmt_negOff":	0.5,
 												"sw_btnrT_wgt2FusionLmt_scale":	4,
 												"hw_btnrT_wgt2FussionLmt_offset":	1
@@ -31814,8 +31814,8 @@
 												"sw_btnrT_dLoSrc_mode":	"btnr_subLoMd1_mode",
 												"hw_btnrT_minFilt_en":	1,
 												"hw_btnrT_lpf_en":	1,
-												"hw_btnrT_wgt_scale":	4,
-												"hw_btnrT_wgt_offset":	0.2,
+												"hw_btnrT_wgt_scale":	16,
+												"hw_btnrT_wgt_offset":	0.16,
 												"sw_btnrT_wgt2FusionLmt_negOff":	0.5,
 												"sw_btnrT_wgt2FusionLmt_scale":	4,
 												"hw_btnrT_wgt2FussionLmt_offset":	1
@@ -31989,7 +31989,7 @@
 												"hw_btnrT_minFilt_en":	1,
 												"hw_btnrT_lpf_en":	1,
 												"hw_btnrT_wgt_scale":	16,
-												"hw_btnrT_wgt_offset":	0,
+												"hw_btnrT_wgt_offset":	0.16,
 												"sw_btnrT_wgt2FusionLmt_negOff":	0.5,
 												"sw_btnrT_wgt2FusionLmt_scale":	4,
 												"hw_btnrT_wgt2FussionLmt_offset":	1
