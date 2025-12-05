@@ -6647,6 +6647,17 @@ retry:
         }
 #endif
 
+#if RKAIQ_HAVE_MEMC
+        if (pCamHw->mMemcEn) {
+            bool btnr_en = isp_params->module_ens & ISP3X_MODULE_BAY3D;
+            if(btnr_en)
+                _init_bay3dbuf(pCamHw, isp_params);
+
+            AiqMemcManager_send_ispparam(pCamHw->mMemcStream, pV4l2Buf);
+            return XCAM_RETURN_NO_ERROR;
+        }
+#endif
+
         if (pCamHw->updateEffParams) {
 #if defined(RKAIQ_HAVE_MULTIISP) && (defined(ISP_HW_V30) || defined(ISP_HW_V32) || \
                 defined(ISP_HW_V32_LITE) || defined(ISP_HW_V39) || defined(ISP_HW_V33) || defined(ISP_HW_V35))
@@ -6720,13 +6731,6 @@ retry:
                     AiynrManager_updateParams(pCamHw->mAiynrManager, isp_aiynr_param, frameId);
                 }
             }
-        }
-#endif
-
-#if RKAIQ_HAVE_MEMC
-        if (pCamHw->mMemcEn) {
-            AiqMemcManager_send_ispparam(pCamHw->mMemcStream, pV4l2Buf);
-            return XCAM_RETURN_NO_ERROR;
         }
 #endif
 
