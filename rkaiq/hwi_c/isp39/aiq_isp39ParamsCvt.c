@@ -1843,6 +1843,7 @@ static void convertAiqAwbToIsp39Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_
 
     WriteAwbReg(awb_cfg_v32);
     WriteDataForIcCmodel(awb_cfg_v32);
+    pCvt->mLatestMeasCfg.rawawb = pCvt->isp_params.isp_cfg->meas.rawawb;
 }
 #endif
 #if RKAIQ_HAVE_AF_V33 || RKAIQ_ONLY_AF_STATS_V33

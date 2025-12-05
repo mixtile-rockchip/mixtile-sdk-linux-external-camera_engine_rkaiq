@@ -1684,6 +1684,7 @@ static void convertAiqAwbToIsp33Params(AiqIspParamsCvt_t* pCvt, aiq_params_base_
     awb_cfg_v35->blk_rtdw_measure_en = 0;
     WriteDataForIcCmodel(awb_cfg_v35);
     WriteAwbReg(awb_cfg_v35);
+    pCvt->mLatestMeasCfg.rawawb = pCvt->isp_params.isp_cfg->meas.rawawb;
 }
 
 #if RKAIQ_HAVE_CAC_V30

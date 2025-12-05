@@ -1881,9 +1881,9 @@ XCamReturn translateMultiAwbStatsV39(AiqStatsTranslator_t* pStatsTrans, const ai
     memset(&statsInt->awb_stats_v39, 0, sizeof(statsInt->awb_stats_v39));
 
     if (left_stats->stat.info2ddr.owner == RKISP_INFO2DRR_OWNER_AWB) {
-        statsInt->awb_stats_v32.dbginfo_fd = left_stats->stat.info2ddr.buf_fd;
+        statsInt->awb_stats_v39.dbginfo_fd = left_stats->stat.info2ddr.buf_fd;
     } else {
-        statsInt->awb_stats_v32.dbginfo_fd = -1;
+        statsInt->awb_stats_v39.dbginfo_fd = -1;
     }
     statsInt->awb_stats_v39.awb_cfg_effect.blkMeasureMode =
         pStatsTrans->_ispParams->awb_cfg_v39.com.pixEngine.hw_awbCfg_zoneStatsSrc_mode > awbStats_pixAll_mode;
