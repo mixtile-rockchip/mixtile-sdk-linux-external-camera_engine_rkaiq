@@ -455,7 +455,7 @@ void selector_process_frame(Selector* selector, const float* current_wbgain, int
                                                     HISTORY_SIZE;
         }
 
-        LOGD("%s=%.3f ", selector->sources[i].name, dist);
+        LOGD("%s=%.3f (%.2f, %.2f) ", selector->sources[i].name, dist, selector->sources[i].std_wbgain[0], selector->sources[i].std_wbgain[1]);
 
         // 找到距离最小的光源
         if (dist < min_distance) {

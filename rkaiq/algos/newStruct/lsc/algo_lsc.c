@@ -284,7 +284,6 @@ XCamReturn Alsc_prepare(RkAiqAlgoCom* params)
     pLscCtx->lsc_attrib =
         (lsc_calib_attrib_t*)(CALIBDBV2_GET_MODULE_PTR(params->u.prepare.calibv2, lsc));
 
-    pLscCtx->pre_illu_idx = INVALID_ILLU_IDX;
     pLscCtx->isReCal_ = true;
     pLscCtx->is_calib_update = true;
     pLscCtx->lsc_tableAll_use_len = pLscCtx->lsc_attrib->calibdb.tableAll_len;
@@ -310,7 +309,7 @@ XCamReturn Alsc_processing(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outpar
             selector_add_source(&pLscCtx->lsc_selector, i,
                                 pdyn->illuLink[i].sw_lscC_illu_name,
                                 pdyn->illuLink[i].sw_lscC_wbGainR_val,
-                                pdyn->illuLink[i].sw_lscC_wbGainR_val);
+                                pdyn->illuLink[i].sw_lscC_wbGainB_val);
         }
         pLscCtx->lsc_selector.source_count = MIN(pdyn->sw_lscT_illuLink_len, ILLUM_MAX_NUM);
     }
