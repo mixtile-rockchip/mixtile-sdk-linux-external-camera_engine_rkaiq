@@ -18,9 +18,12 @@ def remove_source(root, algo):
 
 def copy_build_lib(root, algo):
     algo_dir = os.path.join(root, "rk_irfpa/algos/%s" % algo)
-    libfile = os.path.join(root, "build/rk_irfpa/algos/%s/lib_rk_irfpa_%s.a" % (algo, algo))
-    assert os.path.isfile(libfile), "%s: static lib not found!" % algo
+    libfile = os.path.join(root, "build_arm/rk_irfpa/algos/%s/lib_rk_irfpa_%s_arm.a" % (algo, algo))
+    libfile64 = os.path.join(root, "build_arm64/rk_irfpa/algos/%s/lib_rk_irfpa_%s_aarch64.a" % (algo, algo))
+    assert os.path.isfile(libfile), "%s: static lib 32 not found!" % algo
+    assert os.path.isfile(libfile64), "%s: static lib 64 not found!" % algo
     os.system("cp %s %s/" %(libfile, algo_dir))
+    os.system("cp %s %s/" %(libfile64, algo_dir))
 
 def remove_lib_file(root, algo):
     libfile = os.path.join(root, "rk_irfpa/algos/%s/lib_rk_irfpa_%s.a" % (algo, algo))
@@ -47,8 +50,8 @@ for item in items:
 os.chdir(sdk_dir)
 
 git_status = os.popen("git status").read()
-if "working tree clean" not in git_status:
-    print("git not clean, please commit your changes first")
+#if "working tree clean" not in git_status:
+#    print("git not clean, please commit your changes first")
     #sys.exit()
 
 git_head = os.popen("git rev-parse --short HEAD").read().strip()
@@ -61,11 +64,16 @@ if len(sys.argv) == 1:
 
 if sys.argv[1] == "build":
     print("running cmake ..")
-    os.system("cmake -S . -B build -DOPTION_BUILD_STATIC=ON -DOPTION_BUILD_DEMO=OFF")
+    os.system("cmake -S . -B build_arm -DOPTION_BUILD_STATIC=ON -DOPTION_BUILD_DEMO=OFF")
 
-    print("build static libs ..")
-    os.system("cmake --build build")
+    print("build static libs 32 ..")
+    os.system("cmake --build build_arm")
 
+    print("running cmake ..")
+    os.system("cmake -S . -B build_arm64 -DOPTION_BUILD_STATIC=ON -DOPTION_BUILD_DEMO=OFF -DARCH=aarch64")
+
+    print("build static libs 64 ..")
+    os.system("cmake --build build_arm64")
     #for algo in algos:
     #    print("copy lib --> ", algo)
     #    copy_build_lib(sdk_dir, algo)
@@ -79,4 +87,5 @@ if sys.argv[1] == "copy":
         remove_source(ext_dir, algo)
         copy_build_lib(ext_dir, algo)
 
-    os.system("rm -rf %s" %(os.path.join(ext_dir, "build")))
+    os.system("rm -rf %s" %(os.path.join(ext_dir, "build_arm")))
+    os.system("rm -rf %s" %(os.path.join(ext_dir, "build_arm64")))
