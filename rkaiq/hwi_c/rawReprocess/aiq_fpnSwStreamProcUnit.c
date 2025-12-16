@@ -833,6 +833,11 @@ XCamReturn AiqFpnSwStreamProcUnit_deinit(AiqFpnSwStreamProcUnit_t* pFpnProc)
 
     rk_fpn_correction_deinit(&pFpnProc->_fpn_param);
 
+    if (pFpnProc->_fpn_correct_raw) {
+        free(pFpnProc->_fpn_correct_raw);
+        pFpnProc->_fpn_correct_raw = NULL;
+    }
+
     return XCAM_RETURN_NO_ERROR;
 }
 
