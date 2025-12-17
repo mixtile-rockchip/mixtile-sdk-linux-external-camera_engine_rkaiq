@@ -20188,7 +20188,7 @@
 										"sw_aiBnrCfg_modelRun_mode":	"aiBnr_comboX1G8_mode"
 									},
 									"frmRate":	{
-										"sw_aibnrT_frmRate_mode":	"aibnr_frmRate_fix_mode",
+										"sw_aibnrT_frmRate_mode":	"aibnr_frmRate_auto_mode",
 										"sw_aibnrT_frmRate_val":	10
 									}
 								},
