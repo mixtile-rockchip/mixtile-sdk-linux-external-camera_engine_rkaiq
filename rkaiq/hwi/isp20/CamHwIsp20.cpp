@@ -6781,6 +6781,7 @@ CamHwIsp20::pixFmt2Bpp(uint32_t pixFmt, int8_t& bpp)
     case V4L2_PIX_FMT_SGBRG10:
     case V4L2_PIX_FMT_SGRBG10:
     case V4L2_PIX_FMT_SRGGB10:
+    case V4L2_PIX_FMT_Y10:
         bpp = 10;
         break;
     case V4L2_PIX_FMT_SBGGR12:
