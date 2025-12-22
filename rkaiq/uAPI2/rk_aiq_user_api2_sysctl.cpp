@@ -86,7 +86,7 @@ rk_aiq_uapi2_sysctl_init(const char* sns_ent_name,
 }
 
 XCamReturn rk_aiq_uapi2_sysctl_setOnetoMultiMode(rk_aiq_sys_ctx_t* ctx, int isp_num,
-                                                 __u32 frame_pattern[4])
+                                                 __u32 frame_pattern[4], bool bSingleExp)
 {
     ENTER_XCORE_FUNCTION();
     RKAIQ_API_SMART_LOCK(ctx);
@@ -118,6 +118,8 @@ XCamReturn rk_aiq_uapi2_sysctl_setOnetoMultiMode(rk_aiq_sys_ctx_t* ctx, int isp_
 
     capture_info.mode                 = RKMODULE_ONE_CH_TO_MULTI_ISP;
     capture_info.one_to_multi.isp_num = isp_num;
+    capture_info.one_to_multi.exp_mode = bSingleExp ? RKMODULE_ONE_TO_MULT_EXP_SINGLE : RKMODULE_ONE_TO_MULT_EXP_SWITCH;
+    capture_info.one_to_multi.exp_main_id = 0;
     memcpy(capture_info.one_to_multi.frame_pattern, frame_pattern, sizeof(__u32) * 4);
 
     if (xcam_device_ioctl(video0_fd, RKMODULE_SET_CAPTURE_MODE, &capture_info) < 0) {

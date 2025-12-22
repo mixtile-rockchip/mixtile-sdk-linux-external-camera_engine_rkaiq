@@ -87,9 +87,10 @@ rk_aiq_uapi2_sysctl_init(const char* sns_ent_name,
  * \param[in] isp_num         the isp num corresponding to the frame pattern nums.
  * \param[in] frame_pattern   customize different frame pattern.Like A pattern has 1 frame ,\n
  *                            B has 1 frame, then it's {1,1,0,0}.
+ * \param[in] bSingleExp      salve cams use main cam's exp.
  */
 XCamReturn rk_aiq_uapi2_sysctl_setOnetoMultiMode(rk_aiq_sys_ctx_t* ctx, int isp_num,
-                                                 __u32 frame_pattern[4]);
+                                                 __u32 frame_pattern[4], bool bSingleExp);
 
 /*!
  * \brief deinitialze aiq context
